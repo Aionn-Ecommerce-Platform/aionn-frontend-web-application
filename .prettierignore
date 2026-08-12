@@ -1,0 +1,12 @@
+.agents/
+.claude/
+.codex/
+.next/
+out/
+build/
+coverage/
+node_modules/
+next-env.d.ts
+*.tsbuildinfo
+package-lock.json
+public/

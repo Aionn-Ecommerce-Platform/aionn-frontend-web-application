@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check:encoding
+      - run: npm run check:api
+      - run: npm run check:i18n
+      - run: npm run check:architecture
+      - run: npm run check:design
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run test:cov
+      - run: npm run deadcode
+      - run: npm run build

@@ -1,0 +1,24 @@
+{
+  "entry": [
+    "src/app/**/{page,layout,loading,error,global-error,not-found,route,template,default}.tsx",
+    "src/app/**/{sitemap,robots,manifest}.ts",
+    "scripts/**/*.mjs"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "scripts/**/*.mjs"],
+  "ignore": ["next-env.d.ts"],
+  "ignoreDependencies": [
+    "postcss",
+    "eslint-plugin-import",
+    "@testing-library/user-event",
+    "tailwindcss"
+  ],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "exports": "warn",
+    "types": "warn",
+    "duplicates": "warn"
+  }
+}
