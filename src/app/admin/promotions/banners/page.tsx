@@ -18,7 +18,7 @@ import { Button, Badge, EmptyState, Modal, ConfirmDialog } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   adminPromotionBannerService,
-  uploadToCloudinary,
+  uploadAssetToCloudinary,
 } from "@/lib/services";
 import type {
   PromotionBannerAdmin,
@@ -30,6 +30,7 @@ import { useTranslation } from "@/hooks";
 interface BannerForm {
   title: string;
   imageUrl: string;
+  imagePublicId: string;
   linkUrl: string;
   displayOrder: number;
   active: boolean;
@@ -38,6 +39,7 @@ interface BannerForm {
 const EMPTY_FORM: BannerForm = {
   title: "",
   imageUrl: "",
+  imagePublicId: "",
   linkUrl: "",
   displayOrder: 0,
   active: true,
@@ -110,6 +112,7 @@ function AdminBannersInner() {
     setForm({
       title: b.title,
       imageUrl: b.imageUrl,
+      imagePublicId: b.imagePublicId,
       linkUrl: b.linkUrl,
       displayOrder: b.displayOrder,
       active: b.active,
@@ -127,8 +130,12 @@ function AdminBannersInner() {
     setUploading(true);
     try {
       const sig = await adminPromotionBannerService.generateUploadSignature();
-      const url = await uploadToCloudinary(file, sig);
-      setForm((f) => ({ ...f, imageUrl: url }));
+      const asset = await uploadAssetToCloudinary(file, sig);
+      setForm((f) => ({
+        ...f,
+        imageUrl: asset.url,
+        imagePublicId: asset.publicId,
+      }));
       toast.success(t("adminBanners.uploadSuccess"));
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -142,7 +149,7 @@ function AdminBannersInner() {
       toast.error(t("adminBanners.titleRequired"));
       return;
     }
-    if (!form.imageUrl) {
+    if (!form.imageUrl || !form.imagePublicId) {
       toast.error(t("adminBanners.imageRequired"));
       return;
     }
@@ -275,11 +282,9 @@ function AdminBannersInner() {
                 <input
                   type="text"
                   value={form.imageUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, imageUrl: e.target.value })
-                  }
+                  readOnly
                   placeholder="https://res.cloudinary.com/..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono"
+                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-mono"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t("adminBanners.imageHelp")}

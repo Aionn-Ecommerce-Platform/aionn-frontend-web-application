@@ -6,7 +6,11 @@ export type { AddressInput } from "./address.service";
 export { geographyService } from "./geography.service";
 export { securityService } from "./security.service";
 export { preferenceService } from "./preference.service";
-export { mediaService, uploadToCloudinary } from "./media.service";
+export {
+  mediaService,
+  uploadAssetToCloudinary,
+  uploadToCloudinary,
+} from "./media.service";
 export { kycService, adminKycService } from "./kyc.service";
 export { adminUserService } from "./admin-user.service";
 export { consentService } from "./consent.service";

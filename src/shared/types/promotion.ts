@@ -75,6 +75,7 @@ export interface PromotionBanner {
   bannerId: string;
   title: string;
   imageUrl: string;
+  imagePublicId: string;
   linkUrl: string;
   displayOrder: number;
 }

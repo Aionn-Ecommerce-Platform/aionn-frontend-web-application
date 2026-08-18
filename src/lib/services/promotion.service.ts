@@ -26,6 +26,7 @@ export interface PromotionBannerAdmin extends PromotionBanner {
 export interface CreateBannerInput {
   title: string;
   imageUrl: string;
+  imagePublicId: string;
   linkUrl: string;
   displayOrder: number;
   active?: boolean;
@@ -34,6 +35,7 @@ export interface CreateBannerInput {
 interface UpdateBannerInput {
   title?: string;
   imageUrl?: string;
+  imagePublicId?: string;
   linkUrl?: string;
   displayOrder?: number;
   active?: boolean;
