@@ -206,7 +206,7 @@
     "link": "Đường dẫn khi bấm (không bắt buộc)",
     "linkPlaceholder": "/products hoặc https://example.com/sale",
     "linkHelp": "Để trống nếu banner không cần chuyển trang.",
-    "linkInvalid": "Đường dẫn phải bắt đầu bằng / hoặc https://",
+    "linkInvalid": "Đường dẫn phải bắt đầu bằng /, http:// hoặc https://",
     "displayOrder": "Thứ tự hiển thị",
     "moveUp": "Di chuyển banner lên",
     "moveDown": "Di chuyển banner xuống",

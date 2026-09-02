@@ -165,7 +165,7 @@ function AdminBannersInner() {
     }
     const linkUrl = form.linkUrl.trim();
     const isInternalPath = linkUrl.startsWith("/") && !linkUrl.startsWith("//") && !linkUrl.includes("\\");
-    if (linkUrl && !isInternalPath && !/^https:\/\//i.test(linkUrl)) {
+    if (linkUrl && !isInternalPath && !/^https?:\/\//i.test(linkUrl)) {
       toast.error(t("adminBanners.linkInvalid"));
       return;
     }

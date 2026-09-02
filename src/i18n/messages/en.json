@@ -206,7 +206,7 @@
     "link": "Click destination (optional)",
     "linkPlaceholder": "/products or https://example.com/sale",
     "linkHelp": "Leave empty when the banner should not navigate.",
-    "linkInvalid": "The destination must start with / or https://",
+    "linkInvalid": "The destination must start with /, http:// or https://",
     "displayOrder": "Display order",
     "moveUp": "Move banner up",
     "moveDown": "Move banner down",
