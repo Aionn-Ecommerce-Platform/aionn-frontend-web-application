@@ -30,6 +30,7 @@ interface BannerForm {
   title: string;
   imageUrl: string;
   imagePublicId: string;
+  linkUrl: string;
   displayOrder: number;
   active: boolean;
 }
@@ -38,6 +39,7 @@ const EMPTY_FORM: BannerForm = {
   title: "",
   imageUrl: "",
   imagePublicId: "",
+  linkUrl: "",
   displayOrder: 0,
   active: true,
 };
@@ -110,6 +112,7 @@ function AdminBannersInner() {
       title: b.title,
       imageUrl: b.imageUrl,
       imagePublicId: b.imagePublicId,
+      linkUrl: b.linkUrl ?? "",
       displayOrder: b.displayOrder,
       active: b.active,
     });
@@ -149,10 +152,17 @@ function AdminBannersInner() {
       toast.error(t("adminBanners.imageRequired"));
       return;
     }
+    const linkUrl = form.linkUrl.trim();
+    const isInternalPath = linkUrl.startsWith("/") && !linkUrl.startsWith("//") && !linkUrl.includes("\\");
+    if (linkUrl && !isInternalPath && !/^https:\/\//i.test(linkUrl)) {
+      toast.error(t("adminBanners.linkInvalid"));
+      return;
+    }
+    const body = { ...form, linkUrl };
     if (editing) {
-      updateMu.mutate({ bannerId: editing.bannerId, body: form });
+      updateMu.mutate({ bannerId: editing.bannerId, body });
     } else {
-      createMu.mutate(form);
+      createMu.mutate(body);
     }
   }
 
@@ -294,6 +304,22 @@ function AdminBannersInner() {
                 />
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t("adminBanners.link")}
+            </label>
+            <input
+              type="text"
+              value={form.linkUrl}
+              onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+              placeholder={t("adminBanners.linkPlaceholder")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {t("adminBanners.linkHelp")}
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

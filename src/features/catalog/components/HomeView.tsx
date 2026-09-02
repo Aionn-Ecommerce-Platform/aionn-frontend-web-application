@@ -163,6 +163,8 @@ export default function HomePage() {
     setCurrentIndex((prev) => (prev + 1) % activeBanners.length);
   };
 
+  const currentBanner = activeBanners[currentIndex];
+
   return (
     <div>
       <section className="bg-white">
@@ -180,16 +182,25 @@ export default function HomePage() {
                       transition={{ duration: 0.4 }}
                       className="relative w-full h-full"
                     >
-                      <Image
-                        src={
-                          activeBanners[currentIndex]?.imageUrl ??
-                          "/images/logo.png"
-                        }
-                        alt={activeBanners[currentIndex]?.title ?? ""}
-                        fill
-                        priority
-                        className="object-cover"
-                      />
+                      {currentBanner?.linkUrl ? (
+                        <Link href={currentBanner.linkUrl} className="relative block w-full h-full">
+                          <Image
+                            src={currentBanner.imageUrl}
+                            alt={currentBanner.title}
+                            fill
+                            priority
+                            className="object-cover"
+                          />
+                        </Link>
+                      ) : (
+                        <Image
+                          src={currentBanner?.imageUrl ?? "/images/logo.png"}
+                          alt={currentBanner?.title ?? ""}
+                          fill
+                          priority
+                          className="object-cover"
+                        />
+                      )}
                     </motion.div>
                   </AnimatePresence>
                 </div>
