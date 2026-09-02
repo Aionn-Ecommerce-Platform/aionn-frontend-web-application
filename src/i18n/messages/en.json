@@ -208,6 +208,8 @@
     "linkHelp": "Leave empty when the banner should not navigate.",
     "linkInvalid": "The destination must start with / or https://",
     "displayOrder": "Display order",
+    "moveUp": "Move banner up",
+    "moveDown": "Move banner down",
     "deleteTitle": "Delete banner?",
     "deleteMessage": "The banner will immediately disappear from the home page.",
     "createSuccess": "Banner created",

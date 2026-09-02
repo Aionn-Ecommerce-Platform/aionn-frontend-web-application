@@ -208,6 +208,8 @@
     "linkHelp": "Để trống nếu banner không cần chuyển trang.",
     "linkInvalid": "Đường dẫn phải bắt đầu bằng / hoặc https://",
     "displayOrder": "Thứ tự hiển thị",
+    "moveUp": "Di chuyển banner lên",
+    "moveDown": "Di chuyển banner xuống",
     "deleteTitle": "Xóa banner?",
     "deleteMessage": "Banner sẽ biến mất khỏi trang chủ ngay lập tức.",
     "createSuccess": "Đã tạo banner",

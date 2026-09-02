@@ -28,8 +28,6 @@ export interface CreateBannerInput {
   imageUrl: string;
   imagePublicId: string;
   linkUrl?: string;
-  displayOrder: number;
-  active?: boolean;
 }
 
 interface UpdateBannerInput {
@@ -38,7 +36,6 @@ interface UpdateBannerInput {
   imagePublicId?: string;
   linkUrl?: string;
   displayOrder?: number;
-  active?: boolean;
 }
 
 export const adminPromotionBannerService = {

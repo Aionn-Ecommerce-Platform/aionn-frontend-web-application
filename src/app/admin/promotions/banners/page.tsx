@@ -11,6 +11,8 @@ import {
   Trash2,
   Edit2,
   Upload,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, Modal, ConfirmDialog } from "@/shared/ui";
@@ -31,8 +33,6 @@ interface BannerForm {
   imageUrl: string;
   imagePublicId: string;
   linkUrl: string;
-  displayOrder: number;
-  active: boolean;
 }
 
 const EMPTY_FORM: BannerForm = {
@@ -40,8 +40,6 @@ const EMPTY_FORM: BannerForm = {
   imageUrl: "",
   imagePublicId: "",
   linkUrl: "",
-  displayOrder: 0,
-  active: true,
 };
 
 function AdminBannersInner() {
@@ -75,6 +73,24 @@ function AdminBannersInner() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const reorderMu = useMutation({
+    mutationFn: async ({ index, direction }: { index: number; direction: -1 | 1 }) => {
+      const current = banners[index];
+      const adjacent = banners[index + direction];
+      if (!current || !adjacent) return;
+      await Promise.all([
+        adminPromotionBannerService.update(current.bannerId, {
+          displayOrder: adjacent.displayOrder,
+        }),
+        adminPromotionBannerService.update(adjacent.bannerId, {
+          displayOrder: current.displayOrder,
+        }),
+      ]);
+    },
+    onSuccess: refresh,
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
   const updateMu = useMutation({
     mutationFn: (vars: { bannerId: string; body: BannerForm }) =>
       adminPromotionBannerService.update(vars.bannerId, vars.body),
@@ -99,10 +115,7 @@ function AdminBannersInner() {
 
   function openCreate() {
     setEditing(null);
-    setForm({
-      ...EMPTY_FORM,
-      displayOrder: banners.length + 1,
-    });
+    setForm(EMPTY_FORM);
     setModalOpen(true);
   }
 
@@ -113,8 +126,6 @@ function AdminBannersInner() {
       imageUrl: b.imageUrl,
       imagePublicId: b.imagePublicId,
       linkUrl: b.linkUrl ?? "",
-      displayOrder: b.displayOrder,
-      active: b.active,
     });
     setModalOpen(true);
   }
@@ -200,7 +211,7 @@ function AdminBannersInner() {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {banners.map((b) => (
+            {banners.map((b, index) => (
               <div
                 key={b.bannerId}
                 className="bg-white rounded-md border border-gray-400 overflow-hidden"
@@ -212,9 +223,6 @@ function AdminBannersInner() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2 flex gap-1">
-                    <Badge variant={b.active ? "success" : "default"}>
-                      {b.active ? t("common.active") : t("common.disabled")}
-                    </Badge>
                     <Badge variant="info">#{b.displayOrder}</Badge>
                   </div>
                 </div>
@@ -223,6 +231,24 @@ function AdminBannersInner() {
                     {b.title}
                   </h3>
                   <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-400">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === 0 || reorderMu.isPending}
+                      onClick={() => reorderMu.mutate({ index, direction: -1 })}
+                      aria-label={t("adminBanners.moveUp")}
+                    >
+                      <ArrowUp size={14} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === banners.length - 1 || reorderMu.isPending}
+                      onClick={() => reorderMu.mutate({ index, direction: 1 })}
+                      aria-label={t("adminBanners.moveDown")}
+                    >
+                      <ArrowDown size={14} />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -320,41 +346,6 @@ function AdminBannersInner() {
             <p className="mt-1 text-xs text-gray-500">
               {t("adminBanners.linkHelp")}
             </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("adminBanners.displayOrder")}
-              </label>
-              <input
-                type="number"
-                value={form.displayOrder}
-                onChange={(e) =>
-                  setForm({ ...form, displayOrder: Number(e.target.value) })
-                }
-                min={0}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("common.status")}
-              </label>
-              <label className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(e) =>
-                    setForm({ ...form, active: e.target.checked })
-                  }
-                  className="rounded border-gray-300"
-                />
-                <span className="text-sm text-gray-700">
-                  {t("common.active")}
-                </span>
-              </label>
-            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
