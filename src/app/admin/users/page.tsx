@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Loader2, Users, ChevronRight } from "lucide-react";
+import {
+  AlertCircle,
+  Search,
+  Loader2,
+  Users,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState } from "@/shared/ui";
@@ -42,7 +48,7 @@ function AdminUsersInner() {
   const [page, setPage] = useState(0);
   const size = 20;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-users", { status: statusFilter, page }],
     queryFn: () =>
       adminUserService.list({
@@ -62,8 +68,7 @@ function AdminUsersInner() {
     return users.filter(
       (u) =>
         (u.email ?? "").toLowerCase().includes(q) ||
-        (u.displayName ?? "").toLowerCase().includes(q) ||
-        (u.username ?? "").toLowerCase().includes(q),
+        (u.displayName ?? "").toLowerCase().includes(q),
     );
   }, [users, debouncedSearch]);
 
@@ -117,6 +122,17 @@ function AdminUsersInner() {
           <div className="py-20 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon={AlertCircle}
+            title={t("adminUsers.loadError")}
+            description={getErrorMessage(error)}
+            action={
+              <Button variant="outline" onClick={() => void refetch()}>
+                {t("common.tryAgain")}
+              </Button>
+            }
+          />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Users}
@@ -153,10 +169,10 @@ function AdminUsersInner() {
                       >
                         <td className="px-6 py-4">
                           <p className="text-sm font-medium text-gray-900">
-                            {user.displayName ?? user.username ?? "—"}
+                            {user.displayName ?? "—"}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {user.email ?? user.phone ?? "—"}
+                            {user.email ?? "—"}
                           </p>
                         </td>
                         <td className="px-6 py-4">

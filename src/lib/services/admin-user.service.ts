@@ -4,12 +4,9 @@ import type { ApiEnvelope, UserProfile, UserStatus } from "@/types";
 interface AdminUserSummary {
   userId: string;
   email: string | null;
-  phone: string | null;
-  username: string | null;
   displayName: string | null;
   roles: string[];
   status: UserStatus;
-  createdAt: string;
 }
 
 export const adminUserService = {

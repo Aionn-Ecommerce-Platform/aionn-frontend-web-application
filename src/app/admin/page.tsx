@@ -17,10 +17,10 @@ import { Card, CardTitle } from "@/shared/ui";
 import { ADMIN_DASHBOARD_MODULES } from "@/lib/admin-dashboard";
 import { hasRole } from "@/shared/lib/role-utils";
 import {
+  adminAnalyticsService,
   adminFeedbackService,
   adminKycService,
   adminOrderReturnService,
-  adminUserService,
   merchantService,
   productService,
 } from "@/lib/services";
@@ -35,9 +35,9 @@ function AdminDashboardInner() {
     (mod) => !mod.roles || mod.roles.some((role) => hasRole(userRoles, role)),
   );
 
-  const { data: usersPage } = useQuery({
-    queryKey: ["admin-dashboard", "users"],
-    queryFn: () => adminUserService.list({ page: 0, size: 1 }),
+  const { data: userAnalytics } = useQuery({
+    queryKey: ["admin-dashboard", "user-analytics"],
+    queryFn: () => adminAnalyticsService.users(),
     enabled: isSystemAdmin,
   });
   const { data: merchants } = useQuery({
@@ -104,7 +104,7 @@ function AdminDashboardInner() {
   const systemStats = [
     {
       label: t("adminDashboard.accounts"),
-      value: usersPage?.paging?.totalElements ?? usersPage?.data?.length ?? 0,
+      value: userAnalytics?.totalUsers ?? 0,
       href: "/admin/users",
       icon: Users,
     },

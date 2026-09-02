@@ -335,6 +335,7 @@
     "searchPlaceholder": "Tìm email, tên hoặc username...",
     "emptyTitle": "Không tìm thấy người dùng",
     "emptyDescription": "Hãy thử bộ lọc khác.",
+    "loadError": "Không thể tải danh sách người dùng",
     "unlock": "Mở khóa",
     "unlockSuccess": "Đã mở khóa tài khoản",
     "pagination": "{count} người dùng · trang {page}/{total}"

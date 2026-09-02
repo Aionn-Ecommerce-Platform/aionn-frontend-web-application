@@ -335,6 +335,7 @@
     "searchPlaceholder": "Search email, name or username...",
     "emptyTitle": "No users found",
     "emptyDescription": "Try a different filter.",
+    "loadError": "Unable to load users",
     "unlock": "Unlock",
     "unlockSuccess": "Account unlocked",
     "pagination": "{count} users · page {page}/{total}"
