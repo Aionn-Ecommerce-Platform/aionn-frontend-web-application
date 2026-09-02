@@ -201,9 +201,8 @@
     "emptyDescription": "Tạo banner đầu tiên để hiển thị trên trang chủ.",
     "fieldTitle": "Tiêu đề *",
     "image": "Ảnh banner *",
-    "imageHelp": "Dán URL trực tiếp hoặc tải ảnh lên",
+    "imageHelp": "Chọn ảnh để tải lên Cloudinary",
     "upload": "Tải ảnh",
-    "link": "Đường dẫn khi bấm *",
     "displayOrder": "Thứ tự hiển thị",
     "deleteTitle": "Xóa banner?",
     "deleteMessage": "Banner sẽ biến mất khỏi trang chủ ngay lập tức.",
@@ -212,8 +211,7 @@
     "deleteSuccess": "Đã xóa banner",
     "uploadSuccess": "Đã tải ảnh lên",
     "titleRequired": "Tiêu đề là bắt buộc",
-    "imageRequired": "Cần tải ảnh banner",
-    "linkRequired": "Đường dẫn là bắt buộc"
+    "imageRequired": "Cần tải ảnh banner"
   },
   "adminMerchants": {
     "title": "Quản lý nhà bán hàng",

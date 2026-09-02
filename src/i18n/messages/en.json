@@ -201,9 +201,8 @@
     "emptyDescription": "Create the first banner for the home page.",
     "fieldTitle": "Title *",
     "image": "Banner image *",
-    "imageHelp": "Paste an image URL or upload an image",
+    "imageHelp": "Choose an image to upload to Cloudinary",
     "upload": "Upload image",
-    "link": "Click destination *",
     "displayOrder": "Display order",
     "deleteTitle": "Delete banner?",
     "deleteMessage": "The banner will immediately disappear from the home page.",
@@ -212,8 +211,7 @@
     "deleteSuccess": "Banner deleted",
     "uploadSuccess": "Image uploaded",
     "titleRequired": "Title is required",
-    "imageRequired": "A banner image is required",
-    "linkRequired": "A destination is required"
+    "imageRequired": "A banner image is required"
   },
   "adminMerchants": {
     "title": "Merchant management",

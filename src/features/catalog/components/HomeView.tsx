@@ -180,18 +180,16 @@ export default function HomePage() {
                       transition={{ duration: 0.4 }}
                       className="relative w-full h-full"
                     >
-                      <Link href={activeBanners[currentIndex]?.linkUrl ?? "#"}>
-                        <Image
-                          src={
-                            activeBanners[currentIndex]?.imageUrl ??
-                            "/images/logo.png"
-                          }
-                          alt={activeBanners[currentIndex]?.title ?? ""}
-                          fill
-                          priority
-                          className="object-cover cursor-pointer"
-                        />
-                      </Link>
+                      <Image
+                        src={
+                          activeBanners[currentIndex]?.imageUrl ??
+                          "/images/logo.png"
+                        }
+                        alt={activeBanners[currentIndex]?.title ?? ""}
+                        fill
+                        priority
+                        className="object-cover"
+                      />
                     </motion.div>
                   </AnimatePresence>
                 </div>

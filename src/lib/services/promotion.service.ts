@@ -27,7 +27,7 @@ export interface CreateBannerInput {
   title: string;
   imageUrl: string;
   imagePublicId: string;
-  linkUrl: string;
+  linkUrl?: string;
   displayOrder: number;
   active?: boolean;
 }

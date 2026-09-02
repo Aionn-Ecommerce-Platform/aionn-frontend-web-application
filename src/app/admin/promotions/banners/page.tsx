@@ -11,7 +11,6 @@ import {
   Trash2,
   Edit2,
   Upload,
-  ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, Modal, ConfirmDialog } from "@/shared/ui";
@@ -31,7 +30,6 @@ interface BannerForm {
   title: string;
   imageUrl: string;
   imagePublicId: string;
-  linkUrl: string;
   displayOrder: number;
   active: boolean;
 }
@@ -40,7 +38,6 @@ const EMPTY_FORM: BannerForm = {
   title: "",
   imageUrl: "",
   imagePublicId: "",
-  linkUrl: "",
   displayOrder: 0,
   active: true,
 };
@@ -113,7 +110,6 @@ function AdminBannersInner() {
       title: b.title,
       imageUrl: b.imageUrl,
       imagePublicId: b.imagePublicId,
-      linkUrl: b.linkUrl,
       displayOrder: b.displayOrder,
       active: b.active,
     });
@@ -151,10 +147,6 @@ function AdminBannersInner() {
     }
     if (!form.imageUrl || !form.imagePublicId) {
       toast.error(t("adminBanners.imageRequired"));
-      return;
-    }
-    if (!form.linkUrl.trim()) {
-      toast.error(t("adminBanners.linkRequired"));
       return;
     }
     if (editing) {
@@ -220,15 +212,6 @@ function AdminBannersInner() {
                   <h3 className="font-semibold text-gray-900 mb-1">
                     {b.title}
                   </h3>
-                  <a
-                    href={b.linkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline truncate"
-                  >
-                    <ExternalLink size={12} className="flex-shrink-0" />
-                    <span className="truncate">{b.linkUrl}</span>
-                  </a>
                   <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-400">
                     <Button
                       size="sm"
@@ -277,19 +260,10 @@ function AdminBannersInner() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("adminBanners.image")}
             </label>
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={form.imageUrl}
-                  readOnly
-                  placeholder="https://res.cloudinary.com/..."
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-mono"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t("adminBanners.imageHelp")}
-                </p>
-              </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 p-3">
+              <p className="text-xs text-gray-500">
+                {t("adminBanners.imageHelp")}
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -320,19 +294,6 @@ function AdminBannersInner() {
                 />
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("adminBanners.link")}
-            </label>
-            <input
-              type="text"
-              value={form.linkUrl}
-              onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-              placeholder="/products?categoryId=CAT_..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
