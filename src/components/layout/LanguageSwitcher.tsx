@@ -47,11 +47,11 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-white hover:bg-white/15 transition-colors"
         aria-label="Switch language"
         aria-expanded={open}
       >
-        <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-black/10 shrink-0">
+        <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-white/50 shrink-0">
           <CurrentFlag className="w-full h-full scale-150" />
         </div>
         <span className="font-semibold capitalize">{t(current.labelKey)}</span>

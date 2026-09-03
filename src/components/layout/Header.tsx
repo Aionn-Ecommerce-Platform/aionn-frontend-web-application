@@ -64,16 +64,16 @@ export default function Header() {
     : "/auth/login?redirect=/merchant/register";
 
   const { data: notifications } = useQuery({
-    queryKey: qk.notifications(20),
-    queryFn: () => notificationService.listMine(20),
+    queryKey: qk.notifications(),
+    queryFn: () => notificationService.listMine(50),
     enabled: isAuthenticated,
-    refetchInterval: 60_000,
+    refetchInterval: (query) => (query.state.error ? false : 60_000),
   });
   const { data: unreadChat } = useQuery({
     queryKey: qk.unreadCounts,
     queryFn: () => conversationService.unreadCounts(),
     enabled: isAuthenticated,
-    refetchInterval: 30_000,
+    refetchInterval: (query) => (query.state.error ? false : 30_000),
   });
   const { data: myMerchant } = useQuery({
     queryKey: ["merchant", "me"],
@@ -120,27 +120,27 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-300 shadow-sm">
-      <div className="bg-gray-50/80 border-b border-gray-300 text-xs">
+    <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 border-b border-blue-800 shadow-md">
+      <div className="bg-blue-950/35 border-b border-white/15 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-end gap-5 h-9 text-gray-600">
+          <div className="flex items-center justify-end gap-5 h-9 text-blue-50">
             <Link
               href="/feedback"
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <MessageSquare size={13} />
               <span className="font-medium">{t("common.feedback")}</span>
             </Link>
             <Link
               href="/contact"
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <Phone size={13} />
               <span className="font-medium">{t("common.contactUs")}</span>
             </Link>
             <Link
               href={sellOnAionnHref}
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <Store size={13} />
               <span className="font-medium">{t("common.sellOnAionn")}</span>
@@ -148,7 +148,7 @@ export default function Header() {
             <div className="relative group/noti py-1">
               <Link
                 href={isAuthenticated ? "/notifications" : "/auth/login"}
-                className="flex items-center gap-1.5 hover:text-blue-600 transition-colors relative"
+                className="flex items-center gap-1.5 hover:text-white transition-colors relative"
               >
                 <Bell size={13} />
                 <span className="font-medium">{t("common.notifications")}</span>
@@ -272,9 +272,9 @@ export default function Header() {
               alt="Aionn"
               width={194}
               height={181}
-              className="h-auto w-10 rounded-lg group-hover:scale-105 transition-transform"
+              className="h-auto w-10 rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform"
             />
-            <span className="text-2xl font-bold tracking-tight text--brand">
+            <span className="text-2xl font-bold tracking-tight text-white">
               Aionn
             </span>
           </Link>
@@ -282,7 +282,7 @@ export default function Header() {
           <div className="hidden md:flex flex-1 max-w-2xl">
             <form onSubmit={handleSearch} className="relative w-full group">
               <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500 transition-colors"
                 size={18}
               />
               <input
@@ -290,7 +290,7 @@ export default function Header() {
                 placeholder={t("common.search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-400 bg-gray-50/80 text-sm placeholder:text-gray-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 focus:outline-none focus:bg-white transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
               />
             </form>
           </div>
@@ -300,7 +300,7 @@ export default function Header() {
               <>
                 <Link
                   href="/chat"
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Messages"
                 >
                   <MessageCircle size={20} />
@@ -312,7 +312,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
@@ -327,7 +327,7 @@ export default function Header() {
                 <div className="relative ml-1" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/15 text-white transition-colors"
                   >
                     {user?.avatarUrl ? (
                       <Avatar
@@ -336,7 +336,7 @@ export default function Header() {
                         size="sm"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
                         <span className="text-xs font-bold text-blue-700">
                           {pickInitial(user)}
                         </span>
@@ -420,7 +420,7 @@ export default function Header() {
               <>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
@@ -434,15 +434,16 @@ export default function Header() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-400"
+                    className="border-white/70 bg-white/10 text-white hover:bg-white hover:text-blue-700"
                   >
                     {t("common.register")}
                   </Button>
                 </Link>
                 <Link href="/auth/login">
                   <Button
+                    variant="secondary"
                     size="sm"
-                    className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 focus:ring-orange-400 text-white"
+                    className="focus:ring-white/40 shadow-sm"
                   >
                     {t("common.login")}
                   </Button>
@@ -452,7 +453,7 @@ export default function Header() {
             )}
 
             <button
-              className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 text-gray-600"
+              className="md:hidden p-2.5 rounded-xl hover:bg-white/15 text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >

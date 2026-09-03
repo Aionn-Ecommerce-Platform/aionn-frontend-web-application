@@ -1102,6 +1102,7 @@
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications",
     "noNotificationsDesc": "You haven't received any notifications yet.",
+    "loadError": "Unable to load notifications",
     "defaultSubject": "System Notification",
     "deleteLabel": "Delete notification",
     "deletedToast": "Notification deleted",

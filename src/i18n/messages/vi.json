@@ -1102,6 +1102,7 @@
     "markAllRead": "Đánh dấu đã đọc tất cả",
     "noNotifications": "Không có thông báo nào",
     "noNotificationsDesc": "Bạn chưa nhận được thông báo nào từ hệ thống.",
+    "loadError": "Không thể tải thông báo",
     "defaultSubject": "Thông báo hệ thống",
     "deleteLabel": "Xóa thông báo",
     "deletedToast": "Đã xóa thông báo",

@@ -69,7 +69,7 @@ export default function ProductCard({
       href={`/products/${id}`}
       className={cn(
         "group bg-gray-50 rounded-md border border-gray-400 overflow-hidden",
-        "hover:border-yellow-400 hover:bg-yellow-50 hover:shadow-lg hover:shadow-yellow-500/10",
+        "hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15",
         "transition-all duration-300 relative flex flex-col",
         className,
       )}
@@ -90,9 +90,9 @@ export default function ProductCard({
         )}
       </div>
 
-      <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-yellow-50 transition-colors justify-between">
+      <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-blue-50 transition-colors justify-between">
         <div>
-          <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-yellow-700 transition-colors min-h-[2.25rem] leading-tight">
+          <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors min-h-[2.25rem] leading-tight">
             {showMallBadge && (
               <span className="inline-flex items-center bg--sale text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded mr-1.5 align-middle uppercase tracking-wide">
                 Mall

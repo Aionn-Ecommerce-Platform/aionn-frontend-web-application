@@ -307,17 +307,17 @@ function ProductsInner() {
           </div>
           <div className="flex items-center gap-3">
             <SortDropdown value={sortParam} onChange={setSort} t={t} />
-            <div className="flex border border-gray-400 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex h-11 border border-gray-400 rounded-xl overflow-hidden shadow-sm">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 ${viewMode === "grid" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
+                className={`flex h-full items-center justify-center px-2.5 ${viewMode === "grid" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
                 aria-label="Grid view"
               >
                 <Grid3X3 size={18} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 ${viewMode === "list" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
+                className={`flex h-full items-center justify-center px-2.5 ${viewMode === "list" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
                 aria-label="List view"
               >
                 <List size={18} />

@@ -205,18 +205,22 @@ export default function HomePage() {
                   </AnimatePresence>
                 </div>
 
-                <button
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors z-10 cursor-pointer drop-shadow-lg"
-                >
-                  <ChevronLeft size={40} strokeWidth={2.5} />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors z-10 cursor-pointer drop-shadow-lg"
-                >
-                  <ChevronRight size={40} strokeWidth={2.5} />
-                </button>
+                {activeBanners.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevSlide}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors z-10 cursor-pointer drop-shadow-lg"
+                    >
+                      <ChevronLeft size={40} strokeWidth={2.5} />
+                    </button>
+                    <button
+                      onClick={nextSlide}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors z-10 cursor-pointer drop-shadow-lg"
+                    >
+                      <ChevronRight size={40} strokeWidth={2.5} />
+                    </button>
+                  </>
+                )}
 
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                   {activeBanners.map((_, index) => (
@@ -275,7 +279,7 @@ export default function HomePage() {
                   >
                     <Link
                       href={`/products?categoryId=${cat.categoryId}`}
-                      className="flex flex-col items-center gap-3 p-5 bg-white border border-gray-400 hover:border-yellow-400 hover:bg-yellow-50 hover:shadow-lg hover:shadow-yellow-500/10 hover:relative hover:z-10 transition-all group h-[140px]"
+                      className="flex flex-col items-center gap-3 p-5 bg-white border border-gray-400 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 hover:relative hover:z-10 transition-all group h-[140px]"
                     >
                       {cat.iconUrl ? (
                         <div className="relative w-16 h-16 flex-shrink-0">
@@ -293,7 +297,7 @@ export default function HomePage() {
                           className="text-blue-500 group-hover:scale-110 transition-transform flex-shrink-0"
                         />
                       )}
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-yellow-700 transition-colors text-center truncate w-full px-1">
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors text-center truncate w-full px-1">
                         {cat.name}
                       </span>
                     </Link>
@@ -307,11 +311,13 @@ export default function HomePage() {
               <Link href="/categories">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 font-semibold"
+                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
                 >
                   {t("home.viewAllCategories")}
-                  <ArrowRight size={18} className="ml-2" />
+                  <ArrowRight
+                    size={18}
+                    className="ml-2 transition-transform duration-200 group-hover:translate-x-1.5"
+                  />
                 </Button>
               </Link>
             </div>
@@ -378,11 +384,13 @@ export default function HomePage() {
               <Link href="/products">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 font-semibold"
+                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
                 >
                   {t("home.viewAllProducts")}
-                  <ArrowRight size={18} className="ml-2" />
+                  <ArrowRight
+                    size={18}
+                    className="ml-2 transition-transform duration-200 group-hover:translate-x-1.5"
+                  />
                 </Button>
               </Link>
             </div>
@@ -390,15 +398,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-orange-50 via-yellow-50 to-amber-50 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-orange-300/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 w-80 h-80 bg-yellow-300/40 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-amber-200/30 rounded-full blur-2xl" />
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 w-80 h-80 bg-indigo-300/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-cyan-200/30 rounded-full blur-2xl" />
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 1px 1px, #d97706 1px, transparent 0)",
+              "radial-gradient(circle at 1px 1px, #2563eb 1px, transparent 0)",
             backgroundSize: "24px 24px",
           }}
         />
@@ -409,24 +417,38 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm">
-              <Zap size={14} className="fill-orange-500 text-orange-500" />
+            <span className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm">
+              <Zap size={14} className="fill-blue-500 text-blue-500" />
               {t("home.forMerchants")}
             </span>
-            <h2 className="mt-5 text-3xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+            <h2 className="mt-5 pb-1 text-3xl lg:text-5xl leading-[1.2] font-extrabold bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {t("home.startSelling")}
             </h2>
             <p className="mt-4 text-gray-700 max-w-2xl mx-auto text-lg">
               {t("home.startSellingDesc")}
             </p>
-            <div className="mt-10">
+            <div className="mt-8 flex justify-center">
+              <div className="h-56 w-56">
+                <Image
+                  src="/images/logo_without_text.png"
+                  alt="Aionn"
+                  width={194}
+                  height={181}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            </div>
+            <div className="mt-8">
               <Link href={merchantRegisterHref}>
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 focus:ring-orange-400 text-white shadow-xl shadow-orange-500/30 font-semibold"
+                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
                 >
                   {t("home.registerFree")}
-                  <ArrowRight size={18} className="ml-2" />
+                  <ArrowRight
+                    size={18}
+                    className="ml-2 transition-transform duration-200 group-hover:translate-x-1.5"
+                  />
                 </Button>
               </Link>
             </div>

@@ -11,6 +11,7 @@ import {
   Check,
   Trash2,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, EmptyState } from "@/shared/ui";
@@ -34,7 +35,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 function NotificationsInner() {
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
-  const { data: notifications, isLoading } = useQuery({
+  const { data: notifications, isLoading, isError, error, refetch } = useQuery({
     queryKey: qk.notifications(),
     queryFn: () => notificationService.listMine(50),
   });
@@ -132,6 +133,17 @@ function NotificationsInner() {
                 <div className="py-20 flex justify-center">
                   <Loader2 className="animate-spin text-blue-600" size={28} />
                 </div>
+              ) : isError ? (
+                <EmptyState
+                  icon={AlertCircle}
+                  title={t("notifications.loadError")}
+                  description={getErrorMessage(error)}
+                  action={
+                    <Button variant="outline" onClick={() => void refetch()}>
+                      {t("common.tryAgain")}
+                    </Button>
+                  }
+                />
               ) : list.length === 0 ? (
                 <EmptyState
                   icon={Bell}
