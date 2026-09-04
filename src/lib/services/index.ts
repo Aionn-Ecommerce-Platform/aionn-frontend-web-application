@@ -17,6 +17,7 @@ export { consentService } from "./consent.service";
 export { feedbackService, adminFeedbackService } from "./feedback.service";
 
 export { productService } from "./product.service";
+export { searchHistoryService } from "./search-history.service";
 export { categoryService } from "./category.service";
 export { merchantService } from "./merchant.service";
 export { brandService } from "./brand.service";

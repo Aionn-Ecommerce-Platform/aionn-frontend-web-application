@@ -573,6 +573,8 @@
     "shippingFee": "Shipping fee {amount}",
     "noShippingFee": "GHN did not return a shipping fee",
     "loginForShipping": "Log in and choose a default address to view shipping fees",
+    "chooseDefaultAddress": "Choose a default address to view shipping fees",
+    "chatNow": "Chat now",
     "deliverTo": "Deliver to",
     "buyerProtection": "Buyer protection",
     "freeReturns15Days": "Free 15-day returns",
@@ -788,6 +790,7 @@
   "common": {
     "home": "Home",
     "search": "Search products, brands...",
+    "recentSearches": "Recent searches",
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",

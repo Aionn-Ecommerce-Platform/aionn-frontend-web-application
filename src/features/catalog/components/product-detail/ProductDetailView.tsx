@@ -16,6 +16,7 @@ import {
   shippingService,
   inventoryService,
   reviewService,
+  merchantService,
 } from "@/lib/services";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -47,13 +48,19 @@ export default function ProductDetailPage({
     isLoading: loading,
     error,
   } = useQuery({
-    queryKey: qk.product(id),
-    queryFn: () => productService.get(id),
+    queryKey: [...qk.product(id), "active-flash-sale"],
+    queryFn: () => productService.getWithActiveFlashSale(id),
   });
 
   const { data: relatedProducts, isLoading: relatedLoading } = useQuery({
     queryKey: qk.productRelated(id, 6),
     queryFn: () => productService.getRelated(id, 6),
+  });
+
+  const { data: merchant } = useQuery({
+    queryKey: qk.merchant(product?.merchantId ?? ""),
+    queryFn: () => merchantService.get(product!.merchantId),
+    enabled: Boolean(product?.merchantId),
   });
 
   useEffect(() => {
@@ -260,11 +267,21 @@ export default function ProductDetailPage({
 
   const images = getProductImages(product.imageList);
 
-  const flashSaleSku = product.flashSale?.skuOffers.find(
-    (o) => o.skuId === currentVariant?.skuId,
+  const fallbackFlashSaleSku = product.flashSale?.skuOffers.reduce(
+    (lowest, offer) =>
+      offer.salePrice < lowest.salePrice ? offer : lowest,
   );
-  const variantPrice = currentVariant?.price ?? 0;
-  const variantOriginal = currentVariant?.originalPrice;
+  const pricingVariant =
+    currentVariant ??
+    product.variants.find(
+      (variant) => variant.skuId === fallbackFlashSaleSku?.skuId,
+    ) ??
+    product.variants[0];
+  const flashSaleSku = product.flashSale?.skuOffers.find(
+    (offer) => offer.skuId === pricingVariant?.skuId,
+  );
+  const variantPrice = pricingVariant?.price ?? 0;
+  const variantOriginal = pricingVariant?.originalPrice;
   const displayPrice = flashSaleSku ? flashSaleSku.salePrice : variantPrice;
   let strikePrice: number | undefined;
   if (flashSaleSku) {
@@ -278,7 +295,7 @@ export default function ProductDetailPage({
       : 0;
   const displayCurrency =
     flashSaleSku?.currency ??
-    currentVariant?.currency ??
+    pricingVariant?.currency ??
     product.flashSale?.currency ??
     product.variants[0]?.currency ??
     "VND";
@@ -425,7 +442,6 @@ export default function ProductDetailPage({
           isAuthenticated={isAuthenticated}
           destAddress={destAddress}
           shippingFee={shippingFee}
-          selectedVariantIdx={selectedVariantIdx}
           setSelectedVariantIdx={setSelectedVariantIdx}
           stock={stock}
           quantity={quantity}
@@ -437,6 +453,7 @@ export default function ProductDetailPage({
         />
         <ProductDetailExtras
           product={product}
+          merchant={merchant}
           productId={id}
           authenticated={isAuthenticated}
           locale={locale}

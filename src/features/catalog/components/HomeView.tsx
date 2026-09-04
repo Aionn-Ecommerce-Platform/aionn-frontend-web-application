@@ -47,6 +47,12 @@ function lowestPrice(p: Product): number | null {
 
 export default function HomePage() {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => window.scrollTo(0, 0));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const featuredParams = {
     status: "PUBLISHED" as const,
     page: 0,
@@ -141,7 +147,20 @@ export default function HomePage() {
     queryKey: qk.promotionBanners,
     queryFn: () => promotionService.getBanners(),
   });
-  const activeBanners = bannerData ?? [];
+  const activeBanners = bannerData?.length
+    ? bannerData
+    : bannerData
+      ? [
+          {
+            bannerId: "fallback-welcome",
+            title: "Welcome to Aionn",
+            imageUrl: "/images/banner-welcome.png",
+            imagePublicId: "",
+            linkUrl: null,
+            displayOrder: 0,
+          },
+        ]
+      : [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -403,7 +422,7 @@ export default function HomePage() {
         <div className="absolute -bottom-24 -left-16 w-80 h-80 bg-indigo-300/30 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-cyan-200/30 rounded-full blur-2xl" />
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.36]"
           style={{
             backgroundImage:
               "radial-gradient(circle at 1px 1px, #2563eb 1px, transparent 0)",

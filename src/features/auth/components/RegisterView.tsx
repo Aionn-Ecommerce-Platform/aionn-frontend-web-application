@@ -8,23 +8,23 @@ import { useTranslation } from "@/hooks";
 function RegisterInner() {
   const { t } = useTranslation();
   return (
-    <div className="flex-1 bg-gradient-to-br from--brand to--brand-strong flex items-center justify-center py-12 lg:py-20 px-4">
+    <div className="flex-1 bg-gradient-to-br from-blue-100 via-indigo-100 to-cyan-100 flex items-center justify-center py-12 lg:py-20 px-4">
       <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-8 items-center">
-        <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center text-white space-y-6">
-          <div className="relative w-40 h-40 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl flex items-center justify-center group hover:scale-105 transition-transform duration-500">
+        <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-6">
+          <div className="h-56 w-56">
             <Image
               src="/images/logo_without_text.png"
               alt="Aionn"
               width={194}
               height={181}
-              className="h-auto w-[110px] object-contain"
+              className="h-full w-full object-contain"
             />
           </div>
           <div className="space-y-3 text-center">
-            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-none">
+            <h1 className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent lg:text-5xl">
               Aionn
             </h1>
-            <p className="text-xl text-white/80 font-medium max-w-md leading-relaxed">
+            <p className="max-w-md text-xl font-medium leading-relaxed text-gray-600">
               {t("auth.tagline")}
             </p>
           </div>
@@ -48,8 +48,8 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 bg-gradient-to-br from--brand to--brand-strong flex items-center justify-center">
-          <div className="text-white text-lg font-medium">
+        <div className="flex-1 bg-gradient-to-br from-blue-100 via-indigo-100 to-cyan-100 flex items-center justify-center">
+          <div className="text-blue-700 text-lg font-medium">
             {t("common.loading")}
           </div>
         </div>

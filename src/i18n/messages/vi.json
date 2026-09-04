@@ -573,6 +573,8 @@
     "shippingFee": "Phí vận chuyển {amount}",
     "noShippingFee": "GHN chưa trả phí vận chuyển",
     "loginForShipping": "Đăng nhập và chọn địa chỉ mặc định để xem phí",
+    "chooseDefaultAddress": "Chọn địa chỉ mặc định để xem phí vận chuyển",
+    "chatNow": "Chat ngay",
     "deliverTo": "Giao tới",
     "buyerProtection": "An tâm mua sắm",
     "freeReturns15Days": "Trả hàng miễn phí 15 ngày",
@@ -788,6 +790,7 @@
   "common": {
     "home": "Trang chủ",
     "search": "Tìm kiếm sản phẩm, thương hiệu...",
+    "recentSearches": "Tìm kiếm gần đây",
     "login": "Đăng nhập",
     "register": "Đăng ký",
     "logout": "Đăng xuất",

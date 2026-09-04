@@ -4,11 +4,12 @@ import { MessageCircle } from "lucide-react";
 import { Button, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
-import type { Product } from "@/types";
+import type { Merchant, Product } from "@/types";
 import type { Locale } from "@/stores/locale.store";
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
   product: Product;
+  merchant?: Merchant;
   productId: string;
   authenticated: boolean;
   locale: Locale;
@@ -24,6 +25,7 @@ interface Props {
 export default function ProductDetailExtras(props: Props) {
   const {
     product,
+    merchant,
     productId: id,
     authenticated: isAuthenticated,
     locale,
@@ -47,7 +49,7 @@ export default function ProductDetailExtras(props: Props) {
           </div>
           <div>
             <h3 className="text-base font-bold text-gray-900">
-              {t("products.storeLabel")} ({product.merchantId})
+              {merchant?.name ?? t("products.storeLabel")}
             </h3>
             <div className="mt-2.5 flex items-center gap-2 flex-wrap">
               <Button
@@ -58,7 +60,7 @@ export default function ProductDetailExtras(props: Props) {
                 loading={chatLoading}
               >
                 <MessageCircle size={14} className="mr-1" />
-                Chat ngay
+                {t("productDetail.chatNow")}
               </Button>
               <Link href={`/merchants/${product.merchantId}`}>
                 <Button variant="outline" size="sm" className="border-gray-400">

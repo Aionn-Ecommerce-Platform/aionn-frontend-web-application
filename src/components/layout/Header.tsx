@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -23,6 +23,7 @@ import {
   MessageSquare,
   Phone,
   Shield,
+  Clock3,
 } from "lucide-react";
 import { Button, Avatar } from "@/shared/ui";
 import { useAuthStore, useCartStore } from "@/stores";
@@ -31,21 +32,32 @@ import {
   conversationService,
   merchantService,
   notificationService,
+  searchHistoryService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { formatDateTime } from "@/shared/lib/utils";
+import { logger } from "@/shared/lib/logger";
+import {
+  GUEST_RECENT_SEARCHES_KEY,
+  mergeRecentSearches,
+  readGuestRecentSearches,
+  writeGuestRecentSearches,
+} from "@/shared/lib/recent-searches";
 import LanguageSwitcher from "./LanguageSwitcher";
 import HeaderNavigation from "./HeaderNavigation";
 import { categoryIcons, getNotiBg, pickInitial } from "./header-utils";
 
 export default function Header() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLDivElement | null>(null);
 
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, isInitializing, user, logout } = useAuthStore();
   const totalItems = useCartStore((s) =>
     s.items.reduce((sum, i) => sum + i.qty, 0),
   );
@@ -62,6 +74,9 @@ export default function Header() {
   const sellOnAionnHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
+  const recentSearchQueryKey = qk.recentSearches(
+    isAuthenticated ? (user?.userId ?? "authenticated") : "guest",
+  );
 
   const { data: notifications } = useQuery({
     queryKey: qk.notifications(),
@@ -80,6 +95,23 @@ export default function Header() {
     queryFn: () => merchantService.getMine(),
     enabled: isAuthenticated && hasSellerRole,
     retry: false,
+  });
+  const { data: recentSearches = [] } = useQuery({
+    queryKey: recentSearchQueryKey,
+    queryFn: async () => {
+      if (!isAuthenticated) return readGuestRecentSearches();
+
+      const serverSearches = await searchHistoryService.getRecent();
+      const guestSearches = readGuestRecentSearches();
+      if (guestSearches.length === 0) return serverSearches;
+
+      const merged = mergeRecentSearches(guestSearches, serverSearches);
+      const saved = await searchHistoryService.record(merged);
+      localStorage.removeItem(GUEST_RECENT_SEARCHES_KEY);
+      return saved;
+    },
+    enabled: !isInitializing,
+    staleTime: Number.POSITIVE_INFINITY,
   });
   const hasMerchant =
     hasSellerRole && !!myMerchant && myMerchant.status !== "CLOSED";
@@ -105,6 +137,17 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [userMenuOpen]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [searchOpen]);
+
   async function handleLogout() {
     setUserMenuOpen(false);
     await logout();
@@ -112,11 +155,27 @@ export default function Header() {
     router.push("/");
   }
 
+  function runSearch(value: string) {
+    const q = value.trim();
+    if (!q) return;
+    const next = mergeRecentSearches([q], recentSearches);
+    queryClient.setQueryData(recentSearchQueryKey, next);
+    if (isAuthenticated) {
+      searchHistoryService
+        .record([q])
+        .then((saved) => queryClient.setQueryData(recentSearchQueryKey, saved))
+        .catch((error) => logger.error("Failed to record recent search", error));
+    } else {
+      writeGuestRecentSearches(next);
+    }
+    setSearchQuery(q);
+    setSearchOpen(false);
+    router.push(`/products?q=${encodeURIComponent(q)}`);
+  }
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q) return;
-    router.push(`/products?q=${encodeURIComponent(q)}`);
+    runSearch(searchQuery);
   }
 
   return (
@@ -279,7 +338,10 @@ export default function Header() {
             </span>
           </Link>
 
-          <div className="hidden md:flex flex-1 max-w-2xl">
+          <div
+            ref={searchRef}
+            className="relative hidden md:flex flex-1 max-w-2xl"
+          >
             <form onSubmit={handleSearch} className="relative w-full group">
               <Search
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500 transition-colors"
@@ -290,9 +352,28 @@ export default function Header() {
                 placeholder={t("common.search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchOpen(true)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
               />
             </form>
+            {searchOpen && recentSearches.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
+                <p className="px-4 pb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  {t("common.recentSearches")}
+                </p>
+                {recentSearches.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => runSearch(item)}
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    <Clock3 size={15} className="text-gray-400" />
+                    <span className="truncate">{item}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">

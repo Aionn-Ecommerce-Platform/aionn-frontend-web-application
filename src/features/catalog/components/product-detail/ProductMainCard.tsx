@@ -1,8 +1,10 @@
 "use client";
 import Image from "next/image";
+import { useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  Check,
   Minus,
   Plus,
   ShieldCheck,
@@ -15,10 +17,7 @@ import { getLocalizedAddress } from "@/shared/lib/address-utils";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { Address, Product, ProductVariant } from "@/types";
 import type { Locale } from "@/stores/locale.store";
-import {
-  formatVariantSummary,
-  getVariantLabelFromAttributes,
-} from "./product-detail-utils";
+import { formatVariantKey, formatVariantValue } from "./product-detail-utils";
 
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
@@ -44,8 +43,7 @@ interface Props {
   isAuthenticated: boolean;
   destAddress: Address | null;
   shippingFee: number | null;
-  selectedVariantIdx: number | null;
-  setSelectedVariantIdx: (value: number) => void;
+  setSelectedVariantIdx: (value: number | null) => void;
   stock: number | null;
   quantity: number;
   setQuantity: (value: number) => void;
@@ -78,7 +76,6 @@ export default function ProductMainCard(props: Props) {
     isAuthenticated,
     destAddress,
     shippingFee,
-    selectedVariantIdx,
     setSelectedVariantIdx,
     stock,
     quantity,
@@ -88,13 +85,73 @@ export default function ProductMainCard(props: Props) {
     handleBuyNow,
     t,
   } = props;
+  const [selectionState, setSelectionState] = useState<{
+    productId: string;
+    values: Record<string, string>;
+  }>({ productId: product.productId, values: {} });
+  const selectedAttributes =
+    selectionState.productId === product.productId
+      ? selectionState.values
+      : {};
+  const attributeKeys = useMemo(() => {
+    const keys: string[] = [];
+    for (const variant of product.variants) {
+      for (const key of Object.keys(variant.attributeValues)) {
+        if (!keys.includes(key)) keys.push(key);
+      }
+    }
+    return keys;
+  }, [product.variants]);
+  const attributeOptions = useMemo(
+    () =>
+      Object.fromEntries(
+        attributeKeys.map((key) => [
+          key,
+          [
+            ...new Set(
+              product.variants
+                .map((variant) => variant.attributeValues[key])
+                .filter(Boolean),
+            ),
+          ],
+        ]),
+      ) as Record<string, string[]>,
+    [attributeKeys, product.variants],
+  );
+
+  const selectAttribute = (key: string, value: string) => {
+    const next = { ...selectedAttributes, [key]: value };
+    setSelectionState({ productId: product.productId, values: next });
+    const selectedVariantIndex = product.variants.findIndex((variant) =>
+      attributeKeys.every(
+        (attributeKey) =>
+          variant.attributeValues[attributeKey] === next[attributeKey],
+      ),
+    );
+    setSelectedVariantIdx(
+      selectedVariantIndex >= 0 ? selectedVariantIndex : null,
+    );
+    setQuantity(1);
+  };
+
+  const isOptionAvailable = (key: string, value: string) =>
+    product.variants.some(
+      (variant) =>
+        variant.attributeValues[key] === value &&
+        Object.entries(selectedAttributes).every(
+          ([selectedKey, selectedValue]) =>
+            selectedKey === key ||
+            variant.attributeValues[selectedKey] === selectedValue,
+        ),
+    );
+
   return (
     <>
       {" "}
       <div className="bg-white rounded-2xl border border-gray-400 overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
-            <div className="aspect-square relative bg-gray-50 rounded-xl overflow-hidden mb-4 border border-gray-200 group">
+            <div className="aspect-square relative bg-gray-50 rounded-xl overflow-hidden mb-4 border border-gray-400 group">
               <Image
                 src={images[selectedImage] ?? "/images/logo.png"}
                 alt={product.name}
@@ -137,7 +194,7 @@ export default function ProductMainCard(props: Props) {
                       className={`w-16 h-16 relative rounded-lg overflow-hidden border flex-shrink-0 transition-all bg-white ${
                         selectedImage === i
                           ? "border-blue-600 ring-2 ring-blue-100"
-                          : "border-gray-300 hover:border-blue-400"
+                          : "border-gray-400 hover:border-blue-500"
                       }`}
                     >
                       <Image
@@ -204,20 +261,22 @@ export default function ProductMainCard(props: Props) {
               </span>
             </div>
 
-            <div className="mt-5 bg-gray-50 px-6 py-5">
+            <div className="mt-5 py-3">
               {product.variants.length > 0 ? (
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-3xl sm:text-4xl font-normal leading-tight text--commerce">
+                  <span
+                    className={`text-3xl sm:text-4xl font-normal leading-tight ${
+                      discountPercent > 0 ? "text-orange-600" : "text-gray-900"
+                    }`}
+                  >
                     {priceLabel}
                   </span>
-                  {currentVariant &&
-                    strikePrice &&
-                    strikePrice > displayPrice && (
-                      <span className="text-lg text-gray-400 line-through">
+                  {strikePrice && strikePrice > displayPrice && (
+                      <span className="text-lg text-gray-600 line-through">
                         {formatCurrency(strikePrice, displayCurrency)}
                       </span>
                     )}
-                  {currentVariant && discountPercent > 0 && (
+                  {discountPercent > 0 && (
                     <span className="text-sm font-semibold text-white bg--commerce px-2 py-0.5 rounded">
                       -{discountPercent}%
                     </span>
@@ -242,13 +301,15 @@ export default function ProductMainCard(props: Props) {
                           ? t("productDetail.loadingDeliveryDate")
                           : "Loading GHN ETA..."
                         : (deliveryDateLabel ??
-                          (isAuthenticated
+                          (!isAuthenticated
                             ? locale === "vi"
-                              ? t("productDetail.noDeliveryDate")
-                              : "GHN ETA unavailable"
-                            : locale === "vi"
                               ? t("productDetail.loginForDelivery")
-                              : "Sign in to view delivery date"))}
+                              : "Sign in to view delivery date"
+                            : !destAddress
+                              ? t("productDetail.chooseDefaultAddress")
+                              : locale === "vi"
+                                ? t("productDetail.noDeliveryDate")
+                                : "GHN ETA unavailable"))}
                     </span>
                   </span>
                   <span className="block text-emerald-700">
@@ -268,9 +329,11 @@ export default function ProductMainCard(props: Props) {
                           : locale === "vi"
                             ? t("productDetail.noShippingFee")
                             : "GHN shipping fee unavailable"
-                      : locale === "vi"
-                        ? t("productDetail.loginForShipping")
-                        : "Sign in and set a default address to view fee"}
+                      : isAuthenticated
+                        ? t("productDetail.chooseDefaultAddress")
+                        : locale === "vi"
+                          ? t("productDetail.loginForShipping")
+                          : "Sign in to view shipping fees"}
                   </span>
                   {destAddress && (
                     <span className="block text-xs text-gray-500">
@@ -297,30 +360,51 @@ export default function ProductMainCard(props: Props) {
               </div>
             </div>
 
-            {product.variants.length > 0 && (
-              <div className="mt-8 grid grid-cols-[88px_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-6">
-                <h3 className="pt-3 text-sm font-normal text-gray-500">
-                  {getVariantLabelFromAttributes(
-                    currentVariant?.attributeValues,
-                    locale,
-                  )}
-                </h3>
-                <div className="flex gap-2 flex-wrap">
-                  {product.variants.map((variant, i) => (
-                    <button
-                      key={variant.skuId}
-                      onClick={() => setSelectedVariantIdx(i)}
-                      className={`min-h-12 px-4 py-2 border text-sm font-medium transition-all ${
-                        selectedVariantIdx === i
-                          ? "border-blue-600 bg-white text-blue-700 shadow-[inset_0_0_0_1px_var(--color-primary)]"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                      }`}
-                    >
-                      {formatVariantSummary(variant.attributeValues) ||
-                        variant.skuId}
-                    </button>
-                  ))}
-                </div>
+            {attributeKeys.length > 0 && (
+              <div className="mt-8 space-y-4">
+                {attributeKeys.map((key) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-[88px_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-6"
+                  >
+                    <h3 className="pt-2.5 text-sm font-normal text-gray-500">
+                      {formatVariantKey(key, locale)}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(attributeOptions[key] ?? []).map((value) => {
+                        const selected = selectedAttributes[key] === value;
+                        const available = isOptionAvailable(key, value);
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            disabled={!available}
+                            onClick={() => selectAttribute(key, value)}
+                            className={`relative min-h-9 min-w-16 overflow-hidden px-3 py-1 border text-sm font-medium transition-colors ${
+                              selected
+                                ? "border-blue-600 bg-white text-blue-700 shadow-[inset_0_0_0_1px_var(--color-primary)]"
+                                : available
+                                  ? "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:text-blue-700"
+                                  : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through"
+                            }`}
+                          >
+                            {formatVariantValue(value)}
+                            {selected && (
+                              <>
+                                <span className="absolute bottom-0 right-0 h-4 w-4 bg-blue-600 [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
+                                <Check
+                                  size={9}
+                                  strokeWidth={3}
+                                  className="absolute bottom-0 right-0 text-white"
+                                />
+                              </>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

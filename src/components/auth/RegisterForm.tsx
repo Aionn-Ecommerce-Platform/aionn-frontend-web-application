@@ -360,6 +360,7 @@ export default function RegisterForm({
               id="password"
               label={t("auth.password")}
               type={showPassword ? "text" : "password"}
+              className="hide-password-reveal pr-10"
               placeholder={t("auth.minPassword")}
               icon={<Lock size={18} />}
               value={password}
