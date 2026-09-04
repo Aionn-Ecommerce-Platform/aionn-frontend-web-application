@@ -42,8 +42,12 @@ export function readGuestRecentSearches(): string[] {
 }
 
 export function writeGuestRecentSearches(queries: string[]): void {
-  localStorage.setItem(
-    GUEST_RECENT_SEARCHES_KEY,
-    JSON.stringify(mergeRecentSearches(queries, [])),
-  );
+  try {
+    localStorage.setItem(
+      GUEST_RECENT_SEARCHES_KEY,
+      JSON.stringify(mergeRecentSearches(queries, [])),
+    );
+  } catch {
+    // Guest-search persistence is best-effort.
+  }
 }

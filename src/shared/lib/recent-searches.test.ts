@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   GUEST_RECENT_SEARCHES_KEY,
   mergeRecentSearches,
@@ -31,5 +31,13 @@ describe("recent searches", () => {
     localStorage.setItem(GUEST_RECENT_SEARCHES_KEY, "not-json");
 
     expect(readGuestRecentSearches()).toEqual([]);
+  });
+
+  it("handles storage write failures gracefully", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+
+    expect(() => writeGuestRecentSearches(["phone"])).not.toThrow();
   });
 });

@@ -41,7 +41,7 @@ export const productService = {
   async getWithActiveFlashSale(productId: string) {
     const [product, campaigns] = await Promise.all([
       this.get(productId),
-      promotionService.getActiveFlashSales(100),
+      promotionService.getActiveFlashSales(100).catch(() => []),
     ]);
     const matches = campaigns.flatMap((campaign) =>
       campaign.items
@@ -53,6 +53,29 @@ export const productService = {
     const cheapest = matches.reduce((best, current) =>
       current.item.salePrice < best.item.salePrice ? current : best,
     );
+    const skuOffersMap = new Map<
+      string,
+      {
+        skuId: string;
+        salePrice: number;
+        currency: string;
+        saleStock: number;
+        soldCount: number;
+      }
+    >();
+    for (const { item } of matches) {
+      const existing = skuOffersMap.get(item.skuId);
+      if (!existing || item.salePrice < existing.salePrice) {
+        skuOffersMap.set(item.skuId, {
+          skuId: item.skuId,
+          salePrice: item.salePrice,
+          currency: item.currency,
+          saleStock: item.saleStock,
+          soldCount: item.soldCount,
+        });
+      }
+    }
+
     return {
       ...product,
       flashSale: {
@@ -62,13 +85,7 @@ export const productService = {
         currency: cheapest.item.currency,
         saleStock: cheapest.item.saleStock,
         soldCount: cheapest.item.soldCount,
-        skuOffers: matches.map(({ item }) => ({
-          skuId: item.skuId,
-          salePrice: item.salePrice,
-          currency: item.currency,
-          saleStock: item.saleStock,
-          soldCount: item.soldCount,
-        })),
+        skuOffers: Array.from(skuOffersMap.values()),
       },
     } satisfies Product;
   },
@@ -100,6 +117,29 @@ export const productService = {
         const cheapest = matches.reduce((best, current) =>
           current.item.salePrice < best.item.salePrice ? current : best,
         );
+        const skuOffersMap = new Map<
+          string,
+          {
+            skuId: string;
+            salePrice: number;
+            currency: string;
+            saleStock: number;
+            soldCount: number;
+          }
+        >();
+        for (const { item } of matches) {
+          const existing = skuOffersMap.get(item.skuId);
+          if (!existing || item.salePrice < existing.salePrice) {
+            skuOffersMap.set(item.skuId, {
+              skuId: item.skuId,
+              salePrice: item.salePrice,
+              currency: item.currency,
+              saleStock: item.saleStock,
+              soldCount: item.soldCount,
+            });
+          }
+        }
+
         return {
           ...product,
           flashSale: {
@@ -109,13 +149,7 @@ export const productService = {
             currency: cheapest.item.currency,
             saleStock: cheapest.item.saleStock,
             soldCount: cheapest.item.soldCount,
-            skuOffers: matches.map(({ item }) => ({
-              skuId: item.skuId,
-              salePrice: item.salePrice,
-              currency: item.currency,
-              saleStock: item.saleStock,
-              soldCount: item.soldCount,
-            })),
+            skuOffers: Array.from(skuOffersMap.values()),
           },
         } satisfies Product;
       });

@@ -78,14 +78,22 @@ function AdminBannersInner() {
       const current = banners[index];
       const adjacent = banners[index + direction];
       if (!current || !adjacent) return;
-      await Promise.all([
-        adminPromotionBannerService.update(current.bannerId, {
-          displayOrder: adjacent.displayOrder,
-        }),
-        adminPromotionBannerService.update(adjacent.bannerId, {
-          displayOrder: current.displayOrder,
-        }),
-      ]);
+      const prevCurrentOrder = current.displayOrder;
+      const prevAdjacentOrder = adjacent.displayOrder;
+      await adminPromotionBannerService.update(current.bannerId, {
+        displayOrder: prevAdjacentOrder,
+      });
+      try {
+        await adminPromotionBannerService.update(adjacent.bannerId, {
+          displayOrder: prevCurrentOrder,
+        });
+      } catch (err) {
+        // Rollback current banner order if adjacent update fails
+        await adminPromotionBannerService
+          .update(current.bannerId, { displayOrder: prevCurrentOrder })
+          .catch(() => {});
+        throw err;
+      }
     },
     onSuccess: refresh,
     onError: (err) => toast.error(getErrorMessage(err)),

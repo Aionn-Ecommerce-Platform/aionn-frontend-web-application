@@ -182,6 +182,12 @@ export default function HomePage() {
     setCurrentIndex((prev) => (prev + 1) % activeBanners.length);
   };
 
+  useEffect(() => {
+    setCurrentIndex((index) =>
+      Math.min(index, Math.max(activeBanners.length - 1, 0)),
+    );
+  }, [activeBanners.length]);
+
   const currentBanner = activeBanners[currentIndex];
 
   return (

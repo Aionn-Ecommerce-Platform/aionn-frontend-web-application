@@ -72,8 +72,18 @@ export async function uploadAssetToCloudinary(
     url?: string;
     public_id?: string;
   };
-  const url = data.secure_url ?? data.url;
-  if (!url) throw new Error("Cloudinary did not return a URL");
+  let url = data.secure_url;
+  if (!url && data.url) {
+    try {
+      const parsed = new URL(data.url);
+      if (parsed.protocol === "https:") {
+        url = data.url;
+      }
+    } catch {
+      // Invalid URL format
+    }
+  }
+  if (!url) throw new Error("Cloudinary did not return a secure HTTPS URL");
   if (!data.public_id) throw new Error("Cloudinary did not return a public ID");
   return { url, publicId: data.public_id };
 }

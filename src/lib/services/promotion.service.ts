@@ -51,6 +51,12 @@ export const adminPromotionBannerService = {
     return api.post<PromotionBannerAdmin>("/promotions/banners", body);
   },
   update(bannerId: string, body: UpdateBannerInput) {
+    if (
+      (body.imageUrl !== undefined || body.imagePublicId !== undefined) &&
+      (!body.imageUrl || !body.imagePublicId)
+    ) {
+      throw new Error("imageUrl and imagePublicId must be updated together");
+    }
     return api.put<PromotionBannerAdmin>(
       `/promotions/banners/${bannerId}`,
       body,

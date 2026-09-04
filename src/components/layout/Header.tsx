@@ -155,15 +155,22 @@ export default function Header() {
     router.push("/");
   }
 
+  const recordRequestIdRef = useRef(0);
+
   function runSearch(value: string) {
     const q = value.trim();
     if (!q) return;
     const next = mergeRecentSearches([q], recentSearches);
     queryClient.setQueryData(recentSearchQueryKey, next);
     if (isAuthenticated) {
+      const requestId = ++recordRequestIdRef.current;
       searchHistoryService
         .record([q])
-        .then((saved) => queryClient.setQueryData(recentSearchQueryKey, saved))
+        .then((saved) => {
+          if (requestId === recordRequestIdRef.current) {
+            queryClient.setQueryData(recentSearchQueryKey, saved);
+          }
+        })
         .catch((error) => logger.error("Failed to record recent search", error));
     } else {
       writeGuestRecentSearches(next);
