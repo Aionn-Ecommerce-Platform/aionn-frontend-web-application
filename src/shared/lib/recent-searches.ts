@@ -30,9 +30,7 @@ export function readGuestRecentSearches(): string[] {
     );
     return Array.isArray(stored)
       ? mergeRecentSearches(
-          stored.filter(
-            (value): value is string => typeof value === "string",
-          ),
+          stored.filter((value): value is string => typeof value === "string"),
           [],
         )
       : [];

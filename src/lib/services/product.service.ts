@@ -163,7 +163,9 @@ export const productService = {
           (!params.merchantId || product.merchantId === params.merchantId) &&
           (!params.status || product.status === params.status) &&
           (!params.categoryIds?.length ||
-            params.categoryIds.some((id) => product.categoryIds.includes(id))) &&
+            params.categoryIds.some((id) =>
+              product.categoryIds.includes(id),
+            )) &&
           (!params.brandIds?.length ||
             (product.brandId !== null &&
               params.brandIds.includes(product.brandId))) &&
@@ -174,16 +176,44 @@ export const productService = {
           (!params.provinceCodes?.length ||
             (product.provinceCode !== null &&
               product.provinceCode !== undefined &&
-              params.provinceCodes.includes(product.provinceCode)))
+              params.provinceCodes.includes(product.provinceCode))) &&
+          (!params.attributes ||
+            Object.entries(params.attributes).every(
+              ([attrKey, allowedValues]) => {
+                if (!allowedValues || allowedValues.length === 0) return true;
+                const productAttrValue = product.attributes?.[attrKey];
+                if (
+                  productAttrValue !== undefined &&
+                  productAttrValue !== null &&
+                  allowedValues.includes(productAttrValue)
+                ) {
+                  return true;
+                }
+                return (
+                  product.variants?.some((variant) => {
+                    const val = variant.attributeValues?.[attrKey];
+                    return (
+                      val !== undefined &&
+                      val !== null &&
+                      allowedValues.includes(val)
+                    );
+                  }) ?? false
+                );
+              },
+            ))
         );
       });
 
       filtered.sort((left, right) => {
         if (params.sort === "PRICE_ASC") {
-          return (left.flashSale?.salePrice ?? 0) - (right.flashSale?.salePrice ?? 0);
+          return (
+            (left.flashSale?.salePrice ?? 0) - (right.flashSale?.salePrice ?? 0)
+          );
         }
         if (params.sort === "PRICE_DESC") {
-          return (right.flashSale?.salePrice ?? 0) - (left.flashSale?.salePrice ?? 0);
+          return (
+            (right.flashSale?.salePrice ?? 0) - (left.flashSale?.salePrice ?? 0)
+          );
         }
         if (params.sort === "BEST_SELLER") {
           return (right.soldCount ?? 0) - (left.soldCount ?? 0);
@@ -207,6 +237,34 @@ export const productService = {
         (product) => product.flashSale?.salePrice ?? 0,
       );
 
+      const attributeFacets: Record<string, Record<string, number>> = {};
+      for (const product of filtered) {
+        if (product.attributes) {
+          for (const [key, value] of Object.entries(product.attributes)) {
+            if (value) {
+              attributeFacets[key] = attributeFacets[key] ?? {};
+              attributeFacets[key][value] =
+                (attributeFacets[key][value] ?? 0) + 1;
+            }
+          }
+        }
+        if (product.variants) {
+          for (const variant of product.variants) {
+            if (variant.attributeValues) {
+              for (const [key, value] of Object.entries(
+                variant.attributeValues,
+              )) {
+                if (value) {
+                  attributeFacets[key] = attributeFacets[key] ?? {};
+                  attributeFacets[key][value] =
+                    (attributeFacets[key][value] ?? 0) + 1;
+                }
+              }
+            }
+          }
+        }
+      }
+
       return {
         page: {
           content,
@@ -220,7 +278,7 @@ export const productService = {
           categories: countBy(
             filtered.flatMap((product) => product.categoryIds),
           ),
-          attributes: {},
+          attributes: attributeFacets,
           priceRange:
             prices.length > 0
               ? { min: Math.min(...prices), max: Math.max(...prices) }

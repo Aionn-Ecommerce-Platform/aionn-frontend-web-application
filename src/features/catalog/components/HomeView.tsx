@@ -196,7 +196,7 @@ export default function HomePage() {
                 <div className="relative w-full h-full">
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={currentIndex}
+                      key={safeIndex}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -204,7 +204,10 @@ export default function HomePage() {
                       className="relative w-full h-full"
                     >
                       {currentBanner?.linkUrl ? (
-                        <Link href={currentBanner.linkUrl} className="relative block w-full h-full">
+                        <Link
+                          href={currentBanner.linkUrl}
+                          className="relative block w-full h-full"
+                        >
                           <Image
                             src={currentBanner.imageUrl}
                             alt={currentBanner.title}
@@ -249,7 +252,7 @@ export default function HomePage() {
                       key={index}
                       onClick={() => setCurrentIndex(index)}
                       className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                        currentIndex === index
+                        safeIndex === index
                           ? "w-6 bg-white"
                           : "w-2 bg-white/50 hover:bg-white/80"
                       }`}

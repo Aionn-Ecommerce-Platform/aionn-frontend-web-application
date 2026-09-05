@@ -22,9 +22,9 @@ describe("recent searches", () => {
     writeGuestRecentSearches(["phone", "laptop"]);
 
     expect(readGuestRecentSearches()).toEqual(["phone", "laptop"]);
-    expect(JSON.parse(localStorage.getItem(GUEST_RECENT_SEARCHES_KEY)!)).toEqual(
-      ["phone", "laptop"],
-    );
+    expect(
+      JSON.parse(localStorage.getItem(GUEST_RECENT_SEARCHES_KEY)!),
+    ).toEqual(["phone", "laptop"]);
   });
 
   it("returns an empty list for malformed guest storage", () => {
@@ -39,5 +39,14 @@ describe("recent searches", () => {
     });
 
     expect(() => writeGuestRecentSearches(["phone"])).not.toThrow();
+  });
+
+  it("coordinates optimistic search queries by merging pending cache with server results", () => {
+    const serverSearches = ["laptop", "tablet"];
+    const optimisticSearches = ["phone"];
+
+    // When an initial server query resolves after an optimistic runSearch:
+    const merged = mergeRecentSearches(optimisticSearches, serverSearches);
+    expect(merged).toEqual(["phone", "laptop", "tablet"]);
   });
 });

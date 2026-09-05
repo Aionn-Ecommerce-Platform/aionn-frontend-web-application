@@ -74,7 +74,13 @@ function AdminBannersInner() {
   });
 
   const reorderMu = useMutation({
-    mutationFn: async ({ index, direction }: { index: number; direction: -1 | 1 }) => {
+    mutationFn: async ({
+      index,
+      direction,
+    }: {
+      index: number;
+      direction: -1 | 1;
+    }) => {
       const current = banners[index];
       const adjacent = banners[index + direction];
       if (!current || !adjacent) return;
@@ -172,7 +178,10 @@ function AdminBannersInner() {
       return;
     }
     const linkUrl = form.linkUrl.trim();
-    const isInternalPath = linkUrl.startsWith("/") && !linkUrl.startsWith("//") && !linkUrl.includes("\\");
+    const isInternalPath =
+      linkUrl.startsWith("/") &&
+      !linkUrl.startsWith("//") &&
+      !linkUrl.includes("\\");
     if (linkUrl && !isInternalPath && !/^https?:\/\//i.test(linkUrl)) {
       toast.error(t("adminBanners.linkInvalid"));
       return;
@@ -251,7 +260,9 @@ function AdminBannersInner() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      disabled={index === banners.length - 1 || reorderMu.isPending}
+                      disabled={
+                        index === banners.length - 1 || reorderMu.isPending
+                      }
                       onClick={() => reorderMu.mutate({ index, direction: 1 })}
                       aria-label={t("adminBanners.moveDown")}
                     >

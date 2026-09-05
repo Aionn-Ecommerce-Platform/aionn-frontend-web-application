@@ -103,9 +103,20 @@ export default function Header() {
 
       const serverSearches = await searchHistoryService.getRecent();
       const guestSearches = readGuestRecentSearches();
-      if (guestSearches.length === 0) return serverSearches;
+      const cached =
+        queryClient.getQueryData<string[]>(recentSearchQueryKey) ?? [];
+      const pendingOptimistic = cached.filter(
+        (q) => !serverSearches.some((s) => s.toLowerCase() === q.toLowerCase()),
+      );
 
-      const merged = mergeRecentSearches(guestSearches, serverSearches);
+      if (guestSearches.length === 0 && pendingOptimistic.length === 0) {
+        return serverSearches;
+      }
+
+      const merged = mergeRecentSearches(
+        [...pendingOptimistic, ...guestSearches],
+        serverSearches,
+      );
       const saved = await searchHistoryService.record(merged);
       localStorage.removeItem(GUEST_RECENT_SEARCHES_KEY);
       return saved;
@@ -171,7 +182,9 @@ export default function Header() {
             queryClient.setQueryData(recentSearchQueryKey, saved);
           }
         })
-        .catch((error) => logger.error("Failed to record recent search", error));
+        .catch((error) =>
+          logger.error("Failed to record recent search", error),
+        );
     } else {
       writeGuestRecentSearches(next);
     }
@@ -349,19 +362,25 @@ export default function Header() {
             ref={searchRef}
             className="relative hidden md:flex flex-1 max-w-2xl"
           >
-            <form onSubmit={handleSearch} className="relative w-full group">
-              <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500 transition-colors"
-                size={18}
-              />
+            <form
+              onSubmit={handleSearch}
+              className="relative w-full group flex items-center"
+            >
               <input
                 type="text"
                 placeholder={t("common.search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
+                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
               />
+              <button
+                type="submit"
+                aria-label={t("common.search")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer"
+              >
+                <Search size={16} />
+              </button>
             </form>
             {searchOpen && recentSearches.length > 0 && (
               <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
