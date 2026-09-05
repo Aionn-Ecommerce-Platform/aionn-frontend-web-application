@@ -178,29 +178,44 @@ export const productService = {
               product.provinceCode !== undefined &&
               params.provinceCodes.includes(product.provinceCode))) &&
           (!params.attributes ||
-            Object.entries(params.attributes).every(
-              ([attrKey, allowedValues]) => {
-                if (!allowedValues || allowedValues.length === 0) return true;
+            (() => {
+              const requestedEntries = Object.entries(params.attributes).filter(
+                ([, values]) => Boolean(values && values.length > 0),
+              );
+              if (requestedEntries.length === 0) return true;
+
+              // Check if any requested attribute is a product-level attribute
+              const remainingForVariants: [string, string[]][] = [];
+              for (const [attrKey, allowedValues] of requestedEntries) {
                 const productAttrValue = product.attributes?.[attrKey];
                 if (
                   productAttrValue !== undefined &&
-                  productAttrValue !== null &&
-                  allowedValues.includes(productAttrValue)
+                  productAttrValue !== null
                 ) {
-                  return true;
+                  if (!allowedValues.includes(productAttrValue)) {
+                    return false;
+                  }
+                } else {
+                  remainingForVariants.push([attrKey, allowedValues]);
                 }
-                return (
-                  product.variants?.some((variant) => {
+              }
+
+              if (remainingForVariants.length === 0) return true;
+
+              // All remaining variant attributes must be satisfied by a single variant
+              return (
+                product.variants?.some((variant) =>
+                  remainingForVariants.every(([attrKey, allowedValues]) => {
                     const val = variant.attributeValues?.[attrKey];
                     return (
                       val !== undefined &&
                       val !== null &&
                       allowedValues.includes(val)
                     );
-                  }) ?? false
-                );
-              },
-            ))
+                  }),
+                ) ?? false
+              );
+            })())
         );
       });
 

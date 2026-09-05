@@ -49,4 +49,31 @@ describe("recent searches", () => {
     const merged = mergeRecentSearches(optimisticSearches, serverSearches);
     expect(merged).toEqual(["phone", "laptop", "tablet"]);
   });
+
+  it("preserves searches added while bootstrap record is pending", async () => {
+    // Simulate server returning initial searches
+    const initialServer = ["laptop", "mouse"];
+    // Simulate user searching 'keyboard' before bootstrap record call
+    const initialOptimistic = ["keyboard"];
+    const bootstrapPayload = mergeRecentSearches(initialOptimistic, initialServer);
+    // bootstrapPayload = ["keyboard", "laptop", "mouse"]
+
+    // Simulate deferred persistence
+    let resolveRecord: (value: string[]) => void;
+    const pendingRecord = new Promise<string[]>((resolve) => {
+      resolveRecord = resolve;
+    });
+
+    // In the meantime, while pendingRecord is in flight, user performs a second search 'monitor'
+    const cachedDuringFlight = mergeRecentSearches(["monitor"], initialOptimistic);
+    // cachedDuringFlight = ["monitor", "keyboard"]
+
+    // Record completes and returns saved list
+    resolveRecord!(bootstrapPayload);
+    const saved = await pendingRecord;
+
+    // The bootstrap query re-reads the cache and merges
+    const finalState = mergeRecentSearches(cachedDuringFlight, saved);
+    expect(finalState).toEqual(["monitor", "keyboard", "laptop", "mouse"]);
+  });
 });

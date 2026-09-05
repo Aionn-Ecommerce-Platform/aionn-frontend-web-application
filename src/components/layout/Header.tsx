@@ -119,7 +119,10 @@ export default function Header() {
       );
       const saved = await searchHistoryService.record(merged);
       localStorage.removeItem(GUEST_RECENT_SEARCHES_KEY);
-      return saved;
+      return mergeRecentSearches(
+        queryClient.getQueryData<string[]>(recentSearchQueryKey) ?? [],
+        saved,
+      );
     },
     enabled: !isInitializing,
     staleTime: Number.POSITIVE_INFINITY,

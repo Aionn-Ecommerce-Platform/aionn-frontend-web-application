@@ -118,12 +118,25 @@ export default function ProductMainCard(props: Props) {
   );
 
   const selectAttribute = (key: string, value: string) => {
-    const next = { ...selectedAttributes, [key]: value };
-    setSelectionState({ productId: product.productId, values: next });
+    // When changing an attribute, retain only selections that are compatible with [key]: value
+    const compatibleAttributes: Record<string, string> = { [key]: value };
+    for (const [existingKey, existingValue] of Object.entries(selectedAttributes)) {
+      if (existingKey === key) continue;
+      const isStillCompatible = product.variants.some(
+        (variant) =>
+          variant.attributeValues[key] === value &&
+          variant.attributeValues[existingKey] === existingValue,
+      );
+      if (isStillCompatible) {
+        compatibleAttributes[existingKey] = existingValue;
+      }
+    }
+
+    setSelectionState({ productId: product.productId, values: compatibleAttributes });
     const selectedVariantIndex = product.variants.findIndex((variant) =>
       attributeKeys.every(
         (attributeKey) =>
-          variant.attributeValues[attributeKey] === next[attributeKey],
+          variant.attributeValues[attributeKey] === compatibleAttributes[attributeKey],
       ),
     );
     setSelectedVariantIdx(
@@ -274,7 +287,7 @@ export default function ProductMainCard(props: Props) {
                     </span>
                     {strikePrice && strikePrice > displayPrice && (
                       <span className="text-lg text-gray-600 line-through">
-                        {formatCurrency(strikePrice, displayCurrency)}
+                        {formatCurrency(strikePrice, displayCurrency, locale)}
                       </span>
                     )}
                     {discountPercent > 0 && (
