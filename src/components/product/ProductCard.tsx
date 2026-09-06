@@ -53,7 +53,8 @@ export default function ProductCard({
   const hasReviews = reviewCount !== undefined && reviewCount > 0;
   const currentRating =
     hasReviews && rating !== undefined && rating > 0 ? rating : 0;
-  const hasSold = sold !== undefined && sold > 0;
+  const soldCount = sold ?? 0;
+  const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
 
   const showMallBadge =
     isMall ||
@@ -69,7 +70,7 @@ export default function ProductCard({
       href={`/products/${id}`}
       className={cn(
         "group bg-gray-50 rounded-md border border-gray-400 overflow-hidden",
-        "hover:border-yellow-400 hover:bg-yellow-50 hover:shadow-lg hover:shadow-yellow-500/10",
+        "hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15",
         "transition-all duration-300 relative flex flex-col",
         className,
       )}
@@ -88,11 +89,16 @@ export default function ProductCard({
             FLASH SALE
           </span>
         )}
+        {discount > 0 && (
+          <span className="absolute right-0 top-3 z-10 rounded-l-sm bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+            -{discount}%
+          </span>
+        )}
       </div>
 
-      <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-yellow-50 transition-colors justify-between">
+      <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-blue-50 transition-colors justify-between">
         <div>
-          <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-yellow-700 transition-colors min-h-[2.25rem] leading-tight">
+          <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors min-h-[2.25rem] leading-tight">
             {showMallBadge && (
               <span className="inline-flex items-center bg--sale text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded mr-1.5 align-middle uppercase tracking-wide">
                 Mall
@@ -102,15 +108,18 @@ export default function ProductCard({
           </h3>
 
           <div className="mt-2 flex flex-col gap-0.5">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-sm font-bold text--commerce">
+            <div className="flex items-baseline justify-between gap-1.5">
+              <span
+                className={cn(
+                  "text-lg font-bold",
+                  discount > 0 ? "text-orange-600" : "text-gray-900",
+                )}
+              >
                 {formatCurrency(displayPrice, "VND", locale)}
               </span>
-              {discount > 0 && (
-                <span className="text-[10px] font-semibold text--commerce">
-                  -{discount}%
-                </span>
-              )}
+              <span className="shrink-0 text-[11px] font-medium text-gray-500">
+                {t("home.soldCount").replace("{count}", displayedSold)}
+              </span>
             </div>
             {strikePrice && strikePrice > displayPrice && (
               <span className="text-[10px] text-gray-400 line-through leading-none">
@@ -121,36 +130,26 @@ export default function ProductCard({
         </div>
 
         <div className="mt-2 flex flex-col gap-1 w-full text-[10px]">
-          {(hasReviews || hasSold) && (
+          {hasReviews && (
             <div className="flex items-center gap-1 text-gray-400">
-              {hasReviews && (
-                <>
-                  <div className="flex items-center text-amber-400">
-                    {[...Array(5)].map((_, i) => {
-                      const starValue = i + 1;
-                      return (
-                        <Star
-                          key={i}
-                          size={10}
-                          className={cn(
-                            "shrink-0",
-                            starValue <= currentRating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-gray-200 fill-gray-200",
-                          )}
-                        />
-                      );
-                    })}
-                  </div>
-                  <span>({reviewCount})</span>
-                </>
-              )}
-              {hasSold && (
-                <span className={hasReviews ? "ml-0.5" : ""}>
-                  {hasReviews ? "| " : ""}
-                  {t("home.soldCount").replace("{count}", String(sold))}
-                </span>
-              )}
+              <div className="flex items-center text-amber-400">
+                {[...Array(5)].map((_, i) => {
+                  const starValue = i + 1;
+                  return (
+                    <Star
+                      key={i}
+                      size={10}
+                      className={cn(
+                        "shrink-0",
+                        starValue <= currentRating
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-gray-200 fill-gray-200",
+                      )}
+                    />
+                  );
+                })}
+              </div>
+              <span>({reviewCount})</span>
             </div>
           )}
 

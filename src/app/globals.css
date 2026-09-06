@@ -136,6 +136,11 @@ a {
   background-clip: text;
 }
 
+.hide-password-reveal::-ms-reveal,
+.hide-password-reveal::-ms-clear {
+  display: none;
+}
+
 @keyframes top-loading-bar {
   0% {
     left: -40%;

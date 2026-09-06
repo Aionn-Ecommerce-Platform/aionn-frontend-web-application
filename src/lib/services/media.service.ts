@@ -32,6 +32,19 @@ export async function uploadToCloudinary(
   file: File,
   signature: UploadSignature,
 ): Promise<string> {
+  const asset = await uploadAssetToCloudinary(file, signature);
+  return asset.url;
+}
+
+export interface CloudinaryAsset {
+  url: string;
+  publicId: string;
+}
+
+export async function uploadAssetToCloudinary(
+  file: File,
+  signature: UploadSignature,
+): Promise<CloudinaryAsset> {
   const form = new FormData();
   form.append("file", file);
   form.append("api_key", signature.apiKey);
@@ -54,8 +67,23 @@ export async function uploadToCloudinary(
         : `Cloudinary upload failed: ${res.status}`,
     );
   }
-  const data = (await res.json()) as { secure_url?: string; url?: string };
-  const url = data.secure_url ?? data.url;
-  if (!url) throw new Error("Cloudinary did not return a URL");
-  return url;
+  const data = (await res.json()) as {
+    secure_url?: string;
+    url?: string;
+    public_id?: string;
+  };
+  let url = data.secure_url;
+  if (!url && data.url) {
+    try {
+      const parsed = new URL(data.url);
+      if (parsed.protocol === "https:") {
+        url = data.url;
+      }
+    } catch {
+      // Invalid URL format
+    }
+  }
+  if (!url) throw new Error("Cloudinary did not return a secure HTTPS URL");
+  if (!data.public_id) throw new Error("Cloudinary did not return a public ID");
+  return { url, publicId: data.public_id };
 }

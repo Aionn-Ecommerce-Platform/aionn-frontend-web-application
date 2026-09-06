@@ -59,7 +59,7 @@ export default function CategoriesPage() {
                       <Link
                         key={child.category.categoryId}
                         href={`/products?categoryIds=${child.category.categoryId}`}
-                        className="group bg-gray-50 rounded-md border border-gray-400 p-5 hover:border-yellow-400 hover:bg-yellow-50 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 text-center flex flex-col justify-center items-center"
+                        className="group bg-gray-50 rounded-md border border-gray-400 p-5 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 text-center flex flex-col justify-center items-center"
                       >
                         {child.category.iconUrl ? (
                           <div className="relative w-12 h-12 mx-auto mb-2">
@@ -72,11 +72,11 @@ export default function CategoriesPage() {
                             />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 mx-auto mb-2 bg-yellow-50 border border-gray-400 rounded-xl flex items-center justify-center">
-                            <Layers size={20} className="text-yellow-600" />
+                          <div className="w-12 h-12 mx-auto mb-2 bg-blue-50 border border-gray-400 rounded-xl flex items-center justify-center">
+                            <Layers size={20} className="text-blue-600" />
                           </div>
                         )}
-                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-yellow-700 transition-colors line-clamp-2">
+                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-2">
                           {child.category.name}
                         </h3>
                       </Link>

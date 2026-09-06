@@ -26,17 +26,16 @@ export interface PromotionBannerAdmin extends PromotionBanner {
 export interface CreateBannerInput {
   title: string;
   imageUrl: string;
-  linkUrl: string;
-  displayOrder: number;
-  active?: boolean;
+  imagePublicId: string;
+  linkUrl?: string;
 }
 
 interface UpdateBannerInput {
   title?: string;
   imageUrl?: string;
+  imagePublicId?: string;
   linkUrl?: string;
   displayOrder?: number;
-  active?: boolean;
 }
 
 export const adminPromotionBannerService = {
@@ -52,6 +51,12 @@ export const adminPromotionBannerService = {
     return api.post<PromotionBannerAdmin>("/promotions/banners", body);
   },
   update(bannerId: string, body: UpdateBannerInput) {
+    if (
+      (body.imageUrl !== undefined || body.imagePublicId !== undefined) &&
+      (!body.imageUrl || !body.imagePublicId)
+    ) {
+      throw new Error("imageUrl and imagePublicId must be updated together");
+    }
     return api.put<PromotionBannerAdmin>(
       `/promotions/banners/${bannerId}`,
       body,

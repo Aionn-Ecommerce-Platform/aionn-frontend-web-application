@@ -11,14 +11,15 @@ import {
   Trash2,
   Edit2,
   Upload,
-  ExternalLink,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, Modal, ConfirmDialog } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   adminPromotionBannerService,
-  uploadToCloudinary,
+  uploadAssetToCloudinary,
 } from "@/lib/services";
 import type {
   PromotionBannerAdmin,
@@ -30,17 +31,15 @@ import { useTranslation } from "@/hooks";
 interface BannerForm {
   title: string;
   imageUrl: string;
+  imagePublicId: string;
   linkUrl: string;
-  displayOrder: number;
-  active: boolean;
 }
 
 const EMPTY_FORM: BannerForm = {
   title: "",
   imageUrl: "",
+  imagePublicId: "",
   linkUrl: "",
-  displayOrder: 0,
-  active: true,
 };
 
 function AdminBannersInner() {
@@ -74,6 +73,38 @@ function AdminBannersInner() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const reorderMu = useMutation({
+    mutationFn: async ({
+      index,
+      direction,
+    }: {
+      index: number;
+      direction: -1 | 1;
+    }) => {
+      const current = banners[index];
+      const adjacent = banners[index + direction];
+      if (!current || !adjacent) return;
+      const prevCurrentOrder = current.displayOrder;
+      const prevAdjacentOrder = adjacent.displayOrder;
+      await adminPromotionBannerService.update(current.bannerId, {
+        displayOrder: prevAdjacentOrder,
+      });
+      try {
+        await adminPromotionBannerService.update(adjacent.bannerId, {
+          displayOrder: prevCurrentOrder,
+        });
+      } catch (err) {
+        // Rollback current banner order if adjacent update fails
+        await adminPromotionBannerService
+          .update(current.bannerId, { displayOrder: prevCurrentOrder })
+          .catch(() => {});
+        throw err;
+      }
+    },
+    onSuccess: refresh,
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
   const updateMu = useMutation({
     mutationFn: (vars: { bannerId: string; body: BannerForm }) =>
       adminPromotionBannerService.update(vars.bannerId, vars.body),
@@ -98,10 +129,7 @@ function AdminBannersInner() {
 
   function openCreate() {
     setEditing(null);
-    setForm({
-      ...EMPTY_FORM,
-      displayOrder: banners.length + 1,
-    });
+    setForm(EMPTY_FORM);
     setModalOpen(true);
   }
 
@@ -110,9 +138,8 @@ function AdminBannersInner() {
     setForm({
       title: b.title,
       imageUrl: b.imageUrl,
-      linkUrl: b.linkUrl,
-      displayOrder: b.displayOrder,
-      active: b.active,
+      imagePublicId: b.imagePublicId,
+      linkUrl: b.linkUrl ?? "",
     });
     setModalOpen(true);
   }
@@ -127,8 +154,12 @@ function AdminBannersInner() {
     setUploading(true);
     try {
       const sig = await adminPromotionBannerService.generateUploadSignature();
-      const url = await uploadToCloudinary(file, sig);
-      setForm((f) => ({ ...f, imageUrl: url }));
+      const asset = await uploadAssetToCloudinary(file, sig);
+      setForm((f) => ({
+        ...f,
+        imageUrl: asset.url,
+        imagePublicId: asset.publicId,
+      }));
       toast.success(t("adminBanners.uploadSuccess"));
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -142,18 +173,24 @@ function AdminBannersInner() {
       toast.error(t("adminBanners.titleRequired"));
       return;
     }
-    if (!form.imageUrl) {
+    if (!form.imageUrl || !form.imagePublicId) {
       toast.error(t("adminBanners.imageRequired"));
       return;
     }
-    if (!form.linkUrl.trim()) {
-      toast.error(t("adminBanners.linkRequired"));
+    const linkUrl = form.linkUrl.trim();
+    const isInternalPath =
+      linkUrl.startsWith("/") &&
+      !linkUrl.startsWith("//") &&
+      !linkUrl.includes("\\");
+    if (linkUrl && !isInternalPath && !/^https?:\/\//i.test(linkUrl)) {
+      toast.error(t("adminBanners.linkInvalid"));
       return;
     }
+    const body = { ...form, linkUrl };
     if (editing) {
-      updateMu.mutate({ bannerId: editing.bannerId, body: form });
+      updateMu.mutate({ bannerId: editing.bannerId, body });
     } else {
-      createMu.mutate(form);
+      createMu.mutate(body);
     }
   }
 
@@ -191,7 +228,7 @@ function AdminBannersInner() {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {banners.map((b) => (
+            {banners.map((b, index) => (
               <div
                 key={b.bannerId}
                 className="bg-white rounded-md border border-gray-400 overflow-hidden"
@@ -203,9 +240,6 @@ function AdminBannersInner() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2 flex gap-1">
-                    <Badge variant={b.active ? "success" : "default"}>
-                      {b.active ? t("common.active") : t("common.disabled")}
-                    </Badge>
                     <Badge variant="info">#{b.displayOrder}</Badge>
                   </div>
                 </div>
@@ -213,16 +247,27 @@ function AdminBannersInner() {
                   <h3 className="font-semibold text-gray-900 mb-1">
                     {b.title}
                   </h3>
-                  <a
-                    href={b.linkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline truncate"
-                  >
-                    <ExternalLink size={12} className="flex-shrink-0" />
-                    <span className="truncate">{b.linkUrl}</span>
-                  </a>
                   <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-400">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === 0 || reorderMu.isPending}
+                      onClick={() => reorderMu.mutate({ index, direction: -1 })}
+                      aria-label={t("adminBanners.moveUp")}
+                    >
+                      <ArrowUp size={14} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={
+                        index === banners.length - 1 || reorderMu.isPending
+                      }
+                      onClick={() => reorderMu.mutate({ index, direction: 1 })}
+                      aria-label={t("adminBanners.moveDown")}
+                    >
+                      <ArrowDown size={14} />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -270,21 +315,10 @@ function AdminBannersInner() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("adminBanners.image")}
             </label>
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={form.imageUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, imageUrl: e.target.value })
-                  }
-                  placeholder="https://res.cloudinary.com/..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t("adminBanners.imageHelp")}
-                </p>
-              </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 p-3">
+              <p className="text-xs text-gray-500">
+                {t("adminBanners.imageHelp")}
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -325,44 +359,12 @@ function AdminBannersInner() {
               type="text"
               value={form.linkUrl}
               onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-              placeholder="/products?categoryId=CAT_..."
+              placeholder={t("adminBanners.linkPlaceholder")}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("adminBanners.displayOrder")}
-              </label>
-              <input
-                type="number"
-                value={form.displayOrder}
-                onChange={(e) =>
-                  setForm({ ...form, displayOrder: Number(e.target.value) })
-                }
-                min={0}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("common.status")}
-              </label>
-              <label className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(e) =>
-                    setForm({ ...form, active: e.target.checked })
-                  }
-                  className="rounded border-gray-300"
-                />
-                <span className="text-sm text-gray-700">
-                  {t("common.active")}
-                </span>
-              </label>
-            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              {t("adminBanners.linkHelp")}
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

@@ -47,7 +47,7 @@ export function SortDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex h-11 items-center gap-1.5 px-3.5 rounded-xl text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
         aria-label="Sort products"
         aria-expanded={open}
       >
@@ -133,8 +133,8 @@ export function FacetSection({
         <p className="text-xs text-gray-400">{emptyHint}</p>
       ) : (
         <ul className="space-y-1.5">
-          {visible.map((item) => (
-            <li key={item.id}>
+          {visible.map((item, index) => (
+            <li key={`${item.id}-${index}`}>
               <label className="flex items-center justify-between text-sm cursor-pointer hover:text-blue-600 group">
                 <span className="flex items-center gap-2 min-w-0">
                   <input

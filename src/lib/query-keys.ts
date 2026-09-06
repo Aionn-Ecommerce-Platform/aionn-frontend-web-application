@@ -23,6 +23,8 @@ export const qk = {
   productPopular: (limit: number) => ["products", "popular", limit] as const,
   productPersonalized: (params: Record<string, unknown>) =>
     ["products", "personalized", params] as const,
+  recentSearches: (userId: string) =>
+    ["catalog", "recent-searches", userId] as const,
   productsByIds: (skuOrProductIds: string[]) =>
     ["products", "by-ids", [...skuOrProductIds].sort().join(",")] as const,
   merchantProductFacets: (merchantId: string) =>

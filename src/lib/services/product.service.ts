@@ -5,6 +5,7 @@ import type {
   ProductSearchResult,
   ProductStatus,
 } from "@/types";
+import { promotionService } from "./promotion.service";
 
 interface CreateProductInput {
   name: string;
@@ -37,6 +38,57 @@ export const productService = {
       anonymous: true,
     });
   },
+  async getWithActiveFlashSale(productId: string) {
+    const [product, campaigns] = await Promise.all([
+      this.get(productId),
+      promotionService.getActiveFlashSales(100).catch(() => []),
+    ]);
+    const matches = campaigns.flatMap((campaign) =>
+      campaign.items
+        .filter((item) => item.productId === productId)
+        .map((item) => ({ campaign, item })),
+    );
+    if (matches.length === 0) return product;
+
+    const cheapest = matches.reduce((best, current) =>
+      current.item.salePrice < best.item.salePrice ? current : best,
+    );
+    const skuOffersMap = new Map<
+      string,
+      {
+        skuId: string;
+        salePrice: number;
+        currency: string;
+        saleStock: number;
+        soldCount: number;
+      }
+    >();
+    for (const { item } of matches) {
+      const existing = skuOffersMap.get(item.skuId);
+      if (!existing || item.salePrice < existing.salePrice) {
+        skuOffersMap.set(item.skuId, {
+          skuId: item.skuId,
+          salePrice: item.salePrice,
+          currency: item.currency,
+          saleStock: item.saleStock,
+          soldCount: item.soldCount,
+        });
+      }
+    }
+
+    return {
+      ...product,
+      flashSale: {
+        campaignId: cheapest.campaign.campaignId,
+        endAt: cheapest.campaign.endDate,
+        salePrice: cheapest.item.salePrice,
+        currency: cheapest.item.currency,
+        saleStock: cheapest.item.saleStock,
+        soldCount: cheapest.item.soldCount,
+        skuOffers: Array.from(skuOffersMap.values()),
+      },
+    } satisfies Product;
+  },
   resolveBySkuIds(skuIds: string[]) {
     return api.get<Product[]>("/catalog/products/by-skus", {
       anonymous: true,
@@ -48,7 +100,208 @@ export const productService = {
     return result.page;
   },
 
-  search(params: ProductSearchParams) {
+  async search(params: ProductSearchParams) {
+    if (params.onSale) {
+      const campaigns = await promotionService.getActiveFlashSales(100);
+      const saleItems = campaigns.flatMap((campaign) =>
+        campaign.items.map((item) => ({ campaign, item })),
+      );
+      const skuIds = [...new Set(saleItems.map(({ item }) => item.skuId))];
+      const resolvedProducts =
+        skuIds.length > 0 ? await this.resolveBySkuIds(skuIds) : [];
+
+      const products = resolvedProducts.map((product) => {
+        const matches = saleItems.filter(
+          ({ item }) => item.productId === product.productId,
+        );
+        const cheapest = matches.reduce((best, current) =>
+          current.item.salePrice < best.item.salePrice ? current : best,
+        );
+        const skuOffersMap = new Map<
+          string,
+          {
+            skuId: string;
+            salePrice: number;
+            currency: string;
+            saleStock: number;
+            soldCount: number;
+          }
+        >();
+        for (const { item } of matches) {
+          const existing = skuOffersMap.get(item.skuId);
+          if (!existing || item.salePrice < existing.salePrice) {
+            skuOffersMap.set(item.skuId, {
+              skuId: item.skuId,
+              salePrice: item.salePrice,
+              currency: item.currency,
+              saleStock: item.saleStock,
+              soldCount: item.soldCount,
+            });
+          }
+        }
+
+        return {
+          ...product,
+          flashSale: {
+            campaignId: cheapest.campaign.campaignId,
+            endAt: cheapest.campaign.endDate,
+            salePrice: cheapest.item.salePrice,
+            currency: cheapest.item.currency,
+            saleStock: cheapest.item.saleStock,
+            soldCount: cheapest.item.soldCount,
+            skuOffers: Array.from(skuOffersMap.values()),
+          },
+        } satisfies Product;
+      });
+
+      const normalizedQuery = params.q?.trim().toLocaleLowerCase();
+      const filtered = products.filter((product) => {
+        const salePrice = product.flashSale?.salePrice ?? 0;
+        return (
+          (!normalizedQuery ||
+            product.name.toLocaleLowerCase().includes(normalizedQuery)) &&
+          (!params.merchantId || product.merchantId === params.merchantId) &&
+          (!params.status || product.status === params.status) &&
+          (!params.categoryIds?.length ||
+            params.categoryIds.some((id) =>
+              product.categoryIds.includes(id),
+            )) &&
+          (!params.brandIds?.length ||
+            (product.brandId !== null &&
+              params.brandIds.includes(product.brandId))) &&
+          (params.priceMin === undefined || salePrice >= params.priceMin) &&
+          (params.priceMax === undefined || salePrice <= params.priceMax) &&
+          (params.ratingMin === undefined ||
+            (product.rating ?? 0) >= params.ratingMin) &&
+          (!params.provinceCodes?.length ||
+            (product.provinceCode !== null &&
+              product.provinceCode !== undefined &&
+              params.provinceCodes.includes(product.provinceCode))) &&
+          (!params.attributes ||
+            (() => {
+              const requestedEntries = Object.entries(params.attributes).filter(
+                ([, values]) => Boolean(values && values.length > 0),
+              );
+              if (requestedEntries.length === 0) return true;
+
+              // Check if any requested attribute is a product-level attribute
+              const remainingForVariants: [string, string[]][] = [];
+              for (const [attrKey, allowedValues] of requestedEntries) {
+                const productAttrValue = product.attributes?.[attrKey];
+                if (
+                  productAttrValue !== undefined &&
+                  productAttrValue !== null
+                ) {
+                  if (!allowedValues.includes(productAttrValue)) {
+                    return false;
+                  }
+                } else {
+                  remainingForVariants.push([attrKey, allowedValues]);
+                }
+              }
+
+              if (remainingForVariants.length === 0) return true;
+
+              // All remaining variant attributes must be satisfied by a single variant
+              return (
+                product.variants?.some((variant) =>
+                  remainingForVariants.every(([attrKey, allowedValues]) => {
+                    const val = variant.attributeValues?.[attrKey];
+                    return (
+                      val !== undefined &&
+                      val !== null &&
+                      allowedValues.includes(val)
+                    );
+                  }),
+                ) ?? false
+              );
+            })())
+        );
+      });
+
+      filtered.sort((left, right) => {
+        if (params.sort === "PRICE_ASC") {
+          return (
+            (left.flashSale?.salePrice ?? 0) - (right.flashSale?.salePrice ?? 0)
+          );
+        }
+        if (params.sort === "PRICE_DESC") {
+          return (
+            (right.flashSale?.salePrice ?? 0) - (left.flashSale?.salePrice ?? 0)
+          );
+        }
+        if (params.sort === "BEST_SELLER") {
+          return (right.soldCount ?? 0) - (left.soldCount ?? 0);
+        }
+        if (params.sort === "NEWEST") {
+          return Date.parse(right.createdAt) - Date.parse(left.createdAt);
+        }
+        return 0;
+      });
+
+      const page = params.page ?? 0;
+      const size = params.size ?? 20;
+      const totalElements = filtered.length;
+      const content = filtered.slice(page * size, (page + 1) * size);
+      const countBy = (values: Array<string | null>) =>
+        values.reduce<Record<string, number>>((counts, value) => {
+          if (value) counts[value] = (counts[value] ?? 0) + 1;
+          return counts;
+        }, {});
+      const prices = filtered.map(
+        (product) => product.flashSale?.salePrice ?? 0,
+      );
+
+      const attributeFacets: Record<string, Record<string, number>> = {};
+      for (const product of filtered) {
+        if (product.attributes) {
+          for (const [key, value] of Object.entries(product.attributes)) {
+            if (value) {
+              attributeFacets[key] = attributeFacets[key] ?? {};
+              attributeFacets[key][value] =
+                (attributeFacets[key][value] ?? 0) + 1;
+            }
+          }
+        }
+        if (product.variants) {
+          for (const variant of product.variants) {
+            if (variant.attributeValues) {
+              for (const [key, value] of Object.entries(
+                variant.attributeValues,
+              )) {
+                if (value) {
+                  attributeFacets[key] = attributeFacets[key] ?? {};
+                  attributeFacets[key][value] =
+                    (attributeFacets[key][value] ?? 0) + 1;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        page: {
+          content,
+          page,
+          size,
+          totalElements,
+          totalPages: size > 0 ? Math.ceil(totalElements / size) : 0,
+        },
+        facets: {
+          brands: countBy(filtered.map((product) => product.brandId)),
+          categories: countBy(
+            filtered.flatMap((product) => product.categoryIds),
+          ),
+          attributes: attributeFacets,
+          priceRange:
+            prices.length > 0
+              ? { min: Math.min(...prices), max: Math.max(...prices) }
+              : null,
+        },
+      } satisfies ProductSearchResult;
+    }
+
     const query: Record<string, string | number | boolean | undefined> = {
       q: params.q,
       merchantId: params.merchantId,

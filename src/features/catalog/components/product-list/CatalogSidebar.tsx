@@ -65,8 +65,8 @@ export default function CatalogSidebar(props: Props) {
             {t("products.location")}
           </h4>
           <ul className="space-y-1.5 max-h-56 overflow-y-auto">
-            {props.provinces.map((province) => (
-              <li key={province.code}>
+            {props.provinces.map((province, index) => (
+              <li key={`${province.code}-${index}`}>
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"

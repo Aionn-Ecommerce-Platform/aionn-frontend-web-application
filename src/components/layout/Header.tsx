@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -23,6 +23,7 @@ import {
   MessageSquare,
   Phone,
   Shield,
+  Clock3,
 } from "lucide-react";
 import { Button, Avatar } from "@/shared/ui";
 import { useAuthStore, useCartStore } from "@/stores";
@@ -31,21 +32,32 @@ import {
   conversationService,
   merchantService,
   notificationService,
+  searchHistoryService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { formatDateTime } from "@/shared/lib/utils";
+import { logger } from "@/shared/lib/logger";
+import {
+  GUEST_RECENT_SEARCHES_KEY,
+  mergeRecentSearches,
+  readGuestRecentSearches,
+  writeGuestRecentSearches,
+} from "@/shared/lib/recent-searches";
 import LanguageSwitcher from "./LanguageSwitcher";
 import HeaderNavigation from "./HeaderNavigation";
 import { categoryIcons, getNotiBg, pickInitial } from "./header-utils";
 
 export default function Header() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLDivElement | null>(null);
 
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, isInitializing, user, logout } = useAuthStore();
   const totalItems = useCartStore((s) =>
     s.items.reduce((sum, i) => sum + i.qty, 0),
   );
@@ -62,24 +74,58 @@ export default function Header() {
   const sellOnAionnHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
+  const recentSearchQueryKey = qk.recentSearches(
+    isAuthenticated ? (user?.userId ?? "authenticated") : "guest",
+  );
 
   const { data: notifications } = useQuery({
-    queryKey: qk.notifications(20),
-    queryFn: () => notificationService.listMine(20),
+    queryKey: qk.notifications(),
+    queryFn: () => notificationService.listMine(50),
     enabled: isAuthenticated,
-    refetchInterval: 60_000,
+    refetchInterval: (query) => (query.state.error ? false : 60_000),
   });
   const { data: unreadChat } = useQuery({
     queryKey: qk.unreadCounts,
     queryFn: () => conversationService.unreadCounts(),
     enabled: isAuthenticated,
-    refetchInterval: 30_000,
+    refetchInterval: (query) => (query.state.error ? false : 30_000),
   });
   const { data: myMerchant } = useQuery({
     queryKey: ["merchant", "me"],
     queryFn: () => merchantService.getMine(),
     enabled: isAuthenticated && hasSellerRole,
     retry: false,
+  });
+  const { data: recentSearches = [] } = useQuery({
+    queryKey: recentSearchQueryKey,
+    queryFn: async () => {
+      if (!isAuthenticated) return readGuestRecentSearches();
+
+      const serverSearches = await searchHistoryService.getRecent();
+      const guestSearches = readGuestRecentSearches();
+      const cached =
+        queryClient.getQueryData<string[]>(recentSearchQueryKey) ?? [];
+      const pendingOptimistic = cached.filter(
+        (q) => !serverSearches.some((s) => s.toLowerCase() === q.toLowerCase()),
+      );
+
+      if (guestSearches.length === 0 && pendingOptimistic.length === 0) {
+        return serverSearches;
+      }
+
+      const merged = mergeRecentSearches(
+        [...pendingOptimistic, ...guestSearches],
+        serverSearches,
+      );
+      const saved = await searchHistoryService.record(merged);
+      localStorage.removeItem(GUEST_RECENT_SEARCHES_KEY);
+      return mergeRecentSearches(
+        queryClient.getQueryData<string[]>(recentSearchQueryKey) ?? [],
+        saved,
+      );
+    },
+    enabled: !isInitializing,
+    staleTime: Number.POSITIVE_INFINITY,
   });
   const hasMerchant =
     hasSellerRole && !!myMerchant && myMerchant.status !== "CLOSED";
@@ -105,6 +151,17 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [userMenuOpen]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [searchOpen]);
+
   async function handleLogout() {
     setUserMenuOpen(false);
     await logout();
@@ -112,35 +169,60 @@ export default function Header() {
     router.push("/");
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const q = searchQuery.trim();
+  const recordRequestIdRef = useRef(0);
+
+  function runSearch(value: string) {
+    const q = value.trim();
     if (!q) return;
+    const next = mergeRecentSearches([q], recentSearches);
+    queryClient.setQueryData(recentSearchQueryKey, next);
+    if (isAuthenticated) {
+      const requestId = ++recordRequestIdRef.current;
+      searchHistoryService
+        .record([q])
+        .then((saved) => {
+          if (requestId === recordRequestIdRef.current) {
+            queryClient.setQueryData(recentSearchQueryKey, saved);
+          }
+        })
+        .catch((error) =>
+          logger.error("Failed to record recent search", error),
+        );
+    } else {
+      writeGuestRecentSearches(next);
+    }
+    setSearchQuery(q);
+    setSearchOpen(false);
     router.push(`/products?q=${encodeURIComponent(q)}`);
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    runSearch(searchQuery);
+  }
+
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-300 shadow-sm">
-      <div className="bg-gray-50/80 border-b border-gray-300 text-xs">
+    <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 border-b border-blue-800 shadow-md">
+      <div className="bg-blue-950/35 border-b border-white/15 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-end gap-5 h-9 text-gray-600">
+          <div className="flex items-center justify-end gap-5 h-9 text-blue-50">
             <Link
               href="/feedback"
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <MessageSquare size={13} />
               <span className="font-medium">{t("common.feedback")}</span>
             </Link>
             <Link
               href="/contact"
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <Phone size={13} />
               <span className="font-medium">{t("common.contactUs")}</span>
             </Link>
             <Link
               href={sellOnAionnHref}
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <Store size={13} />
               <span className="font-medium">{t("common.sellOnAionn")}</span>
@@ -148,7 +230,7 @@ export default function Header() {
             <div className="relative group/noti py-1">
               <Link
                 href={isAuthenticated ? "/notifications" : "/auth/login"}
-                className="flex items-center gap-1.5 hover:text-blue-600 transition-colors relative"
+                className="flex items-center gap-1.5 hover:text-white transition-colors relative"
               >
                 <Bell size={13} />
                 <span className="font-medium">{t("common.notifications")}</span>
@@ -272,27 +354,55 @@ export default function Header() {
               alt="Aionn"
               width={194}
               height={181}
-              className="h-auto w-10 rounded-lg group-hover:scale-105 transition-transform"
+              className="h-auto w-10 rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform"
             />
-            <span className="text-2xl font-bold tracking-tight text--brand">
+            <span className="text-2xl font-bold tracking-tight text-white">
               Aionn
             </span>
           </Link>
 
-          <div className="hidden md:flex flex-1 max-w-2xl">
-            <form onSubmit={handleSearch} className="relative w-full group">
-              <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors"
-                size={18}
-              />
+          <div
+            ref={searchRef}
+            className="relative hidden md:flex flex-1 max-w-2xl"
+          >
+            <form
+              onSubmit={handleSearch}
+              className="relative w-full group flex items-center"
+            >
               <input
                 type="text"
                 placeholder={t("common.search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-400 bg-gray-50/80 text-sm placeholder:text-gray-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 focus:outline-none focus:bg-white transition-all"
+                onFocus={() => setSearchOpen(true)}
+                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
               />
+              <button
+                type="submit"
+                aria-label={t("common.search")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer"
+              >
+                <Search size={16} />
+              </button>
             </form>
+            {searchOpen && recentSearches.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
+                <p className="px-4 pb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  {t("common.recentSearches")}
+                </p>
+                {recentSearches.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => runSearch(item)}
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    <Clock3 size={15} className="text-gray-400" />
+                    <span className="truncate">{item}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -300,7 +410,7 @@ export default function Header() {
               <>
                 <Link
                   href="/chat"
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Messages"
                 >
                   <MessageCircle size={20} />
@@ -312,7 +422,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
@@ -327,7 +437,7 @@ export default function Header() {
                 <div className="relative ml-1" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/15 text-white transition-colors"
                   >
                     {user?.avatarUrl ? (
                       <Avatar
@@ -336,7 +446,7 @@ export default function Header() {
                         size="sm"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
                         <span className="text-xs font-bold text-blue-700">
                           {pickInitial(user)}
                         </span>
@@ -420,7 +530,7 @@ export default function Header() {
               <>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
@@ -434,15 +544,16 @@ export default function Header() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-400"
+                    className="border-white/70 bg-white/10 text-white hover:bg-white hover:text-blue-700"
                   >
                     {t("common.register")}
                   </Button>
                 </Link>
                 <Link href="/auth/login">
                   <Button
+                    variant="secondary"
                     size="sm"
-                    className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 focus:ring-orange-400 text-white"
+                    className="focus:ring-white/40 shadow-sm"
                   >
                     {t("common.login")}
                   </Button>
@@ -452,7 +563,7 @@ export default function Header() {
             )}
 
             <button
-              className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 text-gray-600"
+              className="md:hidden p-2.5 rounded-xl hover:bg-white/15 text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >

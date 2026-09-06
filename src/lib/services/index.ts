@@ -6,13 +6,18 @@ export type { AddressInput } from "./address.service";
 export { geographyService } from "./geography.service";
 export { securityService } from "./security.service";
 export { preferenceService } from "./preference.service";
-export { mediaService, uploadToCloudinary } from "./media.service";
+export {
+  mediaService,
+  uploadAssetToCloudinary,
+  uploadToCloudinary,
+} from "./media.service";
 export { kycService, adminKycService } from "./kyc.service";
 export { adminUserService } from "./admin-user.service";
 export { consentService } from "./consent.service";
 export { feedbackService, adminFeedbackService } from "./feedback.service";
 
 export { productService } from "./product.service";
+export { searchHistoryService } from "./search-history.service";
 export { categoryService } from "./category.service";
 export { merchantService } from "./merchant.service";
 export { brandService } from "./brand.service";

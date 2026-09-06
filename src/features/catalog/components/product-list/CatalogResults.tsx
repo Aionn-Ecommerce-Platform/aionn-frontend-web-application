@@ -111,7 +111,7 @@ export default function CatalogResults(props: Props) {
             <Link
               key={product.productId}
               href={`/products/${product.productId}`}
-              className="group bg-white rounded-xl border border-gray-400 overflow-hidden hover:border-yellow-400 flex"
+              className="group bg-white rounded-xl border border-gray-400 overflow-hidden hover:border-blue-500 flex"
             >
               <div className="w-40 h-40 relative bg-gray-50 shrink-0">
                 <Image
@@ -163,20 +163,26 @@ export default function CatalogResults(props: Props) {
           <button
             disabled={!props.page}
             onClick={() => props.onPage(props.page - 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
           >
-            <ChevronLeft />
+            <ChevronLeft size={20} />
           </button>
           {getPaginationRange(props.page, props.pages).map((item, index) =>
             item === "..." ? (
-              <span key={index}>…</span>
+              <span
+                key={`ellipsis-${index}`}
+                className="flex h-9 min-w-6 items-center justify-center text-gray-500"
+              >
+                …
+              </span>
             ) : (
               <button
-                key={item}
+                key={`page-${item}-${index}`}
                 onClick={() => props.onPage(Number(item) - 1)}
                 className={
                   Number(item) - 1 === props.page
                     ? "w-9 h-9 rounded-full bg-blue-600 text-white"
-                    : "w-9 h-9 rounded-full border"
+                    : "w-9 h-9 rounded-full border border-gray-400 bg-white text-gray-800 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700"
                 }
               >
                 {item}
@@ -186,8 +192,9 @@ export default function CatalogResults(props: Props) {
           <button
             disabled={props.page + 1 >= props.pages}
             onClick={() => props.onPage(props.page + 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
           >
-            <ChevronRight />
+            <ChevronRight size={20} />
           </button>
         </div>
       )}
