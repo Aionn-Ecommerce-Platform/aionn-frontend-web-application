@@ -9,4 +9,5 @@ export * from "./notification";
 export * from "./promotion";
 export * from "./payment";
 export * from "./shipping";
+export * from "./recommendation";
 export type * from "./analytics";

@@ -4,7 +4,12 @@ import { Button } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { getProductCardSummary } from "@/shared/lib/product-utils";
 import { formatCurrency } from "@/shared/lib/utils";
-import type { Address, Product, UserVoucher } from "@/types";
+import type {
+  Address,
+  Product,
+  RecommendationItem,
+  UserVoucher,
+} from "@/types";
 type T = (key: string, values?: Record<string, string | number>) => string;
 
 interface SummaryProps {
@@ -99,7 +104,7 @@ export function CheckoutRecommendations({
   products,
   t,
 }: {
-  products?: Product[];
+  products?: Array<RecommendationItem | Product>;
   t: T;
 }) {
   if (!products?.length) return null;
@@ -110,21 +115,43 @@ export function CheckoutRecommendations({
       </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {products.slice(0, 12).map((product) => {
-          const card = getProductCardSummary(product);
+          const isRec = "priceFrom" in product;
+          const price = isRec
+            ? product.priceFrom
+            : getProductCardSummary(product).price;
+          const originalPrice = isRec
+            ? undefined
+            : getProductCardSummary(product).originalPrice;
+          const image = isRec
+            ? product.imageUrl || "/images/logo.png"
+            : getProductCardSummary(product).image;
+          const reason = isRec ? product.reason : undefined;
+          const merchant = isRec ? undefined : product.merchantId;
+          const rating = isRec ? undefined : product.rating;
+          const reviewCount = isRec ? undefined : product.reviewCount;
+          const sold = isRec ? undefined : product.soldCount;
+          const flashSale = isRec ? undefined : product.flashSale;
+          const provinceName = isRec
+            ? undefined
+            : (product.provinceName ?? undefined);
+          const currency = isRec ? product.currency : undefined;
+
           return (
             <ProductCard
               key={product.productId}
               id={product.productId}
               name={product.name}
-              price={card.price}
-              originalPrice={card.originalPrice}
-              image={card.image}
-              merchant={product.merchantId}
-              rating={product.rating}
-              reviewCount={product.reviewCount}
-              sold={product.soldCount}
-              flashSale={product.flashSale}
-              provinceName={product.provinceName ?? undefined}
+              price={price}
+              originalPrice={originalPrice}
+              image={image}
+              merchant={merchant}
+              rating={rating}
+              reviewCount={reviewCount}
+              sold={sold}
+              flashSale={flashSale}
+              provinceName={provinceName}
+              recommendationReason={reason}
+              currency={currency}
             />
           );
         })}

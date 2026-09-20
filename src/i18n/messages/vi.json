@@ -665,13 +665,10 @@
     "zone": "Vùng: {code}",
     "baseFee": "Phí cơ bản",
     "condition": "Điều kiện",
-    "createdAt": "Tạo lúc",
-    "updatedAt": "Cập nhật",
     "createdAt": "Ngày tạo",
-    "pageOf": "Trang {page} / {total}",
-    "edit": "Sửa",
-    "lookup": "Tra cứu",
     "updatedAt": "Cập nhật",
+    "edit": "Sửa",
+    "pageOf": "Trang {page} / {total}",
     "disabled": "Đã tắt",
     "created": "Đã tạo mức phí",
     "updated": "Đã cập nhật mức phí",
@@ -943,7 +940,22 @@
     "securityDescription": "Khôi phục mật khẩu, cập nhật thông tin cá nhân và bảo vệ tài khoản.",
     "feedbackTitle": "Có góp ý hoặc lỗi cần báo cáo?",
     "feedbackDescription": "Gửi ý tưởng, báo lỗi hệ thống hoặc đánh giá trải nghiệm qua biểu mẫu góp ý.",
-    "feedbackAction": "Gửi góp ý"
+    "feedbackAction": "Gửi góp ý",
+    "workingHoursValue": "Thứ 2 - Chủ nhật: 8:00 - 22:00",
+    "sendFeedback": "Có góp ý cụ thể?",
+    "sendFeedbackButton": "Gửi góp ý",
+    "sendFeedbackDesc": "Gửi cho chúng tôi qua biểu mẫu góp ý",
+    "inquiryTitle": "Gửi yêu cầu hỗ trợ",
+    "inquirySubtitle": "Nếu bạn có bất kỳ câu hỏi nào, hãy gửi tin nhắn cho đội ngũ hỗ trợ của chúng tôi.",
+    "inquiryType": "Loại yêu cầu",
+    "typeSupport": "Hỗ trợ chung",
+    "inquirySubject": "Tiêu đề",
+    "inquiryContent": "Nội dung tin nhắn",
+    "inquiryEmail": "Email của bạn",
+    "inquiryPhone": "Số điện thoại",
+    "inquirySubmit": "Gửi yêu cầu",
+    "inquirySuccess": "Yêu cầu của bạn đã được gửi đi thành công!",
+    "inquiryError": "Không gửi được yêu cầu. Vui lòng kiểm tra lại."
   },
   "mfaSetup": {
     "steps": {
@@ -1450,34 +1462,6 @@
     "noCategories": "Chưa có danh mục nào",
     "failedToLoad": "Không tải được danh mục",
     "loading": "Đang tải..."
-  },
-  "contact": {
-    "title": "Liên hệ với Aionn",
-    "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
-    "hotline": "Hotline",
-    "email": "Email",
-    "address": "Địa chỉ",
-    "workingHours": "Giờ làm việc",
-    "workingHoursValue": "Thứ 2 - Chủ nhật: 8:00 - 22:00",
-    "sendFeedback": "Có góp ý cụ thể?",
-    "sendFeedbackButton": "Gửi góp ý",
-    "hotlineHours": "8:00 – 22:00, mọi ngày",
-    "emailResponseTime": "Phản hồi trong 24h",
-    "addressValue": "Tòa nhà Aionn, 123 Lê Lợi, Quận 1, TP. Hồ Chí Minh, Việt Nam",
-    "weekdays": "Thứ 2 – Thứ 6: 8:00 – 18:00",
-    "weekends": "Thứ 7 – Chủ nhật: 9:00 – 17:00",
-    "sendFeedbackDesc": "Gửi cho chúng tôi qua biểu mẫu góp ý",
-    "inquiryTitle": "Gửi yêu cầu hỗ trợ",
-    "inquirySubtitle": "Nếu bạn có bất kỳ câu hỏi nào, hãy gửi tin nhắn cho đội ngũ hỗ trợ của chúng tôi.",
-    "inquiryType": "Loại yêu cầu",
-    "typeSupport": "Hỗ trợ chung",
-    "inquirySubject": "Tiêu đề",
-    "inquiryContent": "Nội dung tin nhắn",
-    "inquiryEmail": "Email của bạn",
-    "inquiryPhone": "Số điện thoại",
-    "inquirySubmit": "Gửi yêu cầu",
-    "inquirySuccess": "Yêu cầu của bạn đã được gửi đi thành công!",
-    "inquiryError": "Không gửi được yêu cầu. Vui lòng kiểm tra lại."
   },
   "feedback": {
     "title": "Góp ý",
@@ -2586,7 +2570,6 @@
   },
   "addresses": {
     "provinceLoadError": "Không tải được tỉnh/thành",
-    "detailPlaceholder": "Số nhà, tên đường, tòa nhà...",
     "title": "Địa chỉ giao hàng",
     "addAddress": "Thêm địa chỉ",
     "addNewAddress": "Thêm địa chỉ mới",
@@ -2637,5 +2620,18 @@
     "noCards": "Bạn chưa liên kết thẻ.",
     "addCardTitle": "Thêm thẻ",
     "saveCard": "Lưu thẻ"
+  },
+  "recommendation": {
+    "title": "Gợi ý cho bạn",
+    "similarProducts": "Sản phẩm tương tự",
+    "alsoBought": "Thường được mua cùng",
+    "cartSuggestions": "Gợi ý thêm cho giỏ hàng",
+    "reasons": {
+      "TRENDING": "Thịnh hành",
+      "SIMILAR_TO_VIEWED": "Tương tự đã xem",
+      "FREQUENTLY_BOUGHT_TOGETHER": "Thường mua cùng",
+      "MATCHES_YOUR_INTERESTS": "Dành cho bạn",
+      "NEW_ARRIVAL": "Mới ra mắt"
+    }
   }
 }

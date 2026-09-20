@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Star, Zap } from "lucide-react";
+import { Sparkles, Star, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
-import type { FlashSaleInfo } from "@/types";
+import type { FlashSaleInfo, RecommendationReason } from "@/types";
 
 interface ProductCardProps {
   id: string;
@@ -20,7 +20,8 @@ interface ProductCardProps {
   flashSale?: FlashSaleInfo | null;
   provinceName?: string | null;
   className?: string;
-  isMall?: boolean;
+  recommendationReason?: RecommendationReason;
+  currency?: string;
 }
 
 export default function ProductCard({
@@ -29,14 +30,15 @@ export default function ProductCard({
   price,
   originalPrice,
   image,
-  merchant,
+  merchant: _merchant,
   rating,
   reviewCount,
   sold,
   flashSale,
   className,
-  isMall,
   provinceName,
+  recommendationReason,
+  currency = "VND",
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
   const isFlashSale = !!flashSale;
@@ -56,14 +58,22 @@ export default function ProductCard({
   const soldCount = sold ?? 0;
   const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
 
-  const showMallBadge =
-    isMall ||
-    (merchant &&
-      (merchant.toLowerCase().includes("mall") ||
-        merchant.toLowerCase().includes("chính hãng") ||
-        merchant.toLowerCase().includes("tech store") ||
-        merchant.toLowerCase().includes("life") ||
-        merchant.toLowerCase().includes("electronics")));
+  let leadingBadge: React.ReactNode = null;
+  if (isFlashSale) {
+    leadingBadge = (
+      <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
+        <Zap size={10} className="fill-white" />
+        FLASH SALE
+      </span>
+    );
+  } else if (recommendationReason) {
+    leadingBadge = (
+      <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm z-10">
+        <Sparkles size={10} className="fill-white" />
+        {t(`recommendation.reasons.${recommendationReason}`)}
+      </span>
+    );
+  }
 
   return (
     <Link
@@ -83,12 +93,7 @@ export default function ProductCard({
           className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {isFlashSale && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
-            <Zap size={10} className="fill-white" />
-            FLASH SALE
-          </span>
-        )}
+        {leadingBadge}
         {discount > 0 && (
           <span className="absolute right-0 top-3 z-10 rounded-l-sm bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
             -{discount}%
@@ -99,11 +104,6 @@ export default function ProductCard({
       <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-blue-50 transition-colors justify-between">
         <div>
           <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors min-h-[2.25rem] leading-tight">
-            {showMallBadge && (
-              <span className="inline-flex items-center bg--sale text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded mr-1.5 align-middle uppercase tracking-wide">
-                Mall
-              </span>
-            )}
             <span className="align-middle">{name}</span>
           </h3>
 
@@ -115,7 +115,7 @@ export default function ProductCard({
                   discount > 0 ? "text-orange-600" : "text-gray-900",
                 )}
               >
-                {formatCurrency(displayPrice, "VND", locale)}
+                {formatCurrency(displayPrice, currency, locale)}
               </span>
               <span className="shrink-0 text-[11px] font-medium text-gray-500">
                 {t("home.soldCount").replace("{count}", displayedSold)}
@@ -123,7 +123,7 @@ export default function ProductCard({
             </div>
             {strikePrice && strikePrice > displayPrice && (
               <span className="text-[10px] text-gray-400 line-through leading-none">
-                {formatCurrency(strikePrice, "VND", locale)}
+                {formatCurrency(strikePrice, currency, locale)}
               </span>
             )}
           </div>

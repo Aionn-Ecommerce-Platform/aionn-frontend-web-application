@@ -668,9 +668,6 @@
     "createdAt": "Created at",
     "updatedAt": "Updated at",
     "edit": "Edit",
-    "lookup": "Look up",
-    "updatedAt": "Updated",
-    "createdAt": "Created",
     "pageOf": "Page {page} / {total}",
     "disabled": "Disabled",
     "created": "Rate created",
@@ -943,7 +940,22 @@
     "securityDescription": "Recover your password, update personal information, and secure your account.",
     "feedbackTitle": "Have suggestions or an issue to report?",
     "feedbackDescription": "Share ideas, report system issues, or rate your experience through our feedback form.",
-    "feedbackAction": "Send feedback"
+    "feedbackAction": "Send feedback",
+    "workingHoursValue": "Mon - Sun: 8:00 AM - 10:00 PM",
+    "sendFeedback": "Have specific feedback?",
+    "sendFeedbackButton": "Send Feedback",
+    "sendFeedbackDesc": "Send us your thoughts via the feedback form",
+    "inquiryTitle": "Submit Support Inquiry",
+    "inquirySubtitle": "If you have any questions, please send a message to our support team.",
+    "inquiryType": "Inquiry Type",
+    "typeSupport": "General Support",
+    "inquirySubject": "Subject",
+    "inquiryContent": "Message Content",
+    "inquiryEmail": "Your Email",
+    "inquiryPhone": "Phone Number",
+    "inquirySubmit": "Send Inquiry",
+    "inquirySuccess": "Your inquiry has been submitted successfully!",
+    "inquiryError": "Failed to submit inquiry. Please try again."
   },
   "mfaSetup": {
     "steps": {
@@ -1450,34 +1462,6 @@
     "noCategories": "No categories available",
     "failedToLoad": "Failed to load categories",
     "loading": "Loading..."
-  },
-  "contact": {
-    "title": "Contact Aionn",
-    "subtitle": "We're here to help you",
-    "hotline": "Hotline",
-    "email": "Email",
-    "address": "Address",
-    "workingHours": "Working Hours",
-    "workingHoursValue": "Mon - Sun: 8:00 AM - 10:00 PM",
-    "sendFeedback": "Have specific feedback?",
-    "sendFeedbackButton": "Send Feedback",
-    "hotlineHours": "8:00 AM – 10:00 PM, daily",
-    "emailResponseTime": "Response within 24h",
-    "addressValue": "Aionn Building, 123 Le Loi, District 1, Ho Chi Minh City, Vietnam",
-    "weekdays": "Monday – Friday: 8:00 AM – 6:00 PM",
-    "weekends": "Saturday – Sunday: 9:00 AM – 5:00 PM",
-    "sendFeedbackDesc": "Send us your thoughts via the feedback form",
-    "inquiryTitle": "Submit Support Inquiry",
-    "inquirySubtitle": "If you have any questions, please send a message to our support team.",
-    "inquiryType": "Inquiry Type",
-    "typeSupport": "General Support",
-    "inquirySubject": "Subject",
-    "inquiryContent": "Message Content",
-    "inquiryEmail": "Your Email",
-    "inquiryPhone": "Phone Number",
-    "inquirySubmit": "Send Inquiry",
-    "inquirySuccess": "Your inquiry has been submitted successfully!",
-    "inquiryError": "Failed to submit inquiry. Please try again."
   },
   "feedback": {
     "title": "Feedback",
@@ -2586,7 +2570,6 @@
   },
   "addresses": {
     "provinceLoadError": "Could not load provinces",
-    "detailPlaceholder": "House number, street, building...",
     "title": "Shipping Addresses",
     "addAddress": "Add Address",
     "addNewAddress": "Add New Address",
@@ -2637,5 +2620,18 @@
     "noCards": "You have not linked any cards.",
     "addCardTitle": "Add card",
     "saveCard": "Save card"
+  },
+  "recommendation": {
+    "title": "Recommended for you",
+    "similarProducts": "Similar products",
+    "alsoBought": "Frequently bought together",
+    "cartSuggestions": "Suggested for your cart",
+    "reasons": {
+      "TRENDING": "Trending",
+      "SIMILAR_TO_VIEWED": "Similar",
+      "FREQUENTLY_BOUGHT_TOGETHER": "Bought together",
+      "MATCHES_YOUR_INTERESTS": "For you",
+      "NEW_ARRIVAL": "New arrival"
+    }
   }
 }

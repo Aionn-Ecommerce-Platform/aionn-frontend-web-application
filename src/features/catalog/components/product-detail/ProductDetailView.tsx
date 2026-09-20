@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import {
   productService,
+  recommendationService,
   conversationService,
   addressService,
   shippingService,
@@ -53,8 +54,8 @@ export default function ProductDetailPage({
   });
 
   const { data: relatedProducts, isLoading: relatedLoading } = useQuery({
-    queryKey: qk.productRelated(id, 6),
-    queryFn: () => productService.getRelated(id, 6),
+    queryKey: qk.recommendationsSimilar(id, 6),
+    queryFn: () => recommendationService.getSimilarProducts(id, 6),
   });
 
   const { data: merchant } = useQuery({
@@ -268,8 +269,7 @@ export default function ProductDetailPage({
   const images = getProductImages(product.imageList);
 
   const fallbackFlashSaleSku = product.flashSale?.skuOffers.reduce(
-    (lowest, offer) =>
-      offer.salePrice < lowest.salePrice ? offer : lowest,
+    (lowest, offer) => (offer.salePrice < lowest.salePrice ? offer : lowest),
   );
   const pricingVariant =
     currentVariant ??
