@@ -25,18 +25,36 @@ export const qk = {
     ["products", "personalized", params] as const,
 
   // recommendations
-  recommendationsHome: (limit: number) =>
-    ["recommendations", "home", limit] as const,
+  /** Query key for home page recommendation feed, scoped by account. */
+  recommendationsHome: (limit: number, userId?: string | null) =>
+    ["recommendations", "home", userId ?? "anonymous", limit] as const,
+  /** Query key for similar product recommendations. */
   recommendationsSimilar: (productId: string, limit: number) =>
     ["recommendations", "similar", productId, limit] as const,
+  /** Query key for products frequently bought together with the given product. */
   recommendationsAlsoBought: (productId: string, limit: number) =>
     ["recommendations", "also-bought", productId, limit] as const,
-  recommendationsCart: (skuIds: string[], limit: number) =>
-    ["recommendations", "cart", [...skuIds].sort().join(","), limit] as const,
+  /** Query key for cart suggestions, scoped by account and sorted SKU list. */
+  recommendationsCart: (
+    skuIds: string[],
+    limit: number,
+    userId?: string | null,
+  ) =>
+    [
+      "recommendations",
+      "cart",
+      userId ?? "anonymous",
+      [...skuIds].sort((a, b) => a.localeCompare(b)).join(","),
+      limit,
+    ] as const,
   recentSearches: (userId: string) =>
     ["catalog", "recent-searches", userId] as const,
   productsByIds: (skuOrProductIds: string[]) =>
-    ["products", "by-ids", [...skuOrProductIds].sort().join(",")] as const,
+    [
+      "products",
+      "by-ids",
+      [...skuOrProductIds].sort((a, b) => a.localeCompare(b)).join(","),
+    ] as const,
   merchantProductFacets: (merchantId: string) =>
     ["products", "facets", merchantId] as const,
   merchantProductsCount: (merchantId: string) =>

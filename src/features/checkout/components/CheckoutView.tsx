@@ -55,6 +55,7 @@ function CheckoutInner() {
   const applyVoucher = useCartStore((s) => s.applyVoucher);
   const removeVoucher = useCartStore((s) => s.removeVoucher);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.user?.userId);
   const selectedSkuParam = searchParams.get("items") ?? "";
   const [selectedSkuIds, setSelectedSkuIds] = useState<string[] | null>(null);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
@@ -235,7 +236,7 @@ function CheckoutInner() {
     : null;
 
   const { data: recommendedProducts } = useQuery({
-    queryKey: qk.recommendationsHome(12),
+    queryKey: qk.recommendationsHome(12, userId),
     queryFn: () => recommendationService.getHomeFeed(12),
   });
 

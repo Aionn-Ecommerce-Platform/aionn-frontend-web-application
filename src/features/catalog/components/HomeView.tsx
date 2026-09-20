@@ -73,12 +73,13 @@ export default function HomePage() {
   );
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.user?.userId);
   const merchantRegisterHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
   const { data: homeRecommendations = [], isLoading: recommendationLoading } =
     useQuery({
-      queryKey: qk.recommendationsHome(18),
+      queryKey: qk.recommendationsHome(18, userId),
       queryFn: () => recommendationService.getHomeFeed(18),
     });
 
@@ -96,6 +97,7 @@ export default function HomePage() {
       sold?: number;
       flashSale?: FlashSaleInfo | null;
       recommendationReason?: RecommendationReason;
+      currency?: string;
     }> = [];
 
     for (const r of homeRecommendations) {
@@ -107,6 +109,7 @@ export default function HomePage() {
         price: r.priceFrom,
         image: r.imageUrl || "/images/logo.png",
         recommendationReason: r.reason,
+        currency: r.currency,
       });
     }
 
@@ -130,6 +133,7 @@ export default function HomePage() {
         reviewCount: p.reviewCount,
         sold: p.soldCount,
         flashSale: p.flashSale,
+        currency: lowestVariant?.currency,
       });
     }
 
@@ -400,6 +404,7 @@ export default function HomePage() {
                     sold={product.sold}
                     flashSale={product.flashSale}
                     recommendationReason={product.recommendationReason}
+                    currency={product.currency}
                   />
                 </motion.div>
               ))}

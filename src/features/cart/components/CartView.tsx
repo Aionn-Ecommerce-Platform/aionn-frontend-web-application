@@ -26,6 +26,7 @@ import { qk } from "@/lib/query-keys";
 export default function CartPage() {
   const { t, locale } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.user?.userId);
   const isAuthInitializing = useAuthStore((s) => s.isInitializing);
   const items = useCartStore((s) => s.items);
   const syncing = useCartStore((s) => s.syncing);
@@ -41,8 +42,8 @@ export default function CartPage() {
 
   const { data: recommendedProducts = [] } = useQuery({
     queryKey: shouldFetchCartSuggestions
-      ? qk.recommendationsCart(allCartSkuIds, 18)
-      : qk.recommendationsHome(18),
+      ? qk.recommendationsCart(allCartSkuIds, 18, userId)
+      : qk.recommendationsHome(18, userId),
     queryFn: () => {
       if (shouldFetchCartSuggestions) {
         return recommendationService.getCartSuggestions(allCartSkuIds, 18);
@@ -375,6 +376,7 @@ export default function CartPage() {
                   price={product.priceFrom}
                   image={product.imageUrl || "/images/logo.png"}
                   recommendationReason={product.reason}
+                  currency={product.currency}
                 />
               ))}
             </div>

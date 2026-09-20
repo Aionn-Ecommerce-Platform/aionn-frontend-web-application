@@ -21,6 +21,7 @@ interface ProductCardProps {
   provinceName?: string | null;
   className?: string;
   recommendationReason?: RecommendationReason;
+  currency?: string;
 }
 
 export default function ProductCard({
@@ -37,6 +38,7 @@ export default function ProductCard({
   className,
   provinceName,
   recommendationReason,
+  currency = "VND",
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
   const isFlashSale = !!flashSale;
@@ -56,6 +58,23 @@ export default function ProductCard({
   const soldCount = sold ?? 0;
   const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
 
+  let leadingBadge: React.ReactNode = null;
+  if (isFlashSale) {
+    leadingBadge = (
+      <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
+        <Zap size={10} className="fill-white" />
+        FLASH SALE
+      </span>
+    );
+  } else if (recommendationReason) {
+    leadingBadge = (
+      <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm z-10">
+        <Sparkles size={10} className="fill-white" />
+        {t(`recommendation.reasons.${recommendationReason}`)}
+      </span>
+    );
+  }
+
   return (
     <Link
       href={`/products/${id}`}
@@ -74,17 +93,7 @@ export default function ProductCard({
           className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {isFlashSale ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
-            <Zap size={10} className="fill-white" />
-            FLASH SALE
-          </span>
-        ) : recommendationReason ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm z-10">
-            <Sparkles size={10} className="fill-white" />
-            {t(`recommendation.reasons.${recommendationReason}`)}
-          </span>
-        ) : null}
+        {leadingBadge}
         {discount > 0 && (
           <span className="absolute right-0 top-3 z-10 rounded-l-sm bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
             -{discount}%
@@ -106,7 +115,7 @@ export default function ProductCard({
                   discount > 0 ? "text-orange-600" : "text-gray-900",
                 )}
               >
-                {formatCurrency(displayPrice, "VND", locale)}
+                {formatCurrency(displayPrice, currency, locale)}
               </span>
               <span className="shrink-0 text-[11px] font-medium text-gray-500">
                 {t("home.soldCount").replace("{count}", displayedSold)}
@@ -114,7 +123,7 @@ export default function ProductCard({
             </div>
             {strikePrice && strikePrice > displayPrice && (
               <span className="text-[10px] text-gray-400 line-through leading-none">
-                {formatCurrency(strikePrice, "VND", locale)}
+                {formatCurrency(strikePrice, currency, locale)}
               </span>
             )}
           </div>

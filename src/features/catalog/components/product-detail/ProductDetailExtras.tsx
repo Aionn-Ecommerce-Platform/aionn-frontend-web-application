@@ -198,6 +198,7 @@ export default function ProductDetailExtras(props: Props) {
               const reviewCount = isRec ? undefined : p.reviewCount;
               const sold = isRec ? undefined : p.soldCount;
               const flashSale = isRec ? undefined : p.flashSale;
+              const currency = isRec ? p.currency : lowestVariant?.currency;
 
               return (
                 <ProductCard
@@ -213,6 +214,7 @@ export default function ProductDetailExtras(props: Props) {
                   sold={sold}
                   flashSale={flashSale}
                   recommendationReason={recommendationReason}
+                  currency={currency}
                 />
               );
             })}

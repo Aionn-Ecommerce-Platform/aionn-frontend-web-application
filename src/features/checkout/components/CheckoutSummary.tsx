@@ -134,6 +134,7 @@ export function CheckoutRecommendations({
           const provinceName = isRec
             ? undefined
             : (product.provinceName ?? undefined);
+          const currency = isRec ? product.currency : undefined;
 
           return (
             <ProductCard
@@ -150,6 +151,7 @@ export function CheckoutRecommendations({
               flashSale={flashSale}
               provinceName={provinceName}
               recommendationReason={reason}
+              currency={currency}
             />
           );
         })}
