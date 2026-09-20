@@ -20,7 +20,6 @@ interface ProductCardProps {
   flashSale?: FlashSaleInfo | null;
   provinceName?: string | null;
   className?: string;
-  isMall?: boolean;
   recommendationReason?: RecommendationReason;
 }
 
@@ -30,13 +29,12 @@ export default function ProductCard({
   price,
   originalPrice,
   image,
-  merchant,
+  merchant: _merchant,
   rating,
   reviewCount,
   sold,
   flashSale,
   className,
-  isMall,
   provinceName,
   recommendationReason,
 }: ProductCardProps) {
@@ -57,15 +55,6 @@ export default function ProductCard({
     hasReviews && rating !== undefined && rating > 0 ? rating : 0;
   const soldCount = sold ?? 0;
   const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
-
-  const showMallBadge =
-    isMall ||
-    (merchant &&
-      (merchant.toLowerCase().includes("mall") ||
-        merchant.toLowerCase().includes("chính hãng") ||
-        merchant.toLowerCase().includes("tech store") ||
-        merchant.toLowerCase().includes("life") ||
-        merchant.toLowerCase().includes("electronics")));
 
   return (
     <Link
@@ -106,11 +95,6 @@ export default function ProductCard({
       <div className="p-2.5 flex flex-col flex-grow bg-gray-50 group-hover:bg-blue-50 transition-colors justify-between">
         <div>
           <h3 className="text-[13px] font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors min-h-[2.25rem] leading-tight">
-            {showMallBadge && (
-              <span className="inline-flex items-center bg--sale text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded mr-1.5 align-middle uppercase tracking-wide">
-                Mall
-              </span>
-            )}
             <span className="align-middle">{name}</span>
           </h3>
 
