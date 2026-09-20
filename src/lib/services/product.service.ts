@@ -341,6 +341,9 @@ export const productService = {
       query: { page: params.page ?? 0, size: params.size ?? 20 },
     });
   },
+  /**
+   * @deprecated Use recommendationService.getSimilarProducts or recommendationService.getAlsoBought instead.
+   */
   getRelated(productId: string, limit = 5) {
     return api.get<Product[]>(
       `/catalog/products/${productId}/recommendations`,
@@ -350,12 +353,18 @@ export const productService = {
       },
     );
   },
+  /**
+   * @deprecated Use recommendationService.getHomeFeed instead.
+   */
   getPopular(limit = 5) {
     return api.get<Product[]>("/catalog/products/recommendations/popular", {
       anonymous: true,
       query: { limit },
     });
   },
+  /**
+   * @deprecated Use recommendationService.getHomeFeed instead.
+   */
   getPersonalized(categoryIds: string[], brandIds: string[], limit = 5) {
     return api.get<Product[]>(
       "/catalog/products/recommendations/personalized",

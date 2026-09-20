@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Star, Zap } from "lucide-react";
+import { Sparkles, Star, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
-import type { FlashSaleInfo } from "@/types";
+import type { FlashSaleInfo, RecommendationReason } from "@/types";
 
 interface ProductCardProps {
   id: string;
@@ -21,6 +21,7 @@ interface ProductCardProps {
   provinceName?: string | null;
   className?: string;
   isMall?: boolean;
+  recommendationReason?: RecommendationReason;
 }
 
 export default function ProductCard({
@@ -37,6 +38,7 @@ export default function ProductCard({
   className,
   isMall,
   provinceName,
+  recommendationReason,
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
   const isFlashSale = !!flashSale;
@@ -83,12 +85,17 @@ export default function ProductCard({
           className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {isFlashSale && (
+        {isFlashSale ? (
           <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
             <Zap size={10} className="fill-white" />
             FLASH SALE
           </span>
-        )}
+        ) : recommendationReason ? (
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm z-10">
+            <Sparkles size={10} className="fill-white" />
+            {t(`recommendation.reasons.${recommendationReason}`)}
+          </span>
+        ) : null}
         {discount > 0 && (
           <span className="absolute right-0 top-3 z-10 rounded-l-sm bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
             -{discount}%

@@ -17,7 +17,7 @@ import {
   orderService,
   paymentService,
   shippingService,
-  productService,
+  recommendationService,
   voucherService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
@@ -235,8 +235,8 @@ function CheckoutInner() {
     : null;
 
   const { data: recommendedProducts } = useQuery({
-    queryKey: ["checkout-recommendations"],
-    queryFn: () => productService.getPopular(12),
+    queryKey: qk.recommendationsHome(12),
+    queryFn: () => recommendationService.getHomeFeed(12),
   });
 
   const handleApplyVoucher = async (code: string) => {

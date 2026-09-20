@@ -23,6 +23,16 @@ export const qk = {
   productPopular: (limit: number) => ["products", "popular", limit] as const,
   productPersonalized: (params: Record<string, unknown>) =>
     ["products", "personalized", params] as const,
+
+  // recommendations
+  recommendationsHome: (limit: number) =>
+    ["recommendations", "home", limit] as const,
+  recommendationsSimilar: (productId: string, limit: number) =>
+    ["recommendations", "similar", productId, limit] as const,
+  recommendationsAlsoBought: (productId: string, limit: number) =>
+    ["recommendations", "also-bought", productId, limit] as const,
+  recommendationsCart: (skuIds: string[], limit: number) =>
+    ["recommendations", "cart", [...skuIds].sort().join(","), limit] as const,
   recentSearches: (userId: string) =>
     ["catalog", "recent-searches", userId] as const,
   productsByIds: (skuOrProductIds: string[]) =>

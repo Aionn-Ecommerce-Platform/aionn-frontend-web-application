@@ -20,8 +20,8 @@ import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTranslation } from "@/hooks";
 import { formatCurrency } from "@/shared/lib/utils";
-import { productService } from "@/lib/services/product.service";
-import { getProductCardSummary } from "@/shared/lib/product-utils";
+import { recommendationService } from "@/lib/services";
+import { qk } from "@/lib/query-keys";
 
 export default function CartPage() {
   const { t, locale } = useTranslation();
@@ -35,9 +35,20 @@ export default function CartPage() {
   const [pendingSku, setPendingSku] = useState<string | null>(null);
   const [selectedSkuIds, setSelectedSkuIds] = useState<string[]>([]);
   const selectionInitialized = useRef(false);
+  const allCartSkuIds = useMemo(() => items.map((item) => item.skuId), [items]);
+  const shouldFetchCartSuggestions =
+    isAuthenticated && allCartSkuIds.length > 0;
+
   const { data: recommendedProducts = [] } = useQuery({
-    queryKey: ["cart-recommendations"],
-    queryFn: () => productService.getPopular(18),
+    queryKey: shouldFetchCartSuggestions
+      ? qk.recommendationsCart(allCartSkuIds, 18)
+      : qk.recommendationsHome(18),
+    queryFn: () => {
+      if (shouldFetchCartSuggestions) {
+        return recommendationService.getCartSuggestions(allCartSkuIds, 18);
+      }
+      return recommendationService.getHomeFeed(18);
+    },
   });
 
   useEffect(() => {
@@ -356,25 +367,16 @@ export default function CartPage() {
               </Link>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-4">
-              {recommendedProducts.slice(0, 18).map((product) => {
-                const card = getProductCardSummary(product);
-                return (
-                  <ProductCard
-                    key={product.productId}
-                    id={product.productId}
-                    name={product.name}
-                    price={card.price}
-                    originalPrice={card.originalPrice}
-                    image={card.image}
-                    merchant={product.merchantId}
-                    rating={product.rating}
-                    reviewCount={product.reviewCount}
-                    sold={product.soldCount}
-                    flashSale={product.flashSale}
-                    provinceName={product.provinceName ?? undefined}
-                  />
-                );
-              })}
+              {recommendedProducts.slice(0, 18).map((product) => (
+                <ProductCard
+                  key={product.productId}
+                  id={product.productId}
+                  name={product.name}
+                  price={product.priceFrom}
+                  image={product.imageUrl || "/images/logo.png"}
+                  recommendationReason={product.reason}
+                />
+              ))}
             </div>
           </section>
         )}

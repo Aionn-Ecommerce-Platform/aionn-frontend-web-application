@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 import { Button, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
-import type { Merchant, Product } from "@/types";
+import type { Merchant, Product, RecommendationItem } from "@/types";
 import type { Locale } from "@/stores/locale.store";
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
   reviewOpen: boolean;
   chatLoading: boolean;
   relatedLoading: boolean;
-  related?: Product[];
+  related?: Array<RecommendationItem | Product>;
   onChat: () => void;
   onReviewOpen: (open: boolean) => void;
   t: T;
@@ -177,16 +177,28 @@ export default function ProductDetailExtras(props: Props) {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
             {relatedProducts.map((p) => {
-              const variants = p.variants ?? [];
+              const isRec = "priceFrom" in p;
+              const variants = !isRec ? (p.variants ?? []) : [];
               let lowestVariant: (typeof variants)[number] | undefined;
               for (const v of variants) {
                 if (!lowestVariant || v.price < lowestVariant.price) {
                   lowestVariant = v;
                 }
               }
-              const price = lowestVariant?.price ?? 0;
-              const originalPrice = lowestVariant?.originalPrice;
-              const image = p.imageList?.[0] ?? "/images/logo.png";
+              const price = isRec ? p.priceFrom : (lowestVariant?.price ?? 0);
+              const originalPrice = isRec
+                ? undefined
+                : lowestVariant?.originalPrice;
+              const image = isRec
+                ? p.imageUrl || "/images/logo.png"
+                : (p.imageList?.[0] ?? "/images/logo.png");
+              const recommendationReason = isRec ? p.reason : undefined;
+              const merchant = isRec ? undefined : p.merchantId;
+              const rating = isRec ? undefined : p.rating;
+              const reviewCount = isRec ? undefined : p.reviewCount;
+              const sold = isRec ? undefined : p.soldCount;
+              const flashSale = isRec ? undefined : p.flashSale;
+
               return (
                 <ProductCard
                   key={p.productId}
@@ -195,11 +207,12 @@ export default function ProductDetailExtras(props: Props) {
                   price={price}
                   originalPrice={originalPrice}
                   image={image}
-                  merchant={p.merchantId}
-                  rating={p.rating}
-                  reviewCount={p.reviewCount}
-                  sold={p.soldCount}
-                  flashSale={p.flashSale}
+                  merchant={merchant}
+                  rating={rating}
+                  reviewCount={reviewCount}
+                  sold={sold}
+                  flashSale={flashSale}
+                  recommendationReason={recommendationReason}
                 />
               );
             })}

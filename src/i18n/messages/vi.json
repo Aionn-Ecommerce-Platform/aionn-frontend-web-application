@@ -2637,5 +2637,18 @@
     "noCards": "Bạn chưa liên kết thẻ.",
     "addCardTitle": "Thêm thẻ",
     "saveCard": "Lưu thẻ"
+  },
+  "recommendation": {
+    "title": "Gợi ý cho bạn",
+    "similarProducts": "Sản phẩm tương tự",
+    "alsoBought": "Thường được mua cùng",
+    "cartSuggestions": "Gợi ý thêm cho giỏ hàng",
+    "reasons": {
+      "TRENDING": "Thịnh hành",
+      "SIMILAR_TO_VIEWED": "Tương tự đã xem",
+      "FREQUENTLY_BOUGHT_TOGETHER": "Thường mua cùng",
+      "MATCHES_YOUR_INTERESTS": "Dành cho bạn",
+      "NEW_ARRIVAL": "Mới ra mắt"
+    }
   }
 }

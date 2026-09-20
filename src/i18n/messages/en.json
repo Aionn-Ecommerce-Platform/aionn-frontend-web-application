@@ -2637,5 +2637,18 @@
     "noCards": "You have not linked any cards.",
     "addCardTitle": "Add card",
     "saveCard": "Save card"
+  },
+  "recommendation": {
+    "title": "Recommended for you",
+    "similarProducts": "Similar products",
+    "alsoBought": "Frequently bought together",
+    "cartSuggestions": "Suggested for your cart",
+    "reasons": {
+      "TRENDING": "Trending",
+      "SIMILAR_TO_VIEWED": "Similar",
+      "FREQUENTLY_BOUGHT_TOGETHER": "Bought together",
+      "MATCHES_YOUR_INTERESTS": "For you",
+      "NEW_ARRIVAL": "New arrival"
+    }
   }
 }
