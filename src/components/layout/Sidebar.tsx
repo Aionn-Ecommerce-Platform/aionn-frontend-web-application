@@ -81,7 +81,7 @@ function getActiveHref(pathname: string): string | null {
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const activeHref = getActiveHref(pathname);
 
   return (
@@ -110,11 +110,7 @@ export default function Sidebar() {
                   size={18}
                   className={isActive ? "text-blue-700" : "text-gray-500"}
                 />
-                {item.translationKey === "memberSidebar.paymentMethods"
-                  ? locale === "en"
-                    ? "Linked Cards"
-                    : "Thẻ liên kết"
-                  : t(item.translationKey)}
+                {t(item.translationKey)}
               </Link>
             );
           })}

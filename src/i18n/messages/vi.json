@@ -787,6 +787,7 @@
   "common": {
     "home": "Trang chủ",
     "search": "Tìm kiếm sản phẩm, thương hiệu...",
+    "clearSearch": "Xóa tìm kiếm",
     "recentSearches": "Tìm kiếm gần đây",
     "login": "Đăng nhập",
     "register": "Đăng ký",
@@ -898,7 +899,17 @@
     "errorFallback": "Stripe không thể xác minh thẻ này.",
     "title": "Thêm thẻ Stripe",
     "preparing": "Đang chuẩn bị biểu mẫu thẻ...",
-    "confirm": "Xác nhận thẻ"
+    "confirm": "Xác nhận thẻ",
+    "cardholder": "CHỦ THẺ",
+    "cardholderPlaceholder": "TÊN CHỦ THẺ",
+    "expires": "HẾT HẠN",
+    "cardholderLabel": "Tên in trên thẻ",
+    "cardholderInputPlaceholder": "Ví dụ: NGUYEN VAN A",
+    "cardholderRequired": "Vui lòng nhập tên in trên thẻ",
+    "cardNumber": "Số thẻ",
+    "expiryDate": "Hạn dùng (MM/YY)",
+    "securityCode": "Mã bảo mật (CVC)",
+    "pciDssNotice": "Bảo mật chuẩn PCI-DSS bởi Stripe."
   },
   "chatBlocked": {
     "title": "Người dùng đã chặn",
@@ -1426,6 +1437,9 @@
     "completeSuccess": "Đã xác nhận nhận hàng",
     "notFound": "Không tìm thấy đơn hàng",
     "notFoundDesc": "Đơn hàng không tồn tại hoặc đã bị xóa.",
+    "backToOrders": "Trở lại danh sách đơn hàng",
+    "noShippingAddress": "Không có thông tin địa chỉ giao hàng",
+    "variantLabel": "Phân loại: ",
     "noTrackingYet": "Chưa có mã vận đơn",
     "shippingStatus": "Trạng thái vận chuyển",
     "shippingStatusRequested": "Đã tạo yêu cầu",
@@ -1544,7 +1558,21 @@
     "changePhone": "Đổi số điện thoại",
     "verified": "Đã xác thực",
     "notVerified": "Chưa xác thực",
-    "verify": "Xác thực"
+    "verify": "Xác thực",
+    "username": "Tên đăng nhập",
+    "editProfile": "Sửa Hồ Sơ",
+    "editProfileTitle": "Sửa Hồ Sơ",
+    "editProfileSuccess": "Cập nhật hồ sơ thành công",
+    "clickToEditProfile": "Nhấp để chỉnh sửa hồ sơ",
+    "changePhoto": "Đổi ảnh đại diện",
+    "changeProfilePhoto": "Đổi ảnh đại diện",
+    "saveChanges": "Lưu thay đổi",
+    "enterName": "Nhập tên hiển thị",
+    "notSet": "Chưa thiết lập",
+    "add": "Thêm",
+    "fileTypeUnsupported": "Chỉ hỗ trợ định dạng: .JPEG, .PNG, .WEBP",
+    "fileSizeLimit": "Dung lượng file tối đa là {max} MB",
+    "fileFormatNote": "Định dạng: .JPEG, .PNG, .WEBP"
   },
   "settings": {
     "title": "Cài đặt",
@@ -2573,7 +2601,7 @@
     "title": "Quản lý tài khoản",
     "profile": "Tài khoản",
     "addresses": "Địa chỉ",
-    "paymentMethods": "Thanh toán",
+    "paymentMethods": "Thẻ liên kết",
     "orders": "Đơn hàng",
     "returns": "Trả hàng",
     "notifications": "Thông báo",
@@ -2610,7 +2638,9 @@
     "addSuccess": "Đã thêm địa chỉ",
     "updateSuccess": "Đã cập nhật địa chỉ",
     "deleteSuccess": "Đã xóa địa chỉ",
-    "setDefaultSuccess": "Đã đặt làm địa chỉ mặc định"
+    "setDefaultSuccess": "Đã đặt làm địa chỉ mặc định",
+    "cannotUnsetDefault": "Không thể bỏ đặt mặc định. Vui lòng chọn địa chỉ khác làm mặc định thay thế.",
+    "isCurrentDefault": "Đây đang là địa chỉ mặc định. Để đổi, hãy đặt một địa chỉ khác làm mặc định."
   },
   "paymentMethods": {
     "title": "Phương thức thanh toán",

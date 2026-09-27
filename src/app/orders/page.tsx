@@ -210,7 +210,7 @@ function OrdersInner() {
                             </h4>
                             {variantLabel && (
                               <p className="mt-1 text-xs text-gray-500 truncate">
-                                {locale === "en" ? "Variant: " : "Phân loại: "}
+                                {t("orders.variantLabel")}
                                 {variantLabel}
                               </p>
                             )}

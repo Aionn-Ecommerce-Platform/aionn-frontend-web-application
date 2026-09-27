@@ -220,9 +220,7 @@ function OrderDetailInner({ id }: { id: string }) {
           size={16}
           className="text-gray-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition-transform"
         />
-        <span>
-          {locale === "en" ? "Back to orders" : "Trở lại danh sách đơn hàng"}
-        </span>
+        <span>{t("orders.backToOrders")}</span>
       </button>
 
       <div className="flex items-center justify-between mb-6">
@@ -405,9 +403,7 @@ function OrderDetailInner({ id }: { id: string }) {
                 <span>
                   {order.addressId
                     ? `${t("orders.addressHash")} #${order.addressId.slice(0, 8)}`
-                    : locale === "en"
-                      ? "No shipping address specified"
-                      : "Không có thông tin địa chỉ giao hàng"}
+                    : t("orders.noShippingAddress")}
                 </span>
               </div>
             )}

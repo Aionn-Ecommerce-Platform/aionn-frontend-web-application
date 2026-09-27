@@ -19,6 +19,15 @@ interface EditProfileModalProps {
   loading: boolean;
 }
 
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
 export function EditProfileModal({
   open,
   onClose,
@@ -28,7 +37,7 @@ export function EditProfileModal({
   onOpenPhoneModal,
   loading,
 }: EditProfileModalProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [prevUser, setPrevUser] = useState(user);
@@ -60,32 +69,15 @@ export function EditProfileModal({
     onClose();
   }
 
-  const MAX_FILE_SIZE_MB = 1;
-  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-  const ALLOWED_IMAGE_TYPES = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
-
   function handleFileChange(file: File) {
     if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
-      toast.error(
-        locale === "en"
-          ? "Only .JPEG, .PNG, .WEBP formats are supported"
-          : "Chỉ hỗ trợ định dạng: .JPEG, .PNG, .WEBP",
-      );
+      toast.error(t("account.fileTypeUnsupported"));
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      toast.error(
-        locale === "en"
-          ? `File size exceeds ${MAX_FILE_SIZE_MB} MB limit`
-          : `Dung lượng file tối đa là ${MAX_FILE_SIZE_MB} MB`,
-      );
+      toast.error(t("account.fileSizeLimit", { max: MAX_FILE_SIZE_MB }));
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -108,7 +100,7 @@ export function EditProfileModal({
     const hasAvatarChanged = Boolean(selectedFile);
 
     if (!hasNameChanged && !hasAvatarChanged) {
-      onClose();
+      handleClose();
       return;
     }
 
@@ -125,7 +117,7 @@ export function EditProfileModal({
     <Modal
       isOpen={open}
       onClose={handleClose}
-      title={locale === "en" ? "Edit Profile" : "Sửa Hồ Sơ"}
+      title={t("account.editProfileTitle")}
       size="md"
     >
       <div className="space-y-6">
@@ -152,7 +144,7 @@ export function EditProfileModal({
               disabled={loading}
               onClick={() => fileInputRef.current?.click()}
               className="absolute bottom-0 right-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-50"
-              title={locale === "en" ? "Change photo" : "Đổi ảnh đại diện"}
+              title={t("account.changePhoto")}
             >
               <Camera size={16} />
             </button>
@@ -177,7 +169,7 @@ export function EditProfileModal({
               <button
                 type="button"
                 onClick={handleResetImage}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
               >
                 <X size={14} />
               </button>
@@ -188,22 +180,14 @@ export function EditProfileModal({
               onClick={() => fileInputRef.current?.click()}
               className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
             >
-              {locale === "en" ? "Change profile photo" : "Đổi ảnh đại diện"}
+              {t("account.changeProfilePhoto")}
             </button>
           )}
 
           {/* Helper note on file limits */}
           <div className="mt-2.5 text-center text-xs text-gray-400 space-y-0.5">
-            <p>
-              {locale === "en"
-                ? `Max file size: ${MAX_FILE_SIZE_MB} MB`
-                : `Dung lượng file tối đa ${MAX_FILE_SIZE_MB} MB`}
-            </p>
-            <p>
-              {locale === "en"
-                ? "Format: .JPEG, .PNG, .WEBP"
-                : "Định dạng: .JPEG, .PNG, .WEBP"}
-            </p>
+            <p>{t("account.fileSizeLimit", { max: MAX_FILE_SIZE_MB })}</p>
+            <p>{t("account.fileFormatNote")}</p>
           </div>
         </div>
 
@@ -213,7 +197,7 @@ export function EditProfileModal({
             htmlFor="modalUsername"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            {locale === "en" ? "Username" : "Tên đăng nhập"}
+            {t("account.username")}
           </label>
           <Input
             id="modalUsername"
@@ -236,9 +220,7 @@ export function EditProfileModal({
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             disabled={loading}
-            placeholder={
-              locale === "en" ? "Enter your name" : "Nhập tên hiển thị"
-            }
+            placeholder={t("account.enterName")}
             className="w-full text-sm font-medium text-gray-900 border-gray-300"
           />
         </div>
@@ -249,14 +231,12 @@ export function EditProfileModal({
             htmlFor="modalEmail"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Email
+            {t("account.email")}
           </label>
           <div className="flex items-center gap-2">
             <Input
               id="modalEmail"
-              value={
-                user?.email ?? (locale === "en" ? "Not set" : "Chưa thiết lập")
-              }
+              value={user?.email ?? t("account.notSet")}
               disabled
               icon={<Mail size={16} className="text-gray-500" />}
               className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-300"
@@ -264,18 +244,12 @@ export function EditProfileModal({
             <Button
               type="button"
               onClick={() => {
-                onClose();
+                handleClose();
                 onOpenEmailModal();
               }}
               className="h-[42px] px-4 shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
             >
-              {user?.email
-                ? locale === "en"
-                  ? "Change"
-                  : "Đổi"
-                : locale === "en"
-                  ? "Add"
-                  : "Thêm"}
+              {t(user?.email ? "account.change" : "account.add")}
             </Button>
           </div>
         </div>
@@ -286,14 +260,12 @@ export function EditProfileModal({
             htmlFor="modalPhone"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            {locale === "en" ? "Phone Number" : "Số điện thoại"}
+            {t("account.phone")}
           </label>
           <div className="flex items-center gap-2">
             <Input
               id="modalPhone"
-              value={
-                user?.phone ?? (locale === "en" ? "Not set" : "Chưa thiết lập")
-              }
+              value={user?.phone ?? t("account.notSet")}
               disabled
               icon={<Phone size={16} className="text-gray-500" />}
               className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-300"
@@ -301,18 +273,12 @@ export function EditProfileModal({
             <Button
               type="button"
               onClick={() => {
-                onClose();
+                handleClose();
                 onOpenPhoneModal();
               }}
               className="h-[42px] px-4 shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
             >
-              {user?.phone
-                ? locale === "en"
-                  ? "Change"
-                  : "Đổi"
-                : locale === "en"
-                  ? "Add"
-                  : "Thêm"}
+              {t(user?.phone ? "account.change" : "account.add")}
             </Button>
           </div>
         </div>
@@ -333,7 +299,7 @@ export function EditProfileModal({
             loading={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
           >
-            {locale === "en" ? "Save changes" : "Lưu thay đổi"}
+            {t("account.saveChanges")}
           </Button>
         </div>
       </div>

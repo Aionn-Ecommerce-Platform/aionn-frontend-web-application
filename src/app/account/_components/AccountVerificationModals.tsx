@@ -20,7 +20,7 @@ interface ChangeContactModalProps {
 }
 
 export function ChangeContactModal(props: ChangeContactModalProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const email = props.kind === "email";
   return (
     <Modal
@@ -52,9 +52,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            {locale === "en"
-              ? "Enter the OTP sent to "
-              : t("account.enterOtpSentTo")}
+            {t("account.enterOtpSentTo")}
             <span className="font-medium">{props.value}</span>
           </p>
           <Input
@@ -76,9 +74,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
                 disabled={props.loading}
                 className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50"
               >
-                {locale === "en"
-                  ? `Change ${email ? "email" : "phone"}`
-                  : `Thay đổi ${email ? "email" : "số ĐT"}`}
+                {t(email ? "account.changeEmail" : "account.changePhone")}
               </button>
             )}
             <button
@@ -87,7 +83,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
               onClick={props.onRequest}
               className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50 ml-auto"
             >
-              {locale === "en" ? "Resend OTP" : t("auth.resendOtp")}
+              {t("auth.resendOtp")}
             </button>
           </div>
           <Button

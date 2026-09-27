@@ -71,7 +71,7 @@ function StripeCardSetupForm({
   onClose,
   onComplete,
 }: Omit<StripeCardSetupModalProps, "isOpen">) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [stripeError, setStripeError] = useState<string | null>(null);
@@ -84,11 +84,7 @@ function StripeCardSetupForm({
     if (!stripe || !elements || !setupIntent) return;
 
     if (!cardholderName.trim()) {
-      setNameError(
-        locale === "en"
-          ? "Please enter the cardholder name"
-          : "Vui lòng nhập tên in trên thẻ",
-      );
+      setNameError(t("stripeSetup.cardholderRequired"));
       return;
     }
     setNameError(null);
@@ -174,16 +170,15 @@ function StripeCardSetupForm({
             <div className="flex items-end justify-between relative z-10 text-xs">
               <div className="min-w-0 pr-4">
                 <span className="block text-[10px] font-medium tracking-wider text-white/50 uppercase">
-                  {locale === "en" ? "CARDHOLDER" : "CHỦ THẺ"}
+                  {t("stripeSetup.cardholder")}
                 </span>
                 <p className="text-sm font-semibold tracking-wider uppercase text-white truncate max-w-[220px]">
-                  {cardholderName.trim() ||
-                    (locale === "en" ? "CARDHOLDER NAME" : "TÊN CHỦ THẺ")}
+                  {cardholderName.trim() || t("stripeSetup.cardholderPlaceholder")}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
                 <span className="block text-[10px] font-medium tracking-wider text-white/50 uppercase">
-                  {locale === "en" ? "EXPIRES" : "HẾT HẠN"}
+                  {t("stripeSetup.expires")}
                 </span>
                 <p className="font-mono text-sm tracking-wider text-white/90">
                   MM / YY
@@ -194,10 +189,8 @@ function StripeCardSetupForm({
 
           {/* Cardholder name input */}
           <Input
-            label={locale === "en" ? "Cardholder Name" : "Tên in trên thẻ"}
-            placeholder={
-              locale === "en" ? "e.g. NGUYEN VAN A" : "Ví dụ: NGUYEN VAN A"
-            }
+            label={t("stripeSetup.cardholderLabel")}
+            placeholder={t("stripeSetup.cardholderInputPlaceholder")}
             value={cardholderName}
             onChange={(e) => {
               setCardholderName(e.target.value.toUpperCase());
@@ -210,7 +203,7 @@ function StripeCardSetupForm({
           {/* Separate Card Number input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {locale === "en" ? "Card Number" : "Số thẻ"}
+              {t("stripeSetup.cardNumber")}
             </label>
             <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
               <CardNumberElement
@@ -226,7 +219,7 @@ function StripeCardSetupForm({
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {locale === "en" ? "Expiry Date" : "Hạn dùng (MM/YY)"}
+                {t("stripeSetup.expiryDate")}
               </label>
               <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <CardExpiryElement options={stripeElementStyle} />
@@ -235,7 +228,7 @@ function StripeCardSetupForm({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {locale === "en" ? "Security Code (CVC)" : "Mã bảo mật (CVC)"}
+                {t("stripeSetup.securityCode")}
               </label>
               <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <CardCvcElement options={stripeElementStyle} />
@@ -253,12 +246,9 @@ function StripeCardSetupForm({
           {/* Security assurance footer */}
           <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
             <ShieldCheck size={16} className="text-green-600 flex-shrink-0" />
-            <span>
-              {locale === "en"
-                ? "Encrypted & secured by Stripe. Compliant with PCI-DSS Level 1."
-                : "Bảo mật chuẩn PCI-DSS bởi Stripe."}
-            </span>
+            <span>{t("stripeSetup.pciDssNotice")}</span>
           </div>
+
 
           {/* Action buttons */}
           <div className="flex gap-2 justify-end pt-3 border-t border-gray-150">

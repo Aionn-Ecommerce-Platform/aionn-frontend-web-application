@@ -390,7 +390,7 @@ export default function Header() {
                     setSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  aria-label="Xóa tìm kiếm"
+                  aria-label={t("common.clearSearch")}
                   className="absolute right-11 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer z-10"
                 >
                   <X size={16} />

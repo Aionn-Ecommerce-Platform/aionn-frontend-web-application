@@ -787,6 +787,7 @@
   "common": {
     "home": "Home",
     "search": "Search products, brands...",
+    "clearSearch": "Clear search",
     "recentSearches": "Recent searches",
     "login": "Log in",
     "register": "Sign up",
@@ -898,7 +899,17 @@
     "errorFallback": "Stripe could not verify this card.",
     "title": "Add Stripe card",
     "preparing": "Preparing card form...",
-    "confirm": "Confirm card"
+    "confirm": "Confirm card",
+    "cardholder": "CARDHOLDER",
+    "cardholderPlaceholder": "CARDHOLDER NAME",
+    "expires": "EXPIRES",
+    "cardholderLabel": "Cardholder Name",
+    "cardholderInputPlaceholder": "e.g. NGUYEN VAN A",
+    "cardholderRequired": "Please enter the cardholder name",
+    "cardNumber": "Card Number",
+    "expiryDate": "Expiry Date (MM/YY)",
+    "securityCode": "Security Code (CVC)",
+    "pciDssNotice": "PCI-DSS compliant security powered by Stripe."
   },
   "chatBlocked": {
     "title": "Blocked users",
@@ -1424,6 +1435,9 @@
     "completeSuccess": "Order marked as received",
     "notFound": "Order not found",
     "notFoundDesc": "The order does not exist or has been removed.",
+    "backToOrders": "Back to orders",
+    "noShippingAddress": "No shipping address information",
+    "variantLabel": "Variant: ",
     "noTrackingYet": "Not yet assigned",
     "shippingStatus": "Shipping status",
     "shippingStatusRequested": "Request created",
@@ -1544,7 +1558,21 @@
     "changePhone": "Change Phone Number",
     "verified": "Verified",
     "notVerified": "Not Verified",
-    "verify": "Verify"
+    "verify": "Verify",
+    "username": "Username",
+    "editProfile": "Edit Profile",
+    "editProfileTitle": "Edit Profile",
+    "editProfileSuccess": "Profile updated successfully",
+    "clickToEditProfile": "Click to edit profile",
+    "changePhoto": "Change photo",
+    "changeProfilePhoto": "Change profile photo",
+    "saveChanges": "Save changes",
+    "enterName": "Enter your name",
+    "notSet": "Not set",
+    "add": "Add",
+    "fileTypeUnsupported": "Only .JPEG, .PNG, .WEBP formats are supported",
+    "fileSizeLimit": "Maximum file size is {max} MB",
+    "fileFormatNote": "Format: .JPEG, .PNG, .WEBP"
   },
   "settings": {
     "title": "Settings",
@@ -2573,7 +2601,7 @@
     "title": "Account Control",
     "profile": "Profile",
     "addresses": "Addresses",
-    "paymentMethods": "Payment Methods",
+    "paymentMethods": "Linked Cards",
     "orders": "Orders",
     "returns": "Returns",
     "notifications": "Notifications",
@@ -2610,7 +2638,9 @@
     "addSuccess": "Address added successfully",
     "updateSuccess": "Address updated successfully",
     "deleteSuccess": "Address deleted successfully",
-    "setDefaultSuccess": "Set as default address successfully"
+    "setDefaultSuccess": "Set as default address successfully",
+    "cannotUnsetDefault": "Cannot unset default address. Please choose another address as default instead.",
+    "isCurrentDefault": "This is currently your default address. To change it, set another address as default."
   },
   "paymentMethods": {
     "title": "Payment Methods",

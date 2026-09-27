@@ -68,11 +68,7 @@ function AccountInner() {
         setUser(updated);
       }
       await refreshProfile();
-      toast.success(
-        locale === "en"
-          ? "Profile updated successfully"
-          : "Cập nhật hồ sơ thành công",
-      );
+      toast.success(t("account.editProfileSuccess"));
       setEditProfileOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -206,11 +202,7 @@ function AccountInner() {
                   type="button"
                   onClick={() => setEditProfileOpen(true)}
                   className="relative group rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
-                  title={
-                    locale === "en"
-                      ? "Click to edit profile"
-                      : "Nhấp để chỉnh sửa hồ sơ"
-                  }
+                  title={t("account.clickToEditProfile")}
                 >
                   <Avatar
                     src={user?.avatarUrl ?? undefined}
@@ -246,26 +238,24 @@ function AccountInner() {
                       size={12}
                       className="text-gray-400 group-hover/edit:text-gray-600 transition-colors"
                     />
-                    <span>
-                      {locale === "en" ? "Edit Profile" : "Sửa Hồ Sơ"}
-                    </span>
+                    <span>{t("account.editProfile")}</span>
                   </button>
                 </div>
               </div>
 
               {/* Profile fields: 4 rows, label and value on same row */}
               <div className="space-y-4 pt-6 border-t border-gray-100">
-                {/* Tên đăng nhập */}
+                {/* Username field */}
                 <div className="flex items-center">
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
-                    {locale === "en" ? "Username" : "Tên đăng nhập"}
+                    {t("account.username")}
                   </span>
                   <span className="text-sm font-medium text-gray-900">
                     {user?.username ?? t("account.none")}
                   </span>
                 </div>
 
-                {/* Tên hiển thị */}
+                {/* Display name field */}
                 <div className="flex items-center">
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
                     {t("account.displayName")}
@@ -275,7 +265,7 @@ function AccountInner() {
                   </span>
                 </div>
 
-                {/* Email */}
+                {/* Email field */}
                 <div className="flex items-center">
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
                     {t("account.email") || "Email"}
@@ -295,15 +285,13 @@ function AccountInner() {
                         disabled={verifyLoading}
                         className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline disabled:opacity-50 cursor-pointer"
                       >
-                        {locale === "en"
-                          ? "Send verification OTP"
-                          : t("account.sendVerifyEmailOtp")}
+                        {t("account.sendVerifyEmailOtp")}
                       </button>
                     ) : null}
                   </div>
                 </div>
 
-                {/* Số điện thoại */}
+                {/* Phone number field */}
                 <div className="flex items-center">
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
                     {t("account.phone")}

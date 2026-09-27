@@ -149,11 +149,7 @@ function AddressesInner() {
       };
       if (editingId) {
         if (isEditingDefault && !form.isDefault) {
-          toast.error(
-            locale === "en"
-              ? "Cannot unset default address. Please set another address as default."
-              : "Không thể bỏ đặt mặc định. Vui lòng chọn địa chỉ khác làm mặc định thay thế.",
-          );
+          toast.error(t("addresses.cannotUnsetDefault"));
           setSubmitting(false);
           return;
         }
@@ -472,9 +468,7 @@ function AddressesInner() {
             </label>
             {isEditingDefault && (
               <p className="text-xs text-gray-500 pl-6">
-                {locale === "en"
-                  ? "This is currently your default address. To change it, set another address as default."
-                  : "Đây đang là địa chỉ mặc định. Để đổi, hãy đặt một địa chỉ khác làm mặc định."}
+                {t("addresses.isCurrentDefault")}
               </p>
             )}
           </div>
