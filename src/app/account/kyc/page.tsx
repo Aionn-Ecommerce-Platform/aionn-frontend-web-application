@@ -109,13 +109,13 @@ function KycInner() {
             </div>
 
             {loading ? (
-              <div className="bg-white rounded-xl border border-gray-100 p-12 flex justify-center">
+              <div className="bg-white rounded-sm border border-gray-200/80 p-12 flex justify-center shadow-2xs">
                 <Loader2 className="animate-spin text-blue-600" size={28} />
               </div>
             ) : data && data.length > 0 ? (
               <div className="space-y-4">
                 {approvedProfile && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+                  <div className="bg-green-50 border border-green-200 rounded-sm p-4 flex items-start gap-3 shadow-2xs">
                     <CheckCircle2 className="text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-green-900">
@@ -141,11 +141,11 @@ function KycInner() {
                   return (
                     <div
                       key={profile.kycId}
-                      className="bg-white rounded-xl border border-gray-100 p-6"
+                      className="bg-white rounded-sm border border-gray-100 p-6"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-50 rounded-lg">
+                          <div className="p-2 bg-blue-50 rounded-xs">
                             <Icon size={20} className="text-blue-600" />
                           </div>
                           <div>
@@ -206,7 +206,7 @@ function KycInner() {
                           </div>
                         )}
                         {profile.rejectReason && (
-                          <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                          <div className="mt-3 p-3 bg-red-50 rounded-xs">
                             <p className="text-xs font-medium text-red-900">
                               {t("myKyc.rejectReason")}
                             </p>
@@ -216,7 +216,7 @@ function KycInner() {
                           </div>
                         )}
                         {profile.reviewNote && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="mt-3 p-3 bg-gray-50 rounded-xs">
                             <p className="text-xs font-medium text-gray-900">
                               {t("myKyc.reviewNote")}
                             </p>
@@ -245,7 +245,7 @@ function KycInner() {
                 })}
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
+              <div className="bg-white rounded-sm border border-gray-100 p-12 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
                   <ShieldCheck className="text-blue-600" size={28} />
                 </div>
@@ -261,7 +261,7 @@ function KycInner() {
               </div>
             )}
 
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-sm p-4 flex items-start gap-3">
               <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-900">
                 <p className="font-medium">{t("myKyc.noticeTitle")}</p>

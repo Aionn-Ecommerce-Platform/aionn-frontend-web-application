@@ -69,7 +69,7 @@ function AgentIdentitiesInner() {
           </Button>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4 mb-6 flex items-start gap-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-sm p-4 mt-4 mb-6 flex items-start gap-3">
           <AlertTriangle
             className="text-amber-600 flex-shrink-0 mt-0.5"
             size={18}

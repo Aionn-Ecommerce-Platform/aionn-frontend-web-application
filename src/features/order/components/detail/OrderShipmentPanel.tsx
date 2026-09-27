@@ -30,7 +30,7 @@ export default function OrderShipmentPanel({
   ];
   const current = STEPS.indexOf(shipment.status);
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+    <div className="bg-white rounded-sm border border-gray-100 p-6 mb-6">
       <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Truck size={18} className="text-blue-600" />
         {t("orders.shippingInfo")}

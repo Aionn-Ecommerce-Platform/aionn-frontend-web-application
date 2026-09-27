@@ -62,10 +62,10 @@ export default function ConfirmDialog({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+              <DialogPanel className="w-full max-w-sm transform overflow-hidden rounded-sm bg-white p-6 shadow-xl transition-all">
                 <div className="flex items-start gap-4">
                   <div
-                    className={`p-2 rounded-xl flex-shrink-0 ${
+                    className={`p-2 rounded-xs flex-shrink-0 ${
                       variant === "danger" ? "bg-red-50" : "bg-blue-50"
                     }`}
                   >

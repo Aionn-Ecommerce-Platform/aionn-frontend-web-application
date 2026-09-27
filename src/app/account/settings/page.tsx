@@ -63,12 +63,12 @@ function SettingsInner() {
             </h1>
 
             {loading || !data ? (
-              <div className="bg-white rounded-xl border border-gray-100 p-12 flex justify-center">
+              <div className="bg-white rounded-sm border border-gray-100 p-12 flex justify-center">
                 <Loader2 className="animate-spin text-blue-600" size={28} />
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="bg-white rounded-sm border border-gray-100 p-6">
                   <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
                     <Globe size={18} className="text-blue-600" />
                     {t("settings.generalTitle")}
@@ -91,7 +91,7 @@ function SettingsInner() {
                             e.target.value === "en" ? "en" : "vi",
                           )
                         }
-                        className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg disabled:opacity-50"
+                        className="px-3 py-1.5 text-sm border border-gray-200 rounded-xs disabled:opacity-50"
                       >
                         <option value="vi">{t("settings.languageVi")}</option>
                         <option value="en">{t("settings.languageEn")}</option>

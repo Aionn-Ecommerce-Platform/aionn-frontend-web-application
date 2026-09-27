@@ -71,7 +71,6 @@ body {
 *:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 ::selection {
@@ -191,4 +190,17 @@ a {
 
 .console-page .console-content .bg-white.rounded-xl.border {
   box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+}
+
+/* Active order status tab styling matching sidebar active item */
+.member-page button:has(> span[class*="bg-blue"]),
+.member-page button:has(> span[class*="bg-commerce"]) {
+  background-color: rgb(219 234 254) !important;
+  color: rgb(29 78 216) !important;
+  font-weight: 700 !important;
+}
+
+.member-page button:has(> span[class*="bg-blue"]) > span,
+.member-page button:has(> span[class*="bg-commerce"]) > span {
+  background-color: rgb(29 78 216) !important;
 }

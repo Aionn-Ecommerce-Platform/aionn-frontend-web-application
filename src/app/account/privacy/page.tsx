@@ -64,14 +64,14 @@ function PrivacyInner() {
             </h1>
 
             {loading ? (
-              <div className="bg-white rounded-xl border border-gray-100 p-12 flex justify-center">
+              <div className="bg-white rounded-sm border border-gray-100 p-12 flex justify-center">
                 <Loader2 className="animate-spin text-blue-600" size={28} />
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="bg-white rounded-sm border border-gray-100 p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
                       <FileText size={20} className="text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -117,9 +117,9 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="bg-white rounded-sm border border-gray-100 p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
                       <Shield size={20} className="text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -165,9 +165,9 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="bg-white rounded-sm border border-gray-100 p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
                       <Mail size={20} className="text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -202,7 +202,7 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-sm p-4">
                   <h3 className="text-sm font-medium text-blue-900 mb-2">
                     {t("privacy.rightsTitle")}
                   </h3>
