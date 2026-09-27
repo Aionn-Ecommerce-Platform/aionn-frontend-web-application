@@ -199,10 +199,10 @@ function SecurityInner() {
             </h1>
 
             <div className="space-y-4">
-              <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="bg-white rounded-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
+                    <div className="p-2 bg-blue-50 rounded-xs">
                       <Key size={20} className="text-blue-600" />
                     </div>
                     <div>
@@ -224,10 +224,10 @@ function SecurityInner() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="bg-white rounded-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
+                    <div className="p-2 bg-blue-50 rounded-xs">
                       <Smartphone size={20} className="text-blue-600" />
                     </div>
                     <div>
@@ -245,10 +245,10 @@ function SecurityInner() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="bg-white rounded-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
+                    <div className="p-2 bg-blue-50 rounded-xs">
                       <Shield size={20} className="text-blue-600" />
                     </div>
                     <div>
@@ -332,9 +332,9 @@ function SecurityInner() {
                 )}
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="bg-white rounded-sm border border-gray-100 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-50 rounded-lg">
+                  <div className="p-2 bg-blue-50 rounded-xs">
                     <Clock size={20} className="text-blue-600" />
                   </div>
                   <div>
@@ -377,9 +377,9 @@ function SecurityInner() {
                 )}
               </div>
 
-              <div className="bg-white rounded-xl border border-red-100 p-6">
+              <div className="bg-white rounded-sm border border-red-100 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-red-50 rounded-lg">
+                  <div className="p-2 bg-red-50 rounded-xs">
                     <AlertTriangle size={20} className="text-red-600" />
                   </div>
                   <div>
@@ -392,7 +392,7 @@ function SecurityInner() {
                   </div>
                 </div>
                 {pendingDeletion ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                  <div className="rounded-xs border border-amber-200 bg-amber-50 p-4">
                     <p className="text-sm font-medium text-amber-900">
                       {t("security.pendingDeletionTitle")}
                     </p>

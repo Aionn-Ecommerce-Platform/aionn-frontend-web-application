@@ -45,7 +45,7 @@ import {
 } from "@/shared/lib/recent-searches";
 import LanguageSwitcher from "./LanguageSwitcher";
 import HeaderNavigation from "./HeaderNavigation";
-import { categoryIcons, getNotiBg, pickInitial } from "./header-utils";
+import { categoryIcons, getNotiBg } from "./header-utils";
 
 export default function Header() {
   const router = useRouter();
@@ -56,6 +56,7 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const { isAuthenticated, isInitializing, user, logout } = useAuthStore();
   const totalItems = useCartStore((s) =>
@@ -369,18 +370,36 @@ export default function Header() {
               onSubmit={handleSearch}
               className="relative w-full group flex items-center"
             >
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
+              />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder={t("common.search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-white/70 bg-white/95 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-white focus:ring-4 focus:ring-white/20 focus:outline-none focus:bg-white transition-all"
+                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-white text-sm text-gray-900 placeholder:text-gray-400 shadow-sm outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 border-none"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label={t("common.clearSearch")}
+                  className="absolute right-11 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer z-10"
+                >
+                  <X size={16} />
+                </button>
+              )}
               <button
                 type="submit"
                 aria-label={t("common.search")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
               >
                 <Search size={16} />
               </button>
@@ -439,19 +458,12 @@ export default function Header() {
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/15 text-white transition-colors"
                   >
-                    {user?.avatarUrl ? (
-                      <Avatar
-                        src={user.avatarUrl}
-                        alt={user.displayName ?? "U"}
-                        size="sm"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
-                        <span className="text-xs font-bold text-blue-700">
-                          {pickInitial(user)}
-                        </span>
-                      </div>
-                    )}
+                    <Avatar
+                      src={user?.avatarUrl}
+                      alt={user?.displayName ?? user?.username ?? "User"}
+                      size="sm"
+                      className="ring-2 ring-white/30"
+                    />
                     <ChevronDown size={14} className="hidden lg:block" />
                   </button>
 

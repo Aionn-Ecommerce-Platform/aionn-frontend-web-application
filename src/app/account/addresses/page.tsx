@@ -70,6 +70,11 @@ function AddressesInner() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
 
+  const isEditingDefault = Boolean(
+    editingId &&
+      addresses.data?.find((a) => a.addressId === editingId)?.isDefault,
+  );
+
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -143,10 +148,28 @@ function AddressesInner() {
         isDefault: form.isDefault,
       };
       if (editingId) {
+        if (isEditingDefault && !form.isDefault) {
+          toast.error(t("addresses.cannotUnsetDefault"));
+          setSubmitting(false);
+          return;
+        }
+
         await addressService.update(editingId, body);
+
+        if (form.isDefault && !isEditingDefault) {
+          await addressService.setDefault(editingId);
+        }
+
         toast.success(t("addresses.updateSuccess"));
       } else {
-        await addressService.create(body);
+        const created = await addressService.create(body);
+        if (form.isDefault && !created?.isDefault && created?.addressId) {
+          try {
+            await addressService.setDefault(created.addressId);
+          } catch (setDefaultErr) {
+            toast.error(getErrorMessage(setDefaultErr));
+          }
+        }
         toast.success(t("addresses.addSuccess"));
       }
       setModalOpen(false);
@@ -195,102 +218,105 @@ function AddressesInner() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {t("addresses.title")}
               </h1>
-              {hasAddresses && (
-                <Button size="sm" onClick={openCreate}>
-                  <Plus size={16} className="mr-1" />
-                  {t("addresses.addAddress")}
-                </Button>
-              )}
+              <Button size="sm" onClick={openCreate}>
+                <Plus size={16} className="mr-1" />
+                {t("addresses.addAddress")}
+              </Button>
             </div>
 
-            {addresses.loading ? (
-              <div className="bg-white rounded-xl border border-gray-100 p-12 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
-              </div>
-            ) : hasAddresses ? (
-              <div className="space-y-4">
-                {[...(addresses.data || [])]
-                  .sort((a, b) => (a.isDefault ? -1 : b.isDefault ? 1 : 0))
-                  .map((addr) => (
-                    <div
-                      key={addr.addressId}
-                      className="bg-white rounded-xl border border-gray-100 p-5"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <MapPin
-                            size={18}
-                            className="text-blue-500 mt-0.5 flex-shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-medium text-gray-900">
-                                {addr.contactName}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                • {addr.phone}
-                              </span>
-                              {addr.isDefault && (
+            <div className="bg-white rounded-sm border border-gray-100 overflow-hidden">
+              {addresses.loading ? (
+                <div className="py-12 flex justify-center">
+                  <Loader2 className="animate-spin text-blue-600" size={28} />
+                </div>
+              ) : hasAddresses ? (
+                <div className="divide-y divide-gray-200">
+                  {[...(addresses.data || [])]
+                    .sort((a, b) => (a.isDefault ? -1 : b.isDefault ? 1 : 0))
+                    .map((addr) => (
+                      <div
+                        key={addr.addressId}
+                        className="p-6 hover:bg-gray-100/80 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <MapPin
+                              size={18}
+                              className="text-blue-500 mt-0.5 flex-shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {addr.contactName}
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  • {addr.phone}
+                                </span>
                                 <Badge variant="info">
-                                  {t("addresses.defaultBadge")}
+                                  {ADDRESS_TYPES.find(
+                                    (tItem) => tItem.value === addr.type,
+                                  )?.label ?? addr.type}
                                 </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {getLocalizedAddress(addr, locale)}
+                              </p>
+                              {addr.isDefault && (
+                                <div className="mt-2">
+                                  <Badge variant="danger">
+                                    {t("addresses.defaultBadge")}
+                                  </Badge>
+                                </div>
                               )}
-                              <Badge>
-                                {ADDRESS_TYPES.find(
-                                  (tItem) => tItem.value === addr.type,
-                                )?.label ?? addr.type}
-                              </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {getLocalizedAddress(addr, locale)}
-                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {!addr.isDefault && (
+                              <button
+                                onClick={() => handleSetDefault(addr.addressId)}
+                                className="p-2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+                                title={t("addresses.setDefault")}
+                              >
+                                <Star size={16} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => openEdit(addr)}
+                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+                              title={t("common.edit")}
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(addr.addressId)}
+                              className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                              title={t("common.delete")}
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {!addr.isDefault && (
-                            <button
-                              onClick={() => handleSetDefault(addr.addressId)}
-                              className="p-2 text-gray-400 hover:text-blue-600"
-                              title={t("addresses.setDefault")}
-                            >
-                              <Star size={16} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => openEdit(addr)}
-                            className="p-2 text-gray-400 hover:text-blue-600"
-                            title={t("common.edit")}
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => setDeleteId(addr.addressId)}
-                            className="p-2 text-gray-400 hover:text-red-500"
-                            title={t("common.delete")}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-100">
-                <EmptyState
-                  icon={MapPin}
-                  title={t("addresses.emptyTitle")}
-                  description={
-                    t("addresses.emptyDesc") || t("addresses.emptyDescription")
-                  }
-                  action={
-                    <Button onClick={openCreate}>
-                      {t("addresses.addAddress")}
-                    </Button>
-                  }
-                />
-              </div>
-            )}
+                    ))}
+                </div>
+              ) : (
+                <div className="p-8">
+                  <EmptyState
+                    icon={MapPin}
+                    title={t("addresses.emptyTitle")}
+                    description={
+                      t("addresses.emptyDesc") ||
+                      t("addresses.emptyDescription")
+                    }
+                    action={
+                      <Button onClick={openCreate}>
+                        {t("addresses.addAddress")}
+                      </Button>
+                    }
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -414,7 +440,7 @@ function AddressesInner() {
                   key={tItem.value}
                   type="button"
                   onClick={() => setForm({ ...form, type: tItem.value })}
-                  className={`px-4 py-2 rounded-lg text-sm border transition-all ${
+                  className={`px-4 py-2 rounded-xs text-sm border transition-all ${
                     form.type === tItem.value
                       ? "border-blue-500 bg-blue-50 text-blue-700 font-bold"
                       : "border-gray-200 text-gray-700 hover:border-gray-300"
@@ -425,17 +451,31 @@ function AddressesInner() {
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.isDefault}
-              onChange={(e) =>
-                setForm({ ...form, isDefault: e.target.checked })
-              }
-              className="rounded border-gray-350 text-blue-600 focus:ring-blue-500"
-            />
-            {t("addresses.setDefault")}
-          </label>
+          <div className="flex flex-col gap-1">
+            <label
+              className={`flex items-center gap-2 text-sm ${
+                isEditingDefault
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 cursor-pointer"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={form.isDefault}
+                disabled={isEditingDefault}
+                onChange={(e) =>
+                  setForm({ ...form, isDefault: e.target.checked })
+                }
+                className="rounded border-gray-350 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+              />
+              <span>{t("addresses.setDefault")}</span>
+            </label>
+            {isEditingDefault && (
+              <p className="text-xs text-gray-500 pl-6">
+                {t("addresses.isCurrentDefault")}
+              </p>
+            )}
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button
               variant="outline"

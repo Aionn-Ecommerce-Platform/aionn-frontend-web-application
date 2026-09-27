@@ -16,10 +16,11 @@ interface ChangeContactModalProps {
   onOtpChange: (value: string) => void;
   onRequest: () => void;
   onConfirm: () => void;
+  onBack?: () => void;
 }
 
 export function ChangeContactModal(props: ChangeContactModalProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const email = props.kind === "email";
   return (
     <Modal
@@ -51,9 +52,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            {locale === "en"
-              ? "Enter the OTP sent to "
-              : t("account.enterOtpSentTo")}
+            {t("account.enterOtpSentTo")}
             <span className="font-medium">{props.value}</span>
           </p>
           <Input
@@ -67,6 +66,26 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
             className="text-center tracking-[0.3em] font-mono"
             required
           />
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            {props.onBack && (
+              <button
+                type="button"
+                onClick={props.onBack}
+                disabled={props.loading}
+                className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50"
+              >
+                {t(email ? "account.changeEmail" : "account.changePhone")}
+              </button>
+            )}
+            <button
+              type="button"
+              disabled={props.loading}
+              onClick={props.onRequest}
+              className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50 ml-auto"
+            >
+              {t("auth.resendOtp")}
+            </button>
+          </div>
           <Button
             onClick={props.onConfirm}
             className="w-full"

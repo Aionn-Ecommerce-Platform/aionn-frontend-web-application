@@ -63,7 +63,7 @@ export default function SocialAccountsPanel() {
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
+      <div className="bg-white rounded-sm border border-gray-100 p-6">
         <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
           <LinkIcon size={18} className="text-blue-600" />
           {t("settings.socialTitle")}
@@ -81,7 +81,7 @@ export default function SocialAccountsPanel() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-lg ${provider.color.split(" ")[0]}`}
+                    className={`p-2 rounded-xs ${provider.color.split(" ")[0]}`}
                   >
                     <Icon size={18} />
                   </div>

@@ -62,7 +62,7 @@ export default function Modal({
             >
               <DialogPanel
                 className={cn(
-                  "w-full transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all",
+                  "w-full transform overflow-hidden rounded-sm bg-white shadow-xl transition-all",
                   sizes[size],
                 )}
               >
@@ -73,7 +73,7 @@ export default function Modal({
                     </DialogTitle>
                     <button
                       onClick={onClose}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="p-1.5 rounded-xs hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                       aria-label="Close modal"
                     >
                       <X size={18} />

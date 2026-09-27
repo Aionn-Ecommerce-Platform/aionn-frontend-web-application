@@ -57,7 +57,7 @@ export function AgentRow({
   const isLive = agent.status === "ACTIVE";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5">
+    <div className="bg-white rounded-sm border border-gray-100 p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -79,7 +79,7 @@ export function AgentRow({
               {agent.permissions.map((p) => (
                 <span
                   key={p}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 font-mono"
+                  className="text-[11px] px-2 py-0.5 rounded-xs bg-gray-100 text-gray-700 font-mono"
                 >
                   {p}
                 </span>

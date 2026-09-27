@@ -232,11 +232,14 @@ async function execute<T>(
 
   let res = await rawFetch(url, init, opts);
 
-  if (res.status === 401 && shouldAttemptRefresh(path, opts)) {
+  if (
+    (res.status === 401 || res.status === 403) &&
+    shouldAttemptRefresh(path, opts)
+  ) {
     const refreshed = await refreshTokens();
     if (refreshed) {
       res = await rawFetch(url, init, opts);
-    } else {
+    } else if (res.status === 401) {
       tokenStore.setTokens(null);
       if (onUnauthorized) onUnauthorized();
     }

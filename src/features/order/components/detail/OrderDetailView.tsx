@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { use, useState } from "react";
+import { Suspense, use, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   Package,
@@ -12,6 +13,7 @@ import {
   MapPin,
   Loader2,
   PackageX,
+  ArrowLeft,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, ConfirmDialog } from "@/shared/ui";
@@ -65,9 +67,12 @@ const STATUS_FLOW: Array<{
 ];
 
 function OrderDetailInner({ id }: { id: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const fromTab = searchParams.get("fromTab") || searchParams.get("tab");
 
   const { data: order, isLoading } = useQuery({
     queryKey: qk.order(id),
@@ -181,8 +186,43 @@ function OrderDetailInner({ id }: { id: string }) {
     order.status === "PREPARING";
   const canReturn = order.status === "COMPLETED";
 
+  const handleBack = () => {
+    let targetTab = fromTab;
+    if (!targetTab && order) {
+      if (["PENDING", "APPROVED", "PLACED"].includes(order.status)) {
+        targetTab = "PENDING,APPROVED";
+      } else if (order.status === "PREPARING") {
+        targetTab = "PREPARING";
+      } else if (["SHIPPED", "DELIVERED"].includes(order.status)) {
+        targetTab = "SHIPPED";
+      } else if (order.status === "COMPLETED") {
+        targetTab = "COMPLETED";
+      } else if (["CANCELLED", "REJECTED"].includes(order.status)) {
+        targetTab = "CANCELLED,REJECTED";
+      }
+    }
+
+    if (targetTab && targetTab !== "all") {
+      router.push(`/orders?tab=${encodeURIComponent(targetTab)}`);
+    } else {
+      router.push("/orders");
+    }
+  };
+
   return (
     <MemberPageLayout>
+      <button
+        type="button"
+        onClick={handleBack}
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 mb-6 transition-colors cursor-pointer group font-medium"
+      >
+        <ArrowLeft
+          size={16}
+          className="text-gray-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition-transform"
+        />
+        <span>{t("orders.backToOrders")}</span>
+      </button>
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -201,7 +241,7 @@ function OrderDetailInner({ id }: { id: string }) {
       </div>
 
       {order.status !== "CANCELLED" && order.status !== "REJECTED" && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+        <div className="bg-white rounded-sm border border-gray-100 p-6 mb-6">
           <div className="flex items-center justify-between">
             {STATUS_FLOW.map((step, i) => {
               const Icon = step.icon;
@@ -244,7 +284,7 @@ function OrderDetailInner({ id }: { id: string }) {
       {shipment && <OrderShipmentPanel shipment={shipment} />}
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="bg-white rounded-sm border border-gray-100 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("orders.products")}
           </h3>
@@ -257,7 +297,7 @@ function OrderDetailInner({ id }: { id: string }) {
               const image = product?.imageList?.[0];
               return (
                 <div key={item.skuId} className="flex gap-3 py-2">
-                  <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
+                  <div className="w-16 h-16 rounded-xs bg-gray-100 flex-shrink-0 overflow-hidden relative">
                     {image ? (
                       <Image
                         src={image}
@@ -315,7 +355,7 @@ function OrderDetailInner({ id }: { id: string }) {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-sm border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-900 mb-3">
               {t("orders.deliverySection")}
             </h3>
@@ -361,12 +401,14 @@ function OrderDetailInner({ id }: { id: string }) {
                   className="text-gray-400 mt-0.5 flex-shrink-0"
                 />
                 <span>
-                  {t("orders.addressHash")} #{order.addressId.slice(0, 8)}
+                  {order.addressId
+                    ? `${t("orders.addressHash")} #${order.addressId.slice(0, 8)}`
+                    : t("orders.noShippingAddress")}
                 </span>
               </div>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-sm border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-900 mb-3">
               {t("orders.payment")}
             </h3>
@@ -466,7 +508,17 @@ export default function OrderDetailPage({
   const { id } = use(params);
   return (
     <AuthGuard>
-      <OrderDetailInner id={id} />
+      <Suspense
+        fallback={
+          <MemberPageLayout>
+            <div className="min-h-[60vh] flex justify-center items-center">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          </MemberPageLayout>
+        }
+      >
+        <OrderDetailInner id={id} />
+      </Suspense>
     </AuthGuard>
   );
 }

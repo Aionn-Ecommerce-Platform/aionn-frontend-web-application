@@ -98,7 +98,7 @@ function MfaSetupWizardInner() {
           {t("mfaSetup.back")}
         </button>
 
-        <div className="bg-white rounded-xl border border-gray-100 p-8">
+        <div className="bg-white rounded-sm border border-gray-100 p-8">
           <div className="flex items-center justify-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full">
               <Smartphone className="text-blue-600" size={28} />
@@ -171,7 +171,7 @@ function MfaSetupWizardInner() {
                 <p className="text-sm text-gray-600 mb-4">
                   {t("mfaSetup.scanPrompt")}
                 </p>
-                <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg">
+                <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-sm">
                   <AppImage
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mfaSetup.otpauthUri)}`}
                     alt="QR Code"
@@ -180,12 +180,12 @@ function MfaSetupWizardInner() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-sm p-4">
                 <p className="text-xs font-medium text-gray-700 mb-2">
                   {t("mfaSetup.manualSecret")}
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-2 bg-white border border-gray-200 rounded text-sm font-mono break-all">
+                  <code className="flex-1 p-2 bg-white border border-gray-200 rounded-xs text-sm font-mono break-all">
                     {mfaSetup.secret}
                   </code>
                   <Button
@@ -257,7 +257,7 @@ function MfaSetupWizardInner() {
                 </p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-sm p-4">
                 <p className="text-xs font-medium text-amber-900 mb-3">
                   ⚠️ {t("mfaSetup.backupWarning")}
                 </p>
@@ -265,7 +265,7 @@ function MfaSetupWizardInner() {
                   {backupCodes.map((code, idx) => (
                     <code
                       key={idx}
-                      className="p-2 bg-white border border-amber-200 rounded text-sm font-mono text-center"
+                      className="p-2 bg-white border border-amber-200 rounded-xs text-sm font-mono text-center"
                     >
                       {code}
                     </code>
