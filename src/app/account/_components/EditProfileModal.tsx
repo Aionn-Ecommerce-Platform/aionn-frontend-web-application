@@ -209,7 +209,10 @@ export function EditProfileModal({
 
         {/* Username (read-only) */}
         <div>
-          <label htmlFor="modalUsername" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="modalUsername"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {locale === "en" ? "Username" : "Tên đăng nhập"}
           </label>
           <Input
@@ -222,7 +225,10 @@ export function EditProfileModal({
 
         {/* Display Name Input */}
         <div>
-          <label htmlFor="modalDisplayName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="modalDisplayName"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {t("account.displayName")}
           </label>
           <Input
@@ -239,7 +245,10 @@ export function EditProfileModal({
 
         {/* Email */}
         <div>
-          <label htmlFor="modalEmail" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="modalEmail"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Email
           </label>
           <div className="flex items-center gap-2">
@@ -273,7 +282,10 @@ export function EditProfileModal({
 
         {/* Phone */}
         <div>
-          <label htmlFor="modalPhone" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="modalPhone"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {locale === "en" ? "Phone Number" : "Số điện thoại"}
           </label>
           <div className="flex items-center gap-2">
