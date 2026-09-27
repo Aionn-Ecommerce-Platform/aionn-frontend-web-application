@@ -62,9 +62,12 @@ function AccountInner() {
         data.displayName !== undefined &&
         data.displayName.trim() !== (user?.displayName ?? "")
       ) {
-        const updated = await userService.updateDisplayName(
-          data.displayName.trim(),
-        );
+        const trimmed = data.displayName.trim();
+        if (!trimmed) {
+          toast.error(t("account.nameRequired"));
+          return;
+        }
+        const updated = await userService.updateDisplayName(trimmed);
         setUser(updated);
       }
       await refreshProfile();

@@ -51,6 +51,15 @@ export function EditProfileModal({
   }
 
   useEffect(() => {
+    if (open) {
+      setDisplayName(user?.displayName ?? "");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [open, user]);
+
+  useEffect(() => {
     return () => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
@@ -98,6 +107,11 @@ export function EditProfileModal({
     const trimmed = displayName.trim();
     const hasNameChanged = trimmed !== (user?.displayName ?? "").trim();
     const hasAvatarChanged = Boolean(selectedFile);
+
+    if (hasNameChanged && !trimmed) {
+      toast.error(t("account.nameRequired"));
+      return;
+    }
 
     if (!hasNameChanged && !hasAvatarChanged) {
       handleClose();

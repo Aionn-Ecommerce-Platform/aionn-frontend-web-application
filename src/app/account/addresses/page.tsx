@@ -163,8 +163,12 @@ function AddressesInner() {
         toast.success(t("addresses.updateSuccess"));
       } else {
         const created = await addressService.create(body);
-        if (form.isDefault && created?.addressId) {
-          await addressService.setDefault(created.addressId);
+        if (form.isDefault && !created?.isDefault && created?.addressId) {
+          try {
+            await addressService.setDefault(created.addressId);
+          } catch (setDefaultErr) {
+            toast.error(getErrorMessage(setDefaultErr));
+          }
         }
         toast.success(t("addresses.addSuccess"));
       }

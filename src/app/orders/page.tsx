@@ -260,18 +260,6 @@ function OrdersInner() {
                             {t("orders.viewDetails")}
                           </Button>
                         </Link>
-                        {order.status === "COMPLETED" && (
-                          <Link
-                            href={`/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`}
-                          >
-                            <Button
-                              size="sm"
-                              className="h-9 px-5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-xs shadow-xs"
-                            >
-                              {t("orders.reorder")}
-                            </Button>
-                          </Link>
-                        )}
                       </div>
                     </div>
                   </div>

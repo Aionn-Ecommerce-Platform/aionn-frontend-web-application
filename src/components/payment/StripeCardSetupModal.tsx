@@ -134,7 +134,7 @@ function StripeCardSetupForm({
           {t("stripeSetup.preparing")}
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} noValidate className="space-y-4">
           {/* Visual card banner with enhanced height and realistic details */}
           <div className="h-52 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden flex flex-col justify-between bg-gradient-to-tr from-slate-900 via-indigo-950 to-blue-900 border border-white/10">
             <div className="absolute -right-6 -bottom-10 w-36 h-36 bg-blue-500/20 rounded-full blur-xl pointer-events-none" />

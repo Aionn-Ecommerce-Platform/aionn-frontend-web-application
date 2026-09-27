@@ -268,10 +268,14 @@ function PaymentMethodsInner() {
                                 <Badge variant="info">
                                   {formatCardBrand(method.provider)}
                                 </Badge>
-                                {verified && (
+                                {verified ? (
                                   <Badge variant="success">
                                     <Check size={12} className="mr-1" />
                                     {t("paymentMethods.verified")}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="warning">
+                                    {method.status}
                                   </Badge>
                                 )}
                               </div>

@@ -73,6 +73,8 @@ export default function Avatar({
 
     return (
       <div
+        role="img"
+        aria-label={alt || "Avatar"}
         className={cn(
           "rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium flex-shrink-0",
           sizes[size],
@@ -100,7 +102,7 @@ export default function Avatar({
         sizes={`${px}px`}
         className="object-cover"
         onError={() => {
-          if (!hasError && src && src.trim()) {
+          if (!hasError && src && src.trim() && src !== fallbackSrc) {
             setHasError(true);
           } else {
             setFallbackError(true);
