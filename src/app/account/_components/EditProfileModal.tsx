@@ -41,23 +41,18 @@ export function EditProfileModal({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [prevUser, setPrevUser] = useState(user);
+  const [prevOpen, setPrevOpen] = useState(open);
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  if (prevUser !== user) {
+  if (prevUser !== user || prevOpen !== open) {
     setPrevUser(user);
+    setPrevOpen(open);
     setDisplayName(user?.displayName ?? "");
+    setSelectedFile(null);
+    setPreviewUrl(null);
   }
-
-  useEffect(() => {
-    if (open) {
-      setDisplayName(user?.displayName ?? "");
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }, [open, user]);
 
   useEffect(() => {
     return () => {

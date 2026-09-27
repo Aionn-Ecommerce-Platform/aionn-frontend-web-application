@@ -173,7 +173,8 @@ function StripeCardSetupForm({
                   {t("stripeSetup.cardholder")}
                 </span>
                 <p className="text-sm font-semibold tracking-wider uppercase text-white truncate max-w-[220px]">
-                  {cardholderName.trim() || t("stripeSetup.cardholderPlaceholder")}
+                  {cardholderName.trim() ||
+                    t("stripeSetup.cardholderPlaceholder")}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
@@ -248,7 +249,6 @@ function StripeCardSetupForm({
             <ShieldCheck size={16} className="text-green-600 flex-shrink-0" />
             <span>{t("stripeSetup.pciDssNotice")}</span>
           </div>
-
 
           {/* Action buttons */}
           <div className="flex gap-2 justify-end pt-3 border-t border-gray-150">
