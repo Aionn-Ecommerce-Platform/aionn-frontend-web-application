@@ -46,10 +46,11 @@ export default function ProductDetailExtras(props: Props) {
       toast.error(t("reviews.loginToReviewNotice"));
       return;
     }
-    if (!eligibility?.canReview) {
-      if (eligibility?.reason === "NOT_PURCHASED") {
-        toast.error(t("productDetail.purchaseBeforeReview"));
-      } else if (eligibility?.reason === "ALREADY_REVIEWED") {
+    if (!eligibility) {
+      return;
+    }
+    if (!eligibility.canReview) {
+      if (eligibility.reason === "ALREADY_REVIEWED") {
         toast.error(t("productDetail.alreadyReviewed"));
       } else {
         toast.error(t("productDetail.purchaseBeforeReview"));

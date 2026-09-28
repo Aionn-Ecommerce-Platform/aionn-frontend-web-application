@@ -94,6 +94,7 @@ export default function ProductMainCard(props: Props) {
   }>({ productId: product.productId, values: {} });
   const selectedAttributes =
     selectionState.productId === product.productId ? selectionState.values : {};
+  const [isProtectionExpanded, setIsProtectionExpanded] = useState(false);
   const attributeKeys = useMemo(() => {
     const keys: string[] = [];
     for (const variant of product.variants) {
@@ -355,39 +356,71 @@ export default function ProductMainCard(props: Props) {
                     {t("productDetail.buyerProtection")}
                   </span>
                   <div className="flex">
-                    <div className="group/protection relative inline-flex items-center gap-1.5 text-gray-900 cursor-pointer hover:text-red-500 transition-colors">
-                      <ShieldCheck
-                        size={18}
-                        className="text-red-500 shrink-0"
-                      />
-                      <span className="text-sm font-medium">
-                        {t("productDetail.freeReturns15Days")}
-                      </span>
-                      <ChevronRight
-                        size={16}
-                        className="text-gray-400 group-hover/protection:translate-x-0.5 transition-transform"
-                      />
+                    <div
+                      className="group/protection relative inline-flex items-center"
+                      onMouseEnter={() => setIsProtectionExpanded(true)}
+                      onMouseLeave={() => setIsProtectionExpanded(false)}
+                    >
+                      <button
+                        type="button"
+                        id="buyer-protection-trigger"
+                        aria-expanded={isProtectionExpanded}
+                        aria-controls="buyer-protection-details"
+                        onClick={() => setIsProtectionExpanded((prev) => !prev)}
+                        onFocus={() => setIsProtectionExpanded(true)}
+                        onBlur={(e) => {
+                          if (
+                            !e.currentTarget.parentElement?.contains(
+                              e.relatedTarget as Node | null,
+                            )
+                          ) {
+                            setIsProtectionExpanded(false);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-gray-900 cursor-pointer hover:text-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400 rounded-xs transition-colors"
+                      >
+                        <ShieldCheck
+                          size={18}
+                          className="text-red-500 shrink-0"
+                        />
+                        <span className="text-sm font-medium">
+                          {t("productDetail.freeReturns15Days")}
+                        </span>
+                        <ChevronRight
+                          size={16}
+                          className="text-gray-400 group-hover/protection:translate-x-0.5 transition-transform"
+                        />
+                      </button>
 
-                      <div className="absolute left-0 top-full mt-2 w-80 p-4 bg-white rounded-sm border border-gray-200 shadow-xl opacity-0 invisible group-hover/protection:opacity-100 group-hover/protection:visible transition-all duration-200 z-30 pointer-events-none group-hover/protection:pointer-events-auto before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']">
-                      <h4 className="font-semibold text-gray-900 text-sm mb-2.5">
-                        {t("productDetail.buyerProtectionTitle")}
-                      </h4>
-                      <div className="border-t border-gray-100 pt-3 flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                          <Package size={16} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-xs">
-                            {t("productDetail.freeReturns15Days")}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                            {t("productDetail.freeReturnsDescription")}
-                          </p>
+                      <div
+                        id="buyer-protection-details"
+                        role="region"
+                        aria-labelledby="buyer-protection-trigger"
+                        className={`absolute left-0 top-full mt-2 w-80 p-4 bg-white rounded-sm border border-gray-200 shadow-xl transition-all duration-200 z-30 before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] ${
+                          isProtectionExpanded
+                            ? "opacity-100 visible pointer-events-auto"
+                            : "opacity-0 invisible pointer-events-none"
+                        }`}
+                      >
+                        <h4 className="font-semibold text-gray-900 text-sm mb-2.5">
+                          {t("productDetail.buyerProtectionTitle")}
+                        </h4>
+                        <div className="border-t border-gray-100 pt-3 flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                            <Package size={16} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 text-xs">
+                              {t("productDetail.freeReturns15Days")}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                              {t("productDetail.freeReturnsDescription")}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
               </div>
             </div>
 

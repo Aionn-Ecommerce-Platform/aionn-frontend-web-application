@@ -81,7 +81,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
   return (
     <div className="space-y-6">
       {summary && totalReviews > 0 && (
-        <div className="bg-[#fffbf8] border border-[#f9ede5] rounded-sm p-6 flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8">
+        <div className="bg-orange-50/40 border border-orange-100 rounded-sm p-6 flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8">
           <div className="flex flex-col items-center justify-center min-w-[140px] text-center">
             <div className="text-xl sm:text-2xl font-medium text-red-500">
               <span className="text-3xl sm:text-4xl font-bold">
