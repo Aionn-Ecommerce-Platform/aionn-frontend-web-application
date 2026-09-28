@@ -208,7 +208,7 @@ export default function HomePage() {
     <div>
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-2xl">
+          <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-sm">
             {activeBanners.length > 0 && (
               <>
                 <div className="relative w-full h-full">

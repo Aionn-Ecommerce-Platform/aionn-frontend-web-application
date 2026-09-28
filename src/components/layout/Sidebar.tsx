@@ -86,9 +86,9 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 flex-shrink-0 hidden lg:block">
-      <div className="bg-white rounded-sm border border-gray-400 p-5 space-y-4 shadow-sm">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-150 pb-3">
-          <User size={16} className="text-gray-500" />
+      <div className="bg-white rounded-sm border border-gray-100 p-5 space-y-4 shadow-xs">
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+          <User size={16} className="text-blue-600" />
           {t("memberSidebar.title")}
         </h3>
         <nav className="space-y-1">
@@ -100,15 +100,15 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-xs text-sm font-medium transition-all",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xs text-sm font-medium transition-all",
                   isActive
-                    ? "bg-blue-100 text-blue-700 font-bold"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-55",
+                    ? "bg-blue-50 text-blue-600 font-semibold shadow-2xs"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
                 )}
               >
                 <Icon
                   size={18}
-                  className={isActive ? "text-blue-700" : "text-gray-500"}
+                  className={isActive ? "text-blue-600" : "text-gray-400"}
                 />
                 {t(item.translationKey)}
               </Link>

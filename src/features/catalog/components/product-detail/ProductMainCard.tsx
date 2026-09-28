@@ -5,12 +5,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Gift,
   Minus,
+  Package,
   Plus,
   ShieldCheck,
   ShoppingCart,
   Star,
   Truck,
+  Zap,
 } from "lucide-react";
 import { Badge, Button } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
@@ -75,7 +78,7 @@ export default function ProductMainCard(props: Props) {
     deliveryDateLabel,
     isAuthenticated,
     destAddress,
-    shippingFee,
+    shippingFee: _shippingFee,
     setSelectedVariantIdx,
     stock,
     quantity,
@@ -91,6 +94,7 @@ export default function ProductMainCard(props: Props) {
   }>({ productId: product.productId, values: {} });
   const selectedAttributes =
     selectionState.productId === product.productId ? selectionState.values : {};
+  const [isProtectionExpanded, setIsProtectionExpanded] = useState(false);
   const attributeKeys = useMemo(() => {
     const keys: string[] = [];
     for (const variant of product.variants) {
@@ -120,7 +124,9 @@ export default function ProductMainCard(props: Props) {
   const selectAttribute = (key: string, value: string) => {
     // When changing an attribute, retain only selections that are compatible with [key]: value
     const compatibleAttributes: Record<string, string> = { [key]: value };
-    for (const [existingKey, existingValue] of Object.entries(selectedAttributes)) {
+    for (const [existingKey, existingValue] of Object.entries(
+      selectedAttributes,
+    )) {
       if (existingKey === key) continue;
       const isStillCompatible = product.variants.some(
         (variant) =>
@@ -132,11 +138,15 @@ export default function ProductMainCard(props: Props) {
       }
     }
 
-    setSelectionState({ productId: product.productId, values: compatibleAttributes });
+    setSelectionState({
+      productId: product.productId,
+      values: compatibleAttributes,
+    });
     const selectedVariantIndex = product.variants.findIndex((variant) =>
       attributeKeys.every(
         (attributeKey) =>
-          variant.attributeValues[attributeKey] === compatibleAttributes[attributeKey],
+          variant.attributeValues[attributeKey] ===
+          compatibleAttributes[attributeKey],
       ),
     );
     setSelectedVariantIdx(
@@ -159,10 +169,10 @@ export default function ProductMainCard(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-400 overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-400 overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
-            <div className="aspect-square relative bg-gray-50 rounded-xl overflow-hidden mb-4 border border-gray-400 group">
+            <div className="aspect-square relative bg-gray-50 rounded-sm overflow-hidden mb-4 border border-gray-400 group">
               <Image
                 src={images[selectedImage] ?? "/images/logo.png"}
                 alt={product.name}
@@ -175,7 +185,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Previous product image"
                   >
                     <ChevronLeft size={20} />
@@ -183,7 +193,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Next product image"
                   >
                     <ChevronRight size={20} />
@@ -202,7 +212,7 @@ export default function ProductMainCard(props: Props) {
                       key={i}
                       type="button"
                       onClick={() => setSelectedImage(i)}
-                      className={`w-16 h-16 relative rounded-lg overflow-hidden border flex-shrink-0 transition-all bg-white ${
+                      className={`w-16 h-16 relative rounded-xs overflow-hidden border flex-shrink-0 transition-all bg-white ${
                         selectedImage === i
                           ? "border-blue-600 ring-2 ring-blue-100"
                           : "border-gray-400 hover:border-blue-500"
@@ -328,28 +338,9 @@ export default function ProductMainCard(props: Props) {
                                   : "GHN ETA unavailable"))}
                       </span>
                     </span>
-                    <span className="block text-emerald-700">
-                      {isAuthenticated && destAddress
-                        ? shippingLoading
-                          ? locale === "vi"
-                            ? t("productDetail.calculatingShipping")
-                            : "Calculating shipping fee..."
-                          : shippingFee !== null
-                            ? t("productDetail.shippingFee", {
-                                amount: formatCurrency(
-                                  shippingFee,
-                                  "VND",
-                                  locale,
-                                ),
-                              })
-                            : locale === "vi"
-                              ? t("productDetail.noShippingFee")
-                              : "GHN shipping fee unavailable"
-                        : isAuthenticated
-                          ? t("productDetail.chooseDefaultAddress")
-                          : locale === "vi"
-                            ? t("productDetail.loginForShipping")
-                            : "Sign in to view shipping fees"}
+                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xs font-normal">
+                      <Gift size={13} className="text-amber-600 shrink-0" />
+                      <span>{t("productDetail.lateDeliveryVoucher")}</span>
                     </span>
                     {destAddress && (
                       <span className="block text-xs text-gray-500">
@@ -364,17 +355,74 @@ export default function ProductMainCard(props: Props) {
                   <span className="text-gray-500">
                     {t("productDetail.buyerProtection")}
                   </span>
-                  <div className="flex items-center gap-2 text-gray-900">
-                    <ShieldCheck size={18} className="text--commerce" />
-                    <span>
-                      {locale === "vi"
-                        ? t("productDetail.freeReturns15Days")
-                        : "15-day free returns"}
-                    </span>
-                    <ChevronRight size={16} className="text-gray-400" />
+                  <div className="flex">
+                    <div
+                      className="group/protection relative inline-flex items-center"
+                      onMouseEnter={() => setIsProtectionExpanded(true)}
+                      onMouseLeave={() => setIsProtectionExpanded(false)}
+                    >
+                      <button
+                        type="button"
+                        id="buyer-protection-trigger"
+                        aria-expanded={isProtectionExpanded}
+                        aria-controls="buyer-protection-details"
+                        onClick={() => setIsProtectionExpanded((prev) => !prev)}
+                        onFocus={() => setIsProtectionExpanded(true)}
+                        onBlur={(e) => {
+                          if (
+                            !e.currentTarget.parentElement?.contains(
+                              e.relatedTarget as Node | null,
+                            )
+                          ) {
+                            setIsProtectionExpanded(false);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-gray-900 cursor-pointer hover:text-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400 rounded-xs transition-colors"
+                      >
+                        <ShieldCheck
+                          size={18}
+                          className="text-red-500 shrink-0"
+                        />
+                        <span className="text-sm font-medium">
+                          {t("productDetail.freeReturns15Days")}
+                        </span>
+                        <ChevronRight
+                          size={16}
+                          className="text-gray-400 group-hover/protection:translate-x-0.5 transition-transform"
+                        />
+                      </button>
+
+                      <div
+                        id="buyer-protection-details"
+                        role="region"
+                        aria-labelledby="buyer-protection-trigger"
+                        className={`absolute left-0 top-full mt-2 w-80 p-4 bg-white rounded-sm border border-gray-200 shadow-xl transition-all duration-200 z-30 before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] ${
+                          isProtectionExpanded
+                            ? "opacity-100 visible pointer-events-auto"
+                            : "opacity-0 invisible pointer-events-none"
+                        }`}
+                      >
+                        <h4 className="font-semibold text-gray-900 text-sm mb-2.5">
+                          {t("productDetail.buyerProtectionTitle")}
+                        </h4>
+                        <div className="border-t border-gray-100 pt-3 flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                            <Package size={16} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 text-xs">
+                              {t("productDetail.freeReturns15Days")}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                              {t("productDetail.freeReturnsDescription")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
+            </div>
 
               {attributeKeys.length > 0 && (
                 <div className="mt-8 space-y-4">
@@ -396,7 +444,7 @@ export default function ProductMainCard(props: Props) {
                               type="button"
                               disabled={!available}
                               onClick={() => selectAttribute(key, value)}
-                              className={`relative min-h-9 min-w-16 overflow-hidden px-3 py-1 border text-sm font-medium transition-colors ${
+                              className={`relative min-h-9 min-w-16 overflow-hidden rounded-xs px-3 py-1 border text-sm font-medium transition-colors ${
                                 selected
                                   ? "border-blue-600 bg-white text-blue-700 shadow-[inset_0_0_0_1px_var(--color-primary)]"
                                   : available
@@ -445,7 +493,7 @@ export default function ProductMainCard(props: Props) {
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
                           disabled={!canDecrease}
                           aria-label="Decrease quantity"
-                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 ${
+                          className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
                             canDecrease
                               ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
                               : "bg-white border border-gray-400 text-gray-400 cursor-not-allowed"
@@ -461,7 +509,7 @@ export default function ProductMainCard(props: Props) {
                           onClick={() => setQuantity(quantity + 1)}
                           disabled={!canIncrease}
                           aria-label="Increase quantity"
-                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 ${
+                          className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
                             canIncrease
                               ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
                               : "bg-white border border-gray-400 text-gray-400 cursor-not-allowed"
@@ -490,25 +538,28 @@ export default function ProductMainCard(props: Props) {
             <div className="mt-8 flex gap-3 lg:translate-y-1">
               <Button
                 size="lg"
-                style={{ backgroundColor: "#F9FA32", color: "#030712" }}
-                className="flex-1 hover:brightness-95 active:brightness-90 font-semibold focus:ring-yellow-400 border border-gray-400 shadow-sm"
+                className="flex-1 rounded-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all border-0"
                 onClick={handleAddToCart}
                 loading={adding}
                 disabled={!currentVariant || (stock !== null && stock <= 0)}
               >
-                <ShoppingCart size={18} className="mr-2 text-gray-950" />
+                <ShoppingCart
+                  size={19}
+                  className="mr-2 text-white stroke-[2.2]"
+                />
                 {stock !== null && stock <= 0
                   ? t("productDetail.outOfStock")
                   : t("products.addToCart")}
               </Button>
               <Button
                 size="lg"
-                className="flex-1"
+                className="flex-1 rounded-sm bg-gradient-to-r from-red-500 via-rose-500 to-orange-500 hover:from-red-600 hover:via-rose-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all border-0"
                 onClick={handleBuyNow}
                 disabled={
                   !currentVariant || adding || (stock !== null && stock <= 0)
                 }
               >
+                <Zap size={18} className="mr-2 text-white fill-white" />
                 {stock !== null && stock <= 0
                   ? t("productDetail.outOfStock")
                   : t("products.buyNow")}

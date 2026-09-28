@@ -47,7 +47,7 @@ export function SortDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-11 items-center gap-1.5 px-3.5 rounded-xl text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex h-11 items-center gap-1.5 px-3.5 rounded-sm text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
         aria-label="Sort products"
         aria-expanded={open}
       >
@@ -61,7 +61,7 @@ export function SortDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-gray-400 shadow-lg py-1 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-sm border border-gray-400 shadow-lg py-1 z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
             const active = opt.value === value;
             return (
@@ -205,19 +205,19 @@ export function PriceFilter({
           value={minInput}
           onChange={(e) => setMinInput(e.target.value)}
           placeholder={`${t("products.priceFrom")} ${placeholderMin}`}
-          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none"
+          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:border-blue-500 focus:outline-none"
         />
         <input
           type="number"
           value={maxInput}
           onChange={(e) => setMaxInput(e.target.value)}
           placeholder={`${t("products.priceTo")} ${placeholderMax}`}
-          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none"
+          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:border-blue-500 focus:outline-none"
         />
         <Button
           size="sm"
           variant="outline"
-          className="w-full"
+          className="w-full rounded-sm"
           onClick={() => onApply(minInput || undefined, maxInput || undefined)}
         >
           {t("products.apply")}

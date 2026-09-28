@@ -38,7 +38,7 @@ export default function CatalogSidebar(props: Props) {
   const { t, locale } = useTranslation();
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="bg-white rounded-xl border border-gray-400 p-5 space-y-6">
+      <div className="bg-white rounded-sm border border-gray-400 p-5 space-y-6">
         <h3 className="font-semibold text-gray-900">{t("products.filters")}</h3>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -85,11 +85,15 @@ export default function CatalogSidebar(props: Props) {
         </div>
         <div className="border-t border-gray-100 pt-4">
           <h4 className="text-sm font-semibold mb-2">{t("products.rating")}</h4>
-          {[5, 4, 3].map((stars) => (
+          {[5, 4, 3, 2, 1].map((stars) => (
             <button
               key={stars}
               onClick={() => props.onRating(stars)}
-              className={`flex items-center gap-1.5 text-sm w-full p-1.5 ${props.rating === stars ? "bg-blue-50 text-blue-600" : "text-gray-700"}`}
+              className={`flex items-center gap-1.5 text-sm w-full p-1.5 rounded-xs transition-colors ${
+                props.rating === stars
+                  ? "bg-blue-50 text-blue-600 font-medium"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
             >
               {Array.from({ length: 5 }, (_, index) => (
                 <Star

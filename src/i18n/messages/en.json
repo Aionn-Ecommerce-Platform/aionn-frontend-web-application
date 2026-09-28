@@ -578,6 +578,9 @@
     "deliverTo": "Deliver to",
     "buyerProtection": "Buyer protection",
     "freeReturns15Days": "Free 15-day returns",
+    "lateDeliveryVoucher": "Get a 15,000₫ voucher if delivery is late",
+    "buyerProtectionTitle": "Shop with peace of mind on Aionn",
+    "freeReturnsDescription": "Free 15-day returns for all products purchased on Aionn. In addition, inspection upon delivery is fully supported.",
     "stockAvailable": "{count} products available",
     "outOfStock": "Out of stock",
     "responseRate": "Response rate",
@@ -1174,7 +1177,13 @@
     "ratingAverage": "Average",
     "ratingPoor": "Poor",
     "ratingTerrible": "Terrible",
-    "writeYourReview": "Write your review"
+    "writeYourReview": "Write your review",
+    "outOfFive": "out of 5",
+    "allFilter": "All",
+    "starFilter": "{star} Stars ({count})",
+    "withComment": "With Comments ({count})",
+    "withMedia": "With Images / Video ({count})",
+    "loginToReviewNotice": "Please log in to review this product."
   },
   "products": {
     "title": "Products",
@@ -1411,6 +1420,7 @@
     "paymentMethod": "Method",
     "paymentStatus": "Status",
     "total": "Total",
+    "includesShipping": "Includes {fee} shipping fee",
     "itemCount": "{count} items",
     "recipientName": "Recipient name",
     "recipientPhone": "Phone number",

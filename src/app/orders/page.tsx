@@ -6,7 +6,7 @@ import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Eye, Loader2, Truck, CheckCircle2 } from "lucide-react";
+import { Package, Eye, Loader2 } from "lucide-react";
 import { Button, EmptyState, Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
@@ -158,18 +158,6 @@ function OrdersInner() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      {order.status === "COMPLETED" && (
-                        <span className="hidden sm:inline-flex items-center gap-1 text-xs text-emerald-600 font-medium mr-1">
-                          <CheckCircle2 size={14} />
-                          {t("orders.statusCompleted")}
-                        </span>
-                      )}
-                      {order.status === "SHIPPED" && (
-                        <span className="hidden sm:inline-flex items-center gap-1 text-xs text-blue-600 font-medium mr-1">
-                          <Truck size={14} />
-                          {t("orders.statusShipped")}
-                        </span>
-                      )}
                       <Badge variant={cfg?.variant ?? "default"}>
                         {cfg ? t(cfg.labelKey) : order.status}
                       </Badge>
@@ -230,17 +218,26 @@ function OrdersInner() {
 
                   {/* Order footer with total & action buttons */}
                   <div className="bg-white px-6 py-4 border-t border-gray-100">
-                    <div className="flex items-baseline justify-end gap-2 text-right">
-                      <span className="text-xs text-gray-500">
-                        {t("orders.total")} ({totalQty}{" "}
-                        {t("orders.products").toLowerCase()}):
-                      </span>
-                      <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                        {formatCurrency(
-                          order.totalAmount + order.shippingFee,
-                          order.currency,
-                        )}
-                      </span>
+                    <div className="flex flex-col items-end gap-0.5 text-right">
+                      <div className="flex items-baseline justify-end gap-2">
+                        <span className="text-xs text-gray-500">
+                          {t("orders.total")} ({totalQty}{" "}
+                          {t("orders.products").toLowerCase()}):
+                        </span>
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                          {formatCurrency(order.totalAmount, order.currency)}
+                        </span>
+                      </div>
+                      {order.shippingFee > 0 && (
+                        <p className="text-xs text-gray-400">
+                          {t("orders.includesShipping", {
+                            fee: formatCurrency(
+                              order.shippingFee,
+                              order.currency,
+                            ),
+                          })}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100">

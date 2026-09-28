@@ -63,7 +63,7 @@ export default function SocialAccountsPanel() {
 
   return (
     <>
-      <div className="bg-white rounded-sm border border-gray-100 p-6">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
         <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
           <LinkIcon size={18} className="text-blue-600" />
           {t("settings.socialTitle")}

@@ -52,7 +52,7 @@ function ReturnsInner() {
         {t("orders.returns.description")}
       </p>
 
-      <div className="mt-6 bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+      <div className="mt-6 bg-white rounded-sm border border-gray-100 p-6 shadow-xs">
         {isLoading ? (
           <div className="py-20 flex justify-center items-center">
             <Loader2 className="animate-spin text-blue-600" size={32} />
@@ -64,7 +64,7 @@ function ReturnsInner() {
             description={t("orders.returns.noReturnsDesc")}
             action={
               <Link href="/orders">
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-xs">
                   {t("orders.returns.viewMyOrders")}
                 </Button>
               </Link>
@@ -80,14 +80,14 @@ function ReturnsInner() {
               return (
                 <div
                   key={r.returnId}
-                  className={`bg-gray-50/50 rounded-2xl border p-5 transition-shadow hover:bg-gray-50 ${
+                  className={`bg-white rounded-sm border p-5 transition-all hover:border-gray-300 shadow-2xs ${
                     isHighlight
-                      ? "border-blue-300 shadow-md shadow-blue-100"
-                      : "border-gray-100 hover:shadow-sm"
+                      ? "border-blue-300 shadow-xs ring-1 ring-blue-200"
+                      : "border-gray-200"
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-sm bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
                       <Icon size={18} />
                     </div>
 
@@ -126,7 +126,7 @@ function ReturnsInner() {
                         <AppImage
                           src={r.evidenceUrl}
                           alt="Evidence"
-                          className="mt-3 w-24 h-24 object-cover rounded-lg border border-gray-200"
+                          className="mt-3 w-24 h-24 object-cover rounded-xs border border-gray-200"
                         />
                       )}
 

@@ -59,7 +59,7 @@ export default function CategoriesPage() {
                       <Link
                         key={child.category.categoryId}
                         href={`/products?categoryIds=${child.category.categoryId}`}
-                        className="group bg-gray-50 rounded-md border border-gray-400 p-5 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 text-center flex flex-col justify-center items-center"
+                        className="group bg-gray-50 rounded-sm border border-gray-400 p-5 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 text-center flex flex-col justify-center items-center"
                       >
                         {child.category.iconUrl ? (
                           <div className="relative w-12 h-12 mx-auto mb-2">

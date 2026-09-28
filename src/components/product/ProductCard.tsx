@@ -79,7 +79,7 @@ export default function ProductCard({
     <Link
       href={`/products/${id}`}
       className={cn(
-        "group bg-gray-50 rounded-md border border-gray-400 overflow-hidden",
+        "group bg-gray-50 rounded-sm border border-gray-400 overflow-hidden",
         "hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15",
         "transition-all duration-300 relative flex flex-col",
         className,
