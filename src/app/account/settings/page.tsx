@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Globe, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/Sidebar";
+import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import SocialAccountsPanel from "@/components/settings/SocialAccountsPanel";
 import { preferenceService } from "@/lib/services";
@@ -53,60 +53,51 @@ function SettingsInner() {
   }
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          <Sidebar />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              {t("settings.title")}
-            </h1>
+    <MemberPageLayout>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        {t("settings.title")}
+      </h1>
 
-            {loading || !data ? (
-              <div className="bg-white rounded-sm border border-gray-100 p-12 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-white rounded-sm border border-gray-100 p-6">
-                  <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
-                    <Globe size={18} className="text-blue-600" />
-                    {t("settings.generalTitle")}
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {t("settings.language")}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {t("settings.languageDesc")}
-                        </p>
-                      </div>
-                      <select
-                        value={locale}
-                        disabled={savingLanguage}
-                        onChange={(e) =>
-                          handleLanguageChange(
-                            e.target.value === "en" ? "en" : "vi",
-                          )
-                        }
-                        className="px-3 py-1.5 text-sm border border-gray-200 rounded-xs disabled:opacity-50"
-                      >
-                        <option value="vi">{t("settings.languageVi")}</option>
-                        <option value="en">{t("settings.languageEn")}</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <SocialAccountsPanel />
-              </div>
-            )}
-          </div>
+      {loading || !data ? (
+        <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-12 flex justify-center">
+          <Loader2 className="animate-spin text-blue-600" size={28} />
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+              <Globe size={18} className="text-blue-600" />
+              {t("settings.generalTitle")}
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {t("settings.language")}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {t("settings.languageDesc")}
+                  </p>
+                </div>
+                <select
+                  value={locale}
+                  disabled={savingLanguage}
+                  onChange={(e) =>
+                    handleLanguageChange(e.target.value === "en" ? "en" : "vi")
+                  }
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-xs bg-white text-gray-900 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                >
+                  <option value="vi">{t("settings.languageVi")}</option>
+                  <option value="en">{t("settings.languageEn")}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <SocialAccountsPanel />
+        </div>
+      )}
+    </MemberPageLayout>
   );
 }
 

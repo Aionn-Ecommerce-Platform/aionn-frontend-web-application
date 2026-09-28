@@ -17,10 +17,16 @@ export interface Review {
   updatedAt: string;
 }
 
-interface RatingSummary {
-  averageRating: number;
-  totalReviews: number;
-  ratingDistribution: {
+export interface RatingSummary {
+  productId?: string;
+  average: number;
+  total: number;
+  distribution: {
+    [key: number]: number;
+  };
+  averageRating?: number;
+  totalReviews?: number;
+  ratingDistribution?: {
     [key: number]: number;
   };
 }

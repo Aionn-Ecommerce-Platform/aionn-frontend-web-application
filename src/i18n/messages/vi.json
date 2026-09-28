@@ -578,6 +578,9 @@
     "deliverTo": "Giao tới",
     "buyerProtection": "An tâm mua sắm",
     "freeReturns15Days": "Trả hàng miễn phí 15 ngày",
+    "lateDeliveryVoucher": "Tặng Voucher 15.000₫ nếu đơn giao sau thời gian trên",
+    "buyerProtectionTitle": "An tâm mua sắm cùng Aionn",
+    "freeReturnsDescription": "Miễn phí Trả hàng trong 15 ngày cho tất cả sản phẩm mua hàng ở Aionn. Ngoài ra, tại thời điểm nhận hàng, bạn được đồng kiểm tra hàng trước khi nhận.",
     "stockAvailable": "{count} sản phẩm có sẵn",
     "outOfStock": "Hết hàng",
     "responseRate": "Tỷ lệ phản hồi",
@@ -1174,7 +1177,13 @@
     "ratingAverage": "Bình thường",
     "ratingPoor": "Không tốt",
     "ratingTerrible": "Tệ",
-    "writeYourReview": "Viết đánh giá của bạn"
+    "writeYourReview": "Viết đánh giá của bạn",
+    "outOfFive": "trên 5",
+    "allFilter": "Tất Cả",
+    "starFilter": "{star} Sao ({count})",
+    "withComment": "Có Bình Luận ({count})",
+    "withMedia": "Có Hình Ảnh / Video ({count})",
+    "loginToReviewNotice": "Bạn cần đăng nhập tài khoản để có thể đánh giá sản phẩm."
   },
   "products": {
     "title": "Sản phẩm",
@@ -1413,6 +1422,7 @@
     "paymentMethod": "Phương thức",
     "paymentStatus": "Trạng thái",
     "total": "Tổng cộng",
+    "includesShipping": "Bao gồm {fee} phí vận chuyển",
     "itemCount": "{count} sản phẩm",
     "recipientName": "Tên người nhận",
     "recipientPhone": "Số điện thoại",

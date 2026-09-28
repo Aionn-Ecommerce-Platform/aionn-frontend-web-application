@@ -191,7 +191,7 @@ export function ChatInner({
         <div className={variant === "console" ? "" : "flex gap-8"}>
           {variant === "member" && <Sidebar />}
           <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden min-h-[560px] h-[calc(100vh-13rem)] flex">
+            <div className="bg-white rounded-sm border border-gray-100 shadow-xs overflow-hidden min-h-[560px] h-[calc(100vh-13rem)] flex">
               <div className="w-80 border-r border-gray-100 flex flex-col flex-shrink-0">
                 <div className="p-4 border-b border-gray-100">
                   <h2 className="text-lg font-semibold text-gray-900 mb-3">
@@ -207,7 +207,7 @@ export function ChatInner({
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder={t("chat.searchPlaceholder")}
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
+                      className="w-full pl-9 pr-3 py-2 rounded-xs border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -237,10 +237,10 @@ export function ChatInner({
                         <button
                           key={conv.conversationId}
                           onClick={() => setSelectedId(conv.conversationId)}
-                          className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left ${
+                          className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left border-l-2 ${
                             effectiveSelectedId === conv.conversationId
-                              ? "bg-blue-50/70"
-                              : ""
+                              ? "bg-blue-50/70 border-blue-600"
+                              : "border-transparent"
                           }`}
                         >
                           <Avatar
@@ -325,14 +325,14 @@ export function ChatInner({
                           onClick={() =>
                             archiveMutation.mutate(activeConv.conversationId)
                           }
-                          className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50"
+                          className="p-2 text-gray-400 hover:text-gray-600 rounded-xs hover:bg-gray-50 transition-colors"
                           aria-label={t("chat.archive")}
                           disabled={archiveMutation.isPending}
                         >
                           <Archive size={18} />
                         </button>
                         <button
-                          className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50"
+                          className="p-2 text-gray-400 hover:text-gray-600 rounded-xs hover:bg-gray-50 transition-colors"
                           aria-label={t("chat.more")}
                         >
                           <MoreVertical size={18} />
@@ -368,10 +368,10 @@ export function ChatInner({
                                 className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                               >
                                 <div
-                                  className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm break-words ${
+                                  className={`max-w-[70%] px-4 py-2.5 rounded-sm text-sm break-words ${
                                     isMe
-                                      ? "bg-blue-600 text-white rounded-br-md"
-                                      : "bg-gray-100 text-gray-900 rounded-bl-md"
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-gray-100 text-gray-900"
                                   }`}
                                 >
                                   {msg.recalled ? (
@@ -382,7 +382,7 @@ export function ChatInner({
                                     <AppImage
                                       src={msg.body}
                                       alt={t("chat.imageAlt")}
-                                      className="max-w-full max-h-64 rounded-lg cursor-pointer"
+                                      className="max-w-full max-h-64 rounded-xs cursor-pointer"
                                       onClick={() => {
                                         const url = msg.body;
                                         if (url) window.open(url, "_blank");
@@ -412,7 +412,7 @@ export function ChatInner({
                     <div className="p-4 border-t border-gray-100">
                       <div className="flex items-center gap-3">
                         <label
-                          className={`w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer ${
+                          className={`w-10 h-10 rounded-xs flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer ${
                             sendImageMutation.isPending ? "opacity-50" : ""
                           }`}
                           aria-label="Upload image"
@@ -440,7 +440,7 @@ export function ChatInner({
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
                           placeholder={t("chat.messagePlaceholder")}
-                          className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
+                          className="flex-1 px-4 py-2 rounded-xs border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault();
@@ -451,7 +451,7 @@ export function ChatInner({
                         <button
                           onClick={handleSend}
                           disabled={!draft.trim() || sendMutation.isPending}
-                          className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          className="w-10 h-10 bg-blue-600 text-white rounded-xs flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-2xs"
                           aria-label={t("chat.sendMessage")}
                         >
                           {sendMutation.isPending ? (
