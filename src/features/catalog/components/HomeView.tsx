@@ -112,9 +112,9 @@ export default function HomePage() {
         price: r.priceFrom,
         image: r.imageUrl || "/images/logo.png",
         merchant: f?.merchantId,
-        rating: f?.rating ?? 4.8,
-        reviewCount: f?.reviewCount ?? 25,
-        sold: f?.soldCount ?? 120,
+        rating: f?.rating,
+        reviewCount: f?.reviewCount,
+        sold: f?.soldCount,
         flashSale: f?.flashSale,
         recommendationReason: r.reason,
         currency: r.currency,
@@ -213,7 +213,7 @@ export default function HomePage() {
   const currentBanner = activeBanners[safeIndex];
 
   return (
-    <div className="bg-[#f8f9fa] min-h-screen">
+    <div className="bg-surface-muted min-h-screen">
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-sm">
@@ -359,7 +359,7 @@ export default function HomePage() {
               })}
             </motion.div>
           )}
-          {!catLoading && flatCategories && flatCategories.length > 12 && (
+          {!catLoading && flatCategories && flatCategories.length > 10 && (
             <div className="mt-10 flex justify-center">
               <Link href="/categories">
                 <Button
