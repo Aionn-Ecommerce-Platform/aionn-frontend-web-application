@@ -149,6 +149,9 @@ export default function ProductMainCard(props: Props) {
           compatibleAttributes[attributeKey],
       ),
     );
+    if (selectedVariantIndex >= 0 && selectedVariantIndex < images.length) {
+      setSelectedImage(selectedVariantIndex);
+    }
     setSelectedVariantIdx(
       selectedVariantIndex >= 0 ? selectedVariantIndex : null,
     );

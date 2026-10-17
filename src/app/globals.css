@@ -204,3 +204,75 @@ a {
 .member-page button:has(> span[class*="bg-commerce"]) > span {
   background-color: rgb(29 78 216) !important;
 }
+
+/* Lightning & Flash Sale Electrical Effects */
+@keyframes lightning-strike {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.25) rotate(-12deg);
+    filter: drop-shadow(0 0 10px #ffeb3b) drop-shadow(0 0 20px #ff9800);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(0.95) rotate(6deg);
+    opacity: 0.8;
+  }
+  40% {
+    transform: scale(1.3) rotate(-8deg);
+    filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 22px #ff5722);
+    opacity: 1;
+  }
+  55% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.15) rotate(4deg);
+    filter: drop-shadow(0 0 8px #ffeb3b);
+    opacity: 1;
+  }
+}
+
+@keyframes electric-glimmer {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(250%) skewX(-25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-lightning-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px -2px rgba(239, 68, 68, 0.5), 0 0 20px 0 rgba(249, 115, 22, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 25px 4px rgba(239, 68, 68, 0.8), 0 0 35px 8px rgba(251, 191, 36, 0.6);
+  }
+}
+
+.animate-lightning {
+  animation: lightning-strike 1.6s infinite ease-in-out;
+  transform-origin: center;
+}
+
+.animate-electric-glimmer {
+  animation: electric-glimmer 2.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-lightning-pill {
+  animation: pulse-lightning-glow 2s infinite ease-in-out;
+}
+
