@@ -59,24 +59,24 @@ export default function CategoriesPage() {
                       <Link
                         key={child.category.categoryId}
                         href={`/products?categoryIds=${child.category.categoryId}`}
-                        className="group bg-gray-50 rounded-sm border border-gray-400 p-5 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 text-center flex flex-col justify-center items-center"
+                        className="group bg-white rounded-2xl border border-gray-100/90 p-4 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 text-center flex flex-col justify-center items-center h-[145px]"
                       >
-                        {child.category.iconUrl ? (
-                          <div className="relative w-12 h-12 mx-auto mb-2">
-                            <Image
-                              src={child.category.iconUrl}
-                              alt={child.category.name}
-                              fill
-                              sizes="48px"
-                              className="object-contain group-hover:scale-110 transition-transform"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 mx-auto mb-2 bg-blue-50 border border-gray-400 rounded-xl flex items-center justify-center">
-                            <Layers size={20} className="text-blue-600" />
-                          </div>
-                        )}
-                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-2">
+                        <div className="relative w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/70 p-2 border border-gray-100/80 group-hover:scale-105 group-hover:border-blue-200 transition-all duration-300 flex items-center justify-center">
+                          {child.category.iconUrl ? (
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={child.category.iconUrl}
+                                alt={child.category.name}
+                                fill
+                                sizes="48px"
+                                className="object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                          ) : (
+                            <Layers size={22} className="text-blue-500 group-hover:scale-110 transition-transform" />
+                          )}
+                        </div>
+                        <h3 className="text-[13px] font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 px-1">
                           {child.category.name}
                         </h3>
                       </Link>

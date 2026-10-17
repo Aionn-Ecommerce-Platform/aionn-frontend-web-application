@@ -82,7 +82,7 @@ export default function FlashSaleSection() {
     if (!campaign) return [];
     return [...campaign.items]
       .sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0))
-      .slice(0, 6)
+      .slice(0, 5)
       .map((i) => i.productId);
   }, [campaign]);
 
@@ -111,26 +111,35 @@ export default function FlashSaleSection() {
   const remaining = new Date(campaign.endDate).getTime() - now;
 
   return (
-    <section className="mt-16 py-10 bg-gradient-to-r from-red-100 via-orange-200 to-red-100 border-b border-red-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <section className="mt-16 py-11 bg-gradient-to-r from-orange-200 via-amber-200/90 to-red-200/80 border-y-2 border-orange-300/80 relative overflow-hidden shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full shadow-sm">
-              <Zap size={20} className="fill-white" />
-              <span className="font-bold text-lg uppercase tracking-wide">
+            <div className="relative overflow-hidden flex items-center gap-2.5 bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 text-white px-5 py-2 rounded-full shadow-md shadow-orange-600/30 animate-lightning-pill select-none">
+              {/* Electric light sweep shimmer */}
+              <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
+
+              {/* Lightning Bolt with strike motion */}
+              <Zap size={20} className="fill-yellow-300 text-yellow-100 animate-lightning drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+
+              <span className="font-extrabold text-lg uppercase tracking-wider drop-shadow-sm">
                 {t("home.flashSale")}
               </span>
+
+              {/* Secondary micro bolt on right */}
+              <Zap size={14} className="fill-white text-yellow-200 animate-lightning opacity-80" />
             </div>
-            <span className="hidden sm:inline text-base text-gray-700">
+
+            <span className="hidden sm:inline text-sm font-bold text-gray-800">
               {t("home.flashSaleEndsIn")}
             </span>
-            <div className="flex items-center gap-1 font-mono font-bold text-lg">
+            <div className="flex items-center gap-1.5 font-mono font-bold text-lg text-gray-900">
               <Countdown remainingMs={remaining} />
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
           {products.map((product) => {
             const item = campaign.items.find(
               (i) => i.productId === product.productId,

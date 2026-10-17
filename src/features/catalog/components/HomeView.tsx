@@ -100,14 +100,22 @@ export default function HomePage() {
       currency?: string;
     }> = [];
 
+    const featuredMap = new Map(featured.map((p) => [p.productId, p]));
+
     for (const r of homeRecommendations) {
       if (seen.has(r.productId)) continue;
       seen.add(r.productId);
+      const f = featuredMap.get(r.productId);
       out.push({
         id: r.productId,
         name: r.name,
         price: r.priceFrom,
         image: r.imageUrl || "/images/logo.png",
+        merchant: f?.merchantId,
+        rating: f?.rating,
+        reviewCount: f?.reviewCount,
+        sold: f?.soldCount,
+        flashSale: f?.flashSale,
         recommendationReason: r.reason,
         currency: r.currency,
       });
@@ -159,7 +167,7 @@ export default function HomePage() {
     return list;
   }, [categoriesTree]);
 
-  const displayedCategories = flatCategories.slice(0, 12);
+  const displayedCategories = flatCategories.slice(0, 10);
 
   const { data: bannerData } = useQuery({
     queryKey: qk.promotionBanners,
@@ -205,8 +213,8 @@ export default function HomePage() {
   const currentBanner = activeBanners[safeIndex];
 
   return (
-    <div>
-      <section className="bg-white">
+    <div className="bg-surface-muted min-h-screen">
+      <section className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-sm">
             {activeBanners.length > 0 && (
@@ -293,11 +301,11 @@ export default function HomePage() {
             </h2>
           </div>
           {catLoading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-6">
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+              {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-24 bg-gray-200/60 animate-pulse -ml-px first:ml-0"
+                  className="h-[156px] rounded-2xl bg-gray-200/60 animate-pulse"
                 />
               ))}
             </div>
@@ -308,8 +316,8 @@ export default function HomePage() {
               variants={stagger}
               initial="hidden"
               whileInView="show"
-              viewport={{ once: true, amount: 0.3 }}
-              className="grid grid-cols-3 sm:grid-cols-6"
+              viewport={{ once: true, amount: 0.2 }}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4"
             >
               {displayedCategories.map((node) => {
                 const cat = node.category;
@@ -317,38 +325,41 @@ export default function HomePage() {
                   <motion.div
                     key={cat.categoryId}
                     variants={fadeUp}
-                    className="-ml-px -mt-px"
                   >
                     <Link
                       href={`/products?categoryId=${cat.categoryId}`}
-                      className="flex flex-col items-center gap-3 p-5 bg-white border border-gray-400 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/15 hover:relative hover:z-10 transition-all group h-[140px]"
+                      className="flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/15 hover:-translate-y-1.5 transition-all duration-300 group h-[156px] relative overflow-hidden"
                     >
-                      {cat.iconUrl ? (
-                        <div className="relative w-16 h-16 flex-shrink-0">
-                          <Image
-                            src={cat.iconUrl}
-                            alt={cat.name}
-                            fill
-                            sizes="64px"
-                            className="object-contain group-hover:scale-110 transition-transform"
+                      <div className="relative w-16 h-16 flex-shrink-0 rounded-2xl bg-gradient-to-b from-blue-50/50 via-gray-50 to-gray-100/80 p-2.5 border border-gray-200/80 group-hover:scale-110 group-hover:border-blue-400 group-hover:bg-blue-50/60 shadow-xs transition-all duration-300 flex items-center justify-center">
+                        {cat.iconUrl ? (
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={cat.iconUrl}
+                              alt={cat.name}
+                              fill
+                              sizes="64px"
+                              className="object-contain drop-shadow-sm transition-transform duration-300"
+                            />
+                          </div>
+                        ) : (
+                          <Layers
+                            size={28}
+                            className="text-blue-500 group-hover:scale-110 transition-transform"
                           />
-                        </div>
-                      ) : (
-                        <Layers
-                          size={40}
-                          className="text-blue-500 group-hover:scale-110 transition-transform flex-shrink-0"
-                        />
-                      )}
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors text-center truncate w-full px-1">
-                        {cat.name}
-                      </span>
+                        )}
+                      </div>
+                      <div className="w-full text-center mt-2">
+                        <span className="text-[13px] font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                          {cat.name}
+                        </span>
+                      </div>
                     </Link>
                   </motion.div>
                 );
               })}
             </motion.div>
           )}
-          {!catLoading && flatCategories && flatCategories.length > 12 && (
+          {!catLoading && flatCategories && flatCategories.length > 10 && (
             <div className="mt-10 flex justify-center">
               <Link href="/categories">
                 <Button
@@ -375,8 +386,8 @@ export default function HomePage() {
             </h2>
           </div>
           {recommendedLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
-              {Array.from({ length: 30 }).map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
+              {Array.from({ length: 25 }).map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
@@ -388,10 +399,10 @@ export default function HomePage() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, amount: 0.1 }}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4"
             >
               {recommendedProducts.map((product) => (
-                <motion.div key={product.id} variants={fadeUp}>
+                <motion.div key={product.id} variants={fadeUp} className="h-full">
                   <ProductCard
                     id={product.id}
                     name={product.name}
