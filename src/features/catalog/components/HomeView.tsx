@@ -422,60 +422,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Apple-style Quick Links Section with distinct black outline pills */}
-      <section className="py-14 bg-white border-t border-gray-200/90">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
-            {t("home.quickLinks")}
-          </h2>
-
-          <div className="flex flex-wrap items-center gap-3 mb-10">
-            {[
-              {
-                label: t("home.linkOrderStatus"),
-                href: "/orders",
-              },
-              {
-                label: t("home.linkShoppingHelp"),
-                href: "/help",
-              },
-              {
-                label: t("home.linkReturns"),
-                href: "/orders/returns",
-              },
-              {
-                label: t("home.linkSavedItems"),
-                href: "/products",
-              },
-              {
-                label: t("home.linkShipping"),
-                href: "/contact",
-              },
-              {
-                label: t("home.linkPayment"),
-                href: "/account/payment-methods",
-              },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-gray-950 font-semibold text-xs sm:text-sm border-2 border-gray-900 hover:bg-gray-100 hover:text-black transition-all duration-150 shadow-2xs"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-xs text-gray-500 space-y-2 leading-relaxed max-w-5xl">
-            <p>
-              {t("home.taxNotice")}
-            </p>
-            <p>
-              {t("home.fulfillmentNotice")}
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* For Merchants Section (Seamless soft gradient fade to pure white, no harsh dividing border line) */}
       <section className="py-24 bg-gradient-to-b from-white via-purple-50/40 to-indigo-50/50 relative overflow-hidden">

@@ -95,6 +95,12 @@ export const productService = {
       query: { skuIds: skuIds.join(",") },
     });
   },
+  searchSuggestions(keyword: string, limit = 5) {
+    return api.get<Product[]>("/catalog/products/search", {
+      anonymous: true,
+      query: { keyword, page: 0, size: limit },
+    });
+  },
   async listByMerchant(merchantId: string, page = 0, size = 20) {
     const result = await this.search({ merchantId, page, size });
     return result.page;
