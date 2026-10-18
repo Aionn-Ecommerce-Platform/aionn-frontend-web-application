@@ -158,8 +158,20 @@ function ProductsInner() {
   };
 
   const clearAll = () => {
-    router.replace("/products", { scroll: false });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setParam(
+      (sp) => {
+        sp.delete("categoryIds");
+        sp.delete("categoryId");
+        sp.delete("brandIds");
+        sp.delete("priceMin");
+        sp.delete("priceMax");
+        sp.delete("ratingMin");
+        sp.delete("onSale");
+        sp.delete("shipping");
+        sp.delete("provinceCodes");
+      },
+      { resetPage: true, scroll: true },
+    );
   };
 
   const searchKey = useMemo(
@@ -261,12 +273,10 @@ function ProductsInner() {
   }, [facets, brandNameById, brandIds]);
 
   const hasActiveFilter = hasCatalogFilters([
-    queryText,
     categoryIds.length,
     brandIds.length,
     priceMin,
     priceMax,
-    merchantId,
     ratingMin,
     onSale,
     shipping.length,
