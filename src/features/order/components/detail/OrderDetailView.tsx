@@ -192,7 +192,7 @@ function OrderDetailInner({ id }: { id: string }) {
   const handleCopyOrderId = () => {
     const code = order?.orderSn || order?.orderId;
     if (!code) return;
-    navigator.clipboard.writeText(code);
+    void navigator.clipboard.writeText(code);
     setCopied(true);
     toast.success(t("orders.copiedToast"));
     setTimeout(() => setCopied(false), 2000);

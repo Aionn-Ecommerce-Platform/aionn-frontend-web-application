@@ -298,16 +298,17 @@ export default function HomePage() {
       {/* Categories Shelf (Apple Store Style - borderless, no arrows, responsive auto-wrap across screen sizes) */}
       <section className="pt-8 pb-4 sm:pt-10 sm:pb-6 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {catLoading ? (
+          {catLoading && (
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-y-6 gap-x-2">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2.5 animate-pulse">
+                <div key={`cat-skel-${i}`} className="flex flex-col items-center gap-2.5 animate-pulse">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-100" />
                   <div className="w-14 h-3 bg-gray-100 rounded-full" />
                 </div>
               ))}
             </div>
-          ) : displayedCategories.length === 0 ? null : (
+          )}
+          {!catLoading && displayedCategories.length > 0 && (
             <motion.div
               variants={stagger}
               initial="hidden"
@@ -454,9 +455,9 @@ export default function HomePage() {
                 label: t("home.linkPayment"),
                 href: "/account/payment-methods",
               },
-            ].map((link, idx) => (
+            ].map((link) => (
               <Link
-                key={idx}
+                key={link.href}
                 href={link.href}
                 className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-gray-950 font-semibold text-xs sm:text-sm border-2 border-gray-900 hover:bg-gray-100 hover:text-black transition-all duration-150 shadow-2xs"
               >

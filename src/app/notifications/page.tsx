@@ -278,7 +278,7 @@ function NotificationsInner() {
         {selectedNotif && (() => {
           // Detect related target action
           const content = `${selectedNotif.subject ?? ""} ${selectedNotif.content ?? ""}`;
-          const orderMatch = content.match(/ORD_[A-Za-z0-9]+/i);
+          const orderMatch = /ORD_[a-z0-9]+/i.exec(content);
           const orderId = orderMatch ? orderMatch[0] : null;
 
           let actionLabel: string | null = null;

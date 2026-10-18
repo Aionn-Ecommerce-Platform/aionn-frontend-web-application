@@ -119,11 +119,12 @@ export default function CatalogResults(props: Props) {
             );
 
           const displayPrice = product.flashSale?.salePrice ?? basePrice;
-          const strikePrice = product.flashSale
-            ? basePrice
-            : originalPrice && originalPrice > basePrice
-              ? originalPrice
-              : undefined;
+          let strikePrice: number | undefined;
+          if (product.flashSale) {
+            strikePrice = basePrice;
+          } else if (originalPrice && originalPrice > basePrice) {
+            strikePrice = originalPrice;
+          }
           const discount =
             strikePrice && strikePrice > displayPrice
               ? Math.round((1 - displayPrice / strikePrice) * 100)

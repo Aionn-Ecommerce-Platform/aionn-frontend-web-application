@@ -1,7 +1,5 @@
 "use client";
 
-import { AppImage } from "@/shared/ui";
-
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -19,7 +17,7 @@ import {
   Flag,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Avatar, EmptyState, Modal } from "@/shared/ui";
+import { AppImage, Avatar, EmptyState, Modal } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import Sidebar from "@/components/layout/Sidebar";
 import {
@@ -258,6 +256,80 @@ export function ChatInner({
     setDraft("");
   };
 
+  const renderMessageBody = (msg: (typeof sortedMessages)[number]) => {
+    if (msg.recalled) {
+      return (
+        <p className="italic opacity-70">
+          {t("chat.messageRecalled")}
+        </p>
+      );
+    }
+    const imageUrl = (msg.metadata?.imageUrl as string) || msg.body;
+    if (msg.type === "IMAGE" && imageUrl) {
+      return (
+        <AppImage
+          src={imageUrl}
+          alt={t("chat.imageAlt")}
+          className="max-w-full max-h-64 rounded-xl cursor-pointer"
+          onClick={() => {
+            window.open(imageUrl, "_blank");
+          }}
+        />
+      );
+    }
+    return <p className="whitespace-pre-wrap">{msg.body}</p>;
+  };
+
+  const renderMessages = () => {
+    if (loadingMsgs) {
+      return (
+        <div className="py-12 flex justify-center">
+          <Loader2 className="animate-spin text-brand" size={24} />
+        </div>
+      );
+    }
+    if (!sortedMessages || sortedMessages.length === 0) {
+      return (
+        <p className="text-xs sm:text-sm text-center text-gray-400 py-12 font-medium">
+          {t("chat.firstMessage")}
+        </p>
+      );
+    }
+    return (
+      <AnimatePresence initial={false}>
+        {sortedMessages.map((msg) => {
+          const isMe = msg.senderId === userId;
+          return (
+            <motion.div
+              key={msg.messageId}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15 }}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[72%] px-4 py-2.5 text-xs sm:text-sm break-words shadow-2xs leading-relaxed ${
+                  isMe
+                    ? "bg-gray-950 text-white rounded-2xl rounded-br-xs font-medium"
+                    : "bg-white text-gray-900 border border-gray-200/90 rounded-2xl rounded-bl-xs font-medium"
+                }`}
+              >
+                {renderMessageBody(msg)}
+                <p
+                  className={`text-[10px] mt-1 text-right font-medium ${
+                    isMe ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {formatMessageTime(msg.sentAt, locale)}
+                </p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    );
+  };
+
   return (
     <div
       className={
@@ -317,6 +389,10 @@ export function ChatInner({
                           ? t("chat.merchantFallback")
                           : t("chat.userFallback"));
                       const isSelected = effectiveSelectedId === conv.conversationId;
+                      const senderPrefix = conv.lastMessageSenderId === userId ? `${t("chat.you")}: ` : "";
+                      const previewText = conv.lastMessagePreview
+                        ? `${senderPrefix}${conv.lastMessagePreview}`
+                        : t("chat.startConversation");
                       return (
                         <button
                           key={conv.conversationId}
@@ -354,9 +430,7 @@ export function ChatInner({
                             </div>
                             <div className="flex items-center justify-between mt-0.5">
                               <p className="text-xs text-gray-500 truncate">
-                                {conv.lastMessagePreview
-                                  ? `${conv.lastMessageSenderId === userId ? `${t("chat.you")}: ` : ""}${conv.lastMessagePreview}`
-                                  : t("chat.startConversation")}
+                                {previewText}
                               </p>
                               {conv.unreadCount > 0 && (
                                 <span className="ml-2 min-w-5 h-5 px-1 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 shadow-xs">
@@ -482,10 +556,10 @@ export function ChatInner({
                               </button>
 
                               {(() => {
-                                const other = activeConv.participants.find(
+                                const hasOther = activeConv.participants.some(
                                   (p) => p.userId !== userId,
                                 );
-                                if (!other) return null;
+                                if (!hasOther) return null;
                                 return (
                                   <button
                                     onClick={() => {
@@ -509,68 +583,7 @@ export function ChatInner({
                       ref={messagesContainerRef}
                       className="flex-1 overflow-y-auto p-5 space-y-3.5 bg-gray-50/20"
                     >
-                      {loadingMsgs ? (
-                        <div className="py-12 flex justify-center">
-                          <Loader2
-                            className="animate-spin text-brand"
-                            size={24}
-                          />
-                        </div>
-                      ) : !sortedMessages || sortedMessages.length === 0 ? (
-                        <p className="text-xs sm:text-sm text-center text-gray-400 py-12 font-medium">
-                          {t("chat.firstMessage")}
-                        </p>
-                      ) : (
-                        <AnimatePresence initial={false}>
-                          {sortedMessages.map((msg) => {
-                            const isMe = msg.senderId === userId;
-                            return (
-                              <motion.div
-                                key={msg.messageId}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.15 }}
-                                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                              >
-                                <div
-                                  className={`max-w-[72%] px-4 py-2.5 text-xs sm:text-sm break-words shadow-2xs leading-relaxed ${
-                                    isMe
-                                      ? "bg-gray-950 text-white rounded-2xl rounded-br-xs font-medium"
-                                      : "bg-white text-gray-900 border border-gray-200/90 rounded-2xl rounded-bl-xs font-medium"
-                                  }`}
-                                >
-                                  {msg.recalled ? (
-                                    <p className="italic opacity-70">
-                                      {t("chat.messageRecalled")}
-                                    </p>
-                                  ) : msg.type === "IMAGE" && (msg.body || (msg.metadata?.imageUrl as string)) ? (
-                                    <AppImage
-                                      src={(msg.metadata?.imageUrl as string) || msg.body || ""}
-                                      alt={t("chat.imageAlt")}
-                                      className="max-w-full max-h-64 rounded-xl cursor-pointer"
-                                      onClick={() => {
-                                        const url = (msg.metadata?.imageUrl as string) || msg.body;
-                                        if (url) window.open(url, "_blank");
-                                      }}
-                                    />
-                                  ) : (
-                                    <p className="whitespace-pre-wrap">
-                                      {msg.body}
-                                    </p>
-                                  )}
-                                  <p
-                                    className={`text-[10px] mt-1 text-right font-medium ${
-                                      isMe ? "text-gray-400" : "text-gray-400"
-                                    }`}
-                                  >
-                                    {formatMessageTime(msg.sentAt, locale)}
-                                  </p>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                        </AnimatePresence>
-                      )}
+                      {renderMessages()}
                       <div ref={messagesEndRef} />
                     </div>
 
