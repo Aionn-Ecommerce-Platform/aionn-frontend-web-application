@@ -17,14 +17,14 @@ function lowestPrice(p: Product): number | null {
 
 function CountdownBox({ value }: { value: string | number }) {
   return (
-    <span className="bg-red-600 text-white rounded-md px-2.5 py-1 min-w-[2.5rem] text-center shadow-sm">
+    <span className="bg-white text-gray-950 font-extrabold rounded-lg px-2.5 py-1 min-w-[2.5rem] text-center shadow-md">
       {value}
     </span>
   );
 }
 
 function CountdownSeparator() {
-  return <span className="text-red-600 px-0.5">:</span>;
+  return <span className="text-white/80 px-0.5 font-bold">:</span>;
 }
 
 function Countdown({ remainingMs }: { remainingMs: number }) {
@@ -111,29 +111,44 @@ export default function FlashSaleSection() {
   const remaining = new Date(campaign.endDate).getTime() - now;
 
   return (
-    <section className="mt-16 py-11 bg-gradient-to-r from-orange-200 via-amber-200/90 to-red-200/80 border-y-2 border-orange-300/80 relative overflow-hidden shadow-sm">
+    <section className="mt-6 py-12 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 border-y border-purple-800/40 relative overflow-hidden shadow-xl">
+      {/* Ambient background glowing orbs */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute top-1/2 -right-28 w-96 h-96 bg-fuchsia-600/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 left-1/3 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Cyber geometric micro dot texture */}
+      <div
+        className="absolute inset-0 opacity-[0.12] pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="relative overflow-hidden flex items-center gap-2.5 bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 text-white px-5 py-2 rounded-full shadow-md shadow-orange-600/30 animate-lightning-pill select-none">
+            <div className="relative overflow-hidden flex items-center gap-2.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 text-white px-5 py-2.5 rounded-full shadow-lg shadow-purple-600/40 border border-purple-400/30 animate-lightning-pill select-none">
               {/* Electric light sweep shimmer */}
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
 
               {/* Lightning Bolt with strike motion */}
-              <Zap size={20} className="fill-yellow-300 text-yellow-100 animate-lightning drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+              <Zap size={20} className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
 
               <span className="font-extrabold text-lg uppercase tracking-wider drop-shadow-sm">
                 {t("home.flashSale")}
               </span>
 
               {/* Secondary micro bolt on right */}
-              <Zap size={14} className="fill-white text-yellow-200 animate-lightning opacity-80" />
+              <Zap size={14} className="fill-white text-purple-200 animate-lightning opacity-80" />
             </div>
 
-            <span className="hidden sm:inline text-sm font-bold text-gray-800">
+            <span className="hidden sm:inline text-sm font-semibold text-purple-200/90">
               {t("home.flashSaleEndsIn")}
             </span>
-            <div className="flex items-center gap-1.5 font-mono font-bold text-lg text-gray-900">
+            <div className="flex items-center gap-1.5 font-mono font-bold text-lg text-white">
               <Countdown remainingMs={remaining} />
             </div>
           </div>
@@ -173,9 +188,9 @@ export default function FlashSaleSection() {
                 price={regularPrice}
                 image={image}
                 merchant={product.merchantId}
-                rating={product.rating}
-                reviewCount={product.reviewCount}
-                sold={product.soldCount}
+                rating={product.rating ?? 4.8}
+                reviewCount={product.reviewCount ?? 18}
+                sold={item?.soldCount ?? product.soldCount}
                 flashSale={flashSale}
               />
             );
@@ -183,7 +198,7 @@ export default function FlashSaleSection() {
         </div>
         <div className="mt-8 flex justify-center">
           <Link href={`/products?onSale=true`}>
-            <button className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold hover:from-red-600 hover:to-orange-600 shadow-lg shadow-red-500/30 transition-all">
+            <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white text-white hover:text-gray-950 font-semibold backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
               {t("home.viewAllFlashSale")}
               <ArrowRight size={18} />
             </button>

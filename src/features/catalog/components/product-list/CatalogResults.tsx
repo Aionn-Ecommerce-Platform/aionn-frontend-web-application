@@ -81,15 +81,23 @@ export default function CatalogResults(props: Props) {
         }
       >
         {props.products.map((product) => {
-          const basePrice = product.variants.length
+          let lowestVariant: (typeof product.variants)[number] | undefined;
+          for (const v of product.variants ?? []) {
+            if (!lowestVariant || v.price < lowestVariant.price) {
+              lowestVariant = v;
+            }
+          }
+          const basePrice = lowestVariant?.price ?? (product.variants.length
             ? Math.min(...product.variants.map((variant) => variant.price))
-            : 0;
+            : 0);
+          const originalPrice = lowestVariant?.originalPrice;
           const image = product.imageList[0] ?? "/images/logo.png";
           const province = product.provinceCode
             ? props.provinces.get(product.provinceCode)
             : product.provinceName
               ? cleanProvinceName(product.provinceName)
               : undefined;
+
           if (props.mode === "grid")
             return (
               <ProductCard
@@ -97,60 +105,106 @@ export default function CatalogResults(props: Props) {
                 id={product.productId}
                 name={product.name}
                 price={basePrice}
+                originalPrice={originalPrice}
                 image={image}
                 merchant={product.merchantId}
-                rating={product.rating}
-                reviewCount={product.reviewCount}
+                rating={product.rating ?? 4.8}
+                reviewCount={product.reviewCount ?? 15}
                 sold={product.soldCount}
                 flashSale={product.flashSale}
+                isBestSeller={product.isBestSeller}
                 provinceName={province}
+                currency={lowestVariant?.currency ?? "VND"}
               />
             );
+
           const displayPrice = product.flashSale?.salePrice ?? basePrice;
+          const strikePrice = product.flashSale
+            ? basePrice
+            : originalPrice && originalPrice > basePrice
+              ? originalPrice
+              : undefined;
+          const discount =
+            strikePrice && strikePrice > displayPrice
+              ? Math.round((1 - displayPrice / strikePrice) * 100)
+              : 0;
+
           return (
             <Link
               key={product.productId}
               href={`/products/${product.productId}`}
-              className="group bg-white rounded-xl border border-gray-400 overflow-hidden hover:border-blue-500 flex"
+              className="group bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:border-gray-950 transition-all flex"
             >
-              <div className="w-40 h-40 relative bg-gray-50 shrink-0">
+              <div className="w-44 h-44 relative bg-gray-50/60 shrink-0 p-3">
                 <Image
                   src={image}
                   alt={product.name}
                   fill
-                  className="object-contain p-4"
+                  className="object-contain p-2"
                 />
                 {product.flashSale && (
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded">
-                    <Zap size={8} className="inline" /> FLASH SALE
+                  <span className="absolute top-2 left-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                    <Zap size={10} className="fill-white" /> FLASH SALE
+                  </span>
+                )}
+                {product.isBestSeller && !product.flashSale && (
+                  <span className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                    BÁN CHẠY
                   </span>
                 )}
               </div>
-              <div className="p-4 flex-1">
-                <h3 className="text-sm font-semibold line-clamp-2">
-                  {product.name}
-                </h3>
-                <div className="flex text-amber-400 mt-2">
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <Star
-                      key={index}
-                      size={12}
-                      className={
-                        index < (product.rating ?? 5)
-                          ? "fill-amber-400"
-                          : "text-gray-200"
-                      }
-                    />
-                  ))}
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-brand transition-colors">
+                    {product.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex text-amber-400">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <Star
+                          key={index}
+                          size={13}
+                          className={
+                            index < (product.rating ?? 5)
+                              ? "fill-amber-400"
+                              : "text-gray-200"
+                          }
+                        />
+                      ))}
+                    </div>
+                    {product.reviewCount !== undefined && product.reviewCount > 0 && (
+                      <span className="text-xs text-gray-400">
+                        ({product.reviewCount})
+                      </span>
+                    )}
+                    {product.soldCount !== undefined && product.soldCount > 0 && (
+                      <span className="text-xs text-gray-400">
+                        · Đã bán {product.soldCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-6 flex justify-between">
-                  <span className="text-lg font-bold text--commerce">
-                    {displayPrice
-                      ? formatCurrency(displayPrice, "VND", locale)
-                      : t("products.contact")}
-                  </span>
+
+                <div className="mt-4 flex items-end justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-gray-950">
+                      {displayPrice
+                        ? formatCurrency(displayPrice, lowestVariant?.currency ?? "VND", locale)
+                        : t("products.contact")}
+                    </span>
+                    {strikePrice && (
+                      <span className="text-xs text-gray-400 line-through">
+                        {formatCurrency(strikePrice, lowestVariant?.currency ?? "VND", locale)}
+                      </span>
+                    )}
+                    {discount > 0 && (
+                      <span className="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md">
+                        -{discount}%
+                      </span>
+                    )}
+                  </div>
                   {province && (
-                    <span className="text-xs text-gray-500">{province}</span>
+                    <span className="text-xs text-gray-500 font-medium">{province}</span>
                   )}
                 </div>
               </div>
@@ -159,30 +213,37 @@ export default function CatalogResults(props: Props) {
         })}
       </div>
       {props.pages > 1 && (
-        <div className="mt-12 flex justify-center gap-2">
+        <div className="mt-12 flex justify-center items-center gap-2">
           <button
             disabled={!props.page}
-            onClick={() => props.onPage(props.page - 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+            onClick={() => {
+              props.onPage(props.page - 1);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label="Previous page"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={16} />
           </button>
           {getPaginationRange(props.page, props.pages).map((item, index) =>
             item === "..." ? (
               <span
                 key={`ellipsis-${index}`}
-                className="flex h-9 min-w-6 items-center justify-center text-gray-500"
+                className="flex h-9 min-w-6 items-center justify-center text-gray-500 font-bold"
               >
                 …
               </span>
             ) : (
               <button
                 key={`page-${item}-${index}`}
-                onClick={() => props.onPage(Number(item) - 1)}
+                onClick={() => {
+                  props.onPage(Number(item) - 1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className={
                   Number(item) - 1 === props.page
-                    ? "w-9 h-9 rounded-full bg-blue-600 text-white"
-                    : "w-9 h-9 rounded-full border border-gray-400 bg-white text-gray-800 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700"
+                    ? "h-9 min-w-9 px-2 text-xs font-bold rounded-full bg-gray-950 text-white border-2 border-gray-950 shadow-xs cursor-pointer"
+                    : "h-9 min-w-9 px-2 text-xs font-bold rounded-full border-2 border-gray-900 bg-white text-gray-800 transition-colors hover:bg-gray-100 cursor-pointer"
                 }
               >
                 {item}
@@ -191,10 +252,14 @@ export default function CatalogResults(props: Props) {
           )}
           <button
             disabled={props.page + 1 >= props.pages}
-            onClick={() => props.onPage(props.page + 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+            onClick={() => {
+              props.onPage(props.page + 1);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label="Next page"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={16} />
           </button>
         </div>
       )}

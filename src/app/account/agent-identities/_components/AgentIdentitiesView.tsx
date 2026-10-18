@@ -53,35 +53,40 @@ function AgentIdentitiesInner() {
   return (
     <MemberPageLayout contentClassName="flex-1 min-w-0 max-w-4xl">
       <div>
-        <div className="flex items-start justify-between gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <Bot className="text-blue-600" size={24} />
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <Bot size={22} />
+              </div>
               {t("agentIdentities.title")}
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mt-1">
               {t("agentIdentities.description")}
             </p>
           </div>
-          <Button onClick={() => setCreating(true)}>
+          <Button
+            onClick={() => setCreating(true)}
+            className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs shrink-0"
+          >
             <Plus size={16} className="mr-1.5" />
             {t("agentIdentities.create")}
           </Button>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-sm p-4 mt-4 mb-6 flex items-start gap-3">
+        <div className="bg-amber-500/10 border border-amber-300/60 rounded-2xl p-4 sm:p-5 mb-6 flex items-start gap-3.5 shadow-2xs">
           <AlertTriangle
             className="text-amber-600 flex-shrink-0 mt-0.5"
-            size={18}
+            size={20}
           />
-          <p className="text-xs text-amber-800">
+          <p className="text-xs sm:text-sm text-amber-900 leading-relaxed">
             {t("agentIdentities.keyWarning")}
           </p>
         </div>
 
         {isLoading ? (
           <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+            <Loader2 className="animate-spin text-brand" size={32} />
           </div>
         ) : agents.length === 0 ? (
           <EmptyState

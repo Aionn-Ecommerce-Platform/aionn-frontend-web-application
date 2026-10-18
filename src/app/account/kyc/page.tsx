@@ -88,20 +88,28 @@ function KycInner() {
   const approvedProfile = data?.find((p) => p.status === "APPROVED");
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="member-page bg-gray-50/60 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t("myKyc.title")}
-              </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+                  {t("myKyc.title")}
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  {locale === "en"
+                    ? "Verify your identity with national ID, passport, or driver's license."
+                    : "Xác minh danh tính của bạn bằng CCCD, Hộ chiếu hoặc Giấy phép lái xe."}
+                </p>
+              </div>
               {!approvedProfile && (
                 <Button
                   size="sm"
                   onClick={() => setCreateModalOpen(true)}
                   disabled={loading}
+                  className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs shrink-0"
                 >
                   {t("myKyc.createProfile")}
                 </Button>
@@ -109,19 +117,19 @@ function KycInner() {
             </div>
 
             {loading ? (
-              <div className="bg-white rounded-sm border border-gray-200/80 p-12 flex justify-center shadow-2xs">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
+              <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-16 flex justify-center">
+                <Loader2 className="animate-spin text-brand" size={32} />
               </div>
             ) : data && data.length > 0 ? (
               <div className="space-y-4">
                 {approvedProfile && (
-                  <div className="bg-green-50 border border-green-200 rounded-sm p-4 flex items-start gap-3 shadow-2xs">
-                    <CheckCircle2 className="text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="bg-emerald-500/10 border border-emerald-300/60 rounded-2xl p-5 flex items-start gap-3.5 shadow-2xs">
+                    <CheckCircle2 className="text-emerald-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-green-900">
+                      <p className="text-sm font-bold text-emerald-950">
                         {t("myKyc.verifiedTitle")}
                       </p>
-                      <p className="text-xs text-green-700 mt-1">
+                      <p className="text-xs sm:text-sm text-emerald-800 mt-0.5">
                         {t("myKyc.verifiedDescription")}
                       </p>
                     </div>
@@ -141,20 +149,20 @@ function KycInner() {
                   return (
                     <div
                       key={profile.kycId}
-                      className="bg-white rounded-sm border border-gray-100 p-6"
+                      className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7"
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-50 rounded-xs">
-                            <Icon size={20} className="text-blue-600" />
+                      <div className="flex items-start justify-between mb-5 border-b border-gray-100 pb-4">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                            <Icon size={20} />
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-gray-900">
+                            <h3 className="text-base font-bold text-gray-950">
                               {documentType
                                 ? t(documentType.labelKey)
                                 : profile.docType}
                             </h3>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 font-mono mt-0.5">
                               {profile.kycId.slice(0, 16)}...
                             </p>
                           </div>

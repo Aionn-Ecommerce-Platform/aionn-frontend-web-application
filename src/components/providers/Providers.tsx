@@ -17,7 +17,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <GlobalFetchProgress />
       <LocaleInitializer />
       <NextTopLoader
-        color="#2563eb"
+        color="#18181b"
         initialPosition={0.08}
         crawlSpeed={200}
         height={3}
@@ -25,7 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         showSpinner={false}
         easing="ease"
         speed={200}
-        shadow="0 0 10px #2563eb,0 0 5px #2563eb"
+        shadow="0 0 10px rgba(0,0,0,0.5),0 0 5px rgba(0,0,0,0.3)"
       />
       <Toaster
         position="top-right"
@@ -42,7 +42,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               "0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)",
           },
           success: {
-            iconTheme: { primary: "#2563eb", secondary: "#fff" },
+            iconTheme: { primary: "#16a34a", secondary: "#fff" },
           },
           error: {
             iconTheme: { primary: "#dc2626", secondary: "#fff" },

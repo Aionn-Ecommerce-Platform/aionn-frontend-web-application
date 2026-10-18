@@ -307,28 +307,36 @@ function ProductsInner() {
           </div>
           <div className="flex items-center gap-3">
             <SortDropdown value={sortParam} onChange={setSort} t={t} />
-            <div className="flex h-11 border border-gray-400 rounded-sm overflow-hidden shadow-sm">
+            <div className="flex h-10 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`flex h-full items-center justify-center px-2.5 ${viewMode === "grid" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
+                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-gray-950 text-white shadow-xs"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
                 aria-label="Grid view"
               >
-                <Grid3X3 size={18} />
+                <Grid3X3 size={16} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex h-full items-center justify-center px-2.5 ${viewMode === "list" ? "bg-blue-50 text-blue-600" : "bg-white text-gray-400"}`}
+                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
+                  viewMode === "list"
+                    ? "bg-gray-950 text-white shadow-xs"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
                 aria-label="List view"
               >
-                <List size={18} />
+                <List size={16} />
               </button>
             </div>
           </div>
         </div>
 
         {hasActiveFilter && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-3.5 rounded-sm border border-gray-400 shadow-sm">
-            <span className="text-gray-600 font-semibold mr-1">
+          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+            <span className="text-gray-900 font-bold text-xs mr-1 uppercase tracking-wider">
               {t("products.filterBy")}:
             </span>
             {categoryIds.map((id) => (
@@ -385,7 +393,7 @@ function ProductsInner() {
             ))}
             <button
               onClick={clearAll}
-              className="text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors ml-2 cursor-pointer"
+              className="text-xs text-brand hover:underline font-bold transition-colors ml-2 cursor-pointer"
             >
               {t("products.clearAll")}
             </button>
@@ -436,7 +444,7 @@ export default function ProductsPage() {
     <Suspense
       fallback={
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
+          <Loader2 className="animate-spin text-brand" size={32} />
         </div>
       }
     >

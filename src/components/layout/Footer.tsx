@@ -28,7 +28,7 @@ export default function Footer() {
                 height={181}
                 className="h-auto w-10 rounded-lg group-hover:scale-105 transition-transform"
               />
-              <span className="text-2xl font-bold tracking-tight text--brand">
+              <span className="font-brand text-3xl font-bold text-brand hover:text-brand-strong transition-colors tracking-wide select-none leading-none translate-y-1">
                 Aionn
               </span>
             </Link>

@@ -237,7 +237,7 @@ export default function PromotionsPage() {
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex border border-gray-400 p-1 mb-8 bg-white rounded-xl shadow-sm overflow-x-auto whitespace-nowrap">
+        <div className="flex items-center gap-2.5 mb-8 overflow-x-auto pb-2 scrollbar-none">
           {[
             { id: "ALL", label: `${t("promotions.tabAll")} (${allCount})` },
             {
@@ -259,10 +259,10 @@ export default function PromotionsPage() {
                 }
                 setActiveTab(tab.id as typeof activeTab);
               }}
-              className={`flex-1 py-3 px-4 text-center text-sm font-bold rounded-lg transition-all ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg--commerce text-white shadow-md scale-[1.02]"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
+                  : "bg-white text-gray-700 border-2 border-gray-900 hover:bg-gray-100 hover:text-black"
               }`}
             >
               {tab.label}

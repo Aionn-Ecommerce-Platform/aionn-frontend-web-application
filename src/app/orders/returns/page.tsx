@@ -45,17 +45,19 @@ function ReturnsInner() {
 
   return (
     <MemberPageLayout>
-      <h1 className="text-2xl font-bold text-gray-900">
-        {t("orders.returns.title")}
-      </h1>
-      <p className="mt-1 text-sm text-gray-500">
-        {t("orders.returns.description")}
-      </p>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+          {t("orders.returns.title")}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {t("orders.returns.description")}
+        </p>
+      </div>
 
-      <div className="mt-6 bg-white rounded-sm border border-gray-100 p-6 shadow-xs">
+      <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
         {isLoading ? (
           <div className="py-20 flex justify-center items-center">
-            <Loader2 className="animate-spin text-blue-600" size={32} />
+            <Loader2 className="animate-spin text-brand" size={32} />
           </div>
         ) : !returns || returns.length === 0 ? (
           <EmptyState
@@ -64,7 +66,7 @@ function ReturnsInner() {
             description={t("orders.returns.noReturnsDesc")}
             action={
               <Link href="/orders">
-                <Button variant="outline" className="rounded-xs">
+                <Button className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs">
                   {t("orders.returns.viewMyOrders")}
                 </Button>
               </Link>
@@ -80,14 +82,14 @@ function ReturnsInner() {
               return (
                 <div
                   key={r.returnId}
-                  className={`bg-white rounded-sm border p-5 transition-all hover:border-gray-300 shadow-2xs ${
+                  className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all hover:shadow-md ${
                     isHighlight
-                      ? "border-blue-300 shadow-xs ring-1 ring-blue-200"
-                      : "border-gray-200"
+                      ? "border-brand shadow-sm ring-1 ring-brand/30"
+                      : "border-gray-200/90"
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-sm bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
                       <Icon size={18} />
                     </div>
 
@@ -96,11 +98,11 @@ function ReturnsInner() {
                         <div>
                           <Link
                             href={`/orders/${r.orderId}`}
-                            className="text-sm font-semibold text-gray-900 hover:text-blue-600"
+                            className="text-base font-bold text-gray-950 hover:text-brand transition-colors"
                           >
                             {t("orders.returns.orderHash").replace(
                               "{id}",
-                              r.orderId.slice(-8),
+                              r.orderId,
                             )}
                           </Link>
                           <p className="text-xs text-gray-400 mt-0.5">

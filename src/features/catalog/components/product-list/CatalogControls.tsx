@@ -47,21 +47,21 @@ export function SortDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-11 items-center gap-1.5 px-3.5 rounded-sm text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex h-10 items-center gap-2 px-4 rounded-xl text-xs sm:text-sm text-gray-800 bg-white border border-gray-200 hover:border-gray-900 transition-all font-semibold shadow-xs focus:outline-none cursor-pointer"
         aria-label="Sort products"
         aria-expanded={open}
       >
         <span>
-          {t("products.sortLabel")}: {t(currentOption.labelKey)}
+          {t("products.sortLabel")}: <span className="font-bold text-gray-950">{t(currentOption.labelKey)}</span>
         </span>
         <ChevronDown
           size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
+          className={`transition-transform text-gray-500 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-sm border border-gray-400 shadow-lg py-1 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-200/90 shadow-xl py-1.5 z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
             const active = opt.value === value;
             return (
@@ -71,15 +71,15 @@ export function SortDropdown({
                   onChange(opt.value);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs sm:text-sm transition-colors cursor-pointer ${
                   active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
+                    ? "bg-brand/10 text-brand font-bold"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <span>{t(opt.labelKey)}</span>
                 {active && (
-                  <Check size={14} className="text-blue-700 shrink-0 ml-2" />
+                  <Check size={14} className="text-brand shrink-0 ml-2" />
                 )}
               </button>
             );
@@ -128,23 +128,23 @@ export function FacetSection({
   const visible = expanded ? items : items.slice(0, 6);
   return (
     <div>
-      <h4 className="text-sm font-semibold text-gray-800 mb-2">{title}</h4>
+      <h4 className="text-sm font-bold text-gray-900 mb-2">{title}</h4>
       {items.length === 0 ? (
         <p className="text-xs text-gray-400">{emptyHint}</p>
       ) : (
         <ul className="space-y-1.5">
           {visible.map((item, index) => (
             <li key={`${item.id}-${index}`}>
-              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-blue-600 group">
+              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-brand group">
                 <span className="flex items-center gap-2 min-w-0">
                   <input
                     type="checkbox"
                     aria-label={item.label}
                     checked={item.selected}
                     onChange={() => onToggle(item.id)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
                   />
-                  <span className="truncate text-gray-700 group-hover:text-blue-600">
+                  <span className="truncate text-gray-700 group-hover:text-brand font-medium">
                     {item.label}
                   </span>
                 </span>
@@ -155,7 +155,7 @@ export function FacetSection({
             <li>
               <button
                 onClick={() => setExpanded((v) => !v)}
-                className="text-xs text-blue-600 hover:underline"
+                className="text-xs text-brand hover:underline font-semibold cursor-pointer"
               >
                 {expanded
                   ? t("products.collapse")
@@ -196,7 +196,7 @@ export function PriceFilter({
 
   return (
     <div>
-      <h4 className="text-sm font-semibold text-gray-800 mb-2">
+      <h4 className="text-sm font-bold text-gray-900 mb-2">
         {t("products.priceRange")}
       </h4>
       <div className="space-y-2">
@@ -205,19 +205,19 @@ export function PriceFilter({
           value={minInput}
           onChange={(e) => setMinInput(e.target.value)}
           placeholder={`${t("products.priceFrom")} ${placeholderMin}`}
-          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:border-blue-500 focus:outline-none"
+          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:border-gray-900 focus:outline-none transition-colors"
         />
         <input
           type="number"
           value={maxInput}
           onChange={(e) => setMaxInput(e.target.value)}
           placeholder={`${t("products.priceTo")} ${placeholderMax}`}
-          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:border-blue-500 focus:outline-none"
+          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:border-gray-900 focus:outline-none transition-colors"
         />
         <Button
           size="sm"
           variant="outline"
-          className="w-full rounded-sm"
+          className="w-full rounded-xl border-gray-900 text-gray-900 hover:bg-gray-950 hover:text-white font-bold transition-all cursor-pointer"
           onClick={() => onApply(minInput || undefined, maxInput || undefined)}
         >
           {t("products.apply")}

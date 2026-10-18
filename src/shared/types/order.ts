@@ -20,6 +20,7 @@ interface OrderItem {
 
 export interface Order {
   orderId: string;
+  orderSn?: string;
   parentOrderId: string | null;
   userId: string;
   merchantId: string;

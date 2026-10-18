@@ -14,6 +14,8 @@ import {
   Loader2,
   PackageX,
   ArrowLeft,
+  Copy,
+  Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, ConfirmDialog } from "@/shared/ui";
@@ -186,6 +188,19 @@ function OrderDetailInner({ id }: { id: string }) {
     order.status === "PREPARING";
   const canReturn = order.status === "COMPLETED";
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyOrderId = () => {
+    const code = order?.orderSn || order?.orderId;
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    toast.success(
+      locale === "vi" ? "Đã sao chép mã đơn hàng" : "Order code copied",
+    );
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleBack = () => {
     let targetTab = fromTab;
     if (!targetTab && order) {
@@ -214,34 +229,72 @@ function OrderDetailInner({ id }: { id: string }) {
       <button
         type="button"
         onClick={handleBack}
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 mb-6 transition-colors cursor-pointer group font-medium"
+        className="inline-flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-gray-950 mb-6 transition-colors cursor-pointer group font-bold"
       >
         <ArrowLeft
           size={16}
-          className="text-gray-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition-transform"
+          className="text-gray-500 group-hover:text-gray-950 group-hover:-translate-x-0.5 transition-transform"
         />
         <span>{t("orders.backToOrders")}</span>
       </button>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("orders.orderDetails")} #
-            {order.orderId.slice(0, 8).toUpperCase()}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {t("orders.orderDetails")}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {t("orders.orderDate")}{" "}
-            {formatDateTime(
-              order.createdAt,
-              locale === "vi" ? "vi-VN" : "en-US",
-            )}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs sm:text-sm text-gray-500">
+            <div className="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200/80 shadow-2xs">
+              <span className="font-semibold text-gray-600 uppercase text-[11px] tracking-wider">
+                {t("orders.orderId")}:
+              </span>
+              <span className="font-mono font-bold text-gray-950 select-all">
+                {order.orderSn || order.orderId}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyOrderId}
+                className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-strong transition-colors cursor-pointer ml-1 p-0.5 rounded hover:bg-brand/10"
+                title={locale === "vi" ? "Sao chép mã đơn hàng" : "Copy order ID"}
+              >
+                {copied ? (
+                  <Check size={13} className="text-emerald-600" />
+                ) : (
+                  <Copy size={13} />
+                )}
+                <span className="text-[11px] font-medium">
+                  {copied
+                    ? locale === "vi"
+                      ? "Đã chép"
+                      : "Copied"
+                    : locale === "vi"
+                      ? "Sao chép"
+                      : "Copy"}
+                </span>
+              </button>
+            </div>
+            <span className="text-gray-300 hidden sm:inline">•</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-500">
+              {t("orders.orderDate")}{" "}
+              {formatDateTime(
+                order.createdAt,
+                locale === "vi" ? "vi-VN" : "en-US",
+              )}
+            </span>
+          </div>
         </div>
-        {cfg && <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>}
+        {cfg && (
+          <Badge
+            variant={cfg.variant}
+            className="self-start sm:self-auto text-xs px-3 py-1 font-semibold"
+          >
+            {t(cfg.labelKey)}
+          </Badge>
+        )}
       </div>
 
       {order.status !== "CANCELLED" && order.status !== "REJECTED" && (
-        <div className="bg-white rounded-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200/90 p-6 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between">
             {STATUS_FLOW.map((step, i) => {
               const Icon = step.icon;
@@ -252,25 +305,25 @@ function OrderDetailInner({ id }: { id: string }) {
                   className="flex-1 flex flex-col items-center relative"
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       done
-                        ? "bg-blue-600 text-white"
+                        ? "bg-gray-950 text-white shadow-xs"
                         : "bg-gray-100 text-gray-400"
                     }`}
                   >
                     <Icon size={18} />
                   </div>
                   <span
-                    className={`text-xs mt-2 ${
-                      done ? "text-blue-600 font-medium" : "text-gray-400"
+                    className={`text-xs mt-2.5 font-semibold ${
+                      done ? "text-gray-950 font-bold" : "text-gray-400"
                     }`}
                   >
                     {t(step.labelKey)}
                   </span>
                   {i < STATUS_FLOW.length - 1 && (
                     <div
-                      className={`absolute top-5 left-[55%] w-[90%] h-0.5 ${
-                        i < currentStepIdx ? "bg-blue-600" : "bg-gray-200"
+                      className={`absolute top-5 left-[55%] w-[90%] h-0.5 transition-colors ${
+                        i < currentStepIdx ? "bg-gray-950" : "bg-gray-200"
                       }`}
                     />
                   )}
@@ -284,8 +337,11 @@ function OrderDetailInner({ id }: { id: string }) {
       {shipment && <OrderShipmentPanel shipment={shipment} />}
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-sm border border-gray-100 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-2xl border border-gray-200/90 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+          <h3 className="font-bold text-gray-950 mb-4 flex items-center gap-2 text-base">
+            <div className="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+              <Package size={16} />
+            </div>
             {t("orders.products")}
           </h3>
           <div className="space-y-3">
@@ -296,15 +352,15 @@ function OrderDetailInner({ id }: { id: string }) {
               const variantLabel = formatVariantLabel(variant?.attributeValues);
               const image = product?.imageList?.[0];
               return (
-                <div key={item.skuId} className="flex gap-3 py-2">
-                  <div className="w-16 h-16 rounded-xs bg-gray-100 flex-shrink-0 overflow-hidden relative">
+                <div key={item.skuId} className="flex gap-3.5 py-2.5 border-b border-gray-100 last:border-none">
+                  <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex-shrink-0 overflow-hidden relative p-1">
                     {image ? (
                       <Image
                         src={image}
                         alt={product?.name ?? item.skuId}
                         fill
                         sizes="64px"
-                        className="object-cover"
+                        className="object-contain p-1"
                         unoptimized
                       />
                     ) : (
@@ -317,12 +373,12 @@ function OrderDetailInner({ id }: { id: string }) {
                     {product ? (
                       <Link
                         href={`/products/${product.productId}`}
-                        className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2"
+                        className="text-sm font-semibold text-gray-900 hover:text-brand line-clamp-2 transition-colors"
                       >
                         {product.name}
                       </Link>
                     ) : (
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
                         SKU: {item.skuId}
                       </p>
                     )}
@@ -331,66 +387,67 @@ function OrderDetailInner({ id }: { id: string }) {
                         {variantLabel}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-0.5">x{item.qty}</p>
+                    <p className="text-xs text-gray-400 font-mono mt-0.5">x{item.qty}</p>
                   </div>
-                  <span className="text-sm font-medium ml-3 whitespace-nowrap">
+                  <span className="text-sm font-bold text-gray-950 ml-3 whitespace-nowrap">
                     {formatCurrency(item.unitPrice * item.qty, order.currency)}
                   </span>
                 </div>
               );
             })}
-            <div className="border-t border-gray-100 pt-3 flex justify-between text-sm">
-              <span className="text-gray-500">{t("cart.shippingFee")}</span>
-              <span>{formatCurrency(order.shippingFee, order.currency)}</span>
+            <div className="border-t border-gray-100 pt-3 flex justify-between text-xs sm:text-sm">
+              <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
+              <span className="font-semibold text-gray-800">{formatCurrency(order.shippingFee, order.currency)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-900">
+            <div className="flex justify-between items-baseline pt-1">
+              <span className="font-bold text-gray-900 text-sm">
                 {t("cart.total")}
               </span>
-              <span className="font-bold text-blue-600">
+              <span className="font-bold text-xl sm:text-2xl text-gray-950">
                 {formatCurrency(order.totalAmount, order.currency)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-white rounded-sm border border-gray-100 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3">
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-gray-200/90 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+            <h3 className="font-bold text-gray-950 mb-3 flex items-center gap-2 text-base">
+              <div className="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <MapPin size={16} />
+              </div>
               {t("orders.deliverySection")}
             </h3>
             {orderAddress ? (
               <div className="text-sm space-y-2">
                 <p className="text-gray-700">
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-500">
                     {t("orders.recipientName")}:
                   </span>{" "}
-                  {orderAddress.contactName}
+                  <span className="font-semibold text-gray-900">{orderAddress.contactName}</span>
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-500">
                     {t("orders.recipientPhone")}:
                   </span>{" "}
-                  {orderAddress.phone}
+                  <span className="font-semibold text-gray-900 font-mono">{orderAddress.phone}</span>
                 </p>
                 <div className="flex items-start gap-2 text-gray-700">
-                  <MapPin
-                    size={14}
-                    className="text-gray-400 mt-0.5 flex-shrink-0"
-                  />
                   <p>
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-gray-500">
                       {t("orders.recipientAddress")}:
                     </span>{" "}
-                    {orderAddress.fullAddress ||
-                      [
-                        orderAddress.detailAddress,
-                        orderAddress.wardName,
-                        orderAddress.districtName,
-                        orderAddress.provinceName,
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}
+                    <span className="font-semibold text-gray-900">
+                      {orderAddress.fullAddress ||
+                        [
+                          orderAddress.detailAddress,
+                          orderAddress.wardName,
+                          orderAddress.districtName,
+                          orderAddress.provinceName,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -408,20 +465,20 @@ function OrderDetailInner({ id }: { id: string }) {
               </div>
             )}
           </div>
-          <div className="bg-white rounded-sm border border-gray-100 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3">
+          <div className="bg-white rounded-2xl border border-gray-200/90 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+            <h3 className="font-bold text-gray-950 mb-3 text-base">
               {t("orders.payment")}
             </h3>
             {(() => {
               const pm = order.paymentMethodId;
               if (pm === "VNPAY") {
                 return (
-                  <p className="text-sm text-gray-700 font-medium">VNPAY</p>
+                  <p className="text-sm text-gray-900 font-semibold">VNPAY</p>
                 );
               }
               if (pm === "COD") {
                 return (
-                  <p className="text-sm text-gray-700 font-medium">
+                  <p className="text-sm text-gray-900 font-semibold">
                     {t("checkout.cod")}
                   </p>
                 );
@@ -429,11 +486,11 @@ function OrderDetailInner({ id }: { id: string }) {
               if (paymentMethod) {
                 return (
                   <div className="text-sm">
-                    <p className="font-medium text-gray-900 capitalize">
+                    <p className="font-semibold text-gray-900 capitalize">
                       {paymentMethod.provider}
                     </p>
                     {paymentMethod.last4Digits && (
-                      <p className="text-gray-500 mt-0.5">
+                      <p className="text-gray-500 mt-0.5 font-mono">
                         •••• •••• •••• {paymentMethod.last4Digits}
                       </p>
                     )}
@@ -447,7 +504,7 @@ function OrderDetailInner({ id }: { id: string }) {
               );
             })()}
             {order.paymentId && (
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-gray-400 mt-2 font-mono">
                 {t("orders.transactionId")}: {order.paymentId}
               </p>
             )}
@@ -457,7 +514,7 @@ function OrderDetailInner({ id }: { id: string }) {
               <Button
                 variant="primary"
                 size="sm"
-                className="flex-1"
+                className="flex-1 rounded-xl bg-gray-950 hover:bg-black text-white font-bold"
                 onClick={() => completeMutation.mutate()}
                 disabled={completeMutation.isPending}
               >
@@ -466,7 +523,7 @@ function OrderDetailInner({ id }: { id: string }) {
             )}
             {canReturn && (
               <Link href={`/orders/${order.orderId}/return`} className="flex-1">
-                <Button variant="outline" className="w-full" size="sm">
+                <Button variant="outline" className="w-full rounded-xl border-gray-900 font-bold" size="sm">
                   {t("orders.requestReturn")}
                 </Button>
               </Link>
@@ -475,7 +532,7 @@ function OrderDetailInner({ id }: { id: string }) {
               <Button
                 variant="danger"
                 size="sm"
-                className="flex-1"
+                className="flex-1 rounded-xl font-bold"
                 onClick={() => setConfirmCancel(true)}
                 disabled={cancelMutation.isPending}
               >

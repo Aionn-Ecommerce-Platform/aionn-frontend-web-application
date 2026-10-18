@@ -45,11 +45,11 @@ export default function GlobalFetchProgress() {
       style={{ height: 3 }}
     >
       <div
-        className="h-full bg-blue-600 transition-[width,opacity] duration-200 ease-out"
+        className="h-full bg-gray-900 transition-[width,opacity] duration-200 ease-out"
         style={{
           width: `${progress}%`,
           opacity: progress >= COMPLETE ? 0 : 1,
-          boxShadow: "0 0 8px rgba(37,99,235,0.6), 0 0 4px rgba(37,99,235,0.6)",
+          boxShadow: "0 0 8px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.3)",
         }}
       />
     </div>

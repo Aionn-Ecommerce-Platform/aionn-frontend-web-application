@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Dancing_Script, Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers/Providers";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
+
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const dancingScript = Dancing_Script({
+  weight: ["600", "700"],
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-brand-logo",
+  display: "swap",
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -54,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className="scroll-smooth"
+      className={`scroll-smooth ${inter.variable} ${dancingScript.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

@@ -39,7 +39,10 @@
   --color-status-warning: var(--status-warning);
   --color-status-danger: var(--status-danger);
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  --font-display:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  --font-brand: var(--font-brand-logo), cursive;
 }
 
 body {
@@ -48,6 +51,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 ::-webkit-scrollbar {
@@ -68,8 +73,8 @@ body {
   background: color-mix(in srgb, var(--foreground) 45%, transparent);
 }
 
-*:focus-visible {
-  outline: 2px solid var(--primary);
+*:focus-visible:not(input):not(textarea):not(select):not(button) {
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
@@ -197,15 +202,17 @@ a {
 
 /* Active order status tab styling matching sidebar active item */
 .member-page button:has(> span[class*="bg-blue"]),
-.member-page button:has(> span[class*="bg-commerce"]) {
-  background-color: rgb(219 234 254) !important;
-  color: rgb(29 78 216) !important;
+.member-page button:has(> span[class*="bg-commerce"]),
+.member-page button:has(> span[class*="bg-brand"]) {
+  background-color: color-mix(in srgb, var(--brand) 12%, white) !important;
+  color: var(--brand-strong) !important;
   font-weight: 700 !important;
 }
 
 .member-page button:has(> span[class*="bg-blue"]) > span,
-.member-page button:has(> span[class*="bg-commerce"]) > span {
-  background-color: rgb(29 78 216) !important;
+.member-page button:has(> span[class*="bg-commerce"]) > span,
+.member-page button:has(> span[class*="bg-brand"]) > span {
+  background-color: var(--brand) !important;
 }
 
 /* Lightning & Flash Sale Electrical Effects */

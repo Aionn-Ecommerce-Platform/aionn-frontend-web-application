@@ -222,9 +222,9 @@ export default function RegisterForm({
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
                   step === s
-                    ? "bg-blue-600 text-white"
+                    ? "bg-gray-900 text-white"
                     : i < cur
-                      ? "bg-blue-100 text-blue-700"
+                      ? "bg-purple-100 text-purple-700"
                       : "bg-gray-100 text-gray-400"
                 }`}
                 aria-label={`${t("auth.step")} ${i + 1}`}
@@ -233,7 +233,7 @@ export default function RegisterForm({
               </div>
               {i < 2 && (
                 <div
-                  className={`w-6 h-0.5 ${i < cur ? "bg-blue-400" : "bg-gray-200"}`}
+                  className={`w-6 h-0.5 ${i < cur ? "bg-purple-400" : "bg-gray-200"}`}
                 />
               )}
             </div>
@@ -400,11 +400,11 @@ export default function RegisterForm({
             />
             <span>
               {t("auth.agreeTerms")}{" "}
-              <Link href="/terms" className="text-blue-600 hover:underline">
+              <Link href="/terms" className="text-brand hover:text-brand-strong hover:underline">
                 {t("auth.termsOfService")}
               </Link>{" "}
               {t("auth.and")}{" "}
-              <Link href="/privacy" className="text-blue-600 hover:underline">
+              <Link href="/privacy" className="text-brand hover:text-brand-strong hover:underline">
                 {t("auth.privacyPolicy")}
               </Link>
             </span>
@@ -428,14 +428,14 @@ export default function RegisterForm({
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-brand hover:text-brand-strong font-semibold transition-colors"
             >
               {t("auth.loginNow")}
             </button>
           ) : (
             <Link
               href="/auth/login"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-brand hover:text-brand-strong font-semibold transition-colors"
             >
               {t("auth.loginNow")}
             </Link>

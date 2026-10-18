@@ -54,33 +54,40 @@ function PrivacyInner() {
   }
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="member-page bg-gray-50/60 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              {t("privacy.title")}
-            </h1>
+          <div className="flex-1 min-w-0">
+            <div className="mb-6">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+                {t("privacy.title")}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {locale === "en"
+                  ? "Manage legal agreements, consent preferences, and your personal data rights."
+                  : "Quản lý thỏa thuận pháp lý, sự đồng ý dữ liệu và các quyền riêng tư cá nhân của bạn."}
+              </p>
+            </div>
 
             {loading ? (
-              <div className="bg-white rounded-sm border border-gray-100 p-12 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
+              <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-16 flex justify-center">
+                <Loader2 className="animate-spin text-brand" size={32} />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-white rounded-sm border border-gray-100 p-6">
+              <div className="space-y-5">
+                <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
-                      <FileText size={20} className="text-blue-600" />
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                      <FileText size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-gray-900">
+                        <h3 className="text-base font-bold text-gray-950">
                           {t("privacy.termsTitle")}
                         </h3>
                         {termsConsent?.agreed ? (
-                          <Badge className="bg-green-100 text-green-700 flex items-center gap-1">
+                          <Badge className="bg-emerald-100 text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 size={12} />
                             {t("privacy.agreed")}
                           </Badge>
@@ -91,11 +98,11 @@ function PrivacyInner() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mb-3">
+                      <p className="text-sm text-gray-500 mb-3">
                         {t("privacy.termsDescription")}
                       </p>
                       {termsConsent && (
-                        <div className="text-xs text-gray-500 space-y-1">
+                        <div className="text-xs text-gray-400 space-y-1">
                           {termsConsent.version && (
                             <p>
                               {t("privacy.version", {
@@ -117,18 +124,18 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-sm border border-gray-100 p-6">
+                <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
-                      <Shield size={20} className="text-blue-600" />
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                      <Shield size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-gray-900">
+                        <h3 className="text-base font-bold text-gray-950">
                           {t("privacy.policyTitle")}
                         </h3>
                         {privacyConsent?.agreed ? (
-                          <Badge className="bg-green-100 text-green-700 flex items-center gap-1">
+                          <Badge className="bg-emerald-100 text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 size={12} />
                             {t("privacy.agreed")}
                           </Badge>
@@ -139,11 +146,11 @@ function PrivacyInner() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mb-3">
+                      <p className="text-sm text-gray-500 mb-3">
                         {t("privacy.policyDescription")}
                       </p>
                       {privacyConsent && (
-                        <div className="text-xs text-gray-500 space-y-1">
+                        <div className="text-xs text-gray-400 space-y-1">
                           {privacyConsent.version && (
                             <p>
                               {t("privacy.version", {
@@ -165,18 +172,18 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-sm border border-gray-100 p-6">
+                <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-blue-50 rounded-xs flex-shrink-0">
-                      <Mail size={20} className="text-blue-600" />
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                      <Mail size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <h3 className="text-sm font-medium text-gray-900">
+                          <h3 className="text-base font-bold text-gray-950">
                             {t("privacy.marketingTitle")}
                           </h3>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-sm text-gray-500 mt-0.5">
                             {t("privacy.marketingDescription")}
                           </p>
                         </div>
@@ -187,7 +194,7 @@ function PrivacyInner() {
                         />
                       </div>
                       {marketingConsent && (
-                        <div className="text-xs text-gray-500 mt-3">
+                        <div className="text-xs text-gray-400 mt-3">
                           <p>
                             {t("privacy.updatedAt", {
                               date: formatDateTime(
@@ -202,11 +209,11 @@ function PrivacyInner() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-sm p-4">
-                  <h3 className="text-sm font-medium text-blue-900 mb-2">
+                <div className="bg-brand/5 border border-brand/20 rounded-2xl p-6 sm:p-7">
+                  <h3 className="text-base font-bold text-gray-950 mb-2">
                     {t("privacy.rightsTitle")}
                   </h3>
-                  <ul className="text-xs text-blue-800 space-y-1">
+                  <ul className="text-sm text-gray-700 space-y-1.5 leading-relaxed">
                     <li>• {t("privacy.rightAccess")}</li>
                     <li>• {t("privacy.rightMarketing")}</li>
                     <li>• {t("privacy.rightCompliance")}</li>
@@ -214,7 +221,7 @@ function PrivacyInner() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4"
+                    className="mt-4 rounded-xl border-gray-200 hover:border-brand hover:text-brand"
                     onClick={() => window.open("/privacy-policy", "_blank")}
                   >
                     {t("privacy.viewPolicy")}

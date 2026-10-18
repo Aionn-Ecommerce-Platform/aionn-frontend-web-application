@@ -132,7 +132,7 @@ export default function Header() {
     hasSellerRole && !!myMerchant && myMerchant.status !== "CLOSED";
 
   const unreadNotifications = (notifications ?? []).filter(
-    (n) => !n.readAt,
+    (n) => n.status !== "READ" && !n.readAt,
   ).length;
   const unreadChats = unreadChat
     ? Object.values(unreadChat).reduce((s, n) => s + n, 0)
@@ -203,27 +203,27 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 border-b border-blue-800 shadow-md">
-      <div className="bg-blue-950/35 border-b border-white/15 text-xs">
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-950 shadow-xs">
+      <div className="bg-gray-50 border-b border-gray-200 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-end gap-5 h-9 text-blue-50">
+          <div className="flex items-center justify-end gap-5 h-8 text-gray-600">
             <Link
               href="/feedback"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
             >
               <MessageSquare size={13} />
               <span className="font-medium">{t("common.feedback")}</span>
             </Link>
             <Link
               href="/contact"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
             >
               <Phone size={13} />
               <span className="font-medium">{t("common.contactUs")}</span>
             </Link>
             <Link
               href={sellOnAionnHref}
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
             >
               <Store size={13} />
               <span className="font-medium">{t("common.sellOnAionn")}</span>
@@ -231,7 +231,7 @@ export default function Header() {
             <div className="relative group/noti py-1">
               <Link
                 href={isAuthenticated ? "/notifications" : "/auth/login"}
-                className="flex items-center gap-1.5 hover:text-white transition-colors relative"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors relative"
               >
                 <Bell size={13} />
                 <span className="font-medium">{t("common.notifications")}</span>
@@ -297,14 +297,21 @@ export default function Header() {
                               <Link
                                 key={noti.notiId}
                                 href={`/notifications`}
-                                className={`flex gap-3 px-4 py-3 text-left transition-colors ${
+                                className={`flex gap-3 px-4 py-3 text-left transition-colors relative ${
                                   isUnread
-                                    ? "bg-orange-50/45 hover:bg-orange-100/40"
-                                    : "hover:bg-gray-50"
+                                    ? "bg-gray-100 hover:bg-gray-200/80"
+                                    : "bg-white hover:bg-gray-50"
                                 }`}
                               >
+                                {isUnread && (
+                                  <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-gray-900" />
+                                )}
                                 <div
-                                  className={`h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border ${getNotiBg(noti.category)}`}
+                                  className={`h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border ${
+                                    isUnread
+                                      ? "bg-white border-gray-300"
+                                      : "bg-gray-100 border-gray-200 opacity-60"
+                                  }`}
                                 >
                                   {categoryIcons[noti.category] ?? (
                                     <Bell size={16} className="text-gray-400" />
@@ -312,14 +319,26 @@ export default function Header() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h4
-                                    className={`text-xs text-gray-900 line-clamp-2 ${isUnread ? "font-bold" : "font-medium"}`}
+                                    className={`text-xs line-clamp-2 ${
+                                      isUnread
+                                        ? "font-bold text-gray-950"
+                                        : "font-normal text-gray-500"
+                                    }`}
                                   >
                                     {noti.subject || t("common.notifications")}
                                   </h4>
-                                  <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                  <p
+                                    className={`text-[11px] mt-0.5 line-clamp-2 leading-relaxed ${
+                                      isUnread ? "text-gray-700 font-medium" : "text-gray-400"
+                                    }`}
+                                  >
                                     {noti.content}
                                   </p>
-                                  <span className="text-[9px] text-gray-400 mt-1 block">
+                                  <span
+                                    className={`text-[9px] mt-1 block ${
+                                      isUnread ? "text-gray-600 font-semibold" : "text-gray-400"
+                                    }`}
+                                  >
                                     {formatDateTime(noti.createdAt)}
                                   </span>
                                 </div>
@@ -348,16 +367,16 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2.5 flex-shrink-0 group"
+            className="flex items-center gap-2 flex-shrink-0 group"
           >
             <Image
               src="/images/logo_without_text.png"
               alt="Aionn"
               width={194}
               height={181}
-              className="h-auto w-10 rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform"
+              className="h-auto w-10 rounded-lg group-hover:scale-105 transition-transform"
             />
-            <span className="text-2xl font-bold tracking-tight text-white">
+            <span className="font-brand text-4xl font-bold text-brand hover:text-brand-strong transition-colors tracking-wide select-none leading-none translate-y-1">
               Aionn
             </span>
           </Link>
@@ -381,7 +400,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-white text-sm text-gray-900 placeholder:text-gray-400 shadow-sm outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 border-none"
+                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100/80 focus:bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-200 outline-none transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
@@ -399,7 +418,7 @@ export default function Header() {
               <button
                 type="submit"
                 aria-label={t("common.search")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-900 hover:bg-black text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
               >
                 <Search size={16} />
               </button>
@@ -414,7 +433,7 @@ export default function Header() {
                     key={item}
                     type="button"
                     onClick={() => runSearch(item)}
-                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
                     <Clock3 size={15} className="text-gray-400" />
                     <span className="truncate">{item}</span>
@@ -429,7 +448,7 @@ export default function Header() {
               <>
                 <Link
                   href="/chat"
-                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
                   aria-label="Messages"
                 >
                   <MessageCircle size={20} />
@@ -441,12 +460,12 @@ export default function Header() {
                 </Link>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
                   {totalItems > 0 && (
-                    <span className="absolute top-1 right-1 h-4 w-4 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute top-1 right-1 h-4 w-4 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
                       {totalItems}
                     </span>
                   )}
@@ -456,15 +475,15 @@ export default function Header() {
                 <div className="relative ml-1" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/15 text-white transition-colors"
+                    className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     <Avatar
                       src={user?.avatarUrl}
                       alt={user?.displayName ?? user?.username ?? "User"}
                       size="sm"
-                      className="ring-2 ring-white/30"
+                      className="ring-2 ring-gray-200"
                     />
-                    <ChevronDown size={14} className="hidden lg:block" />
+                    <ChevronDown size={14} className="hidden lg:block text-gray-500" />
                   </button>
 
                   <AnimatePresence>
@@ -542,12 +561,12 @@ export default function Header() {
               <>
                 <Link
                   href={isAuthenticated ? "/cart" : "/auth/login"}
-                  className="relative p-2.5 rounded-xl hover:bg-white/15 text-white transition-colors"
+                  className="relative p-2.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
                   aria-label="Cart"
                 >
                   <ShoppingCart size={20} />
                   {totalItems > 0 && (
-                    <span className="absolute top-1 right-1 h-4 w-4 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute top-1 right-1 h-4 w-4 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
                       {totalItems}
                     </span>
                   )}
@@ -556,16 +575,16 @@ export default function Header() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-white/70 bg-white/10 text-white hover:bg-white hover:text-blue-700"
+                    className="border-gray-300 bg-white text-gray-800 hover:bg-gray-100 hover:text-black shadow-xs"
                   >
                     {t("common.register")}
                   </Button>
                 </Link>
                 <Link href="/auth/login">
                   <Button
-                    variant="secondary"
+                    variant="primary"
                     size="sm"
-                    className="focus:ring-white/40 shadow-sm"
+                    className="bg-gray-900 hover:bg-black text-white shadow-xs focus:ring-gray-300 border-none"
                   >
                     {t("common.login")}
                   </Button>
@@ -575,7 +594,7 @@ export default function Header() {
             )}
 
             <button
-              className="md:hidden p-2.5 rounded-xl hover:bg-white/15 text-white"
+              className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >

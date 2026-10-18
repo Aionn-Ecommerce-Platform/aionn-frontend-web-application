@@ -189,42 +189,42 @@ function AccountInner() {
   }
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="member-page bg-gray-50/60 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
               {t("account.information")}
             </h1>
 
-            <div className="bg-white rounded-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
               {/* Header profile info */}
-              <div className="flex items-center gap-4 mb-8">
+              <div className="flex items-center gap-5 mb-8">
                 <button
                   type="button"
                   onClick={() => setEditProfileOpen(true)}
-                  className="relative group rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+                  className="relative group rounded-full focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 cursor-pointer transition-transform hover:scale-102"
                   title={t("account.clickToEditProfile")}
                 >
                   <Avatar
                     src={user?.avatarUrl ?? undefined}
                     alt={user?.displayName ?? user?.username ?? "U"}
                     size="2xl"
-                    className="border-2 border-gray-300 shadow-sm"
+                    className="border-2 border-brand/20 shadow-sm"
                   />
-                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                    <Camera size={24} />
+                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white backdrop-blur-2xs">
+                    <Camera size={22} />
                   </div>
                 </button>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-bold text-gray-950">
                     {user?.displayName ??
                       user?.username ??
                       t("account.userFallback")}
                   </h2>
                   {user?.createdAt && (
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <p className="text-sm text-gray-500">
                       {locale === "en"
                         ? `Member since ${formatDate(user.createdAt)}`
                         : t("account.memberSince", {
@@ -235,11 +235,11 @@ function AccountInner() {
                   <button
                     type="button"
                     onClick={() => setEditProfileOpen(true)}
-                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors mt-1.5 cursor-pointer font-medium group/edit"
+                    className="inline-flex items-center gap-1.5 text-xs text-brand hover:text-brand-strong transition-colors pt-1 cursor-pointer font-semibold group/edit"
                   >
                     <Pencil
                       size={12}
-                      className="text-gray-400 group-hover/edit:text-gray-600 transition-colors"
+                      className="text-brand transition-colors"
                     />
                     <span>{t("account.editProfile")}</span>
                   </button>
@@ -247,7 +247,7 @@ function AccountInner() {
               </div>
 
               {/* Profile fields: 4 rows, label and value on same row */}
-              <div className="space-y-4 pt-6 border-t border-gray-100">
+              <div className="space-y-5 pt-6 border-t border-gray-100">
                 {/* Username field */}
                 <div className="flex items-center">
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
@@ -273,20 +273,20 @@ function AccountInner() {
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
                     {t("account.email") || "Email"}
                   </span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-sm font-semibold text-gray-900">
                       {user?.email ?? t("account.none")}
                     </span>
                     {user?.email && user.emailVerifiedAt ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-xs font-medium">
-                        <Check size={11} /> {t("account.verified")}
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full font-semibold">
+                        <Check size={12} /> {t("account.verified")}
                       </span>
                     ) : user?.email ? (
                       <button
                         type="button"
                         onClick={handleVerifyEmailRequest}
                         disabled={verifyLoading}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline disabled:opacity-50 cursor-pointer"
+                        className="text-xs text-brand hover:text-brand-strong font-semibold hover:underline disabled:opacity-50 cursor-pointer"
                       >
                         {t("account.sendVerifyEmailOtp")}
                       </button>
@@ -299,16 +299,16 @@ function AccountInner() {
                   <span className="w-36 sm:w-44 shrink-0 text-sm text-gray-500">
                     {t("account.phone")}
                   </span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-sm font-semibold text-gray-900">
                       {user?.phone ?? t("account.none")}
                     </span>
                     {!user?.phone ? null : user.phoneVerifiedAt ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-xs font-medium">
-                        <Check size={11} /> {t("account.verified")}
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full font-semibold">
+                        <Check size={12} /> {t("account.verified")}
                       </span>
                     ) : (
-                      <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-xs font-medium">
+                      <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-semibold">
                         {locale === "en"
                           ? "Phone number not verified."
                           : t("account.phoneNotVerified")}

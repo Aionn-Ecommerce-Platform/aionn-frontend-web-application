@@ -25,26 +25,26 @@ export default function AuthLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <div className="border-b border-white/20 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-md">
+      <div className="border-b-2 border-gray-300 bg-white shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[72px]">
             <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2.5 group">
+              <Link href="/" className="flex items-center gap-3 group">
                 <Image
                   src="/images/logo_without_text.png"
                   alt="Aionn"
                   width={194}
                   height={181}
-                  className="h-auto w-10 rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform"
+                  className="h-auto w-10 p-0.5 group-hover:scale-105 transition-transform"
                 />
-                <span className="text-2xl font-bold tracking-tight text-white">
+                <span className="font-brand text-4xl font-bold text-brand hover:text-brand-strong transition-colors tracking-wide select-none leading-none translate-y-1">
                   Aionn
                 </span>
               </Link>
               {pageTitle && (
                 <>
-                  <div className="h-6 w-px bg-white/40" />
-                  <span className="text-lg font-medium text-white">
+                  <div className="h-6 w-px bg-gray-300" />
+                  <span className="text-lg font-semibold text-gray-800">
                     {pageTitle}
                   </span>
                 </>

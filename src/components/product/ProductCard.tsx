@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Star, Zap } from "lucide-react";
+import { Flame, Sparkles, Star, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 import type { FlashSaleInfo, RecommendationReason } from "@/types";
@@ -17,6 +17,7 @@ interface ProductCardProps {
   rating?: number;
   reviewCount?: number;
   sold?: number;
+  isBestSeller?: boolean;
   flashSale?: FlashSaleInfo | null;
   provinceName?: string | null;
   className?: string;
@@ -34,6 +35,7 @@ export default function ProductCard({
   rating,
   reviewCount,
   sold,
+  isBestSeller,
   flashSale,
   className,
   provinceName,
@@ -61,18 +63,32 @@ export default function ProductCard({
   let leadingBadge: React.ReactNode = null;
   if (isFlashSale) {
     leadingBadge = (
-      <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-md shadow-red-500/20 z-10 select-none">
+      <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-md shadow-purple-500/25 z-10 select-none">
         {/* Micro electric shimmer */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none animate-electric-glimmer" />
-        <Zap size={11} className="fill-yellow-300 text-yellow-100 animate-lightning drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" />
+        <Zap size={11} className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" />
         FLASH SALE
       </span>
     );
-  } else if (recommendationReason) {
+  } else if (recommendationReason === "TRENDING") {
     leadingBadge = (
       <span className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-purple-500/20 z-10 select-none">
         <Sparkles size={11} className="fill-white" />
-        {t(`recommendation.reasons.${recommendationReason}`)}
+        {t("recommendation.reasons.TRENDING")}
+      </span>
+    );
+  } else if (isBestSeller) {
+    leadingBadge = (
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-orange-500/20 z-10 select-none">
+        <Flame size={11} className="fill-white" />
+        {t("home.bestSeller")}
+      </span>
+    );
+  } else if (recommendationReason === "NEW_ARRIVAL") {
+    leadingBadge = (
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-emerald-500/20 z-10 select-none">
+        <Sparkles size={11} className="fill-white" />
+        {t("recommendation.reasons.NEW_ARRIVAL")}
       </span>
     );
   }
@@ -83,8 +99,8 @@ export default function ProductCard({
       className={cn(
         "group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300",
         isFlashSale
-          ? "bg-white border-2 border-orange-400 shadow-md shadow-orange-500/10 hover:border-red-500 hover:shadow-xl hover:shadow-orange-500/20 hover:-translate-y-1.5"
-          : "bg-white border border-gray-200/90 shadow-sm hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/15 hover:-translate-y-1.5",
+          ? "bg-white border-2 border-purple-400 shadow-md shadow-purple-500/10 hover:border-purple-600 hover:shadow-xl hover:shadow-purple-500/20"
+          : "bg-white border border-gray-200 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5",
         className,
       )}
     >
@@ -106,7 +122,7 @@ export default function ProductCard({
               className={cn(
                 "font-extrabold text-[11px] px-2 py-0.5 rounded-full shadow-md backdrop-blur-sm ml-auto",
                 isFlashSale
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-white animate-pulse"
+                  ? "bg-gradient-to-r from-purple-700 to-indigo-600 text-white animate-pulse"
                   : "bg-red-500 text-white",
               )}
             >
@@ -117,7 +133,7 @@ export default function ProductCard({
 
         {/* Subtle overlay gradient on flashsale */}
         {isFlashSale && (
-          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-orange-500/10 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-purple-500/10 to-transparent pointer-events-none" />
         )}
       </div>
 
@@ -126,8 +142,8 @@ export default function ProductCard({
         className={cn(
           "p-3 flex flex-col flex-1 justify-between transition-colors",
           isFlashSale
-            ? "bg-gradient-to-b from-orange-50/30 via-white to-white group-hover:from-orange-50/60"
-            : "bg-white group-hover:bg-blue-50/20",
+            ? "bg-gradient-to-b from-purple-50/40 via-white to-white group-hover:from-purple-50/70"
+            : "bg-white group-hover:bg-gray-50/40",
         )}
       >
         <div className="flex flex-col flex-1">
@@ -135,39 +151,31 @@ export default function ProductCard({
             className={cn(
               "text-[13px] font-medium line-clamp-2 transition-colors min-h-[2.4rem] leading-snug",
               isFlashSale
-                ? "text-gray-900 group-hover:text-orange-600"
-                : "text-gray-800 group-hover:text-blue-600",
+                ? "text-gray-900 group-hover:text-purple-700 font-semibold"
+                : "text-gray-800 group-hover:text-black font-semibold",
             )}
           >
             <span className="align-middle">{name}</span>
           </h3>
 
-          <div className="mt-2.5 flex flex-col gap-0.5">
-            <div className="flex items-baseline justify-between gap-1.5 flex-wrap">
-              <span
-                className={cn(
-                  "text-[17px] font-extrabold tracking-tight",
-                  isFlashSale
-                    ? "bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm text-lg"
-                    : discount > 0
-                      ? "text-red-600"
-                      : "text-gray-900",
-                )}
-              >
-                {formatCurrency(displayPrice, currency, locale)}
+          <div className="mt-2.5 flex items-baseline gap-2 flex-wrap min-h-[1.75rem]">
+            <span
+              className={cn(
+                "text-[17px] font-extrabold tracking-tight",
+                isFlashSale
+                  ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent drop-shadow-xs text-lg"
+                  : discount > 0
+                    ? "text-red-600"
+                    : "text-gray-900",
+              )}
+            >
+              {formatCurrency(displayPrice, currency, locale)}
+            </span>
+            {strikePrice && strikePrice > displayPrice && (
+              <span className="text-[12px] font-normal text-gray-400 line-through leading-none">
+                {formatCurrency(strikePrice, currency, locale)}
               </span>
-              <span className="shrink-0 text-[11px] font-medium text-gray-400">
-                {t("home.soldCount").replace("{count}", displayedSold)}
-              </span>
-            </div>
-            {/* Reserved fixed height for strike price to keep every card strictly equal height */}
-            <div className="h-4 flex items-center">
-              {strikePrice && strikePrice > displayPrice ? (
-                <span className="text-[11px] font-normal text-gray-400 line-through leading-none">
-                  {formatCurrency(strikePrice, currency, locale)}
-                </span>
-              ) : null}
-            </div>
+            )}
           </div>
         </div>
 
@@ -175,7 +183,7 @@ export default function ProductCard({
           className={cn(
             "mt-3 pt-2 flex items-center justify-between text-[11px] text-gray-400 border-t",
             isFlashSale
-              ? "border-orange-200/90"
+              ? "border-purple-200/80"
               : "border-gray-200/80",
           )}
         >
@@ -204,11 +212,16 @@ export default function ProductCard({
             <div />
           )}
 
-          {provinceName && (
-            <div className="text-gray-400 text-[10px] font-medium whitespace-nowrap truncate max-w-[100px]">
-              {provinceName}
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {provinceName && (
+              <span className="text-gray-400 text-[10px] font-medium whitespace-nowrap truncate max-w-[70px]">
+                {provinceName}
+              </span>
+            )}
+            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
+              {t("home.soldCount").replace("{count}", displayedSold)}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

@@ -47,17 +47,17 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-white hover:bg-white/15 transition-colors"
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors"
         aria-label="Switch language"
         aria-expanded={open}
       >
-        <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-white/50 shrink-0">
+        <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
           <CurrentFlag className="w-full h-full scale-150" />
         </div>
         <span className="font-semibold capitalize">{t(current.labelKey)}</span>
         <ChevronDown
           size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
+          className={`text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -80,17 +80,17 @@ export default function LanguageSwitcher() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                   active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "bg-gray-100 text-gray-950 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
-                <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-black/10 shrink-0">
+                <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
                   <Flag className="w-full h-full scale-150" />
                 </div>
                 <span className="flex-1 text-left capitalize">
                   {t(lang.labelKey)}
                 </span>
-                {active && <Check size={14} />}
+                {active && <Check size={14} className="text-gray-950" />}
               </button>
             );
           })}

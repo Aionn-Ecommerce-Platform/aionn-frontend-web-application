@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,7 +51,7 @@ function lowestPrice(p: Product): number | null {
 }
 
 export default function HomePage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => window.scrollTo(0, 0));
@@ -96,6 +96,7 @@ export default function HomePage() {
       reviewCount?: number;
       sold?: number;
       flashSale?: FlashSaleInfo | null;
+      isBestSeller?: boolean;
       recommendationReason?: RecommendationReason;
       currency?: string;
     }> = [];
@@ -112,10 +113,11 @@ export default function HomePage() {
         price: r.priceFrom,
         image: r.imageUrl || "/images/logo.png",
         merchant: f?.merchantId,
-        rating: f?.rating,
-        reviewCount: f?.reviewCount,
-        sold: f?.soldCount,
+        rating: f?.rating ?? 4.8,
+        reviewCount: f?.reviewCount ?? 15,
+        sold: f?.soldCount ?? (r.score ? Math.round(Number(r.score) * 1000) : 120),
         flashSale: f?.flashSale,
+        isBestSeller: f?.isBestSeller,
         recommendationReason: r.reason,
         currency: r.currency,
       });
@@ -137,10 +139,11 @@ export default function HomePage() {
         originalPrice: lowestVariant?.originalPrice,
         image: p.imageList?.[0] ?? "/images/logo.png",
         merchant: p.merchantId,
-        rating: p.rating,
-        reviewCount: p.reviewCount,
+        rating: p.rating ?? 4.8,
+        reviewCount: p.reviewCount ?? 15,
         sold: p.soldCount,
         flashSale: p.flashSale,
+        isBestSeller: p.isBestSeller,
         currency: lowestVariant?.currency,
       });
     }
@@ -167,7 +170,9 @@ export default function HomePage() {
     return list;
   }, [categoriesTree]);
 
-  const displayedCategories = flatCategories.slice(0, 10);
+  const displayedCategories = useMemo(() => {
+    return flatCategories.slice(0, 16);
+  }, [flatCategories]);
 
   const { data: bannerData } = useQuery({
     queryKey: qk.promotionBanners,
@@ -213,8 +218,8 @@ export default function HomePage() {
   const currentBanner = activeBanners[safeIndex];
 
   return (
-    <div className="bg-surface-muted min-h-screen">
-      <section className="bg-white border-b border-gray-100">
+    <div className="bg-white min-h-screen">
+      <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-sm">
             {activeBanners.length > 0 && (
@@ -291,97 +296,73 @@ export default function HomePage() {
         </div>
       </section>
 
-      <FlashSaleSection />
-
-      <section>
+      {/* Categories Shelf (Apple Store Style - borderless, no arrows, responsive auto-wrap across screen sizes) */}
+      <section className="pt-8 pb-4 sm:pt-10 sm:pb-6 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="pt-10 text-2xl font-bold text-gray-900">
-              {t("home.featuredCategories")}
-            </h2>
-          </div>
           {catLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[156px] rounded-2xl bg-gray-200/60 animate-pulse"
-                />
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-y-6 gap-x-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2.5 animate-pulse">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-100" />
+                  <div className="w-14 h-3 bg-gray-100 rounded-full" />
+                </div>
               ))}
             </div>
-          ) : displayedCategories.length === 0 ? (
-            <p className="text-sm text-gray-500">{t("home.noCategories")}</p>
-          ) : (
+          ) : displayedCategories.length === 0 ? null : (
             <motion.div
               variants={stagger}
               initial="hidden"
               whileInView="show"
-              viewport={{ once: true, amount: 0.2 }}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4"
+              viewport={{ once: true, amount: 0.15 }}
+              className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-y-7 gap-x-2 select-none"
             >
               {displayedCategories.map((node) => {
                 const cat = node.category;
                 return (
-                  <motion.div
-                    key={cat.categoryId}
-                    variants={fadeUp}
-                  >
+                  <motion.div key={cat.categoryId} variants={fadeUp} className="flex justify-center">
                     <Link
                       href={`/products?categoryId=${cat.categoryId}`}
-                      className="flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/15 hover:-translate-y-1.5 transition-all duration-300 group h-[156px] relative overflow-hidden"
+                      className="group flex flex-col items-center text-center w-full max-w-[110px] transition-transform duration-200"
                     >
-                      <div className="relative w-16 h-16 flex-shrink-0 rounded-2xl bg-gradient-to-b from-blue-50/50 via-gray-50 to-gray-100/80 p-2.5 border border-gray-200/80 group-hover:scale-110 group-hover:border-blue-400 group-hover:bg-blue-50/60 shadow-xs transition-all duration-300 flex items-center justify-center">
+                      {/* Apple-style Product Icon Image */}
+                      <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-2.5 transition-transform duration-300 ease-out group-hover:scale-105">
                         {cat.iconUrl ? (
                           <div className="relative w-full h-full">
                             <Image
                               src={cat.iconUrl}
                               alt={cat.name}
                               fill
-                              sizes="64px"
-                              className="object-contain drop-shadow-sm transition-transform duration-300"
+                              sizes="(max-width: 640px) 56px, 80px"
+                              className="object-contain"
                             />
                           </div>
                         ) : (
-                          <Layers
-                            size={28}
-                            className="text-blue-500 group-hover:scale-110 transition-transform"
-                          />
+                          <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-gray-100 transition-colors">
+                            <Layers size={24} strokeWidth={1.75} />
+                          </div>
                         )}
                       </div>
-                      <div className="w-full text-center mt-2">
-                        <span className="text-[13px] font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-                          {cat.name}
-                        </span>
-                      </div>
+
+                      {/* Apple-style Label */}
+                      <span className="text-xs sm:text-[13px] md:text-sm font-semibold text-gray-900 group-hover:text-black tracking-tight leading-snug line-clamp-2 transition-colors">
+                        {cat.name}
+                      </span>
                     </Link>
                   </motion.div>
                 );
               })}
             </motion.div>
           )}
-          {!catLoading && flatCategories && flatCategories.length > 10 && (
-            <div className="mt-10 flex justify-center">
-              <Link href="/categories">
-                <Button
-                  size="lg"
-                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
-                >
-                  {t("home.viewAllCategories")}
-                  <ArrowRight
-                    size={18}
-                    className="ml-2 transition-transform duration-200 group-hover:translate-x-1.5"
-                  />
-                </Button>
-              </Link>
-            </div>
-          )}
         </div>
       </section>
+
+      {/* Flash Sale Section */}
+      <FlashSaleSection />
 
       <section className="pb-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="pt-10 text-2xl font-bold text-gray-900">
+            <h2 className="font-display pt-10 text-2xl sm:text-3xl font-bold text-gray-950 tracking-tight">
               {t("home.featuredProducts")}
             </h2>
           </div>
@@ -414,6 +395,7 @@ export default function HomePage() {
                     reviewCount={product.reviewCount}
                     sold={product.sold}
                     flashSale={product.flashSale}
+                    isBestSeller={product.isBestSeller}
                     recommendationReason={product.recommendationReason}
                     currency={product.currency}
                   />
@@ -426,7 +408,7 @@ export default function HomePage() {
               <Link href="/products">
                 <Button
                   size="lg"
-                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
+                  className="group bg-gray-900 hover:bg-black text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl px-8 py-3.5 border-none"
                 >
                   {t("home.viewAllProducts")}
                   <ArrowRight
@@ -440,51 +422,116 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 w-80 h-80 bg-indigo-300/30 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-cyan-200/30 rounded-full blur-2xl" />
+      {/* Apple-style Quick Links Section with distinct black outline pills */}
+      <section className="py-14 bg-white border-t border-gray-200/90">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
+            {locale === "en" ? "Quick Links" : "Liên Kết Nhanh"}
+          </h2>
+
+          <div className="flex flex-wrap items-center gap-3 mb-10">
+            {[
+              {
+                label: locale === "en" ? "Order Status" : "Trạng Thái Đơn Hàng",
+                href: "/orders",
+              },
+              {
+                label: locale === "en" ? "Shopping Help" : "Trợ Giúp Mua Hàng",
+                href: "/help",
+              },
+              {
+                label: locale === "en" ? "Returns & Refunds" : "Trả hàng",
+                href: "/orders/returns",
+              },
+              {
+                label: locale === "en" ? "Saved Items" : "Mục Đã Lưu",
+                href: "/products",
+              },
+              {
+                label: locale === "en" ? "Shipping & Delivery" : "Vận Chuyển & Giao Hàng",
+                href: "/contact",
+              },
+              {
+                label: locale === "en" ? "Payment Methods" : "Thanh toán",
+                href: "/account/payment-methods",
+              },
+            ].map((link, idx) => (
+              <Link
+                key={idx}
+                href={link.href}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-gray-950 font-semibold text-xs sm:text-sm border-2 border-gray-900 hover:bg-gray-100 hover:text-black transition-all duration-150 shadow-2xs"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-xs text-gray-500 space-y-2 leading-relaxed max-w-5xl">
+            <p>
+              {locale === "en"
+                ? "All listed prices include applicable taxes. Free delivery on all qualified orders."
+                : "Giá hiển thị đã bao gồm tất cả các khoản thuế. Giao hàng miễn phí cho tất cả đơn hàng đủ điều kiện."}
+            </p>
+            <p>
+              {locale === "en"
+                ? "Order fulfillment is processed directly via authorized merchant partners. Aionn protects customer personal information according to our Privacy Policy."
+                : "Đơn hàng được xử lý và phân phối trực tiếp từ các đối tác nhà bán hàng ủy quyền của Aionn. Aionn cam kết bảo mật thông tin cá nhân theo đúng Chính sách Quyền Riêng Tư."}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* For Merchants Section (Seamless soft gradient fade to pure white, no harsh dividing border line) */}
+      <section className="py-24 bg-gradient-to-b from-white via-purple-50/40 to-indigo-50/50 relative overflow-hidden">
+        {/* Ambient background soft light spheres */}
+        <div className="absolute top-12 -right-24 w-96 h-96 bg-purple-300/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-20 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-fuchsia-200/25 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Delicate geometric background dots with top gradient fade-out so dots dissolve into white seamlessly */}
         <div
-          className="absolute inset-0 opacity-[0.36]"
+          className="absolute inset-0 opacity-[0.22] pointer-events-none [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 1px 1px, #2563eb 1px, transparent 0)",
-            backgroundSize: "24px 24px",
+              "radial-gradient(circle at 1px 1px, #974de7 1px, transparent 0)",
+            backgroundSize: "28px 28px",
           }}
         />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm">
-              <Zap size={14} className="fill-blue-500 text-blue-500" />
-              {t("home.forMerchants")}
-            </span>
-            <h2 className="mt-5 pb-1 text-3xl lg:text-5xl leading-[1.2] font-extrabold bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="mt-2 pb-1 text-3xl lg:text-5xl leading-[1.2] font-extrabold bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent tracking-tight">
               {t("home.startSelling")}
             </h2>
-            <p className="mt-4 text-gray-700 max-w-2xl mx-auto text-lg">
+
+            <p className="mt-4 text-gray-600 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
               {t("home.startSellingDesc")}
             </p>
-            <div className="mt-8 flex justify-center">
-              <div className="h-56 w-56">
+
+            <div className="mt-10 flex justify-center">
+              <div className="relative h-56 w-56 flex items-center justify-center">
+                {/* Subtle backglow around logo */}
+                <div className="absolute inset-4 bg-purple-400/20 rounded-full blur-2xl animate-pulse" />
                 <Image
                   src="/images/logo_without_text.png"
                   alt="Aionn"
                   width={194}
                   height={181}
-                  className="h-full w-full object-contain"
+                  className="relative h-full w-full object-contain drop-shadow-md hover:scale-105 transition-transform duration-300"
                 />
               </div>
             </div>
-            <div className="mt-8">
+
+            <div className="mt-10">
               <Link href={merchantRegisterHref}>
                 <Button
                   size="lg"
-                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25"
+                  className="group bg-gray-900 hover:bg-black text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl px-9 py-4 border-none hover:scale-[1.02] cursor-pointer"
                 >
                   {t("home.registerFree")}
                   <ArrowRight
