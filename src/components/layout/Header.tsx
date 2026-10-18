@@ -59,9 +59,7 @@ interface SearchDropdownProps {
   trendingRecommendations: RecommendationItem[];
   liveSuggestions: Product[];
   isSuggestionsLoading: boolean;
-  onSelectHistory: (keyword: string) => void;
-  onSelectProduct: (productId: string) => void;
-  onSearchAll: (keyword: string) => void;
+  onSelectKeyword: (keyword: string) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -72,9 +70,7 @@ function SearchDropdown({
   trendingRecommendations,
   liveSuggestions,
   isSuggestionsLoading,
-  onSelectHistory,
-  onSelectProduct,
-  onSearchAll,
+  onSelectKeyword,
   t,
 }: SearchDropdownProps) {
   if (!searchOpen) return null;
@@ -102,7 +98,7 @@ function SearchDropdown({
               <button
                 key={item}
                 type="button"
-                onClick={() => onSelectHistory(item)}
+                onClick={() => onSelectKeyword(item)}
                 className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
               >
                 <Clock3 size={15} className="text-gray-400 shrink-0" />
@@ -122,7 +118,7 @@ function SearchDropdown({
               <button
                 key={item.productId}
                 type="button"
-                onClick={() => onSelectProduct(item.productId)}
+                onClick={() => onSelectKeyword(item.name)}
                 className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
               >
                 <Sparkles size={14} className="text-amber-500 shrink-0" />
@@ -153,7 +149,7 @@ function SearchDropdown({
             <button
               key={product.productId}
               type="button"
-              onClick={() => onSelectProduct(product.productId)}
+              onClick={() => onSelectKeyword(product.name)}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
             >
               <Search size={14} className="text-gray-400 shrink-0" />
@@ -171,7 +167,7 @@ function SearchDropdown({
 
       <button
         type="button"
-        onClick={() => onSearchAll(trimmedQuery)}
+        onClick={() => onSelectKeyword(trimmedQuery)}
         className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-brand hover:bg-brand/5 border-t border-gray-100 transition-colors cursor-pointer"
       >
         <Search size={14} />
@@ -215,11 +211,6 @@ export default function Header() {
     staleTime: 30 * 1000,
   });
 
-  function handleSelectProduct(productId: string) {
-    setSearchOpen(false);
-    setSearchQuery("");
-    router.push(`/products/${productId}`);
-  }
   const userRoles = user?.roles ?? [];
   const hasSellerRole = userRoles.some((role) =>
     ["SELLER", "MERCHANT", "ROLE_SELLER", "ROLE_MERCHANT"].includes(role),
@@ -587,9 +578,7 @@ export default function Header() {
               trendingRecommendations={trendingRecommendations}
               liveSuggestions={liveSuggestions}
               isSuggestionsLoading={isSuggestionsLoading}
-              onSelectHistory={runSearch}
-              onSelectProduct={handleSelectProduct}
-              onSearchAll={runSearch}
+              onSelectKeyword={runSearch}
               t={t}
             />
           </div>
