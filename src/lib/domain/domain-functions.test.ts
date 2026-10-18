@@ -5,12 +5,18 @@ import {
   resolvePaymentOption,
   selectCheckoutItems,
 } from "./checkout";
-import { buildFilterItems, hasCatalogFilters, readMultiParam } from "./catalog";
+import {
+  buildCategoryFilterItems,
+  buildFilterItems,
+  hasCatalogFilters,
+  readMultiParam,
+} from "./catalog";
 import { filterMerchantOrders } from "./merchant-orders";
 import { groupSessions } from "./security-sessions";
 import type {
   AuthSession,
   CartItem,
+  CategoryTreeNode,
   Order,
   PaymentMethod,
   UserVoucher,
@@ -95,6 +101,123 @@ describe("catalog domain", () => {
     ]);
     expect(hasCatalogFilters([null, "", 0, false])).toBe(false);
     expect(hasCatalogFilters([null, 1])).toBe(true);
+  });
+
+  it("dynamically hides encompassing parent category when search narrows to subcategories", () => {
+    const mockNodes: CategoryTreeNode[] = [
+      {
+        category: {
+          categoryId: "CAT_HBE",
+          name: "Sức khỏe & Sắc đẹp",
+          slug: "health-beauty",
+          active: true,
+          createdAt: "",
+          updatedAt: "",
+          parentId: null,
+          iconUrl: null,
+        },
+        children: [
+          {
+            category: {
+              categoryId: "CAT_SKN",
+              name: "Chăm sóc da",
+              slug: "skincare",
+              active: true,
+              createdAt: "",
+              updatedAt: "",
+              parentId: "CAT_HBE",
+              iconUrl: null,
+            },
+            children: [],
+          },
+          {
+            category: {
+              categoryId: "CAT_VIT",
+              name: "Vitamin",
+              slug: "vitamins",
+              active: true,
+              createdAt: "",
+              updatedAt: "",
+              parentId: "CAT_HBE",
+              iconUrl: null,
+            },
+            children: [],
+          },
+        ],
+      },
+      {
+        category: {
+          categoryId: "CAT_ELE",
+          name: "Điện tử",
+          slug: "electronics",
+          active: true,
+          createdAt: "",
+          updatedAt: "",
+          parentId: null,
+          iconUrl: null,
+        },
+        children: [
+          {
+            category: {
+              categoryId: "CAT_PHO",
+              name: "Điện thoại",
+              slug: "smartphones",
+              active: true,
+              createdAt: "",
+              updatedAt: "",
+              parentId: "CAT_ELE",
+              iconUrl: null,
+            },
+            children: [],
+          },
+        ],
+      },
+    ];
+
+    const names = new Map([
+      ["CAT_HBE", "Sức khỏe & Sắc đẹp"],
+      ["CAT_SKN", "Chăm sóc da"],
+      ["CAT_VIT", "Vitamin"],
+      ["CAT_ELE", "Điện tử"],
+      ["CAT_PHO", "Điện thoại"],
+    ]);
+
+    // Scenario 1: All matching products belong to CAT_HBE subtree (e.g. searching "mascara")
+    // CAT_HBE is encompassing ancestor, so it is hidden and only subcategory is shown
+    const resultSpecific = buildCategoryFilterItems({
+      names,
+      counts: { CAT_HBE: 9, CAT_SKN: 9 },
+      selectedIds: [],
+      nodes: mockNodes,
+    });
+    expect(resultSpecific).toEqual([
+      { id: "CAT_SKN", label: "Chăm sóc da", count: 9, selected: false },
+    ]);
+
+    // Scenario 2: User explicitly selected CAT_HBE -> it should stay visible
+    const resultSelected = buildCategoryFilterItems({
+      names,
+      counts: { CAT_HBE: 9, CAT_SKN: 9 },
+      selectedIds: ["CAT_HBE"],
+      nodes: mockNodes,
+    });
+    expect(resultSelected).toEqual([
+      { id: "CAT_SKN", label: "Chăm sóc da", count: 9, selected: false },
+      { id: "CAT_HBE", label: "Sức khỏe & Sắc đẹp", count: 9, selected: true },
+    ]);
+
+    // Scenario 3: Results span multiple top-level categories (e.g. searching "eeee")
+    // Neither parent encompasses all candidates, so both are retained
+    const resultBroad = buildCategoryFilterItems({
+      names,
+      counts: { CAT_SKN: 5, CAT_PHO: 3 },
+      selectedIds: [],
+      nodes: mockNodes,
+    });
+    expect(resultBroad).toEqual([
+      { id: "CAT_SKN", label: "Chăm sóc da", count: 5, selected: false },
+      { id: "CAT_PHO", label: "Điện thoại", count: 3, selected: false },
+    ]);
   });
 });
 

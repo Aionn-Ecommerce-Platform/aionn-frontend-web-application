@@ -16,6 +16,7 @@ import { qk } from "@/lib/query-keys";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
 import {
+  buildCategoryFilterItems,
   buildFilterItems,
   hasCatalogFilters,
   readMultiParam,
@@ -257,12 +258,13 @@ function ProductsInner() {
   const facets = data?.facets;
 
   const categoryFilterItems = useMemo(() => {
-    return buildFilterItems({
+    return buildCategoryFilterItems({
       names: categoryNameById,
       counts: facets?.categories,
       selectedIds: categoryIds,
+      nodes: categoryTree,
     });
-  }, [facets, categoryNameById, categoryIds]);
+  }, [facets, categoryNameById, categoryIds, categoryTree]);
 
   const brandFilterItems = useMemo(() => {
     return buildFilterItems({
