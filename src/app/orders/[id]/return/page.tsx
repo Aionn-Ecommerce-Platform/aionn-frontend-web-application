@@ -118,7 +118,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {t("orders.orderId")}{" "}
-          <span className="font-mono">#{orderId.slice(-8)}</span>
+          <span className="font-mono font-semibold text-gray-900 select-all">{orderId}</span>
           {order?.totalAmount != null && (
             <>
               {" • "}

@@ -71,6 +71,7 @@ export interface Product {
   rating?: number;
   reviewCount?: number;
   soldCount?: number;
+  isBestSeller?: boolean;
   flashSale?: FlashSaleInfo | null;
   provinceCode?: string | null;
   provinceName?: string | null;

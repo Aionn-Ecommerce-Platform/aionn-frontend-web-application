@@ -209,28 +209,32 @@ function AddressesInner() {
   const hasAddresses = addresses.data && addresses.data.length > 0;
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="member-page bg-gray-50/60 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
                 {t("addresses.title")}
               </h1>
-              <Button size="sm" onClick={openCreate}>
+              <Button
+                size="sm"
+                onClick={openCreate}
+                className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs"
+              >
                 <Plus size={16} className="mr-1" />
                 {t("addresses.addAddress")}
               </Button>
             </div>
 
-            <div className="bg-white rounded-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
               {addresses.loading ? (
-                <div className="py-12 flex justify-center">
-                  <Loader2 className="animate-spin text-blue-600" size={28} />
+                <div className="py-16 flex justify-center">
+                  <Loader2 className="animate-spin text-brand" size={32} />
                 </div>
               ) : hasAddresses ? (
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-gray-100">
                   {[...(addresses.data || [])]
                     .sort((a, b) => (a.isDefault ? -1 : b.isDefault ? 1 : 0))
                     .map((addr) => (
@@ -242,7 +246,7 @@ function AddressesInner() {
                           <div className="flex items-start gap-3 min-w-0">
                             <MapPin
                               size={18}
-                              className="text-blue-500 mt-0.5 flex-shrink-0"
+                              className="text-brand mt-0.5 flex-shrink-0"
                             />
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -274,7 +278,7 @@ function AddressesInner() {
                             {!addr.isDefault && (
                               <button
                                 onClick={() => handleSetDefault(addr.addressId)}
-                                className="p-2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+                                className="p-2 text-gray-400 hover:text-brand transition-colors cursor-pointer"
                                 title={t("addresses.setDefault")}
                               >
                                 <Star size={16} />
@@ -282,7 +286,7 @@ function AddressesInner() {
                             )}
                             <button
                               onClick={() => openEdit(addr)}
-                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="p-2 text-gray-400 hover:text-brand transition-colors cursor-pointer"
                               title={t("common.edit")}
                             >
                               <Edit2 size={16} />

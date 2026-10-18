@@ -57,17 +57,19 @@ export function AgentRow({
   const isLive = agent.status === "ACTIVE";
 
   return (
-    <div className="bg-white rounded-sm border border-gray-100 p-5">
-      <div className="flex items-start justify-between gap-4">
+    <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 transition-all hover:shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-base font-semibold text-gray-900 truncate">
+          <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
+            <h3 className="text-base font-bold text-gray-950 truncate">
               {agent.name}
             </h3>
             <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>
           </div>
-          <p className="text-xs text-gray-500 font-mono">{agent.agentId}</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded-md inline-block">
+            {agent.agentId}
+          </p>
+          <p className="text-xs text-gray-400 mt-2">
             {t("agentIdentities.createdAt", {
               date: formatDateTime(agent.createdAt, locale),
             })}
@@ -75,11 +77,11 @@ export function AgentRow({
               ` · ${t("agentIdentities.suspendedAt", { date: formatDateTime(agent.suspendedAt, locale) })}`}
           </p>
           {agent.permissions.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-3.5">
               {agent.permissions.map((p) => (
                 <span
                   key={p}
-                  className="text-[11px] px-2 py-0.5 rounded-xs bg-gray-100 text-gray-700 font-mono"
+                  className="text-2xs px-2.5 py-1 rounded-lg bg-brand/10 text-brand font-medium font-mono border border-brand/20"
                 >
                   {p}
                 </span>
@@ -87,14 +89,24 @@ export function AgentRow({
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2 flex-shrink-0">
-          <Button variant="outline" size="sm" onClick={onAudit}>
+        <div className="flex flex-row sm:flex-col gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onAudit}
+            className="rounded-xl border-gray-200"
+          >
             <ScrollText size={14} className="mr-1" />
             Audit
           </Button>
           {isLive && (
             <>
-              <Button variant="outline" size="sm" onClick={onEditPermissions}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onEditPermissions}
+                className="rounded-xl border-gray-200 hover:border-brand hover:text-brand"
+              >
                 {t("agentIdentities.editPermissions")}
               </Button>
               <Button

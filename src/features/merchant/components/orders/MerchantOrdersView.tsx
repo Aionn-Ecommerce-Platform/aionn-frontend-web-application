@@ -98,15 +98,15 @@ function MerchantOrdersInner() {
           {t("merchant.orders.title")}
         </h1>
 
-        <div className="flex overflow-x-auto gap-1 mb-6 bg-white rounded-md border border-gray-400 p-1">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 mb-6 scrollbar-none">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 activeTab === tab.key
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
+                  : "bg-white text-gray-700 border-2 border-gray-900 hover:bg-gray-100 hover:text-black"
               }`}
             >
               {tab.label}

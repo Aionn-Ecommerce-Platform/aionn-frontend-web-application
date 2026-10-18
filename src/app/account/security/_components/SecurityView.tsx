@@ -190,22 +190,27 @@ function SecurityInner() {
 
   return (
     <MemberPageLayout>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        {t("security.title")}
-      </h1>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+          {t("security.title")}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {t("security.subtitle")}
+        </p>
+      </div>
 
-      <div className="space-y-4">
-        <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-xs">
-                <Key size={20} className="text-blue-600" />
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <Key size={20} />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">
+                <h3 className="text-sm sm:text-base font-bold text-gray-950">
                   {t("security.passwordTitle")}
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                   {t("security.passwordDesc")}
                 </p>
               </div>
@@ -214,39 +219,44 @@ function SecurityInner() {
               variant="outline"
               size="sm"
               onClick={() => setPwdModalOpen(true)}
+              className="rounded-xl border-gray-200 hover:border-brand hover:text-brand font-semibold shrink-0"
             >
               {t("security.changePassword")}
             </Button>
           </div>
         </div>
 
-        <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-xs">
-                <Smartphone size={20} className="text-blue-600" />
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <Smartphone size={20} />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">
+                <h3 className="text-sm sm:text-base font-bold text-gray-950">
                   {t("security.mfaTitle")}
                 </h3>
-                <p className="text-xs text-gray-500">{t("security.mfaDesc")}</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t("security.mfaDesc")}</p>
               </div>
             </div>
-            <Button size="sm" onClick={() => setMfaModalOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => setMfaModalOpen(true)}
+              className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs shrink-0"
+            >
               {t("security.enableNow")}
             </Button>
           </div>
         </div>
 
-        <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-xs">
-                <Shield size={20} className="text-blue-600" />
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-gray-100 pb-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <Shield size={20} />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">
+                <h3 className="text-sm sm:text-base font-bold text-gray-950">
                   {t("security.sessionsTitle")}
                 </h3>
                 <p className="text-xs text-gray-500">
@@ -264,7 +274,7 @@ function SecurityInner() {
           </div>
           {sessions.loading ? (
             <div className="py-8 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={20} />
+              <Loader2 className="animate-spin text-brand" size={24} />
             </div>
           ) : sessions.data && sessions.data.length > 0 ? (
             <div className="space-y-3">
@@ -274,14 +284,14 @@ function SecurityInner() {
                 return (
                   <div
                     key={g.key}
-                    className="flex items-center justify-between py-2 border-t border-gray-50"
+                    className="flex items-center justify-between py-2.5 border-t border-gray-100 first:border-0"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
                         {g.latest.userAgent?.slice(0, 60) ||
                           t("security.unknownDevice")}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 mt-0.5">
                         {g.latest.ipAddress ?? "—"} •{" "}
                         {formatDateTime(
                           lastTs,
@@ -310,6 +320,7 @@ function SecurityInner() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setRevokeGroupKey(g.key)}
+                        className="text-gray-500 hover:text-red-600 rounded-xl"
                       >
                         {t("security.revoke")}
                       </Button>
@@ -325,30 +336,30 @@ function SecurityInner() {
           )}
         </div>
 
-        <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-50 rounded-xs">
-              <Clock size={20} className="text-blue-600" />
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="flex items-center gap-3.5 mb-5 border-b border-gray-100 pb-4">
+            <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+              <Clock size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-900">
+              <h3 className="text-sm sm:text-base font-bold text-gray-950">
                 {t("security.auditTitle")}
               </h3>
-              <p className="text-xs text-gray-500">{t("security.auditDesc")}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t("security.auditDesc")}</p>
             </div>
           </div>
           {auditLogs.loading ? (
             <div className="py-8 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={20} />
+              <Loader2 className="animate-spin text-brand" size={24} />
             </div>
           ) : auditLogs.data && auditLogs.data.length > 0 ? (
             <div className="space-y-3">
               {auditLogs.data.slice(0, 10).map((log) => (
                 <div
                   key={log.auditId}
-                  className="flex items-center justify-between py-2 border-t border-gray-50"
+                  className="flex items-center justify-between py-2.5 border-t border-gray-100 first:border-0"
                 >
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm font-medium text-gray-800">
                     {log.eventType}
                     {log.description ? ` — ${log.description}` : ""}
                   </span>
@@ -368,23 +379,23 @@ function SecurityInner() {
           )}
         </div>
 
-        <div className="bg-white rounded-sm border border-red-100 shadow-xs p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-red-50 rounded-xs">
-              <AlertTriangle size={20} className="text-red-600" />
+        <div className="bg-white rounded-2xl border border-red-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="flex items-center gap-3.5 mb-5 border-b border-red-100 pb-4">
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+              <AlertTriangle size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-red-900">
+              <h3 className="text-sm sm:text-base font-bold text-red-950">
                 {t("security.dangerTitle")}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {t("security.dangerDesc")}
               </p>
             </div>
           </div>
           {pendingDeletion ? (
-            <div className="rounded-xs border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-medium text-amber-900">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4">
+              <p className="text-sm font-semibold text-amber-900">
                 {t("security.pendingDeletionTitle")}
               </p>
               <p className="text-xs text-amber-700 mt-1 mb-3">
@@ -394,17 +405,18 @@ function SecurityInner() {
                 variant="outline"
                 size="sm"
                 onClick={() => setCancelDeletionOpen(true)}
+                className="rounded-xl"
               >
                 {t("security.cancelDeletion")}
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm font-semibold text-gray-900">
                   {t("security.deleteAccount")}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 mt-0.5">
                   {t("security.deleteAccountDesc")}
                 </p>
               </div>
@@ -412,6 +424,7 @@ function SecurityInner() {
                 variant="danger"
                 size="sm"
                 onClick={() => setDeleteAccountOpen(true)}
+                className="rounded-xl shrink-0"
               >
                 {t("security.requestDeletion")}
               </Button>

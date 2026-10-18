@@ -38,13 +38,14 @@ export default function CatalogSidebar(props: Props) {
   const { t, locale } = useTranslation();
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="bg-white rounded-sm border border-gray-400 p-5 space-y-6">
-        <h3 className="font-semibold text-gray-900">{t("products.filters")}</h3>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
+      <div className="bg-white rounded-2xl border border-gray-200/90 p-5 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <h3 className="font-bold text-gray-950 text-base">{t("products.filters")}</h3>
+        <label className="flex items-center gap-2.5 text-sm cursor-pointer font-medium text-gray-800 hover:text-brand transition-colors">
           <input
             type="checkbox"
             checked={props.onSale}
             onChange={props.onSaleChange}
+            className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
           />
           {t("products.onSale")}
         </label>
@@ -61,17 +62,18 @@ export default function CatalogSidebar(props: Props) {
           onToggle={props.onBrand}
         />
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-semibold mb-2">
+          <h4 className="text-sm font-bold text-gray-900 mb-2">
             {t("products.location")}
           </h4>
-          <ul className="space-y-1.5 max-h-56 overflow-y-auto">
+          <ul className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {props.provinces.map((province, index) => (
               <li key={`${province.code}-${index}`}>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-950 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={props.provinceCodes.includes(province.code)}
                     onChange={() => props.onProvince(province.code)}
+                    className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
                   />
                   {cleanProvinceName(
                     locale === "en" && province.nameEn
@@ -84,29 +86,31 @@ export default function CatalogSidebar(props: Props) {
           </ul>
         </div>
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-semibold mb-2">{t("products.rating")}</h4>
+          <h4 className="text-sm font-bold text-gray-900 mb-2">{t("products.rating")}</h4>
           {[5, 4, 3, 2, 1].map((stars) => (
             <button
               key={stars}
               onClick={() => props.onRating(stars)}
-              className={`flex items-center gap-1.5 text-sm w-full p-1.5 rounded-xs transition-colors ${
+              className={`flex items-center gap-2 text-sm w-full p-2 rounded-xl transition-all cursor-pointer ${
                 props.rating === stars
-                  ? "bg-blue-50 text-blue-600 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
+                  ? "bg-brand/10 text-brand font-bold"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              {Array.from({ length: 5 }, (_, index) => (
-                <Star
-                  key={index}
-                  size={12}
-                  className={
-                    index < stars
-                      ? "fill-amber-400 text-amber-400"
-                      : "text-gray-300"
-                  }
-                />
-              ))}
-              <span>{stars === 5 ? "5" : `${stars}+`}</span>
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <Star
+                    key={index}
+                    size={13}
+                    className={
+                      index < stars
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-gray-200"
+                    }
+                  />
+                ))}
+              </div>
+              <span className="text-xs">{stars === 5 ? "5 sao" : `${stars}+ sao`}</span>
             </button>
           ))}
         </div>

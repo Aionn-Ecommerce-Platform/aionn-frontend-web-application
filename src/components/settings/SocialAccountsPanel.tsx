@@ -63,9 +63,11 @@ export default function SocialAccountsPanel() {
 
   return (
     <>
-      <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6">
-        <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
-          <LinkIcon size={18} className="text-blue-600" />
+      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
+          <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+            <LinkIcon size={16} />
+          </div>
           {t("settings.socialTitle")}
         </h3>
         <div className="space-y-4">
@@ -77,16 +79,16 @@ export default function SocialAccountsPanel() {
             return (
               <div
                 key={provider.id}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between gap-4 p-3.5 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-xs ${provider.color.split(" ")[0]}`}
+                    className={`p-2 rounded-lg ${provider.color.split(" ")[0]}`}
                   >
                     <Icon size={18} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {provider.name}
                     </p>
                     <p className="text-xs text-gray-500">
@@ -102,6 +104,7 @@ export default function SocialAccountsPanel() {
                     size="sm"
                     onClick={() => setUnlinkProvider(provider.id)}
                     loading={isLoading}
+                    className="text-gray-500 hover:text-red-600 rounded-xl"
                   >
                     <Unlink size={14} className="mr-1" />
                     {t("settings.socialUnlink")}
@@ -112,6 +115,7 @@ export default function SocialAccountsPanel() {
                     size="sm"
                     onClick={() => handleLink(provider.id)}
                     loading={isLoading}
+                    className="rounded-xl border-gray-200 hover:border-brand hover:text-brand"
                   >
                     {t("settings.socialLink")}
                   </Button>

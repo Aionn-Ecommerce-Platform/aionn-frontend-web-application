@@ -171,13 +171,13 @@ export default function LoginForm({
           <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
             <input
               type="checkbox"
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-gray-900 focus:ring-gray-400"
             />
             {t("auth.rememberMe")}
           </label>
           <Link
             href="/auth/forgot-password"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-brand hover:text-brand-strong font-medium transition-colors"
           >
             {t("auth.forgotPassword")}
           </Link>
@@ -209,7 +209,7 @@ export default function LoginForm({
             />
             {socialLoading === "google" && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="inline-block h-5 w-5 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
+                <span className="inline-block h-5 w-5 rounded-full border-2 border-gray-300 border-t-gray-900 animate-spin" />
               </div>
             )}
           </div>
@@ -222,14 +222,14 @@ export default function LoginForm({
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-blue-600 hover:text-blue-700 font-semibold"
+            className="text-brand hover:text-brand-strong font-semibold transition-colors"
           >
             {t("auth.registerNow")}
           </button>
         ) : (
           <Link
             href="/auth/register"
-            className="text-blue-600 hover:text-blue-700 font-semibold"
+            className="text-brand hover:text-brand-strong font-semibold transition-colors"
           >
             {t("auth.registerNow")}
           </Link>

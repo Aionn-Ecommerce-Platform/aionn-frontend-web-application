@@ -218,32 +218,35 @@ function PaymentMethodsInner() {
   const hasCards = cards.length > 0;
 
   return (
-    <div className="member-page bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="member-page bg-gray-50/60 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t("paymentMethods.cardsTitle")}
-              </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+                  {t("paymentMethods.cardsTitle")}
+                </h1>
+              </div>
               <Button
                 size="sm"
                 onClick={openAddCard}
                 loading={createSetupMutation.isPending}
+                className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs shrink-0"
               >
-                <Plus size={16} className="mr-1" />
+                <Plus size={16} className="mr-1.5" />
                 {t("paymentMethods.addCard")}
               </Button>
             </div>
 
-            <div className="bg-white rounded-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
               {isLoading ? (
-                <div className="py-12 flex justify-center">
-                  <Loader2 className="animate-spin text-blue-600" size={28} />
+                <div className="py-16 flex justify-center">
+                  <Loader2 className="animate-spin text-brand" size={32} />
                 </div>
               ) : hasCards ? (
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-gray-100">
                   {cards.map((method) => {
                     const verified =
                       method.status === "ACTIVE" ||
