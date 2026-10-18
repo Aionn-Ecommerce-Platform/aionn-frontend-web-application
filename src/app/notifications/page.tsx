@@ -287,15 +287,24 @@ function NotificationsInner() {
           if (orderId) {
             actionLabel = `${t("notifications.viewOrder")} (${orderId})`;
             actionUrl = `/orders/${orderId}`;
-          } else if (selectedNotif.category === "CHAT" || /chat|message/i.test(content)) {
-            actionLabel = t("notifications.openChat");
-            actionUrl = "/chat";
-          } else if (selectedNotif.category === "PROMOTION" || /voucher|promo|discount/i.test(content)) {
-            actionLabel = t("notifications.viewVouchers");
-            actionUrl = "/vouchers";
-          } else if (selectedNotif.category === "SECURITY" || /security|auth|login/i.test(content)) {
+          } else if (selectedNotif.category === "SECURITY") {
             actionLabel = t("notifications.viewSecurity");
             actionUrl = "/account/security";
+          } else if (selectedNotif.category === "PROMOTION") {
+            actionLabel = t("notifications.viewVouchers");
+            actionUrl = "/vouchers";
+          } else if (selectedNotif.category === "CHAT") {
+            actionLabel = t("notifications.openChat");
+            actionUrl = "/chat";
+          } else if (/security|auth|login/i.test(content)) {
+            actionLabel = t("notifications.viewSecurity");
+            actionUrl = "/account/security";
+          } else if (/voucher|promo|discount/i.test(content)) {
+            actionLabel = t("notifications.viewVouchers");
+            actionUrl = "/vouchers";
+          } else if (/chat|message/i.test(content)) {
+            actionLabel = t("notifications.openChat");
+            actionUrl = "/chat";
           }
 
           return (

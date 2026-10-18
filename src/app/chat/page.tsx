@@ -732,8 +732,9 @@ export function ChatInner({
                 const other = activeConv?.participants.find(
                   (p) => p.userId !== userId,
                 );
-                const targetName =
-                  other?.displayName?.trim() || t("chat.merchantFallback");
+                const targetId = other?.userId || activeConv?.conversationId;
+                const baseName = other?.displayName?.trim() || t("chat.merchantFallback");
+                const targetName = targetId ? `${baseName} [ID: ${targetId}]` : baseName;
                 const reasonLabel =
                   t(`chat.${reportReasonKey}`) || reportReasonKey;
                 reportMutation.mutate({
