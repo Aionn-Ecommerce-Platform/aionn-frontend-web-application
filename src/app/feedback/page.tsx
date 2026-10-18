@@ -316,11 +316,10 @@ export default function FeedbackPage() {
 
             <div className="space-y-3 max-w-md">
               <h3 className="text-xl font-bold text-gray-950">
-                Chúng tôi luôn lắng nghe bạn
+                {t("feedback.title")}
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Mỗi phản hồi, đóng góp ý kiến hoặc báo cáo lỗi của bạn là nguồn
-                thông tin quý giá giúp Aionn nâng cao trải nghiệm mua sắm thông minh mỗi ngày.
+                {t("feedback.subtitle")}
               </p>
             </div>
           </div>

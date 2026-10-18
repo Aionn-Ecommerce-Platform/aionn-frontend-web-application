@@ -99,9 +99,7 @@ function KycInner() {
                   {t("myKyc.title")}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {locale === "en"
-                    ? "Verify your identity with national ID, passport, or driver's license."
-                    : "Xác minh danh tính của bạn bằng CCCD, Hộ chiếu hoặc Giấy phép lái xe."}
+                  {t("myKyc.subtitle")}
                 </p>
               </div>
               {!approvedProfile && (

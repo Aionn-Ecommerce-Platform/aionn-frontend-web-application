@@ -14,13 +14,13 @@ import {
   Sparkles,
   ShoppingBag,
   ArrowRight,
-  Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, EmptyState } from "@/shared/ui";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { voucherService } from "@/lib/services";
+import { getVoucherStatus } from "@/lib/domain/status/voucher";
 import { qk } from "@/lib/query-keys";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -306,19 +306,14 @@ function VouchersInner() {
                         </button>
                       </div>
 
-                      {used ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                          {t("myVouchers.used")}
-                        </span>
-                      ) : expired ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                          {t("myVouchers.expired")}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          {t("myVouchers.tabAvailable")}
-                        </span>
-                      )}
+                      {(() => {
+                        const statusCfg = getVoucherStatus(voucher.status);
+                        return (
+                          <Badge variant={statusCfg?.variant ?? "info"}>
+                            {statusCfg ? t(statusCfg.labelKey) : voucher.status}
+                          </Badge>
+                        );
+                      })()}
                     </div>
 
                     {/* Headline Discount text */}

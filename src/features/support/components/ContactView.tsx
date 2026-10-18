@@ -51,7 +51,7 @@ export default function ContactPage() {
             </Link>
           </div>
 
-          {/* 4 Cards in 1 Row: Hotline, Email, Trụ sở chính, Thời gian làm việc */}
+          {/* 4 Cards in 1 Row: Hotline, Email, HQ, Working hours */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* 1. Hotline Card */}
             <div className="p-5 rounded-2xl border border-gray-200 bg-gray-50/40 flex flex-col justify-between">
@@ -67,7 +67,7 @@ export default function ContactPage() {
                 </p>
               </div>
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200/60 leading-relaxed">
-                Hỗ trợ trực tiếp
+                {t("contact.directSupport")}
               </p>
             </div>
 
@@ -85,11 +85,11 @@ export default function ContactPage() {
                 </p>
               </div>
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200/60 leading-relaxed">
-                Phản hồi nhanh chóng
+                {t("contact.fastResponse")}
               </p>
             </div>
 
-            {/* 3. Trụ sở chính Card */}
+            {/* 3. HQ Card */}
             <div className="p-5 rounded-2xl border border-gray-200 bg-gray-50/40 flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-brand flex items-center justify-center mb-3">
@@ -99,15 +99,15 @@ export default function ContactPage() {
                   {t("contact.address")}
                 </h3>
                 <p className="text-sm font-semibold text-gray-900 mt-1 leading-snug">
-                  Đại học Công nghệ Thông tin - ĐHQG TP.HCM (UIT)
+                  {t("contact.orgName")}
                 </p>
               </div>
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200/60">
-                Khu phố 6, P. Linh Trung, TP. Thủ Đức, TP.HCM
+                {t("contact.addressValue")}
               </p>
             </div>
 
-            {/* 4. Thời gian làm việc Card */}
+            {/* 4. Working hours Card */}
             <div className="p-5 rounded-2xl border border-gray-200 bg-gray-50/40 flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-brand flex items-center justify-center mb-3">
@@ -118,11 +118,11 @@ export default function ContactPage() {
                 </h3>
                 <div className="text-xs text-gray-900 font-bold mt-1.5 space-y-0.5">
                   <p className="text-base text-brand">24/7 (Full time)</p>
-                  <p className="text-gray-600 font-medium">Toàn bộ các ngày trong tuần</p>
+                  <p className="text-gray-600 font-medium">{t("contact.weekends")}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200/60">
-                Luôn sẵn sàng hỗ trợ
+                {t("contact.alwaysReady")}
               </p>
             </div>
           </div>

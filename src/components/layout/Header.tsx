@@ -45,7 +45,7 @@ import {
 } from "@/shared/lib/recent-searches";
 import LanguageSwitcher from "./LanguageSwitcher";
 import HeaderNavigation from "./HeaderNavigation";
-import { categoryIcons, getNotiBg } from "./header-utils";
+import { categoryIcons } from "./header-utils";
 
 export default function Header() {
   const router = useRouter();

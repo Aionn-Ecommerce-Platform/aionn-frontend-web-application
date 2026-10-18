@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, Loader2, Sparkles, Bot, Bell, ArrowRight, ShieldCheck } from "lucide-react";
+import { Globe, Loader2, Sparkles, Bot, Bell, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
@@ -121,9 +121,7 @@ function SettingsInner() {
           {t("settings.title")}
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          {locale === "en"
-            ? "Manage language, AI personalization options, notifications, and connected accounts."
-            : "Quản lý ngôn ngữ, tùy chọn cá nhân hóa AI, thông báo và tài khoản liên kết."}
+          {t("settings.subtitle")}
         </p>
       </div>
 
@@ -201,9 +199,7 @@ function SettingsInner() {
                     {t("settings.orderNotifications")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {locale === "en"
-                      ? "Order updates, status changes and delivery tracking"
-                      : "Cập nhật đơn hàng, thay đổi trạng thái và hành trình vận chuyển"}
+                    {t("settings.orderNotificationsDesc")}
                   </p>
                 </div>
                 <Switch
@@ -221,9 +217,7 @@ function SettingsInner() {
                     {t("settings.promotionNotifications")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {locale === "en"
-                      ? "Voucher alerts, discount codes and seasonal offers"
-                      : "Thông báo voucher, mã giảm giá và ưu đãi theo mùa"}
+                    {t("settings.promotionNotificationsDesc")}
                   </p>
                 </div>
                 <Switch
@@ -241,9 +235,7 @@ function SettingsInner() {
                     {t("settings.chatNotifications")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {locale === "en"
-                      ? "Messages and replies from merchants"
-                      : "Tin nhắn và phản hồi từ người bán"}
+                    {t("settings.chatNotificationsDesc")}
                   </p>
                 </div>
                 <Switch
@@ -261,9 +253,7 @@ function SettingsInner() {
                     {t("settings.systemNotifications")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {locale === "en"
-                      ? "Security alerts and important platform updates"
-                      : "Cảnh báo bảo mật và các cập nhật quan trọng của hệ thống"}
+                    {t("settings.systemNotificationsDesc")}
                   </p>
                 </div>
                 <Switch

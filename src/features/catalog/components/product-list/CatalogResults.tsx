@@ -149,7 +149,7 @@ export default function CatalogResults(props: Props) {
                 )}
                 {product.isBestSeller && !product.flashSale && (
                   <span className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">
-                    BÁN CHẠY
+                    {t("products.bestSeller")}
                   </span>
                 )}
               </div>
@@ -179,7 +179,7 @@ export default function CatalogResults(props: Props) {
                     )}
                     {product.soldCount !== undefined && product.soldCount > 0 && (
                       <span className="text-xs text-gray-400">
-                        · Đã bán {product.soldCount}
+                        · {t("productDetail.sold")} {product.soldCount}
                       </span>
                     )}
                   </div>

@@ -156,7 +156,7 @@ function CardBrandLogo({
 }
 
 function PaymentMethodsInner() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [setupIntent, setSetupIntent] = useState<StripeSetupIntent | null>(

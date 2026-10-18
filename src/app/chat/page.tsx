@@ -203,10 +203,6 @@ export function ChatInner({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [moreMenuOpen]);
 
-  useEffect(() => {
-    setMoreMenuOpen(false);
-  }, [effectiveSelectedId]);
-
   const archiveMutation = useMutation({
     mutationFn: (id: string) => conversationService.archive(id),
     onSuccess: () => {
@@ -237,8 +233,15 @@ export function ChatInner({
     }) =>
       feedbackService.submit({
         category: "COMPLAINT",
-        subject: `[Báo cáo shop] ${data.targetName} - ${data.reason}`,
-        content: `Cửa hàng: ${data.targetName}\nLý do: ${data.reason}\nChi tiết: ${data.details || "Không có thêm chi tiết"}`,
+        subject: t("chat.reportSubject", {
+          name: data.targetName,
+          reason: data.reason,
+        }),
+        content: t("chat.reportContent", {
+          name: data.targetName,
+          reason: data.reason,
+          details: data.details || t("chat.reportNoDetails"),
+        }),
       }),
     onSuccess: () => {
       setReportModalOpen(false);
@@ -317,7 +320,10 @@ export function ChatInner({
                       return (
                         <button
                           key={conv.conversationId}
-                          onClick={() => setSelectedId(conv.conversationId)}
+                          onClick={() => {
+                            setSelectedId(conv.conversationId);
+                            setMoreMenuOpen(false);
+                          }}
                           className={`w-full p-3 flex items-center gap-3 rounded-xl transition-all text-left cursor-pointer ${
                             isSelected
                               ? "bg-brand/10"
@@ -704,7 +710,7 @@ export function ChatInner({
               disabled={reportMutation.isPending}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
             >
-              {t("common.cancel") || "Hủy"}
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -716,7 +722,7 @@ export function ChatInner({
                 const targetName =
                   other?.displayName?.trim() || t("chat.merchantFallback");
                 const reasonLabel =
-                  t(`chat.${reportReasonKey}` as any) || reportReasonKey;
+                  t(`chat.${reportReasonKey}`) || reportReasonKey;
                 reportMutation.mutate({
                   targetName,
                   reason: reasonLabel,

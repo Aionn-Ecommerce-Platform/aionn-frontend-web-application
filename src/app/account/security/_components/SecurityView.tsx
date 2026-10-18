@@ -195,9 +195,7 @@ function SecurityInner() {
           {t("security.title")}
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          {locale === "en"
-            ? "Manage password, two-factor authentication, active sessions, and account security."
-            : "Quản lý mật khẩu, xác thực hai lớp (2FA), phiên đăng nhập và bảo mật tài khoản."}
+          {t("security.subtitle")}
         </p>
       </div>
 

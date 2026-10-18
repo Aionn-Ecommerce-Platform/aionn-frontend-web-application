@@ -142,7 +142,7 @@ export default function Sidebar() {
   const displayName =
     user?.displayName ||
     user?.username ||
-    (isAuthenticated ? "Tài khoản" : "Khách");
+    (isAuthenticated ? t("common.account") : t("common.guest"));
 
   return (
     <aside className="w-64 flex-shrink-0 hidden lg:block">

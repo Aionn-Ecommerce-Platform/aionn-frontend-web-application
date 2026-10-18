@@ -64,9 +64,7 @@ function PrivacyInner() {
                 {t("privacy.title")}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                {locale === "en"
-                  ? "Manage legal agreements, consent preferences, and your personal data rights."
-                  : "Quản lý thỏa thuận pháp lý, sự đồng ý dữ liệu và các quyền riêng tư cá nhân của bạn."}
+                {t("privacy.subtitle")}
               </p>
             </div>
 

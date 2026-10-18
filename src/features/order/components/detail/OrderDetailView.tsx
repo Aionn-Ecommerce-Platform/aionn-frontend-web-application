@@ -74,6 +74,7 @@ function OrderDetailInner({ id }: { id: string }) {
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fromTab = searchParams.get("fromTab") || searchParams.get("tab");
 
   const { data: order, isLoading } = useQuery({
@@ -188,16 +189,12 @@ function OrderDetailInner({ id }: { id: string }) {
     order.status === "PREPARING";
   const canReturn = order.status === "COMPLETED";
 
-  const [copied, setCopied] = useState(false);
-
   const handleCopyOrderId = () => {
     const code = order?.orderSn || order?.orderId;
     if (!code) return;
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success(
-      locale === "vi" ? "Đã sao chép mã đơn hàng" : "Order code copied",
-    );
+    toast.success(t("orders.copiedToast"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -255,7 +252,7 @@ function OrderDetailInner({ id }: { id: string }) {
                 type="button"
                 onClick={handleCopyOrderId}
                 className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-strong transition-colors cursor-pointer ml-1 p-0.5 rounded hover:bg-brand/10"
-                title={locale === "vi" ? "Sao chép mã đơn hàng" : "Copy order ID"}
+                title={t("orders.copyCode")}
               >
                 {copied ? (
                   <Check size={13} className="text-emerald-600" />
@@ -263,13 +260,7 @@ function OrderDetailInner({ id }: { id: string }) {
                   <Copy size={13} />
                 )}
                 <span className="text-[11px] font-medium">
-                  {copied
-                    ? locale === "vi"
-                      ? "Đã chép"
-                      : "Copied"
-                    : locale === "vi"
-                      ? "Sao chép"
-                      : "Copy"}
+                  {copied ? t("orders.copied") : t("orders.copy")}
                 </span>
               </button>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,7 +9,6 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
-  Zap,
 } from "lucide-react";
 import { Button, ProductCardSkeleton } from "@/shared/ui";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +50,7 @@ function lowestPrice(p: Product): number | null {
 }
 
 export default function HomePage() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => window.scrollTo(0, 0));
@@ -426,33 +425,33 @@ export default function HomePage() {
       <section className="py-14 bg-white border-t border-gray-200/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
-            {locale === "en" ? "Quick Links" : "Liên Kết Nhanh"}
+            {t("home.quickLinks")}
           </h2>
 
           <div className="flex flex-wrap items-center gap-3 mb-10">
             {[
               {
-                label: locale === "en" ? "Order Status" : "Trạng Thái Đơn Hàng",
+                label: t("home.linkOrderStatus"),
                 href: "/orders",
               },
               {
-                label: locale === "en" ? "Shopping Help" : "Trợ Giúp Mua Hàng",
+                label: t("home.linkShoppingHelp"),
                 href: "/help",
               },
               {
-                label: locale === "en" ? "Returns & Refunds" : "Trả hàng",
+                label: t("home.linkReturns"),
                 href: "/orders/returns",
               },
               {
-                label: locale === "en" ? "Saved Items" : "Mục Đã Lưu",
+                label: t("home.linkSavedItems"),
                 href: "/products",
               },
               {
-                label: locale === "en" ? "Shipping & Delivery" : "Vận Chuyển & Giao Hàng",
+                label: t("home.linkShipping"),
                 href: "/contact",
               },
               {
-                label: locale === "en" ? "Payment Methods" : "Thanh toán",
+                label: t("home.linkPayment"),
                 href: "/account/payment-methods",
               },
             ].map((link, idx) => (
@@ -468,14 +467,10 @@ export default function HomePage() {
 
           <div className="text-xs text-gray-500 space-y-2 leading-relaxed max-w-5xl">
             <p>
-              {locale === "en"
-                ? "All listed prices include applicable taxes. Free delivery on all qualified orders."
-                : "Giá hiển thị đã bao gồm tất cả các khoản thuế. Giao hàng miễn phí cho tất cả đơn hàng đủ điều kiện."}
+              {t("home.taxNotice")}
             </p>
             <p>
-              {locale === "en"
-                ? "Order fulfillment is processed directly via authorized merchant partners. Aionn protects customer personal information according to our Privacy Policy."
-                : "Đơn hàng được xử lý và phân phối trực tiếp từ các đối tác nhà bán hàng ủy quyền của Aionn. Aionn cam kết bảo mật thông tin cá nhân theo đúng Chính sách Quyền Riêng Tư."}
+              {t("home.fulfillmentNotice")}
             </p>
           </div>
         </div>

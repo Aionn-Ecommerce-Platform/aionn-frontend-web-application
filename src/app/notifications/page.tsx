@@ -14,7 +14,6 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
-  ExternalLink,
   ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -288,13 +287,13 @@ function NotificationsInner() {
           if (orderId) {
             actionLabel = `${t("notifications.viewOrder")} (${orderId})`;
             actionUrl = `/orders/${orderId}`;
-          } else if (selectedNotif.category === "CHAT" || content.toLowerCase().includes("tin nhắn")) {
+          } else if (selectedNotif.category === "CHAT" || /chat|message/i.test(content)) {
             actionLabel = t("notifications.openChat");
             actionUrl = "/chat";
-          } else if (selectedNotif.category === "PROMOTION" || content.toLowerCase().includes("voucher") || content.toLowerCase().includes("mã giảm giá")) {
+          } else if (selectedNotif.category === "PROMOTION" || /voucher|promo|discount/i.test(content)) {
             actionLabel = t("notifications.viewVouchers");
             actionUrl = "/vouchers";
-          } else if (selectedNotif.category === "SECURITY" || content.toLowerCase().includes("bảo mật") || content.toLowerCase().includes("đăng nhập")) {
+          } else if (selectedNotif.category === "SECURITY" || /security|auth|login/i.test(content)) {
             actionLabel = t("notifications.viewSecurity");
             actionUrl = "/account/security";
           }
