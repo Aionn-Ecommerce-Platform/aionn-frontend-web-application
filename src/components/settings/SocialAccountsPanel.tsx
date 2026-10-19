@@ -15,12 +15,6 @@ const PROVIDERS = [
     color: "bg-red-50 text-red-700 border-red-200",
     icon: Mail,
   },
-  {
-    id: "FACEBOOK",
-    name: "Facebook",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
-    icon: Mail,
-  },
 ];
 
 export default function SocialAccountsPanel() {

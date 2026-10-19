@@ -13,7 +13,7 @@ interface LoginRequest {
 }
 
 interface SocialAuthRequest {
-  provider: "google" | "facebook";
+  provider: "google";
   providerToken: string;
 }
 
