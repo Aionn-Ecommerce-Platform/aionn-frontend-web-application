@@ -15,3 +15,4 @@ export { default as Switch } from "./Switch";
 export { default as FormField } from "./FormField";
 export { default as StatCard } from "./StatCard";
 export { default as AppImage } from "./AppImage";
+export { default as Pagination } from "./Pagination";

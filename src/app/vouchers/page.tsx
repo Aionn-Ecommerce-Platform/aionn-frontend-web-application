@@ -14,11 +14,9 @@ import {
   Sparkles,
   ShoppingBag,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Badge, EmptyState } from "@/shared/ui";
+import { Badge, EmptyState, Pagination } from "@/shared/ui";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { voucherService } from "@/lib/services";
@@ -267,6 +265,18 @@ function VoucherCard({
   );
 }
 
+const isAvailable = (v: UserVoucher) =>
+  v.status === "CLAIMED" || v.status === "RELEASED";
+const isUsed = (v: UserVoucher) =>
+  v.status === "APPLIED" || v.status === "RESERVED";
+const isExpired = (v: UserVoucher) => v.status === "EXPIRED";
+
+const getVoucherRank = (v: UserVoucher): number => {
+  if (isAvailable(v)) return 0;
+  if (isUsed(v)) return 1;
+  return 2;
+};
+
 function VouchersInner() {
   const router = useRouter();
   const qc = useQueryClient();
@@ -311,12 +321,6 @@ function VouchersInner() {
     }, 2000);
   };
 
-  const isAvailable = (v: UserVoucher) =>
-    v.status === "CLAIMED" || v.status === "RELEASED";
-  const isUsed = (v: UserVoucher) =>
-    v.status === "APPLIED" || v.status === "RESERVED";
-  const isExpired = (v: UserVoucher) => v.status === "EXPIRED";
-
   const counts = {
     ALL: vouchers.length,
     AVAILABLE: vouchers.filter(isAvailable).length,
@@ -339,8 +343,8 @@ function VouchersInner() {
 
     return [...list].sort((a, b) => {
       // Prioritize available vouchers first (0), then used (1), then expired (2)
-      const aRank = isAvailable(a) ? 0 : isUsed(a) ? 1 : 2;
-      const bRank = isAvailable(b) ? 0 : isUsed(b) ? 1 : 2;
+      const aRank = getVoucherRank(a);
+      const bRank = getVoucherRank(b);
       if (aRank !== bRank) return aRank - bRank;
 
       // Within same status, newest claimed first
@@ -487,59 +491,11 @@ function VouchersInner() {
       <div className="space-y-4">
         {renderVoucherList()}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center pt-8 pb-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setCurrentPage((p) => Math.max(1, p - 1));
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                disabled={safeCurrentPage <= 1}
-                aria-label="Previous Page"
-                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-                  (pageNum) => {
-                    const isSelected = pageNum === safeCurrentPage;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => {
-                          setCurrentPage(pageNum);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className={`h-9 min-w-9 px-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                            : "bg-white text-gray-800 border-2 border-gray-900 hover:bg-gray-100"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  setCurrentPage((p) => Math.min(totalPages, p + 1));
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                disabled={safeCurrentPage >= totalPages}
-                aria-label="Next Page"
-                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </MemberPageLayout>
   );

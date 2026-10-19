@@ -158,20 +158,22 @@ export function ChatInner({
     qc,
   ]);
 
+  const handleMessageSent = (msg: ChatMessage) => {
+    qc.setQueryData<ChatMessage[]>(
+      qk.messages(effectiveSelectedId!),
+      (prev) => (prev ? [...prev, msg] : [msg]),
+    );
+    void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
+    void conversationService.markRead(effectiveSelectedId!).then(() => {
+      qc.invalidateQueries({ queryKey: qk.unreadCounts });
+      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+    });
+  };
+
   const sendMutation = useMutation({
     mutationFn: (body: string) =>
       messageService.send(effectiveSelectedId!, { type: "TEXT", body }),
-    onSuccess: (msg) => {
-      qc.setQueryData<ChatMessage[]>(
-        qk.messages(effectiveSelectedId!),
-        (prev) => (prev ? [...prev, msg] : [msg]),
-      );
-      void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
-      void conversationService.markRead(effectiveSelectedId!).then(() => {
-        qc.invalidateQueries({ queryKey: qk.unreadCounts });
-        qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
-      });
-    },
+    onSuccess: handleMessageSent,
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
@@ -188,17 +190,7 @@ export function ChatInner({
         metadata: { imageUrl: url },
       });
     },
-    onSuccess: (msg) => {
-      qc.setQueryData<ChatMessage[]>(
-        qk.messages(effectiveSelectedId!),
-        (prev) => (prev ? [...prev, msg] : [msg]),
-      );
-      void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
-      void conversationService.markRead(effectiveSelectedId!).then(() => {
-        qc.invalidateQueries({ queryKey: qk.unreadCounts });
-        qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
-      });
-    },
+    onSuccess: handleMessageSent,
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 

@@ -255,7 +255,7 @@ export function useChatSocket({
   // Handle active conversation changes while already connected
   useEffect(() => {
     const client = clientRef.current;
-    if (client && client.connected) {
+    if (client?.connected) {
       subscribeToActiveConversation(client, activeConversationId);
     }
   }, [activeConversationId, subscribeToActiveConversation]);
@@ -265,7 +265,7 @@ export function useChatSocket({
     if (!convId) return;
 
     const client = clientRef.current;
-    if (client && client.connected) {
+    if (client?.connected) {
       client.publish({
         destination: `/app/chat/conversations/${convId}/typing`,
         body: JSON.stringify({ typing }),
