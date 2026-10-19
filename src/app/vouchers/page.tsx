@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,6 +14,8 @@ import {
   Sparkles,
   ShoppingBag,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, EmptyState } from "@/shared/ui";
@@ -270,6 +272,8 @@ function VouchersInner() {
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabFilter>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
   const [inputCode, setInputCode] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -277,7 +281,7 @@ function VouchersInner() {
     queryKey: qk.myVouchers(),
     queryFn: () => voucherService.listMine(50),
   });
-  const vouchers = data ?? [];
+  const vouchers = useMemo(() => data ?? [], [data]);
 
   const claimMutation = useMutation({
     mutationFn: (code: string) => voucherService.claim(code),
@@ -320,12 +324,40 @@ function VouchersInner() {
     EXPIRED: vouchers.filter(isExpired).length,
   };
 
-  const filteredVouchers = vouchers.filter((v) => {
-    if (activeTab === "AVAILABLE") return isAvailable(v);
-    if (activeTab === "USED") return isUsed(v);
-    if (activeTab === "EXPIRED") return isExpired(v);
-    return true;
-  });
+  const handleTabChange = (tab: TabFilter) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  const filteredVouchers = useMemo(() => {
+    const list = vouchers.filter((v) => {
+      if (activeTab === "AVAILABLE") return isAvailable(v);
+      if (activeTab === "USED") return isUsed(v);
+      if (activeTab === "EXPIRED") return isExpired(v);
+      return true;
+    });
+
+    return [...list].sort((a, b) => {
+      // Prioritize available vouchers first (0), then used (1), then expired (2)
+      const aRank = isAvailable(a) ? 0 : isUsed(a) ? 1 : 2;
+      const bRank = isAvailable(b) ? 0 : isUsed(b) ? 1 : 2;
+      if (aRank !== bRank) return aRank - bRank;
+
+      // Within same status, newest claimed first
+      const aTime = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
+      const bTime = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [vouchers, activeTab]);
+
+  const totalItems = filteredVouchers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedVouchers = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredVouchers.slice(start, start + PAGE_SIZE);
+  }, [filteredVouchers, safeCurrentPage]);
 
   const renderVoucherList = () => {
     if (isLoading) {
@@ -355,7 +387,7 @@ function VouchersInner() {
         </div>
       );
     }
-    return filteredVouchers.map((voucher) => (
+    return paginatedVouchers.map((voucher) => (
       <VoucherCard
         key={voucher.userVoucherId}
         voucher={voucher}
@@ -429,7 +461,7 @@ function VouchersInner() {
           return (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => handleTabChange(tab.key)}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                 active
                   ? "bg-gray-950 text-white shadow-xs"
@@ -454,6 +486,60 @@ function VouchersInner() {
       {/* Vouchers List Container */}
       <div className="space-y-4">
         {renderVoucherList()}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center pt-8 pb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setCurrentPage((p) => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                disabled={safeCurrentPage <= 1}
+                aria-label="Previous Page"
+                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+                  (pageNum) => {
+                    const isSelected = pageNum === safeCurrentPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className={`h-9 min-w-9 px-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
+                            : "bg-white text-gray-800 border-2 border-gray-900 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  setCurrentPage((p) => Math.min(totalPages, p + 1));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                disabled={safeCurrentPage >= totalPages}
+                aria-label="Next Page"
+                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </MemberPageLayout>
   );
