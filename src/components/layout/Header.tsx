@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -53,14 +53,14 @@ import HeaderNavigation from "./HeaderNavigation";
 import { categoryIcons } from "./header-utils";
 
 interface SearchDropdownProps {
-  searchOpen: boolean;
-  searchQuery: string;
-  recentSearches: string[];
-  trendingRecommendations: RecommendationItem[];
-  liveSuggestions: Product[];
-  isSuggestionsLoading: boolean;
-  onSelectKeyword: (keyword: string) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  readonly searchOpen: boolean;
+  readonly searchQuery: string;
+  readonly recentSearches: readonly string[];
+  readonly trendingRecommendations: readonly RecommendationItem[];
+  readonly liveSuggestions: readonly Product[];
+  readonly isSuggestionsLoading: boolean;
+  readonly onSelectKeyword: (keyword: string) => void;
+  readonly t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function SearchDropdown({
@@ -72,7 +72,7 @@ function SearchDropdown({
   isSuggestionsLoading,
   onSelectKeyword,
   t,
-}: SearchDropdownProps) {
+}: Readonly<SearchDropdownProps>) {
   if (!searchOpen) return null;
 
   const trimmedQuery = searchQuery.trim();
@@ -204,12 +204,20 @@ export default function Header() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: liveSuggestions = [], isLoading: isSuggestionsLoading } = useQuery({
-    queryKey: ["search-live-suggestions", debouncedSearchQuery],
-    queryFn: () => productService.searchSuggestions(debouncedSearchQuery, 5),
-    enabled: searchOpen && debouncedSearchQuery.length > 0,
-    staleTime: 30 * 1000,
-  });
+  const { data: liveSuggestions = [], isFetching: isSuggestionsFetching } =
+    useQuery({
+      queryKey: ["search-live-suggestions", debouncedSearchQuery],
+      queryFn: () => productService.searchSuggestions(debouncedSearchQuery, 5),
+      enabled: searchOpen && debouncedSearchQuery.length > 0,
+      placeholderData: keepPreviousData,
+      staleTime: 30 * 1000,
+    });
+
+  const isSuggestionsLoading =
+    (searchOpen &&
+      searchQuery.trim().length > 0 &&
+      searchQuery.trim() !== debouncedSearchQuery) ||
+    isSuggestionsFetching;
 
   const userRoles = user?.roles ?? [];
   const hasSellerRole = userRoles.some((role) =>

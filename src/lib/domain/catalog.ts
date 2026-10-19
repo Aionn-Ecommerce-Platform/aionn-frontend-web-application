@@ -13,16 +13,22 @@ interface FilterItemInput {
   selectedIds: string[];
 }
 
-export function buildFilterItems({
-  names,
-  counts = {},
-  selectedIds,
-}: FilterItemInput) {
-  const candidateIds = Array.from(
-    new Set([...Object.keys(counts), ...selectedIds]),
-  ).filter((id) => (counts[id] ?? 0) > 0 || selectedIds.includes(id));
+function getCandidateIds(
+  counts: Record<string, number> = {},
+  selectedIds: string[] = [],
+): string[] {
+  return Array.from(new Set([...Object.keys(counts), ...selectedIds])).filter(
+    (id) => (counts[id] ?? 0) > 0 || selectedIds.includes(id),
+  );
+}
 
-  return candidateIds
+function toFilterItems(
+  ids: string[],
+  names: Map<string, string>,
+  counts: Record<string, number> = {},
+  selectedIds: string[] = [],
+) {
+  return ids
     .map((id) => ({
       id,
       label: names.get(id) ?? id,
@@ -30,6 +36,15 @@ export function buildFilterItems({
       selected: selectedIds.includes(id),
     }))
     .sort((left, right) => left.label.localeCompare(right.label));
+}
+
+export function buildFilterItems({
+  names,
+  counts = {},
+  selectedIds,
+}: FilterItemInput) {
+  const candidateIds = getCandidateIds(counts, selectedIds);
+  return toFilterItems(candidateIds, names, counts, selectedIds);
 }
 
 interface CategoryFilterItemInput extends FilterItemInput {
@@ -67,12 +82,10 @@ export function buildCategoryFilterItems({
   selectedIds,
   nodes,
 }: CategoryFilterItemInput) {
-  const candidateIds = Array.from(
-    new Set([...Object.keys(counts), ...selectedIds]),
-  ).filter((id) => (counts[id] ?? 0) > 0 || selectedIds.includes(id));
+  const candidateIds = getCandidateIds(counts, selectedIds);
 
   if (!nodes || nodes.length === 0 || candidateIds.length <= 1) {
-    return buildFilterItems({ names, counts, selectedIds });
+    return toFilterItems(candidateIds, names, counts, selectedIds);
   }
 
   const descendantsMap = extractCategoryDescendants(nodes);
@@ -106,14 +119,7 @@ export function buildCategoryFilterItems({
     (id) => !hiddenAncestorIds.has(id),
   );
 
-  return filteredCandidateIds
-    .map((id) => ({
-      id,
-      label: names.get(id) ?? id,
-      count: counts[id] ?? 0,
-      selected: selectedIds.includes(id),
-    }))
-    .sort((left, right) => left.label.localeCompare(right.label));
+  return toFilterItems(filteredCandidateIds, names, counts, selectedIds);
 }
 
 export function hasCatalogFilters(
