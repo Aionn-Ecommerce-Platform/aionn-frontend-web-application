@@ -1740,6 +1740,7 @@
     "uploadImage": "Upload image",
     "messagePlaceholder": "Type a message...",
     "sendMessage": "Send message",
+    "typing": "Typing...",
     "blockedUserFallback": "User"
   },
   "security": {

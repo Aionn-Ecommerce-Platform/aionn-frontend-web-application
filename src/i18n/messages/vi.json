@@ -1740,6 +1740,7 @@
     "uploadImage": "Tải ảnh lên",
     "messagePlaceholder": "Nhập tin nhắn...",
     "sendMessage": "Gửi tin nhắn",
+    "typing": "Đang soạn tin nhắn...",
     "blockedUserFallback": "Người dùng"
   },
   "security": {

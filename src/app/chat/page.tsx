@@ -28,7 +28,7 @@ import {
 import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useChatSocket } from "@/hooks";
 import { formatTime } from "@/shared/lib/utils";
 import type { ChatMessage } from "@/types";
 
@@ -57,7 +57,6 @@ export function ChatInner({
     queryFn: () =>
       conversationService.listMine({ includeArchived: false, limit: 50 }),
     enabled: !isInitializing && isAuthenticated,
-    refetchInterval: 30_000,
   });
 
   const filtered = useMemo(() => {
@@ -81,6 +80,12 @@ export function ChatInner({
     (c) => c.conversationId === effectiveSelectedId,
   );
 
+  const { isPartnerTyping, sendTyping } = useChatSocket({
+    activeConversationId: effectiveSelectedId,
+    currentUserId: userId,
+    enabled: !isInitializing && isAuthenticated,
+  });
+
   const { data: messages, isLoading: loadingMsgs } = useQuery({
     queryKey: effectiveSelectedId
       ? qk.messages(effectiveSelectedId)
@@ -90,7 +95,6 @@ export function ChatInner({
         ? messageService.list(effectiveSelectedId, { limit: 50 })
         : Promise.resolve([] as ChatMessage[]),
     enabled: !isInitializing && isAuthenticated && !!effectiveSelectedId,
-    refetchInterval: 3_000,
   });
 
   const sortedMessages = useMemo(() => {
@@ -263,11 +267,31 @@ export function ChatInner({
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSend = () => {
     const text = draft.trim();
     if (!text || !effectiveSelectedId || sendMutation.isPending) return;
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+    }
+    sendTyping(false);
     sendMutation.mutate(text);
     setDraft("");
+  };
+
+  const handleDraftChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setDraft(val);
+    if (effectiveSelectedId) {
+      sendTyping(true);
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current);
+      }
+      typingTimerRef.current = setTimeout(() => {
+        sendTyping(false);
+      }, 2500);
+    }
   };
 
   const renderMessageBody = (msg: (typeof sortedMessages)[number]) => {
@@ -598,6 +622,16 @@ export function ChatInner({
                       className="flex-1 overflow-y-auto p-5 space-y-3.5 bg-gray-50/20"
                     >
                       {renderMessages()}
+                      {isPartnerTyping && (
+                        <div className="flex items-center gap-2 px-1 text-xs text-gray-500 font-medium italic animate-pulse">
+                          <span className="inline-flex gap-1 items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.3s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.15s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce" />
+                          </span>
+                          <span>{t("chat.typing")}</span>
+                        </div>
+                      )}
                       <div ref={messagesEndRef} />
                     </div>
 
@@ -630,7 +664,7 @@ export function ChatInner({
                         <input
                           type="text"
                           value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
+                          onChange={handleDraftChange}
                           placeholder={t("chat.messagePlaceholder")}
                           className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-xs sm:text-sm focus:border-gray-900 focus:outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
                           onKeyDown={(e) => {
