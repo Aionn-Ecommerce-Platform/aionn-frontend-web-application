@@ -8,7 +8,7 @@ type VoucherStatusConfig = {
 const VOUCHER_STATUS: Record<UserVoucherStatus, VoucherStatusConfig> = {
   CLAIMED: { labelKey: "statuses.voucher.CLAIMED", variant: "success" },
   RESERVED: { labelKey: "statuses.voucher.RESERVED", variant: "warning" },
-  APPLIED: { labelKey: "statuses.voucher.APPLIED", variant: "info" },
+  APPLIED: { labelKey: "statuses.voucher.APPLIED", variant: "success" },
   RELEASED: { labelKey: "statuses.voucher.RELEASED", variant: "info" },
   EXPIRED: { labelKey: "statuses.voucher.EXPIRED", variant: "danger" },
 };
