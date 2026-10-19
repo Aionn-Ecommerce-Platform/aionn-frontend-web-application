@@ -94,7 +94,7 @@ function OrdersInner() {
 
   return (
     <MemberPageLayout>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
         {t("orders.title")}
       </h1>
 

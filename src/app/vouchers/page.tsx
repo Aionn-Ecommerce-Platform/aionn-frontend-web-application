@@ -373,7 +373,7 @@ function VouchersInner() {
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("myVouchers.title")}
           </h1>
         </div>

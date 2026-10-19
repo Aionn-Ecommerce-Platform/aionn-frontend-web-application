@@ -113,7 +113,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
           {t("orders.returns.backToOrder")}
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
           {t("orders.returns.title")}
         </h1>
         <p className="mt-1 text-sm text-gray-500">

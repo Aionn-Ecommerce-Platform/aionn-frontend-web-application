@@ -105,7 +105,7 @@ function MfaSetupWizardInner() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight text-center mb-2">
             {t("mfaSetup.title")}
           </h1>
           <p className="text-sm text-gray-500 text-center mb-8">
