@@ -6,6 +6,10 @@ import { VN, US } from "country-flag-icons/react/3x2";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/hooks";
+import { useAuthStore } from "@/stores/auth.store";
+import { preferenceService } from "@/lib/services";
+import { qk } from "@/lib/query-keys";
+import type { UserPreference } from "@/types";
 
 type Locale = "vi" | "en";
 
@@ -22,6 +26,7 @@ export default function LanguageSwitcher() {
   const { t, locale, setLocale } = useTranslation();
   const qc = useQueryClient();
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -72,6 +77,24 @@ export default function LanguageSwitcher() {
                 onClick={() => {
                   if (lang.code !== locale) {
                     setLocale(lang.code);
+
+                    if (isAuthenticated) {
+                      const cached =
+                        qc.getQueryData<UserPreference>(qk.preferences);
+                      preferenceService
+                        .updateGeneral({
+                          language: lang.code,
+                          currency: cached?.currency ?? "VND",
+                          timezone: cached?.timezone ?? "Asia/Ho_Chi_Minh",
+                          theme: cached?.theme ?? "light",
+                        })
+                        .then((updated) => {
+                          qc.setQueryData(qk.preferences, updated);
+                        })
+                        .catch(() => {
+                          // Silent background update; does not interrupt user flow
+                        });
+                    }
 
                     qc.invalidateQueries();
                     router.refresh();

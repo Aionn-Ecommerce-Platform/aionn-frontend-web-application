@@ -44,6 +44,7 @@ vi.mock("@stomp/stompjs", () => {
       this.beforeConnect = config.beforeConnect as (() => void) | undefined;
       this.onConnect = config.onConnect as (() => void) | undefined;
       this.onDisconnect = config.onDisconnect as (() => void) | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       clientInstance = this;
     }
 
