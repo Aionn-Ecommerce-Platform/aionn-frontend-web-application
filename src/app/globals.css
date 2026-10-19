@@ -45,6 +45,10 @@
   --font-brand: var(--font-brand-logo), cursive;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

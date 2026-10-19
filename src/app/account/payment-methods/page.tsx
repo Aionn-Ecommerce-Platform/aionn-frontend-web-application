@@ -6,7 +6,7 @@ import { Check, CreditCard, Loader2, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, Button, ConfirmDialog } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
-import Sidebar from "@/components/layout/Sidebar";
+import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import {
   StripeCardSetupModal,
   isStripeClientConfigured,
@@ -218,14 +218,10 @@ function PaymentMethodsInner() {
   const hasCards = cards.length > 0;
 
   return (
-    <div className="member-page bg-gray-50/60 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div className="flex gap-8">
-          <Sidebar />
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+    <MemberPageLayout>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
                   {t("paymentMethods.cardsTitle")}
                 </h1>
               </div>
@@ -308,9 +304,6 @@ function PaymentMethodsInner() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </div>
 
       <StripeCardSetupModal
         isOpen={stripeModalOpen}
@@ -337,7 +330,7 @@ function PaymentMethodsInner() {
         variant="danger"
         loading={removeMutation.isPending}
       />
-    </div>
+    </MemberPageLayout>
   );
 }
 

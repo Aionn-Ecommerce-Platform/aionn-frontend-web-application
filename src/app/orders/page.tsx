@@ -94,9 +94,13 @@ function OrdersInner() {
 
   return (
     <MemberPageLayout>
-      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
-        {t("orders.title")}
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {t("orders.title")}
+          </h1>
+        </div>
+      </div>
 
       {/* Filter Tabs Bar - Apple-style distinct outline pill tabs */}
       <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-6 scrollbar-none">
