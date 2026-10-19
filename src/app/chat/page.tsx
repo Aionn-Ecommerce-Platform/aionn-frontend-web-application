@@ -90,7 +90,7 @@ export function ChatInner({
         ? messageService.list(effectiveSelectedId, { limit: 50 })
         : Promise.resolve([] as ChatMessage[]),
     enabled: !isInitializing && isAuthenticated && !!effectiveSelectedId,
-    refetchInterval: 5_000,
+    refetchInterval: 3_000,
   });
 
   const sortedMessages = useMemo(() => {
@@ -146,7 +146,13 @@ export function ChatInner({
       qc.invalidateQueries({ queryKey: qk.unreadCounts });
       qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
     });
-  }, [effectiveSelectedId, isAuthenticated, isInitializing, qc]);
+  }, [
+    effectiveSelectedId,
+    activeConv?.unreadCount,
+    isAuthenticated,
+    isInitializing,
+    qc,
+  ]);
 
   const sendMutation = useMutation({
     mutationFn: (body: string) =>
@@ -156,7 +162,11 @@ export function ChatInner({
         qk.messages(effectiveSelectedId!),
         (prev) => (prev ? [...prev, msg] : [msg]),
       );
-      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
+      void conversationService.markRead(effectiveSelectedId!).then(() => {
+        qc.invalidateQueries({ queryKey: qk.unreadCounts });
+        qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -179,7 +189,11 @@ export function ChatInner({
         qk.messages(effectiveSelectedId!),
         (prev) => (prev ? [...prev, msg] : [msg]),
       );
-      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
+      void conversationService.markRead(effectiveSelectedId!).then(() => {
+        qc.invalidateQueries({ queryKey: qk.unreadCounts });
+        qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
