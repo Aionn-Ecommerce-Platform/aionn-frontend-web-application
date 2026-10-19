@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Globe, Loader2, Sparkles, Bot, Bell, ArrowRight } from "lucide-react";
+import {
+  Globe,
+  Loader2,
+  Sparkles,
+  Bot,
+  Bell,
+  ArrowRight,
+  ChevronDown,
+  Check,
+} from "lucide-react";
+import { VN, US } from "country-flag-icons/react/3x2";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
@@ -15,6 +25,23 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { Button, Switch } from "@/shared/ui";
 import type { NotificationSettings, UserPreference } from "@/types";
 
+type LangOption = {
+  code: "vi" | "en";
+  labelKey: string;
+  Flag: React.ComponentType<{ className?: string; title?: string }>;
+};
+
+const LANGUAGES: LangOption[] = [
+  { code: "vi", labelKey: "settings.languageVi", Flag: VN },
+  { code: "en", labelKey: "settings.languageEn", Flag: US },
+];
+
+const DEFAULT_LANG: LangOption = {
+  code: "vi",
+  labelKey: "settings.languageVi",
+  Flag: VN,
+};
+
 function SettingsInner() {
   const { t, locale, setLocale } = useTranslation();
   const qc = useQueryClient();
@@ -23,6 +50,25 @@ function SettingsInner() {
     queryFn: () => preferenceService.get(),
   });
   const [savingLanguage, setSavingLanguage] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!langOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (
+        langDropdownRef.current &&
+        !langDropdownRef.current.contains(e.target as Node)
+      ) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [langOpen]);
+
+  const currentLang = LANGUAGES.find((l) => l.code === locale) ?? DEFAULT_LANG;
+  const CurrentFlag = currentLang.Flag;
   const [savingAiPrivacy, setSavingAiPrivacy] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
 
@@ -284,17 +330,68 @@ function SettingsInner() {
                   {t("settings.languageDesc")}
                 </p>
               </div>
-              <select
-                value={locale}
-                disabled={savingLanguage}
-                onChange={(e) =>
-                  handleLanguageChange(e.target.value === "en" ? "en" : "vi")
-                }
-                className="px-3.5 py-2 text-sm font-medium border border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand disabled:opacity-50 cursor-pointer shadow-2xs"
-              >
-                <option value="vi">{t("settings.languageVi")}</option>
-                <option value="en">{t("settings.languageEn")}</option>
-              </select>
+              <div className="relative" ref={langDropdownRef}>
+                <button
+                  type="button"
+                  disabled={savingLanguage}
+                  onClick={() => setLangOpen((prev) => !prev)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-xl bg-white text-gray-900 hover:bg-gray-50/80 transition-all cursor-pointer shadow-2xs focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand disabled:opacity-50"
+                  aria-label={t("settings.language")}
+                  aria-expanded={langOpen}
+                >
+                  {savingLanguage ? (
+                    <Loader2 size={16} className="animate-spin text-brand" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
+                      <CurrentFlag className="w-full h-full scale-150" />
+                    </div>
+                  )}
+                  <span className="capitalize font-semibold">
+                    {t(currentLang.labelKey)}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`text-gray-500 transition-transform ${langOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {langOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+                    {LANGUAGES.map((lang) => {
+                      const Flag = lang.Flag;
+                      const active = lang.code === locale;
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          disabled={savingLanguage}
+                          onClick={() => {
+                            setLangOpen(false);
+                            if (lang.code !== locale) {
+                              handleLanguageChange(lang.code);
+                            }
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors cursor-pointer ${
+                            active
+                              ? "bg-gray-100 text-gray-950 font-semibold"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                        >
+                          <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
+                            <Flag className="w-full h-full scale-150" />
+                          </div>
+                          <span className="flex-1 text-left capitalize">
+                            {t(lang.labelKey)}
+                          </span>
+                          {active && (
+                            <Check size={14} className="text-gray-950" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
