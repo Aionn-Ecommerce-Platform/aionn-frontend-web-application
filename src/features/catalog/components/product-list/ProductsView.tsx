@@ -16,6 +16,7 @@ import { qk } from "@/lib/query-keys";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
 import {
+  buildCategoryFilterItems,
   buildFilterItems,
   hasCatalogFilters,
   readMultiParam,
@@ -158,8 +159,20 @@ function ProductsInner() {
   };
 
   const clearAll = () => {
-    router.replace("/products", { scroll: false });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setParam(
+      (sp) => {
+        sp.delete("categoryIds");
+        sp.delete("categoryId");
+        sp.delete("brandIds");
+        sp.delete("priceMin");
+        sp.delete("priceMax");
+        sp.delete("ratingMin");
+        sp.delete("onSale");
+        sp.delete("shipping");
+        sp.delete("provinceCodes");
+      },
+      { resetPage: true, scroll: true },
+    );
   };
 
   const searchKey = useMemo(
@@ -245,12 +258,13 @@ function ProductsInner() {
   const facets = data?.facets;
 
   const categoryFilterItems = useMemo(() => {
-    return buildFilterItems({
+    return buildCategoryFilterItems({
       names: categoryNameById,
       counts: facets?.categories,
       selectedIds: categoryIds,
+      nodes: categoryTree,
     });
-  }, [facets, categoryNameById, categoryIds]);
+  }, [facets, categoryNameById, categoryIds, categoryTree]);
 
   const brandFilterItems = useMemo(() => {
     return buildFilterItems({
@@ -261,12 +275,10 @@ function ProductsInner() {
   }, [facets, brandNameById, brandIds]);
 
   const hasActiveFilter = hasCatalogFilters([
-    queryText,
     categoryIds.length,
     brandIds.length,
     priceMin,
     priceMax,
-    merchantId,
     ratingMin,
     onSale,
     shipping.length,

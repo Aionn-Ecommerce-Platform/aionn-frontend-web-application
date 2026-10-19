@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -24,19 +24,24 @@ import {
   Phone,
   Shield,
   Clock3,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button, Avatar } from "@/shared/ui";
 import { useAuthStore, useCartStore } from "@/stores";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useDebounce } from "@/hooks";
 import {
   conversationService,
   merchantService,
   notificationService,
   searchHistoryService,
+  productService,
+  recommendationService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { formatDateTime } from "@/shared/lib/utils";
 import { logger } from "@/shared/lib/logger";
+import type { Product, RecommendationItem } from "@/types";
 import {
   GUEST_RECENT_SEARCHES_KEY,
   mergeRecentSearches,
@@ -46,6 +51,133 @@ import {
 import LanguageSwitcher from "./LanguageSwitcher";
 import HeaderNavigation from "./HeaderNavigation";
 import { categoryIcons } from "./header-utils";
+
+interface SearchDropdownProps {
+  readonly searchOpen: boolean;
+  readonly searchQuery: string;
+  readonly recentSearches: readonly string[];
+  readonly trendingRecommendations: readonly RecommendationItem[];
+  readonly liveSuggestions: readonly Product[];
+  readonly isSuggestionsLoading: boolean;
+  readonly onSelectKeyword: (keyword: string) => void;
+  readonly t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+function SearchDropdown({
+  searchOpen,
+  searchQuery,
+  recentSearches,
+  trendingRecommendations,
+  liveSuggestions,
+  isSuggestionsLoading,
+  onSelectKeyword,
+  t,
+}: Readonly<SearchDropdownProps>) {
+  if (!searchOpen) return null;
+
+  const trimmedQuery = searchQuery.trim();
+
+  // Mode 1: Empty input (History + Trending, max 5 items in total)
+  if (!trimmedQuery) {
+    const historyItems = recentSearches.slice(0, 5);
+    const recommendLimit = Math.max(0, 5 - historyItems.length);
+    const displayedTrending = trendingRecommendations.slice(0, recommendLimit);
+
+    if (historyItems.length === 0 && displayedTrending.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
+        {historyItems.length > 0 && (
+          <div className="py-1">
+            <p className="px-4 pb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              {t("common.recentSearches")}
+            </p>
+            {historyItems.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onSelectKeyword(item)}
+                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+              >
+                <Clock3 size={15} className="text-gray-400 shrink-0" />
+                <span className="truncate">{item}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {displayedTrending.length > 0 && (
+          <div className={historyItems.length > 0 ? "pt-2 border-t border-gray-100" : "py-1"}>
+            <p className="px-4 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400 flex items-center gap-1.5">
+              <Sparkles size={13} className="text-amber-500" />
+              <span>{t("common.suggestedForYou")}</span>
+            </p>
+            {displayedTrending.map((item) => (
+              <button
+                key={item.productId}
+                type="button"
+                onClick={() => onSelectKeyword(item.name)}
+                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+              >
+                <Sparkles size={14} className="text-amber-500 shrink-0" />
+                <span className="truncate">{item.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Mode 2: User is typing (Live autocomplete suggestions, max 5 items)
+  return (
+    <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+      {isSuggestionsLoading && (
+        <div className="py-6 flex items-center justify-center text-gray-400 gap-2">
+          <Loader2 size={16} className="animate-spin text-brand" />
+        </div>
+      )}
+
+      {!isSuggestionsLoading && liveSuggestions.length > 0 && (
+        <div className="py-1">
+          <p className="px-4 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            {t("common.matchingProducts")}
+          </p>
+          {liveSuggestions.slice(0, 5).map((product) => (
+            <button
+              key={product.productId}
+              type="button"
+              onClick={() => onSelectKeyword(product.name)}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+            >
+              <Search size={14} className="text-gray-400 shrink-0" />
+              <span className="truncate">{product.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!isSuggestionsLoading && liveSuggestions.length === 0 && (
+        <div className="px-4 py-5 text-center text-xs text-gray-500">
+          {t("common.noSuggestions")}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onSelectKeyword(trimmedQuery)}
+        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-brand hover:bg-brand/5 border-t border-gray-100 transition-colors cursor-pointer"
+      >
+        <Search size={14} />
+        <span className="truncate">
+          {t("common.viewAllResultsFor", { query: trimmedQuery })}
+        </span>
+      </button>
+    </div>
+  );
+}
 
 export default function Header() {
   const router = useRouter();
@@ -63,6 +195,30 @@ export default function Header() {
     s.items.reduce((sum, i) => sum + i.qty, 0),
   );
   const { t } = useTranslation();
+  const debouncedSearchQuery = useDebounce(searchQuery.trim(), 250);
+
+  const { data: trendingRecommendations = [] } = useQuery({
+    queryKey: ["search-trending-recommendations"],
+    queryFn: () => recommendationService.getHomeFeed(5),
+    enabled: searchOpen && !debouncedSearchQuery,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: liveSuggestions = [], isFetching: isSuggestionsFetching } =
+    useQuery({
+      queryKey: ["search-live-suggestions", debouncedSearchQuery],
+      queryFn: () => productService.searchSuggestions(debouncedSearchQuery, 5),
+      enabled: searchOpen && debouncedSearchQuery.length > 0,
+      placeholderData: keepPreviousData,
+      staleTime: 30 * 1000,
+    });
+
+  const isSuggestionsLoading =
+    (searchOpen &&
+      searchQuery.trim().length > 0 &&
+      searchQuery.trim() !== debouncedSearchQuery) ||
+    isSuggestionsFetching;
+
   const userRoles = user?.roles ?? [];
   const hasSellerRole = userRoles.some((role) =>
     ["SELLER", "MERCHANT", "ROLE_SELLER", "ROLE_MERCHANT"].includes(role),
@@ -423,24 +579,16 @@ export default function Header() {
                 <Search size={16} />
               </button>
             </form>
-            {searchOpen && recentSearches.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
-                <p className="px-4 pb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  {t("common.recentSearches")}
-                </p>
-                {recentSearches.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => runSearch(item)}
-                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                  >
-                    <Clock3 size={15} className="text-gray-400" />
-                    <span className="truncate">{item}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <SearchDropdown
+              searchOpen={searchOpen}
+              searchQuery={searchQuery}
+              recentSearches={recentSearches}
+              trendingRecommendations={trendingRecommendations}
+              liveSuggestions={liveSuggestions}
+              isSuggestionsLoading={isSuggestionsLoading}
+              onSelectKeyword={runSearch}
+              t={t}
+            />
           </div>
 
           <div className="flex items-center gap-1.5">
