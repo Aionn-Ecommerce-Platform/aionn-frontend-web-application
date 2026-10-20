@@ -28,6 +28,7 @@ import {
   addressService,
   geographyService,
   paymentMethodService,
+  paymentService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
@@ -134,6 +135,13 @@ function OrderDetailInner({ id }: { id: string }) {
   });
 
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
+
+  const { data: payments = [] } = useQuery({
+    queryKey: ["order-payments", id],
+    queryFn: () => paymentService.listByOrder(id),
+    enabled: !!order,
+  });
+  const payment = payments && payments.length > 0 ? payments[0] : null;
 
   const deliveryInfo = useMemo(() => {
     const recipientName =
@@ -389,6 +397,7 @@ function OrderDetailInner({ id }: { id: string }) {
             {t("orders.products")}
           </h3>
           <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
             {order.items.map((item) => {
               const lookup = skuLookup.get(item.skuId);
               const product = lookup?.product;
@@ -396,7 +405,7 @@ function OrderDetailInner({ id }: { id: string }) {
               const variantLabel = formatVariantLabel(variant?.attributeValues);
               const image = product?.imageList?.[0];
               return (
-                <div key={item.skuId} className="flex gap-3.5 py-2.5 border-b border-gray-100 last:border-none">
+                <div key={item.skuId} className="flex gap-3.5 py-2.5">
                   <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex-shrink-0 overflow-hidden relative p-1">
                     {image ? (
                       <Image
@@ -439,6 +448,7 @@ function OrderDetailInner({ id }: { id: string }) {
                 </div>
               );
             })}
+            </div>
             <div className="border-t border-gray-100 pt-3 flex justify-between text-xs sm:text-sm">
               <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
               <span className="font-semibold text-gray-800">{formatCurrency(order.shippingFee, order.currency)}</span>
@@ -511,12 +521,12 @@ function OrderDetailInner({ id }: { id: string }) {
             </h3>
             {(() => {
               const pm = order.paymentMethodId;
-              if (pm === "VNPAY") {
+              if (pm === "VNPAY" || payment?.gateway === "VNPAY") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">VNPAY</p>
                 );
               }
-              if (pm === "COD") {
+              if (pm === "COD" || payment?.gateway === "COD") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">
                     {t("checkout.cod")}
@@ -535,6 +545,13 @@ function OrderDetailInner({ id }: { id: string }) {
                       </p>
                     )}
                   </div>
+                );
+              }
+              if (payment?.gateway) {
+                return (
+                  <p className="text-sm text-gray-900 font-semibold uppercase">
+                    {payment.gateway}
+                  </p>
                 );
               }
               return (

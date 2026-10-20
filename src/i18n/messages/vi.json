@@ -1504,6 +1504,7 @@
     "notFoundDesc": "Đơn hàng không tồn tại hoặc đã bị xóa.",
     "backToOrders": "Trở lại danh sách đơn hàng",
     "noShippingAddress": "Không có thông tin địa chỉ giao hàng",
+    "noPaymentMethod": "Không có thông tin phương thức thanh toán",
     "variantLabel": "Phân loại: ",
     "noTrackingYet": "Chưa có mã vận đơn",
     "shippingStatus": "Trạng thái vận chuyển",

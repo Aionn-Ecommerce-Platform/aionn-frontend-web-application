@@ -1,5 +1,6 @@
 "use client";
 import { Truck } from "lucide-react";
+import { Badge } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { getShipmentStatus } from "@/lib/domain/status/shipment";
 import { formatDate } from "@/shared/lib/utils";
@@ -49,14 +50,20 @@ export default function OrderShipmentPanel({
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 font-medium">{t("orders.shippingStatus")}</p>
-          <span className="font-bold text-brand mt-0.5 inline-block">
-            {t(getShipmentStatus(shipment.status).labelKey)}
-            {shipment.currentLocation ? ` (${shipment.currentLocation})` : ""}
-            {shipment.lastFailureReason
-              ? `: ${shipment.lastFailureReason}`
-              : ""}
-          </span>
+          <p className="text-xs text-gray-500 font-medium mb-1.5">{t("orders.shippingStatus")}</p>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={getShipmentStatus(shipment.status).variant}
+              className="text-xs px-2.5 py-0.5 font-semibold"
+            >
+              {t(getShipmentStatus(shipment.status).labelKey)}
+            </Badge>
+            {shipment.lastFailureReason && (
+              <span className="text-xs text-rose-600 font-medium">
+                ({shipment.lastFailureReason})
+              </span>
+            )}
+          </div>
         </div>
         {shipment.shipperName && (
           <div>

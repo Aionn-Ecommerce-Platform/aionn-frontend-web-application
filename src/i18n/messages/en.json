@@ -1502,6 +1502,7 @@
     "notFoundDesc": "The order does not exist or has been removed.",
     "backToOrders": "Back to orders",
     "noShippingAddress": "No shipping address information",
+    "noPaymentMethod": "No payment method information",
     "variantLabel": "Variant: ",
     "noTrackingYet": "Not yet assigned",
     "shippingStatus": "Shipping status",
