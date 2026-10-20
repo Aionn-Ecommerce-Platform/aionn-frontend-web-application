@@ -280,7 +280,7 @@ export default function ProductMainCard(props: Props) {
                 </>
               )}
             </div>
-            {images.length > 1 && (
+            {images.length > 0 && (
               <div className="px-8">
                 <div
                   className="flex min-w-0 gap-2 overflow-x-auto scroll-smooth py-1"
