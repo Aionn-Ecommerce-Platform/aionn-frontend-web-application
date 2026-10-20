@@ -106,6 +106,7 @@ export function MfaModal(props: MfaModalProps) {
             label={t("security.password")}
             value={props.password}
             onChange={(event) => props.onPassword(event.target.value)}
+            autoComplete="new-password"
           />
           <Button
             onClick={props.onSetup}
