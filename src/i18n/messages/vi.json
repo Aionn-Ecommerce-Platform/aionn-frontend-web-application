@@ -1285,6 +1285,7 @@
     "notFound": "Không tìm thấy sản phẩm",
     "notFoundDesc": "Sản phẩm có thể đã bị gỡ hoặc đường dẫn không đúng.",
     "backToList": "Quay lại danh sách",
+    "selectVariantNotice": "Vui lòng chọn Phân loại hàng",
     "addedToCart": "Đã thêm vào giỏ hàng",
     "loginRequiredToAddCart": "Vui lòng đăng nhập để thêm vào giỏ hàng",
     "cannotStartChat": "Không thể mở hội thoại",

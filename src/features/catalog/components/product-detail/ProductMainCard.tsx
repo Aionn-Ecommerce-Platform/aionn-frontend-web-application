@@ -669,7 +669,7 @@ export default function ProductMainCard(props: Props) {
                 type="button"
                 className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-950 hover:text-white font-bold transition-colors duration-200 shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleAddToCart}
-                disabled={!currentVariant || (stock !== null && stock <= 0) || adding}
+                disabled={adding || (Boolean(currentVariant) && stock !== null && stock <= 0)}
               >
                 {adding ? (
                   <span className="inline-flex items-center gap-2">
@@ -683,7 +683,7 @@ export default function ProductMainCard(props: Props) {
                       className="mr-2 text-current stroke-[2.2] shrink-0"
                     />
                     <span>
-                      {stock !== null && stock <= 0
+                      {Boolean(currentVariant) && stock !== null && stock <= 0
                         ? t("productDetail.outOfStock")
                         : t("products.addToCart")}
                     </span>
@@ -694,13 +694,11 @@ export default function ProductMainCard(props: Props) {
                 type="button"
                 className="h-12 flex-1 rounded-xl border border-gray-950 bg-gray-950 text-white hover:bg-neutral-800 hover:border-neutral-800 font-bold transition-colors duration-200 shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:hover:border-gray-200 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleBuyNow}
-                disabled={
-                  !currentVariant || adding || (stock !== null && stock <= 0)
-                }
+                disabled={adding || (Boolean(currentVariant) && stock !== null && stock <= 0)}
               >
                 <Zap size={17} className="mr-2 text-current fill-current shrink-0" />
                 <span>
-                  {stock !== null && stock <= 0
+                  {Boolean(currentVariant) && stock !== null && stock <= 0
                     ? t("productDetail.outOfStock")
                     : t("products.buyNow")}
                 </span>

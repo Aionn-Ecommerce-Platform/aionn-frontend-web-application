@@ -1284,6 +1284,7 @@
     "notFound": "Product not found",
     "notFoundDesc": "The product may have been taken down or the link is incorrect.",
     "backToList": "Back to list",
+    "selectVariantNotice": "Please select a product variation",
     "addedToCart": "Added to cart",
     "loginRequiredToAddCart": "Please log in to add items to your cart",
     "cannotStartChat": "Cannot open conversation",

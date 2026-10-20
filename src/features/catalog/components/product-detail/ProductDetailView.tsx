@@ -332,7 +332,10 @@ export default function ProductDetailPage({
     : null;
 
   const handleAddToCart = async () => {
-    if (!currentVariant) return;
+    if (!currentVariant) {
+      toast.error(t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng");
+      return;
+    }
     if (!isAuthenticated) {
       toast.error(t("products.loginRequiredToAddCart"));
       router.push(`/auth/login?redirect=/products/${id}`);
@@ -367,6 +370,10 @@ export default function ProductDetailPage({
   };
 
   const handleBuyNow = async () => {
+    if (!currentVariant) {
+      toast.error(t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng");
+      return;
+    }
     if (!isAuthenticated) {
       router.push(`/auth/login?redirect=/products/${id}`);
       return;
