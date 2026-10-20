@@ -854,6 +854,8 @@
     "characters": "characters",
     "previous": "Previous",
     "next": "Next",
+    "pagination": "Pagination",
+    "pageNumber": "Page {page}",
     "newNotifications": "New Notifications",
     "noNewNotifications": "No new notifications",
     "loginToSeeNotifications": "Log in to see notifications",

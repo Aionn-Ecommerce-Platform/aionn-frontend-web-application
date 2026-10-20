@@ -854,6 +854,8 @@
     "characters": "ký tự",
     "previous": "Trước",
     "next": "Tiếp theo",
+    "pagination": "Phân trang",
+    "pageNumber": "Trang {page}",
     "newNotifications": "Thông báo mới nhận",
     "noNewNotifications": "Không có thông báo mới",
     "loginToSeeNotifications": "Đăng nhập để xem thông báo",

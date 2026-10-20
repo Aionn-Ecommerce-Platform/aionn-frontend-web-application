@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "@/hooks";
 
 interface PaginationProps {
   currentPage: number;
@@ -8,6 +9,9 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   className?: string;
   scrollToTop?: boolean;
+  ariaLabel?: string;
+  previousAriaLabel?: string;
+  nextAriaLabel?: string;
 }
 
 export default function Pagination({
@@ -16,7 +20,12 @@ export default function Pagination({
   onPageChange,
   className = "",
   scrollToTop = true,
+  ariaLabel,
+  previousAriaLabel,
+  nextAriaLabel,
 }: PaginationProps) {
+  const { t } = useTranslation();
+
   if (totalPages <= 1) return null;
 
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -28,13 +37,20 @@ export default function Pagination({
     }
   };
 
+  const resolvedNavLabel = ariaLabel ?? t("common.pagination");
+  const resolvedPrevLabel = previousAriaLabel ?? t("common.previous");
+  const resolvedNextLabel = nextAriaLabel ?? t("common.next");
+
   return (
-    <div className={`flex items-center justify-center pt-8 pb-4 ${className}`}>
+    <nav
+      aria-label={resolvedNavLabel}
+      className={`flex items-center justify-center pt-8 pb-4 ${className}`}
+    >
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleSelect(Math.max(1, safeCurrentPage - 1))}
           disabled={safeCurrentPage <= 1}
-          aria-label="Previous Page"
+          aria-label={resolvedPrevLabel}
           className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
         >
           <ChevronLeft size={16} />
@@ -48,6 +64,8 @@ export default function Pagination({
                 <button
                   key={pageNum}
                   onClick={() => handleSelect(pageNum)}
+                  aria-label={t("common.pageNumber", { page: pageNum })}
+                  aria-current={isSelected ? "page" : undefined}
                   className={`h-9 min-w-9 px-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
                     isSelected
                       ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
@@ -64,13 +82,12 @@ export default function Pagination({
         <button
           onClick={() => handleSelect(Math.min(totalPages, safeCurrentPage + 1))}
           disabled={safeCurrentPage >= totalPages}
-          aria-label="Next Page"
+          aria-label={resolvedNextLabel}
           className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
         >
           <ChevronRight size={16} />
         </button>
       </div>
-    </div>
+    </nav>
   );
 }
-

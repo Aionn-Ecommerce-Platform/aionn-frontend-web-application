@@ -29,6 +29,7 @@ export default function LanguageSwitcher() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const updateSeqRef = useRef(0);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +82,7 @@ export default function LanguageSwitcher() {
                     if (isAuthenticated) {
                       const cached =
                         qc.getQueryData<UserPreference>(qk.preferences);
+                      const seq = ++updateSeqRef.current;
                       preferenceService
                         .updateGeneral({
                           language: lang.code,
@@ -89,7 +91,9 @@ export default function LanguageSwitcher() {
                           theme: cached?.theme ?? "light",
                         })
                         .then((updated) => {
-                          qc.setQueryData(qk.preferences, updated);
+                          if (seq === updateSeqRef.current) {
+                            qc.setQueryData(qk.preferences, updated);
+                          }
                         })
                         .catch(() => {
                           // Silent background update; does not interrupt user flow

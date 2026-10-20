@@ -52,11 +52,14 @@ export function ChatInner({
   const lastMessageCountRef = useRef(0);
   const lastConversationIdRef = useRef<string | null>(null);
 
+  const isConnectedRef = useRef(false);
+
   const { data: conversations, isLoading: loadingConvs } = useQuery({
     queryKey: qk.conversations({ includeArchived: false, limit: 50 }),
     queryFn: () =>
       conversationService.listMine({ includeArchived: false, limit: 50 }),
     enabled: !isInitializing && isAuthenticated,
+    refetchInterval: () => (isConnectedRef.current ? false : 10000),
   });
 
   const filtered = useMemo(() => {
@@ -80,11 +83,26 @@ export function ChatInner({
     (c) => c.conversationId === effectiveSelectedId,
   );
 
-  const { isPartnerTyping, sendTyping } = useChatSocket({
+  const { isConnected, isPartnerTyping, sendTyping } = useChatSocket({
     activeConversationId: effectiveSelectedId,
     currentUserId: userId,
     enabled: !isInitializing && isAuthenticated,
   });
+
+  useEffect(() => {
+    isConnectedRef.current = isConnected;
+  }, [isConnected]);
+
+  const wasConnectedRef = useRef(false);
+  useEffect(() => {
+    if (!wasConnectedRef.current && isConnected) {
+      void qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      if (effectiveSelectedId) {
+        void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId) });
+      }
+    }
+    wasConnectedRef.current = isConnected;
+  }, [isConnected, effectiveSelectedId, qc]);
 
   const { data: messages, isLoading: loadingMsgs } = useQuery({
     queryKey: effectiveSelectedId
@@ -95,6 +113,7 @@ export function ChatInner({
         ? messageService.list(effectiveSelectedId, { limit: 50 })
         : Promise.resolve([] as ChatMessage[]),
     enabled: !isInitializing && isAuthenticated && !!effectiveSelectedId,
+    refetchInterval: isConnected ? false : 5000,
   });
 
   const sortedMessages = useMemo(() => {
@@ -159,12 +178,13 @@ export function ChatInner({
   ]);
 
   const handleMessageSent = (msg: ChatMessage) => {
+    const targetConversationId = msg.conversationId || effectiveSelectedId!;
     qc.setQueryData<ChatMessage[]>(
-      qk.messages(effectiveSelectedId!),
+      qk.messages(targetConversationId),
       (prev) => (prev ? [...prev, msg] : [msg]),
     );
-    void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId!) });
-    void conversationService.markRead(effectiveSelectedId!).then(() => {
+    void qc.invalidateQueries({ queryKey: qk.messages(targetConversationId) });
+    void conversationService.markRead(targetConversationId).then(() => {
       qc.invalidateQueries({ queryKey: qk.unreadCounts });
       qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
     });

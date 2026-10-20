@@ -61,6 +61,9 @@ export function useChatSocket({
 
   const handleIncomingMessage = useCallback(
     (msg: ChatMessage) => {
+      // 0. Cancel any in-flight messages query to prevent older HTTP response overwriting new socket message
+      void qc.cancelQueries({ queryKey: qk.messages(msg.conversationId) });
+
       // 1. Append or update message in query cache
       qc.setQueryData<ChatMessage[]>(
         qk.messages(msg.conversationId),
