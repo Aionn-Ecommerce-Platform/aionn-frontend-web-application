@@ -228,7 +228,13 @@ export function useChatSocket({
         setIsConnected(false);
         setIsPartnerTyping(false);
       },
+      onWebSocketClose: () => {
+        setIsConnected(false);
+        setIsPartnerTyping(false);
+      },
       onStompError: (frame) => {
+        setIsConnected(false);
+        setIsPartnerTyping(false);
         logger.error("STOMP error", frame.headers["message"]);
       },
     });
