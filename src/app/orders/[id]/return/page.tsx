@@ -122,17 +122,6 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         <p className="mt-1 text-sm text-gray-500">
           {t("orders.orderId")}{" "}
           <span className="font-mono font-semibold text-gray-900 select-all">{orderId}</span>
-          {order?.totalAmount != null && (
-            <>
-              {" • "}
-              <span className="font-medium text-gray-700">
-                {formatCurrency(
-                  order.totalAmount,
-                  order.currency,
-                )}
-              </span>
-            </>
-          )}
         </p>
       </div>
 
@@ -178,35 +167,42 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
               {t("orders.returns.evidenceLabel")}
             </p>
             {evidenceUrl ? (
-              <div className="relative inline-block">
-                <AppImage
-                  src={evidenceUrl}
-                  alt="Evidence"
-                  className="w-40 h-40 object-cover rounded-xl border border-gray-200"
-                />
-                <button
-                  type="button"
-                  onClick={() => setEvidenceUrl(null)}
-                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
-                  aria-label={t("common.deleteImage")}
-                >
-                  <X size={14} />
-                </button>
+              <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
+                <div className="relative">
+                  <AppImage
+                    src={evidenceUrl}
+                    alt="Evidence"
+                    className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEvidenceUrl(null)}
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
+                    aria-label={t("common.deleteImage")}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={!canReturn || uploading || submitting}
-                className="flex flex-col items-center justify-center w-40 h-40 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {uploading ? (
-                  <Loader2 className="animate-spin" size={22} />
+                  <Loader2 className="animate-spin text-blue-600" size={28} />
                 ) : (
                   <>
-                    <ImagePlus size={22} />
-                    <span className="mt-1.5 text-xs">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                      <ImagePlus size={24} />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">
                       {t("orders.returns.uploadImage")}
+                    </span>
+                    <span className="mt-1 text-xs text-gray-400">
+                      {t("orders.returns.uploadHint")}
                     </span>
                   </>
                 )}
@@ -219,9 +215,6 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
               onChange={handlePickEvidence}
               className="hidden"
             />
-            <p className="mt-1 text-xs text-gray-400">
-              {t("orders.returns.uploadHint")}
-            </p>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
