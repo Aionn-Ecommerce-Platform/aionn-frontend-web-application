@@ -251,7 +251,7 @@ export default function ProductMainCard(props: Props) {
       <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
-            <div className="aspect-square relative bg-gray-50/50 rounded-2xl overflow-hidden mb-4 border border-gray-100 group">
+            <div className="aspect-square relative bg-gray-50/70 rounded-2xl overflow-hidden mb-4 border border-gray-200 shadow-xs group">
               <Image
                 src={images[selectedImage] ?? "/images/logo.png"}
                 alt={product.name}

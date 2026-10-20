@@ -248,7 +248,7 @@ function ReviewCard({
   })();
 
   return (
-    <div className="border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors bg-white">
+    <div className="border border-gray-200/90 rounded-2xl p-5 hover:border-gray-300 transition-colors bg-white shadow-xs">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
           {review.userAvatarUrl ? (
