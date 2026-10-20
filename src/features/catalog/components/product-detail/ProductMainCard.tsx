@@ -259,26 +259,24 @@ export default function ProductMainCard(props: Props) {
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-contain p-8"
               />
-              {images.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all"
-                    aria-label="Previous product image"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all"
-                    aria-label="Next product image"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </>
-              )}
+              <button
+                type="button"
+                onClick={goToPreviousImage}
+                disabled={images.length <= 1}
+                className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/90 disabled:hover:text-gray-700 disabled:hover:border-gray-200 select-none"
+                aria-label="Previous product image"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={goToNextImage}
+                disabled={images.length <= 1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/90 disabled:hover:text-gray-700 disabled:hover:border-gray-200 select-none"
+                aria-label="Next product image"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
             {images.length > 0 && (
               <div className="px-8">
