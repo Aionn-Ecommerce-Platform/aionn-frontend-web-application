@@ -1756,7 +1756,12 @@
     "messagePlaceholder": "Type a message...",
     "sendMessage": "Send message",
     "typing": "Typing...",
-    "blockedUserFallback": "User"
+    "blockedUserFallback": "User",
+    "tabActive": "Inbox",
+    "tabArchived": "Archived",
+    "noArchivedConversations": "No archived conversations.",
+    "archivedBanner": "This conversation is archived. You will not receive notifications from this conversation.",
+    "unarchiveButton": "Unarchive"
   },
   "security": {
     "title": "Account Security",

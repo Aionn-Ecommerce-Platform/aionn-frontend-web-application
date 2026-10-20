@@ -1756,7 +1756,12 @@
     "messagePlaceholder": "Nhập tin nhắn...",
     "sendMessage": "Gửi tin nhắn",
     "typing": "Đang soạn tin nhắn...",
-    "blockedUserFallback": "Người dùng"
+    "blockedUserFallback": "Người dùng",
+    "tabActive": "Hộp thư đến",
+    "tabArchived": "Lưu trữ",
+    "noArchivedConversations": "Chưa có cuộc hội thoại nào được lưu trữ.",
+    "archivedBanner": "Cuộc hội thoại này đang được lưu trữ. Bạn sẽ không nhận thông báo từ hội thoại này.",
+    "unarchiveButton": "Bỏ lưu trữ"
   },
   "security": {
     "title": "Bảo mật tài khoản",

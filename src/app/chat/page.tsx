@@ -45,6 +45,7 @@ export function ChatInner({
   const [selectedId, setSelectedId] = useState<string | null>(
     presetConversationId,
   );
+  const [tab, setTab] = useState<"active" | "archived">("active");
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -54,7 +55,7 @@ export function ChatInner({
 
   const cachedFirstConvId =
     qc.getQueryData<ChatConversation[]>(
-      qk.conversations({ includeArchived: false, limit: 50 }),
+      qk.conversations({ includeArchived: true, limit: 50 }),
     )?.[0]?.conversationId ?? null;
 
   const effectiveSelectedId =
@@ -67,15 +68,26 @@ export function ChatInner({
   });
 
   const { data: conversations, isLoading: loadingConvs } = useQuery({
-    queryKey: qk.conversations({ includeArchived: false, limit: 50 }),
+    queryKey: qk.conversations({ includeArchived: true, limit: 50 }),
     queryFn: () =>
-      conversationService.listMine({ includeArchived: false, limit: 50 }),
+      conversationService.listMine({ includeArchived: true, limit: 50 }),
     enabled: !isInitializing && isAuthenticated,
     refetchInterval: isConnected ? false : 10000,
   });
 
+  const activeCount = useMemo(
+    () => (conversations ?? []).filter((c) => !c.archived).length,
+    [conversations],
+  );
+  const archivedCount = useMemo(
+    () => (conversations ?? []).filter((c) => c.archived).length,
+    [conversations],
+  );
+
   const filtered = useMemo(() => {
-    const list = conversations ?? [];
+    const list = (conversations ?? []).filter((c) =>
+      tab === "archived" ? c.archived : !c.archived,
+    );
     const q = search.trim().toLowerCase();
     if (!q) return list;
     return list.filter((c) =>
@@ -83,11 +95,16 @@ export function ChatInner({
         (p.displayName ?? "").toLowerCase().includes(q),
       ),
     );
-  }, [conversations, search]);
+  }, [conversations, tab, search]);
 
-  const activeConv = filtered.find(
-    (c) => c.conversationId === effectiveSelectedId,
-  );
+  const activeConv = useMemo(() => {
+    if (!effectiveSelectedId) return null;
+    return (
+      (conversations ?? []).find(
+        (c) => c.conversationId === effectiveSelectedId,
+      ) ?? null
+    );
+  }, [conversations, effectiveSelectedId]);
 
   const wasConnectedRef = useRef(false);
   useEffect(() => {
@@ -415,8 +432,8 @@ export function ChatInner({
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden min-h-[600px] h-[calc(100vh-12rem)] flex">
               <div className="w-80 border-r border-gray-100 flex flex-col flex-shrink-0 bg-gray-50/40">
-                <div className="p-4 border-b border-gray-100 bg-white">
-                  <h2 className="text-base font-bold text-gray-950 mb-3">
+                <div className="p-4 border-b border-gray-100 bg-white space-y-3">
+                  <h2 className="text-base font-bold text-gray-950">
                     {t("chat.title")}
                   </h2>
                   <div className="relative">
@@ -432,6 +449,54 @@ export function ChatInner({
                       className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-gray-200 bg-gray-50/60 text-xs sm:text-sm focus:border-gray-900 focus:bg-white focus:outline-none transition-all placeholder:text-gray-400"
                     />
                   </div>
+
+                  <div className="flex p-1 bg-gray-100/90 rounded-xl gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setTab("active")}
+                      className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        tab === "active"
+                          ? "bg-white text-gray-950 shadow-xs"
+                          : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <span>{t("chat.tabActive")}</span>
+                      {activeCount > 0 && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            tab === "active"
+                              ? "bg-gray-100 text-gray-700"
+                              : "bg-gray-200/80 text-gray-600"
+                          }`}
+                        >
+                          {activeCount}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTab("archived")}
+                      className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        tab === "archived"
+                          ? "bg-white text-gray-950 shadow-xs"
+                          : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <Archive size={12} />
+                      <span>{t("chat.tabArchived")}</span>
+                      {archivedCount > 0 && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            tab === "archived"
+                              ? "bg-gray-100 text-gray-700"
+                              : "bg-gray-200/80 text-gray-600"
+                          }`}
+                        >
+                          {archivedCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                   {loadingConvs ? (
@@ -443,7 +508,9 @@ export function ChatInner({
                     </div>
                   ) : filtered.length === 0 ? (
                     <div className="p-8 text-center text-xs sm:text-sm text-gray-400 font-medium">
-                      {t("chat.noConversations")}
+                      {tab === "archived"
+                        ? t("chat.noArchivedConversations")
+                        : t("chat.noConversations")}
                     </div>
                   ) : (
                     filtered.map((conv) => {
@@ -645,6 +712,23 @@ export function ChatInner({
                         </AnimatePresence>
                       </div>
                     </div>
+
+                    {activeConv.archived && (
+                      <div className="px-4 py-2 bg-amber-50/90 border-b border-amber-200/60 flex items-center justify-between text-xs text-amber-900 shrink-0">
+                        <div className="flex items-center gap-2">
+                          <Archive size={14} className="text-amber-600 shrink-0" />
+                          <span>{t("chat.archivedBanner")}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => unarchiveMutation.mutate(activeConv.conversationId)}
+                          disabled={unarchiveMutation.isPending}
+                          className="font-bold text-amber-900 hover:underline ml-3 shrink-0 cursor-pointer"
+                        >
+                          {t("chat.unarchiveButton")}
+                        </button>
+                      </div>
+                    )}
 
                     <div
                       ref={messagesContainerRef}
