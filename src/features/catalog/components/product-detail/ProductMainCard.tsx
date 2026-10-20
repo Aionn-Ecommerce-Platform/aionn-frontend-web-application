@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Check,
   Gift,
   Minus,
@@ -664,34 +665,46 @@ export default function ProductMainCard(props: Props) {
             </div>
 
             <div className="mt-8 flex gap-3 lg:translate-y-1">
-              <Button
-                size="lg"
-                className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-50 font-bold transition-all shadow-xs cursor-pointer active:scale-[0.99]"
+              <button
+                type="button"
+                className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-50 font-bold transition-all shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleAddToCart}
-                loading={adding}
-                disabled={!currentVariant || (stock !== null && stock <= 0)}
+                disabled={!currentVariant || (stock !== null && stock <= 0) || adding}
               >
-                <ShoppingCart
-                  size={18}
-                  className="mr-2 text-gray-950 stroke-[2.2]"
-                />
-                {stock !== null && stock <= 0
-                  ? t("productDetail.outOfStock")
-                  : t("products.addToCart")}
-              </Button>
-              <Button
-                size="lg"
-                className="h-12 flex-1 rounded-xl bg-gray-950 hover:bg-black text-white font-bold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] border-0"
+                {adding ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 size={18} className="animate-spin text-gray-950" />
+                    <span>{t("common.loading")}</span>
+                  </span>
+                ) : (
+                  <>
+                    <ShoppingCart
+                      size={18}
+                      className="mr-2 text-current stroke-[2.2] shrink-0"
+                    />
+                    <span>
+                      {stock !== null && stock <= 0
+                        ? t("productDetail.outOfStock")
+                        : t("products.addToCart")}
+                    </span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="h-12 flex-1 rounded-xl bg-gray-950 hover:bg-black text-white font-bold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base border-0 select-none"
                 onClick={handleBuyNow}
                 disabled={
                   !currentVariant || adding || (stock !== null && stock <= 0)
                 }
               >
-                <Zap size={17} className="mr-2 text-white fill-white" />
-                {stock !== null && stock <= 0
-                  ? t("productDetail.outOfStock")
-                  : t("products.buyNow")}
-              </Button>
+                <Zap size={17} className="mr-2 text-current fill-current shrink-0" />
+                <span>
+                  {stock !== null && stock <= 0
+                    ? t("productDetail.outOfStock")
+                    : t("products.buyNow")}
+                </span>
+              </button>
             </div>
           </div>
         </div>

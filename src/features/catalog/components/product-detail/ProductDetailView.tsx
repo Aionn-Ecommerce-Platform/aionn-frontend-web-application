@@ -244,7 +244,7 @@ export default function ProductDetailPage({
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-gray-900" size={32} />
       </div>
     );
   }

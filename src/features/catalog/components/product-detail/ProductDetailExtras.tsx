@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { MessageCircle, Star, Store } from "lucide-react";
+import { Loader2, MessageCircle, Star, Store } from "lucide-react";
 import { Button, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
@@ -73,25 +73,27 @@ export default function ProductDetailExtras(props: Props) {
               {merchant?.name ?? t("products.storeLabel")}
             </h3>
             <div className="mt-3 flex items-center gap-2.5 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4 text-xs font-semibold border-gray-950 bg-gray-950 text-white hover:bg-black active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
+              <button
+                type="button"
+                className="h-9 px-4 text-xs font-semibold bg-gray-950 text-white hover:bg-black active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center disabled:opacity-50 select-none"
                 onClick={handleStartChat}
-                loading={chatLoading}
+                disabled={chatLoading}
               >
-                <MessageCircle size={14} className="mr-1.5 shrink-0" />
-                {t("productDetail.chatNow")}
-              </Button>
+                {chatLoading ? (
+                  <Loader2 size={14} className="mr-1.5 shrink-0 animate-spin text-white" />
+                ) : (
+                  <MessageCircle size={14} className="mr-1.5 shrink-0 text-white" />
+                )}
+                <span>{t("productDetail.chatNow")}</span>
+              </button>
               <Link href={`/merchants/${product.merchantId}`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-4 text-xs font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
+                <button
+                  type="button"
+                  className="h-9 px-4 text-xs font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none"
                 >
                   <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
-                  {t("products.viewStore")}
-                </Button>
+                  <span>{t("products.viewStore")}</span>
+                </button>
               </Link>
             </div>
           </div>
@@ -126,7 +128,7 @@ export default function ProductDetailExtras(props: Props) {
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
-              {t("merchant.joined")}
+              {t("merchants.joined")}
             </p>
             <p className="text-base font-bold text-gray-900 mt-1">
               {t("productDetail.twoYearsAgo")}
