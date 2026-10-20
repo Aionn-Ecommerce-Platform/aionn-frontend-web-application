@@ -124,7 +124,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
               {" • "}
               <span className="font-medium text-gray-700">
                 {formatCurrency(
-                  order.totalAmount + (order.shippingFee ?? 0),
+                  order.totalAmount,
                   order.currency,
                 )}
               </span>

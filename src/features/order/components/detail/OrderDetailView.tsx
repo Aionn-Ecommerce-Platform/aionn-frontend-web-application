@@ -136,12 +136,24 @@ function OrderDetailInner({ id }: { id: string }) {
 
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
 
-  const { data: payments = [] } = useQuery({
-    queryKey: ["order-payments", id],
-    queryFn: () => paymentService.listByOrder(id),
-    enabled: !!order,
+  const { data: payment } = useQuery({
+    queryKey: ["order-payment", order?.paymentId],
+    queryFn: () => paymentService.get(order!.paymentId!),
+    enabled: !!order?.paymentId,
   });
-  const payment = payments && payments.length > 0 ? payments[0] : null;
+
+  const { subtotal, discount } = useMemo(() => {
+    if (!order) return { subtotal: 0, discount: 0 };
+    const itemsSubtotal = (order.items ?? []).reduce(
+      (sum, it) => sum + (it.unitPrice ?? 0) * (it.qty ?? 0),
+      0,
+    );
+    const computedDiscount = Math.max(
+      0,
+      itemsSubtotal + (order.shippingFee ?? 0) - (order.totalAmount ?? 0),
+    );
+    return { subtotal: itemsSubtotal, discount: computedDiscount };
+  }, [order]);
 
   const deliveryInfo = useMemo(() => {
     const recipientName =
@@ -449,11 +461,27 @@ function OrderDetailInner({ id }: { id: string }) {
               );
             })}
             </div>
-            <div className="border-t border-gray-100 pt-3 flex justify-between text-xs sm:text-sm">
-              <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
-              <span className="font-semibold text-gray-800">{formatCurrency(order.shippingFee, order.currency)}</span>
+            <div className="border-t border-gray-100 pt-3 space-y-1.5 text-xs sm:text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium">{t("cart.subtotal")}</span>
+                <span className="font-semibold text-gray-800">
+                  {formatCurrency(subtotal, order.currency)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
+                <span className="font-semibold text-gray-800">
+                  {formatCurrency(order.shippingFee, order.currency)}
+                </span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-emerald-600 font-medium">
+                  <span>{t("cart.discount")}</span>
+                  <span>-{formatCurrency(discount, order.currency)}</span>
+                </div>
+              )}
             </div>
-            <div className="flex justify-between items-baseline pt-1">
+            <div className="border-t border-gray-100 flex justify-between items-baseline pt-2">
               <span className="font-bold text-gray-900 text-sm">
                 {t("cart.total")}
               </span>
@@ -521,15 +549,23 @@ function OrderDetailInner({ id }: { id: string }) {
             </h3>
             {(() => {
               const pm = order.paymentMethodId;
-              if (pm === "VNPAY" || payment?.gateway === "VNPAY") {
+              const gw = payment?.gateway;
+              if (pm === "VNPAY" || gw === "VNPAY") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">VNPAY</p>
                 );
               }
-              if (pm === "COD" || payment?.gateway === "COD") {
+              if (pm === "COD" || gw === "COD") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">
                     {t("checkout.cod")}
+                  </p>
+                );
+              }
+              if (pm === "STRIPE" || gw === "STRIPE") {
+                return (
+                  <p className="text-sm text-gray-900 font-semibold">
+                    {t("orders.stripeCard")}
                   </p>
                 );
               }
@@ -579,11 +615,14 @@ function OrderDetailInner({ id }: { id: string }) {
               </Button>
             )}
             {canReturn && (
-              <Link href={`/orders/${order.orderId}/return`} className="flex-1">
-                <Button variant="outline" className="w-full rounded-xl border-gray-900 font-bold" size="sm">
-                  {t("orders.requestReturn")}
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl border-gray-900 font-bold"
+                size="sm"
+                onClick={() => router.push(`/orders/${order.orderId}/return`)}
+              >
+                {t("orders.requestReturn")}
+              </Button>
             )}
             {canCancel && (
               <Button

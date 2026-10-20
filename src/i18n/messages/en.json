@@ -1503,6 +1503,7 @@
     "backToOrders": "Back to orders",
     "noShippingAddress": "No shipping address information",
     "noPaymentMethod": "No payment method information",
+    "stripeCard": "International Card (Stripe)",
     "variantLabel": "Variant: ",
     "noTrackingYet": "Not yet assigned",
     "shippingStatus": "Shipping status",
