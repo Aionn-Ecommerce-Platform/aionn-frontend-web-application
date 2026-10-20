@@ -119,7 +119,7 @@ export function MfaModal(props: MfaModalProps) {
         <div className="space-y-4">
           <p className="text-sm text-gray-600">{t("security.mfaScanPrompt")}</p>
           {props.otpauthUri && (
-            <div className="flex flex-col items-center justify-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex justify-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
               <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-2xs">
                 <AppImage
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(props.otpauthUri)}`}
@@ -127,27 +127,29 @@ export function MfaModal(props: MfaModalProps) {
                   className="w-44 h-44"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-medium">
-                Google Authenticator / Authy / Microsoft Authenticator
-              </p>
             </div>
           )}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-600 font-medium">
-                {t("mfaSetup.manualSecret")}
+            <span className="block text-xs text-gray-600 font-medium mb-1">
+              {t("mfaSetup.manualSecret")}
+            </span>
+            <div className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-gray-800">
+              <span className="font-mono text-xs break-all select-all leading-relaxed">
+                {props.secret}
               </span>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 cursor-pointer font-medium"
+                title={t("mfaSetup.copiedToast") || "Sao chép"}
+                aria-label="Sao chép"
+                className="p-1.5 text-gray-500 hover:text-brand-600 hover:bg-white rounded-md transition-colors shrink-0 cursor-pointer"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Đã sao chép" : "Sao chép"}
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </button>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-2.5 font-mono text-xs break-all border border-gray-200 text-gray-800 select-all">
-              {props.secret}
             </div>
           </div>
           <Input
