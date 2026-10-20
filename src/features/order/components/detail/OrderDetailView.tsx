@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Suspense, use, useState } from "react";
+import { Suspense, use, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
@@ -26,11 +26,13 @@ import {
   shippingService,
   productService,
   addressService,
+  geographyService,
   paymentMethodService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
+import { resolveProvinceName } from "@/shared/lib/address-utils";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -126,7 +128,52 @@ function OrderDetailInner({ id }: { id: string }) {
   const orderAddress =
     addresses.find((a) => a.addressId === order?.addressId) ?? null;
 
+  const { data: provinces = [] } = useQuery({
+    queryKey: qk.provinces("VN"),
+    queryFn: () => geographyService.listProvinces("VN"),
+  });
+
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
+
+  const deliveryInfo = useMemo(() => {
+    const recipientName =
+      order?.recipientName?.trim() || orderAddress?.contactName?.trim() || null;
+    const recipientPhone =
+      order?.recipientPhone?.trim() || orderAddress?.phone?.trim() || null;
+
+    let addressLine = order?.recipientAddressLine?.trim() || null;
+
+    if (addressLine) {
+      const prov = resolveProvinceName(
+        order?.recipientProvinceCode,
+        provinces,
+        locale,
+      );
+      if (prov && !addressLine.toLowerCase().includes(prov.toLowerCase())) {
+        addressLine = `${addressLine}, ${prov}`;
+      }
+    } else if (orderAddress) {
+      addressLine =
+        orderAddress.fullAddress ||
+        [
+          orderAddress.detailAddress,
+          orderAddress.wardName,
+          orderAddress.districtName,
+          orderAddress.provinceName,
+        ]
+          .filter(Boolean)
+          .join(", ");
+    }
+
+    const hasInfo = Boolean(recipientName || recipientPhone || addressLine);
+
+    return {
+      hasInfo,
+      recipientName,
+      recipientPhone,
+      addressLine,
+    };
+  }, [order, orderAddress, provinces, locale]);
 
   const cancelMutation = useMutation({
     mutationFn: () => orderService.cancel(id, t("orders.cancelReasonCustomer")),
@@ -415,38 +462,34 @@ function OrderDetailInner({ id }: { id: string }) {
               </div>
               {t("orders.deliverySection")}
             </h3>
-            {orderAddress ? (
+            {deliveryInfo.hasInfo ? (
               <div className="text-sm space-y-2">
-                <p className="text-gray-700">
-                  <span className="font-medium text-gray-500">
-                    {t("orders.recipientName")}:
-                  </span>{" "}
-                  <span className="font-semibold text-gray-900">{orderAddress.contactName}</span>
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium text-gray-500">
-                    {t("orders.recipientPhone")}:
-                  </span>{" "}
-                  <span className="font-semibold text-gray-900 font-mono">{orderAddress.phone}</span>
-                </p>
-                <div className="flex items-start gap-2 text-gray-700">
-                  <p>
+                {deliveryInfo.recipientName && (
+                  <p className="text-gray-700">
                     <span className="font-medium text-gray-500">
-                      {t("orders.recipientAddress")}:
+                      {t("orders.recipientName")}:
                     </span>{" "}
-                    <span className="font-semibold text-gray-900">
-                      {orderAddress.fullAddress ||
-                        [
-                          orderAddress.detailAddress,
-                          orderAddress.wardName,
-                          orderAddress.districtName,
-                          orderAddress.provinceName,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                    </span>
+                    <span className="font-semibold text-gray-900">{deliveryInfo.recipientName}</span>
                   </p>
-                </div>
+                )}
+                {deliveryInfo.recipientPhone && (
+                  <p className="text-gray-700">
+                    <span className="font-medium text-gray-500">
+                      {t("orders.recipientPhone")}:
+                    </span>{" "}
+                    <span className="font-semibold text-gray-900 font-mono">{deliveryInfo.recipientPhone}</span>
+                  </p>
+                )}
+                {deliveryInfo.addressLine && (
+                  <div className="flex items-start gap-2 text-gray-700">
+                    <p>
+                      <span className="font-medium text-gray-500">
+                        {t("orders.recipientAddress")}:
+                      </span>{" "}
+                      <span className="font-semibold text-gray-900">{deliveryInfo.addressLine}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-start gap-2 text-sm text-gray-600">
