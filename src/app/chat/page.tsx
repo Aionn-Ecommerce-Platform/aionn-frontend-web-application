@@ -660,7 +660,7 @@ export function ChatInner({
                             >
                               {activeConv.merchantId && (
                                 <Link
-                                  href={`/shops/${activeConv.merchantId}`}
+                                  href={`/merchants/${activeConv.merchantId}`}
                                   onClick={() => setMoreMenuOpen(false)}
                                   className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 hover:text-gray-950 hover:bg-gray-50 rounded-xl transition-colors"
                                 >
