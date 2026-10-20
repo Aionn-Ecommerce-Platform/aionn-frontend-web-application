@@ -44,7 +44,7 @@ export default function MerchantVouchers({
           return (
             <div
               key={voucher.voucherCode}
-              className="flex bg-white border border-gray-100 rounded-2xl min-h-[128px] shrink-0 w-[360px] shadow-xs hover:shadow-md transition-all overflow-hidden"
+              className="flex bg-white border border-gray-200/90 rounded-2xl min-h-[128px] shrink-0 w-[360px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-md transition-all overflow-hidden"
             >
               <div className="w-28 flex flex-col items-center justify-center text-white px-3 text-center shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600">
                 {merchant.logoUrl ? (
@@ -64,7 +64,7 @@ export default function MerchantVouchers({
                   {merchant.name}
                 </span>
               </div>
-              <div className="flex-1 flex items-center justify-between py-4 px-4.5 border-l border-dashed border-gray-100">
+              <div className="flex-1 flex items-center justify-between py-4 px-4.5 border-l border-dashed border-gray-200">
                 <div className="flex-1 pr-3">
                   <h3 className="font-extrabold text-gray-950 text-sm">
                     {t("promotions.discountAmount", {

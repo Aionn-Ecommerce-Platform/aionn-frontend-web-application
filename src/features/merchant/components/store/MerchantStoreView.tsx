@@ -228,13 +228,13 @@ export default function MerchantStorePage({
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Modern Clean Store Header Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-xs mb-8">
+        <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Store Profile Info */}
             <div className="flex items-center gap-5">
               <div className="relative shrink-0">
                 {merchant.logoUrl ? (
-                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-100 shadow-xs bg-gray-50">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-50">
                     <Image
                       src={merchant.logoUrl}
                       alt={merchant.name}
@@ -249,7 +249,7 @@ export default function MerchantStorePage({
                 )}
                 {merchant.status === "ACTIVE" && (
                   <span
-                    className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center"
+                    className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-xs"
                     title={t("merchantStore.active")}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -278,7 +278,7 @@ export default function MerchantStorePage({
                     {merchant.description}
                   </p>
                 )}
-                <div className="flex items-center gap-3 pt-1">
+                <div className="pt-1">
                   <button
                     onClick={handleStartChat}
                     disabled={chatLoading}
@@ -291,16 +291,13 @@ export default function MerchantStorePage({
                     )}
                     <span>{t("merchantStore.chat")}</span>
                   </button>
-                  <span className="text-xs text-gray-400 font-mono">
-                    ID: {merchant.merchantId}
-                  </span>
                 </div>
               </div>
             </div>
 
             {/* Store Quick Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 border-t lg:border-t-0 lg:border-l border-gray-100 pt-6 lg:pt-0 lg:pl-8">
-              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 border-t lg:border-t-0 lg:border-l border-gray-200/80 pt-6 lg:pt-0 lg:pl-8">
+              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
                 <Store size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
@@ -312,7 +309,7 @@ export default function MerchantStorePage({
                 </div>
               </div>
 
-              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
                 <MapPin size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
@@ -324,7 +321,7 @@ export default function MerchantStorePage({
                 </div>
               </div>
 
-              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
                 <Calendar size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
@@ -336,7 +333,7 @@ export default function MerchantStorePage({
                 </div>
               </div>
 
-              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
                 <ShieldCheck size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
@@ -371,8 +368,8 @@ export default function MerchantStorePage({
 
         <div ref={productsRef} className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-64 shrink-0">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs sticky top-24">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+            <div className="bg-white rounded-2xl border border-gray-200/90 p-5 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] sticky top-24">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-200/80 pb-3">
                 <Store size={18} className="text-gray-500" />
                 <span>
                   {t("merchants.shopCategories") || t("merchantStore.categories")}
