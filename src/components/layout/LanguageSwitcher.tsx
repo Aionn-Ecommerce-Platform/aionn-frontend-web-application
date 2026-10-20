@@ -6,6 +6,10 @@ import { VN, US } from "country-flag-icons/react/3x2";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/hooks";
+import { useAuthStore } from "@/stores/auth.store";
+import { preferenceService } from "@/lib/services";
+import { qk } from "@/lib/query-keys";
+import type { UserPreference } from "@/types";
 
 type Locale = "vi" | "en";
 
@@ -22,8 +26,10 @@ export default function LanguageSwitcher() {
   const { t, locale, setLocale } = useTranslation();
   const qc = useQueryClient();
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const updateSeqRef = useRef(0);
 
   useEffect(() => {
     if (!open) return;
@@ -72,6 +78,33 @@ export default function LanguageSwitcher() {
                 onClick={() => {
                   if (lang.code !== locale) {
                     setLocale(lang.code);
+
+                    if (isAuthenticated) {
+                      const seq = ++updateSeqRef.current;
+                      void qc
+                        .ensureQueryData<UserPreference>({
+                          queryKey: qk.preferences,
+                          queryFn: () => preferenceService.get(),
+                        })
+                        .then((base) => {
+                          if (seq !== updateSeqRef.current) return;
+                          return preferenceService
+                            .updateGeneral({
+                              language: lang.code,
+                              currency: base?.currency ?? "VND",
+                              timezone: base?.timezone ?? "Asia/Ho_Chi_Minh",
+                              theme: base?.theme ?? "light",
+                            })
+                            .then((updated) => {
+                              if (seq === updateSeqRef.current) {
+                                qc.setQueryData(qk.preferences, updated);
+                              }
+                            });
+                        })
+                        .catch(() => {
+                          // Silent background update; does not interrupt user flow
+                        });
+                    }
 
                     qc.invalidateQueries();
                     router.refresh();

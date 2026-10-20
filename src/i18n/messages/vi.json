@@ -632,8 +632,11 @@
     "tabAvailable": "Khả dụng",
     "tabUsed": "Đã sử dụng",
     "tabExpired": "Hết hiệu lực",
+    "all": "Tất cả",
+    "available": "Khả dụng",
     "inputPlaceholder": "Nhập mã voucher Aionn để lưu...",
     "saveVoucher": "Lưu mã",
+    "applyCode": "Lưu mã",
     "useNow": "Dùng ngay",
     "used": "Đã sử dụng",
     "expired": "Hết hạn",
@@ -851,6 +854,8 @@
     "characters": "ký tự",
     "previous": "Trước",
     "next": "Tiếp theo",
+    "pagination": "Phân trang",
+    "pageNumber": "Trang {page}",
     "newNotifications": "Thông báo mới nhận",
     "noNewNotifications": "Không có thông báo mới",
     "loginToSeeNotifications": "Đăng nhập để xem thông báo",
@@ -1737,6 +1742,7 @@
     "uploadImage": "Tải ảnh lên",
     "messagePlaceholder": "Nhập tin nhắn...",
     "sendMessage": "Gửi tin nhắn",
+    "typing": "Đang soạn tin nhắn...",
     "blockedUserFallback": "Người dùng"
   },
   "security": {

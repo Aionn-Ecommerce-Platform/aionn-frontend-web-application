@@ -28,9 +28,9 @@ import {
 import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useChatSocket } from "@/hooks";
 import { formatTime } from "@/shared/lib/utils";
-import type { ChatMessage } from "@/types";
+import type { ChatConversation, ChatMessage } from "@/types";
 
 export function ChatInner({
   variant = "member",
@@ -52,12 +52,26 @@ export function ChatInner({
   const lastMessageCountRef = useRef(0);
   const lastConversationIdRef = useRef<string | null>(null);
 
+  const cachedFirstConvId =
+    qc.getQueryData<ChatConversation[]>(
+      qk.conversations({ includeArchived: false, limit: 50 }),
+    )?.[0]?.conversationId ?? null;
+
+  const effectiveSelectedId =
+    selectedId ?? presetConversationId ?? cachedFirstConvId;
+
+  const { isConnected, isPartnerTyping, sendTyping } = useChatSocket({
+    activeConversationId: effectiveSelectedId,
+    currentUserId: userId,
+    enabled: !isInitializing && isAuthenticated,
+  });
+
   const { data: conversations, isLoading: loadingConvs } = useQuery({
     queryKey: qk.conversations({ includeArchived: false, limit: 50 }),
     queryFn: () =>
       conversationService.listMine({ includeArchived: false, limit: 50 }),
     enabled: !isInitializing && isAuthenticated,
-    refetchInterval: 30_000,
+    refetchInterval: isConnected ? false : 10000,
   });
 
   const filtered = useMemo(() => {
@@ -71,15 +85,20 @@ export function ChatInner({
     );
   }, [conversations, search]);
 
-  const effectiveSelectedId = useMemo(() => {
-    if (selectedId) return selectedId;
-    if (presetConversationId) return presetConversationId;
-    return filtered[0]?.conversationId ?? null;
-  }, [selectedId, presetConversationId, filtered]);
-
   const activeConv = filtered.find(
     (c) => c.conversationId === effectiveSelectedId,
   );
+
+  const wasConnectedRef = useRef(false);
+  useEffect(() => {
+    if (!wasConnectedRef.current && isConnected) {
+      void qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+      if (effectiveSelectedId) {
+        void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId) });
+      }
+    }
+    wasConnectedRef.current = isConnected;
+  }, [isConnected, effectiveSelectedId, qc]);
 
   const { data: messages, isLoading: loadingMsgs } = useQuery({
     queryKey: effectiveSelectedId
@@ -90,7 +109,7 @@ export function ChatInner({
         ? messageService.list(effectiveSelectedId, { limit: 50 })
         : Promise.resolve([] as ChatMessage[]),
     enabled: !isInitializing && isAuthenticated && !!effectiveSelectedId,
-    refetchInterval: 5_000,
+    refetchInterval: isConnected ? false : 5000,
   });
 
   const sortedMessages = useMemo(() => {
@@ -146,18 +165,31 @@ export function ChatInner({
       qc.invalidateQueries({ queryKey: qk.unreadCounts });
       qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
     });
-  }, [effectiveSelectedId, isAuthenticated, isInitializing, qc]);
+  }, [
+    effectiveSelectedId,
+    activeConv?.unreadCount,
+    isAuthenticated,
+    isInitializing,
+    qc,
+  ]);
+
+  const handleMessageSent = (msg: ChatMessage) => {
+    const targetConversationId = msg.conversationId || effectiveSelectedId!;
+    qc.setQueryData<ChatMessage[]>(
+      qk.messages(targetConversationId),
+      (prev) => (prev ? [...prev, msg] : [msg]),
+    );
+    void qc.invalidateQueries({ queryKey: qk.messages(targetConversationId) });
+    void conversationService.markRead(targetConversationId).then(() => {
+      qc.invalidateQueries({ queryKey: qk.unreadCounts });
+      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
+    });
+  };
 
   const sendMutation = useMutation({
     mutationFn: (body: string) =>
       messageService.send(effectiveSelectedId!, { type: "TEXT", body }),
-    onSuccess: (msg) => {
-      qc.setQueryData<ChatMessage[]>(
-        qk.messages(effectiveSelectedId!),
-        (prev) => (prev ? [...prev, msg] : [msg]),
-      );
-      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
-    },
+    onSuccess: handleMessageSent,
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
@@ -174,13 +206,7 @@ export function ChatInner({
         metadata: { imageUrl: url },
       });
     },
-    onSuccess: (msg) => {
-      qc.setQueryData<ChatMessage[]>(
-        qk.messages(effectiveSelectedId!),
-        (prev) => (prev ? [...prev, msg] : [msg]),
-      );
-      qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
-    },
+    onSuccess: handleMessageSent,
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
@@ -249,11 +275,31 @@ export function ChatInner({
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSend = () => {
     const text = draft.trim();
     if (!text || !effectiveSelectedId || sendMutation.isPending) return;
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+    }
+    sendTyping(false);
     sendMutation.mutate(text);
     setDraft("");
+  };
+
+  const handleDraftChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setDraft(val);
+    if (effectiveSelectedId) {
+      sendTyping(true);
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current);
+      }
+      typingTimerRef.current = setTimeout(() => {
+        sendTyping(false);
+      }, 2500);
+    }
   };
 
   const renderMessageBody = (msg: (typeof sortedMessages)[number]) => {
@@ -584,6 +630,16 @@ export function ChatInner({
                       className="flex-1 overflow-y-auto p-5 space-y-3.5 bg-gray-50/20"
                     >
                       {renderMessages()}
+                      {isPartnerTyping && (
+                        <div className="flex items-center gap-2 px-1 text-xs text-gray-500 font-medium italic animate-pulse">
+                          <span className="inline-flex gap-1 items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.3s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.15s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce" />
+                          </span>
+                          <span>{t("chat.typing")}</span>
+                        </div>
+                      )}
                       <div ref={messagesEndRef} />
                     </div>
 
@@ -616,7 +672,7 @@ export function ChatInner({
                         <input
                           type="text"
                           value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
+                          onChange={handleDraftChange}
                           placeholder={t("chat.messagePlaceholder")}
                           className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-xs sm:text-sm focus:border-gray-900 focus:outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
                           onKeyDown={(e) => {

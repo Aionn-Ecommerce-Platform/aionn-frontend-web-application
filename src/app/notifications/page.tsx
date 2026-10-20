@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, EmptyState, Modal } from "@/shared/ui";
+import { Button, EmptyState, Modal, Pagination } from "@/shared/ui";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { notificationService } from "@/lib/services";
@@ -52,9 +52,20 @@ function NotificationsInner() {
     queryFn: () => notificationService.listMine(50),
   });
 
-  const list = notifications ?? [];
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const list = useMemo(() => notifications ?? [], [notifications]);
   const isNotificationRead = (n: NotificationItem) => n.status === "READ" || !!n.readAt;
   const unreadCount = list.filter((n) => !isNotificationRead(n)).length;
+
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedList = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return list.slice(start, start + PAGE_SIZE);
+  }, [list, safeCurrentPage]);
 
   const markRead = useMutation({
     mutationFn: (notiId: string) => notificationService.markRead(notiId),
@@ -127,7 +138,7 @@ function NotificationsInner() {
     <MemberPageLayout>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("notifications.title")}
           </h1>
           {unreadCount > 0 && (
@@ -185,7 +196,7 @@ function NotificationsInner() {
         ) : (
           <div className="divide-y divide-gray-100">
             <AnimatePresence initial={false}>
-              {list.map((notif) => {
+              {paginatedList.map((notif) => {
                 const read = isNotificationRead(notif);
                 return (
                   <motion.div
@@ -267,6 +278,12 @@ function NotificationsInner() {
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Apple-style Notification Detail Modal */}
       <Modal

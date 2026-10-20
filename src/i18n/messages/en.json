@@ -632,8 +632,11 @@
     "tabAvailable": "Available",
     "tabUsed": "Used",
     "tabExpired": "Expired",
+    "all": "All",
+    "available": "Available",
     "inputPlaceholder": "Enter Aionn voucher code to save...",
     "saveVoucher": "Save",
+    "applyCode": "Save",
     "useNow": "Use now",
     "used": "Used",
     "expired": "Expired",
@@ -851,6 +854,8 @@
     "characters": "characters",
     "previous": "Previous",
     "next": "Next",
+    "pagination": "Pagination",
+    "pageNumber": "Page {page}",
     "newNotifications": "New Notifications",
     "noNewNotifications": "No new notifications",
     "loginToSeeNotifications": "Log in to see notifications",
@@ -1737,6 +1742,7 @@
     "uploadImage": "Upload image",
     "messagePlaceholder": "Type a message...",
     "sendMessage": "Send message",
+    "typing": "Typing...",
     "blockedUserFallback": "User"
   },
   "security": {

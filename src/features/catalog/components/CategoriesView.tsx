@@ -23,7 +23,7 @@ export default function CategoriesPage() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-2">
           {t("categories.title")}
         </h1>
         <p className="text-gray-500 mb-8">{t("categories.subtitle")}</p>

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, Loader2, Sparkles, Bot, Bell, ArrowRight } from "lucide-react";
+import {
+  Loader2,
+  Sparkles,
+  Bot,
+  Bell,
+  ArrowRight,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
@@ -16,44 +22,17 @@ import { Button, Switch } from "@/shared/ui";
 import type { NotificationSettings, UserPreference } from "@/types";
 
 function SettingsInner() {
-  const { t, locale, setLocale } = useTranslation();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading: loading } = useQuery({
     queryKey: qk.preferences,
     queryFn: () => preferenceService.get(),
   });
-  const [savingLanguage, setSavingLanguage] = useState(false);
   const [savingAiPrivacy, setSavingAiPrivacy] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
 
   function writePreferences(next: UserPreference) {
     qc.setQueryData(qk.preferences, next);
-  }
-
-  async function handleLanguageChange(value: "vi" | "en") {
-    if (!data) return;
-    setSavingLanguage(true);
-    const previous = data;
-    const previousLocale = locale;
-    setLocale(value);
-    writePreferences({ ...data, language: value } as UserPreference);
-    try {
-      const updated = await preferenceService.updateGeneral({
-        language: value,
-        currency: data.currency ?? "VND",
-        timezone: data.timezone ?? "Asia/Ho_Chi_Minh",
-        theme: data.theme ?? "light",
-      });
-      writePreferences(updated);
-      qc.invalidateQueries();
-      toast.success(t("settings.updateSuccess"));
-    } catch (err) {
-      setLocale(previousLocale);
-      writePreferences(previous);
-      toast.error(getErrorMessage(err));
-    } finally {
-      setSavingLanguage(false);
-    }
   }
 
   async function handleAiPrivacyToggle(val: boolean) {
@@ -264,37 +243,6 @@ function SettingsInner() {
                   disabled={savingNotifications}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Card: General / Language */}
-          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
-            <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
-              <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
-                <Globe size={16} />
-              </div>
-              {t("settings.generalTitle")}
-            </h3>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  {t("settings.language")}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {t("settings.languageDesc")}
-                </p>
-              </div>
-              <select
-                value={locale}
-                disabled={savingLanguage}
-                onChange={(e) =>
-                  handleLanguageChange(e.target.value === "en" ? "en" : "vi")
-                }
-                className="px-3.5 py-2 text-sm font-medium border border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand disabled:opacity-50 cursor-pointer shadow-2xs"
-              >
-                <option value="vi">{t("settings.languageVi")}</option>
-                <option value="en">{t("settings.languageEn")}</option>
-              </select>
             </div>
           </div>
 
