@@ -2,6 +2,7 @@
 
 import { ConfirmDialog } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
+import { DeleteAccountModal } from "./SecurityModals";
 
 interface Props {
   revokeOpen: boolean;
@@ -14,7 +15,7 @@ interface Props {
   closeRevokeAll: () => void;
   confirmRevokeAll: () => void;
   closeDelete: () => void;
-  confirmDelete: () => void;
+  confirmDelete: (payload: { password: string; mfaCode?: string }) => void;
   closeCancelDelete: () => void;
   confirmCancelDelete: () => void;
 }
@@ -41,14 +42,11 @@ export function SecurityConfirmations(props: Props) {
         confirmLabel={t("security.logoutAll")}
         loading={props.loading}
       />
-      <ConfirmDialog
-        isOpen={props.deleteOpen}
+      <DeleteAccountModal
+        open={props.deleteOpen}
+        loading={props.loading}
         onClose={props.closeDelete}
         onConfirm={props.confirmDelete}
-        title={t("security.requestDeletionTitle")}
-        message={t("security.requestDeletionMessage")}
-        confirmLabel={t("security.requestDeletion")}
-        loading={props.loading}
       />
       <ConfirmDialog
         isOpen={props.cancelDeleteOpen}

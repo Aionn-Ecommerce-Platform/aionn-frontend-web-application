@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Input, Modal, AppImage } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
@@ -172,6 +172,113 @@ export function MfaModal(props: MfaModalProps) {
           </Button>
         </div>
       ) : null}
+    </Modal>
+  );
+}
+
+export interface DeleteAccountModalProps {
+  open: boolean;
+  loading: boolean;
+  onClose: () => void;
+  onConfirm: (payload: { password: string; mfaCode?: string }) => void;
+}
+
+export function DeleteAccountModal(props: DeleteAccountModalProps) {
+  const { t } = useTranslation();
+  const [password, setPassword] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const handleClose = () => {
+    setPassword("");
+    setMfaCode("");
+    setPasswordError("");
+    props.onClose();
+  };
+
+  const handleConfirm = () => {
+    if (!password.trim()) {
+      setPasswordError(t("security.passwordRequired") || "Vui lòng nhập mật khẩu xác nhận");
+      return;
+    }
+    setPasswordError("");
+    props.onConfirm({
+      password: password.trim(),
+      mfaCode: mfaCode.trim() ? mfaCode.trim() : undefined,
+    });
+  };
+
+  return (
+    <Modal
+      isOpen={props.open}
+      onClose={handleClose}
+      title={t("security.requestDeletionTitle")}
+      size="md"
+    >
+      <div className="space-y-4">
+        <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs sm:text-sm text-red-800 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold text-red-900">
+              {t("security.deleteAccountWarningTitle") || "Lưu ý quan trọng:"}
+            </p>
+            <p className="text-red-700 leading-relaxed text-xs">
+              {t("security.requestDeletionMessage")}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <Input
+            type="password"
+            label={t("security.confirmPasswordLabel") || "Mật khẩu tài khoản"}
+            placeholder={t("security.enterPasswordPlaceholder") || "Nhập mật khẩu hiện tại"}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError("");
+            }}
+            error={passwordError}
+            autoComplete="new-password"
+            required
+          />
+        </div>
+
+        <div>
+          <Input
+            type="text"
+            label={t("security.mfaCodeOptionalLabel") || "Mã xác thực 2FA (nếu đã kích hoạt)"}
+            placeholder="000000"
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+            maxLength={6}
+            className="tracking-[0.25em] font-mono text-center"
+            autoComplete="off"
+          />
+          <p className="text-[11px] text-gray-500 mt-1">
+            {t("security.mfaCodeHint") || "Nếu tài khoản của bạn đã bật xác thực 2 yếu tố, vui lòng nhập mã 6 số từ app Authenticator."}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={props.loading}
+          >
+            {t("common.cancel") || "Hủy bỏ"}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={handleConfirm}
+            loading={props.loading}
+          >
+            {t("security.requestDeletion")}
+          </Button>
+        </div>
+      </div>
     </Modal>
   );
 }

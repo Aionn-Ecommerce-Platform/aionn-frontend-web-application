@@ -38,8 +38,8 @@ export const userService = {
     return api.post<UserProfile>("/users/me/phone-change/confirm", { otpCode });
   },
 
-  requestAccountDeletion() {
-    return api.post<DeletionRequest>("/users/me/deletion-requests", undefined, {
+  requestAccountDeletion(payload?: { password?: string; mfaCode?: string }) {
+    return api.post<DeletionRequest>("/users/me/deletion-requests", payload, {
       idempotent: true,
     });
   },

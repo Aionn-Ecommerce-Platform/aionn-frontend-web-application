@@ -11,7 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, ConfirmDialog } from "@/shared/ui";
+import { Button, Badge } from "@/shared/ui";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { MfaModal, PasswordModal } from "./SecurityModals";
@@ -160,18 +160,20 @@ function SecurityInner() {
     }
   }
 
-  async function handleRequestDeletion() {
+  async function handleRequestDeletion(payload?: { password: string; mfaCode?: string }) {
     setActionLoading(true);
     try {
-      await userService.requestAccountDeletion();
+      await userService.requestAccountDeletion(payload);
+
       toast.success(t("security.deleteRequested"));
 
       await refreshProfile();
+      setDeleteAccountOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
       setActionLoading(false);
-      setDeleteAccountOpen(false);
+
     }
   }
 
@@ -181,6 +183,7 @@ function SecurityInner() {
       await userService.cancelAccountDeletion();
       toast.success(t("security.deleteCancelled"));
       await refreshProfile();
+      setDeleteAccountOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -477,21 +480,6 @@ function SecurityInner() {
         onCode={setMfaCode}
         onSetup={handleMfaSetup}
         onEnable={handleMfaEnable}
-      />
-      <ConfirmDialog
-        isOpen={revokeGroupKey !== null}
-        onClose={() => setRevokeGroupKey(null)}
-        onConfirm={() => {
-          if (!revokeGroupKey || !sessions.data) return;
-          const group = groupSessions(sessions.data, currentSessionId).find(
-            (g) => g.key === revokeGroupKey,
-          );
-          if (group) void handleRevokeGroup(group);
-        }}
-        title={t("security.revokeSessionTitle")}
-        message={t("security.revokeSessionMessage")}
-        confirmLabel={t("security.revoke")}
-        loading={actionLoading}
       />
       <SecurityConfirmations
         revokeOpen={revokeGroupKey !== null}
