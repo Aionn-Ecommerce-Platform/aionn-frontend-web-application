@@ -339,7 +339,6 @@ function OrderDetailInner({ id }: { id: string }) {
             </div>
             <span className="text-gray-300 hidden sm:inline">•</span>
             <span className="text-xs sm:text-sm font-medium text-gray-500">
-              {t("orders.orderDate")}{" "}
               {formatDateTime(
                 order.createdAt,
                 locale === "vi" ? "vi-VN" : "en-US",
