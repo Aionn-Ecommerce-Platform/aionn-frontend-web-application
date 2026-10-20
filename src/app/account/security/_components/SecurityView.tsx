@@ -451,6 +451,7 @@ function SecurityInner() {
         password={mfaPassword}
         code={mfaCode}
         secret={mfaSetup?.secret}
+        otpauthUri={mfaSetup?.otpauthUri}
         loading={mfaLoading}
         onClose={() => {
           setMfaModalOpen(false);
