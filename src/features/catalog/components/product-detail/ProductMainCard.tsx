@@ -161,76 +161,87 @@ export default function ProductMainCard(props: Props) {
   );
 
   const selectAttribute = (key: string, value: string) => {
-    // 1. Toggle off if clicking the already selected value
+    const keyIndex = attributeKeys.indexOf(key);
+    if (keyIndex === -1) return;
+
+    // 1. Toggle off if clicking the already selected value: unselect it and all child rows below
     if (selectedAttributes[key] === value) {
-      const nextAttributes = { ...selectedAttributes };
-      delete nextAttributes[key];
+      const nextAttributes: Record<string, string> = {};
+      for (let i = 0; i < keyIndex; i++) {
+        const parentKey = attributeKeys[i];
+        if (parentKey && selectedAttributes[parentKey]) {
+          nextAttributes[parentKey] = selectedAttributes[parentKey];
+        }
+      }
       setSelectionState({
         productId: product.productId,
         values: nextAttributes,
       });
-      const selectedVariantIndex = product.variants.findIndex((variant) =>
-        attributeKeys.every(
-          (attributeKey) =>
-            variant.attributeValues[attributeKey] ===
-            nextAttributes[attributeKey],
-        ),
-      );
-      setSelectedVariantIdx(
-        selectedVariantIndex >= 0 ? selectedVariantIndex : null,
-      );
+      setSelectedVariantIdx(null);
       setQuantity(1);
       return;
     }
 
-    // 2. Set the chosen attribute
-    const nextAttributes: Record<string, string> = { [key]: value };
-
-    // 3. Keep other currently selected attributes ONLY if they are compatible.
-    // If incompatible, DO NOT auto-switch; leave them unselected so the user chooses again!
-    for (const [existingKey, existingValue] of Object.entries(
-      selectedAttributes,
-    )) {
-      if (existingKey === key) continue;
-      const isStillCompatible = product.variants.some(
-        (variant) =>
-          variant.attributeValues[key] === value &&
-          variant.attributeValues[existingKey] === existingValue,
-      );
-      if (isStillCompatible) {
-        nextAttributes[existingKey] = existingValue;
+    // 2. Strict top-down cascade: keep all parent selections above keyIndex
+    const nextAttributes: Record<string, string> = {};
+    for (let i = 0; i < keyIndex; i++) {
+        const parentKey = attributeKeys[i];
+        if (parentKey && selectedAttributes[parentKey]) {
+          nextAttributes[parentKey] = selectedAttributes[parentKey];
+        }
       }
-    }
+
+    // 3. Set the current attribute choice
+    nextAttributes[key] = value;
+
+    // Any child rows below keyIndex (i > keyIndex) are reset so the user selects them next in order!
 
     setSelectionState({
       productId: product.productId,
       values: nextAttributes,
     });
-    const selectedVariantIndex = product.variants.findIndex((variant) =>
-      attributeKeys.every(
-        (attributeKey) =>
-          variant.attributeValues[attributeKey] ===
-          nextAttributes[attributeKey],
-      ),
-    );
-    setSelectedVariantIdx(
-      selectedVariantIndex >= 0 ? selectedVariantIndex : null,
-    );
+
+    // 4. Variant is determined only when ALL attributes from top to bottom are chosen
+    const allChosen = attributeKeys.every((k) => Boolean(nextAttributes[k]));
+    if (allChosen) {
+      const variantIdx = product.variants.findIndex((v) =>
+        attributeKeys.every((k) => v.attributeValues[k] === nextAttributes[k]),
+      );
+      setSelectedVariantIdx(variantIdx >= 0 ? variantIdx : null);
+    } else {
+      setSelectedVariantIdx(null);
+    }
     setQuantity(1);
   };
 
   const isOptionAvailable = (key: string, value: string) => {
-    const otherSelected = Object.entries(selectedAttributes).filter(
-      ([k]) => k !== key,
-    );
-    if (otherSelected.length === 0) {
+    const keyIndex = attributeKeys.indexOf(key);
+    if (keyIndex === -1) return false;
+
+    // Row 0 (top tier): always available if the option exists in any variant
+    if (keyIndex === 0) {
       return product.variants.some((v) => v.attributeValues[key] === value);
     }
-    return product.variants.some(
-      (v) =>
-        v.attributeValues[key] === value &&
-        otherSelected.every(([k, val]) => v.attributeValues[k] === val),
-    );
+
+    // Child rows (keyIndex > 0): user must select parent row first
+    for (let i = 0; i < keyIndex; i++) {
+      const parentKey = attributeKeys[i];
+      if (!parentKey || !selectedAttributes[parentKey]) {
+        return false;
+      }
+    }
+
+    // Must be compatible with all parent choices above
+    return product.variants.some((v) => {
+      if (v.attributeValues[key] !== value) return false;
+      for (let i = 0; i < keyIndex; i++) {
+        const parentKey = attributeKeys[i];
+        if (parentKey && v.attributeValues[parentKey] !== selectedAttributes[parentKey]) {
+          return false;
+        }
+      }
+      return true;
+    });
   };
 
   return (
@@ -556,21 +567,18 @@ export default function ProductMainCard(props: Props) {
                         {(attributeOptions[key] ?? []).map((value) => {
                           const selected = selectedAttributes[key] === value;
                           const available = isOptionAvailable(key, value);
-                          const existsInProduct = product.variants.some(
-                            (v) => v.attributeValues[key] === value,
-                          );
                           return (
                             <button
                               key={value}
                               type="button"
-                              disabled={!existsInProduct}
+                              disabled={!available}
                               onClick={() => selectAttribute(key, value)}
                               className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all select-none ${
                                 selected
                                   ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold cursor-pointer"
                                   : available
                                     ? "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 cursor-pointer"
-                                    : "border-gray-200 bg-gray-50/70 text-gray-400 hover:border-gray-300 hover:text-gray-600 cursor-pointer"
+                                    : "border-gray-200 bg-gray-50 text-gray-300 line-through cursor-not-allowed opacity-60"
                               }`}
                             >
                               <span className="inline-flex items-center justify-center gap-1.5">
