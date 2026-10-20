@@ -63,9 +63,9 @@ export default function ProductDetailExtras(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-xs rounded-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-gray-950 flex items-center justify-center text-white text-xl font-bold shadow-xs">
             {product.merchantId?.charAt(0).toUpperCase() ?? "M"}
           </div>
           <div>
@@ -76,7 +76,7 @@ export default function ProductDetailExtras(props: Props) {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 px-4 text-xs font-semibold border-blue-600 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
+                className="h-9 px-4 text-xs font-semibold border-gray-950 bg-gray-950 text-white hover:bg-black active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
                 onClick={handleStartChat}
                 loading={chatLoading}
               >
@@ -87,7 +87,7 @@ export default function ProductDetailExtras(props: Props) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 px-4 text-xs font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
+                  className="h-9 px-4 text-xs font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
                 >
                   <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
                   {t("products.viewStore")}
@@ -102,7 +102,7 @@ export default function ProductDetailExtras(props: Props) {
             <p className="text-xs text-gray-400 uppercase tracking-wider">
               {t("products.ratingLabel")}
             </p>
-            <p className="text-base font-bold text--commerce mt-1">4.8 / 5.0</p>
+            <p className="text-base font-bold text-gray-900 mt-1">4.8 / 5.0</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wider">
@@ -135,7 +135,7 @@ export default function ProductDetailExtras(props: Props) {
         </div>
       </div>
       {product.aiDescription && (
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-8 mt-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
@@ -144,14 +144,14 @@ export default function ProductDetailExtras(props: Props) {
           </p>
         </div>
       )}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-8 mt-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             {t("products.ratingLabel")}
           </h2>
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-950 hover:bg-black text-white font-semibold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
             onClick={handleReviewButtonClick}
           >
             <Star size={15} className="text-white fill-white" />

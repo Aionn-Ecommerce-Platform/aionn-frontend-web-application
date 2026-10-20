@@ -169,10 +169,10 @@ export default function ProductMainCard(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
-            <div className="aspect-square relative bg-gray-50 rounded-sm overflow-hidden mb-4 border border-gray-200 group">
+            <div className="aspect-square relative bg-gray-50/50 rounded-2xl overflow-hidden mb-4 border border-gray-100 group">
               <Image
                 src={images[selectedImage] ?? "/images/logo.png"}
                 alt={product.name}
@@ -185,7 +185,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all"
                     aria-label="Previous product image"
                   >
                     <ChevronLeft size={20} />
@@ -193,7 +193,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur text-gray-700 shadow-xs hover:bg-gray-950 hover:text-white hover:border-gray-950 transition-all"
                     aria-label="Next product image"
                   >
                     <ChevronRight size={20} />
@@ -212,10 +212,10 @@ export default function ProductMainCard(props: Props) {
                       key={i}
                       type="button"
                       onClick={() => setSelectedImage(i)}
-                      className={`w-16 h-16 relative rounded-xs overflow-hidden border flex-shrink-0 transition-all bg-white ${
+                      className={`w-16 h-16 relative rounded-xl overflow-hidden border flex-shrink-0 transition-all bg-white ${
                         selectedImage === i
-                          ? "border-blue-600 ring-2 ring-blue-100"
-                          : "border-gray-200 hover:border-blue-500"
+                          ? "border-gray-950 ring-2 ring-gray-950/20"
+                          : "border-gray-200 hover:border-gray-400"
                       }`}
                     >
                       <Image
@@ -287,7 +287,7 @@ export default function ProductMainCard(props: Props) {
                 {product.variants.length > 0 ? (
                   <div className="flex items-baseline gap-3 flex-wrap">
                     <span
-                      className={`text-3xl sm:text-4xl font-normal leading-tight ${
+                      className={`text-3xl sm:text-4xl font-bold tracking-tight leading-tight ${
                         discountPercent > 0
                           ? "text-orange-600"
                           : "text-gray-900"
@@ -301,7 +301,7 @@ export default function ProductMainCard(props: Props) {
                       </span>
                     )}
                     {discountPercent > 0 && (
-                      <span className="text-sm font-semibold text-white bg--commerce px-2 py-0.5 rounded">
+                      <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-full">
                         -{discountPercent}%
                       </span>
                     )}
@@ -338,7 +338,7 @@ export default function ProductMainCard(props: Props) {
                                   : "GHN ETA unavailable"))}
                       </span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xs font-normal">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-normal">
                       <Gift size={13} className="text-amber-600 shrink-0" />
                       <span>{t("productDetail.lateDeliveryVoucher")}</span>
                     </span>
@@ -377,7 +377,7 @@ export default function ProductMainCard(props: Props) {
                             setIsProtectionExpanded(false);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 text-gray-900 cursor-pointer hover:text-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400 rounded-xs transition-colors"
+                        className="inline-flex items-center gap-1.5 text-gray-900 cursor-pointer hover:text-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 rounded-md transition-colors"
                       >
                         <ShieldCheck
                           size={18}
@@ -396,7 +396,7 @@ export default function ProductMainCard(props: Props) {
                         id="buyer-protection-details"
                         role="region"
                         aria-labelledby="buyer-protection-trigger"
-                        className={`absolute left-0 top-full mt-2 w-80 p-4 bg-white rounded-sm border border-gray-200 shadow-xl transition-all duration-200 z-30 before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] ${
+                        className={`absolute left-0 top-full mt-2 w-80 p-4 bg-white rounded-xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 z-30 before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-[''] ${
                           isProtectionExpanded
                             ? "opacity-100 visible pointer-events-auto"
                             : "opacity-0 invisible pointer-events-none"
@@ -444,18 +444,18 @@ export default function ProductMainCard(props: Props) {
                               type="button"
                               disabled={!available}
                               onClick={() => selectAttribute(key, value)}
-                              className={`relative min-h-9 min-w-16 overflow-hidden rounded-xs px-3 py-1 border text-sm font-medium transition-colors ${
+                              className={`relative min-h-9 min-w-16 overflow-hidden rounded-xl px-3.5 py-1.5 border text-sm font-medium transition-all ${
                                 selected
-                                  ? "border-blue-600 bg-white text-blue-700 shadow-[inset_0_0_0_1px_var(--color-primary)]"
+                                  ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold"
                                   : available
-                                    ? "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:text-blue-700"
+                                    ? "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950"
                                     : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through"
                               }`}
                             >
                               {formatVariantValue(value)}
                               {selected && (
                                 <>
-                                  <span className="absolute bottom-0 right-0 h-4 w-4 bg-blue-600 [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
+                                  <span className="absolute bottom-0 right-0 h-4 w-4 bg-white/20 [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
                                   <Check
                                     size={9}
                                     strokeWidth={3}
@@ -493,10 +493,10 @@ export default function ProductMainCard(props: Props) {
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
                           disabled={!canDecrease}
                           aria-label="Decrease quantity"
-                          className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${
                             canDecrease
-                              ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
-                              : "bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                              ? "border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-300 active:scale-95 cursor-pointer shadow-2xs"
+                              : "bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed"
                           }`}
                         >
                           <Minus size={14} className="stroke-[2.5]" />
@@ -509,10 +509,10 @@ export default function ProductMainCard(props: Props) {
                           onClick={() => setQuantity(quantity + 1)}
                           disabled={!canIncrease}
                           aria-label="Increase quantity"
-                          className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${
                             canIncrease
-                              ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
-                              : "bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                              ? "border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-300 active:scale-95 cursor-pointer shadow-2xs"
+                              : "bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed"
                           }`}
                         >
                           <Plus size={14} className="stroke-[2.5]" />
@@ -538,14 +538,14 @@ export default function ProductMainCard(props: Props) {
             <div className="mt-8 flex gap-3 lg:translate-y-1">
               <Button
                 size="lg"
-                className="flex-1 rounded-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all border-0"
+                className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-50 font-bold transition-all shadow-xs cursor-pointer active:scale-[0.99]"
                 onClick={handleAddToCart}
                 loading={adding}
                 disabled={!currentVariant || (stock !== null && stock <= 0)}
               >
                 <ShoppingCart
-                  size={19}
-                  className="mr-2 text-white stroke-[2.2]"
+                  size={18}
+                  className="mr-2 text-gray-950 stroke-[2.2]"
                 />
                 {stock !== null && stock <= 0
                   ? t("productDetail.outOfStock")
@@ -553,13 +553,13 @@ export default function ProductMainCard(props: Props) {
               </Button>
               <Button
                 size="lg"
-                className="flex-1 rounded-sm bg-gradient-to-r from-red-500 via-rose-500 to-orange-500 hover:from-red-600 hover:via-rose-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all border-0"
+                className="h-12 flex-1 rounded-xl bg-gray-950 hover:bg-black text-white font-bold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] border-0"
                 onClick={handleBuyNow}
                 disabled={
                   !currentVariant || adding || (stock !== null && stock <= 0)
                 }
               >
-                <Zap size={18} className="mr-2 text-white fill-white" />
+                <Zap size={17} className="mr-2 text-white fill-white" />
                 {stock !== null && stock <= 0
                   ? t("productDetail.outOfStock")
                   : t("products.buyNow")}

@@ -134,10 +134,10 @@ export function SubmitReviewForm({
 
   return (
     <div
-      className={`rounded-sm border p-5 sm:p-6 transition-colors ${
+      className={`rounded-2xl border p-5 sm:p-6 transition-colors ${
         disabled
           ? "bg-gray-50/70 border-gray-300"
-          : "bg-white border-gray-300 shadow-xs"
+          : "bg-white border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
       }`}
     >
       <div className="flex items-center justify-between mb-4">
@@ -147,7 +147,7 @@ export function SubmitReviewForm({
       </div>
 
       {disabled && (
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5 mb-5 text-xs sm:text-sm text-gray-600 bg-gray-100/90 border border-gray-300 rounded-xs">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 mb-5 text-xs sm:text-sm text-gray-600 bg-gray-100/90 border border-gray-200 rounded-xl">
           <Info className="w-4 h-4 text-gray-500 shrink-0" />
           <span>{noticeText}</span>
         </div>
@@ -178,7 +178,7 @@ export function SubmitReviewForm({
                     star <= (hoveredRating || rating)
                       ? disabled
                         ? "fill-gray-300 text-gray-300"
-                        : "fill-yellow-400 text-yellow-400"
+                        : "fill-amber-400 text-amber-400"
                       : "text-gray-300"
                   }`}
                 />
@@ -211,10 +211,10 @@ export function SubmitReviewForm({
             placeholder={disabled ? "" : t("reviews.titlePlaceholder")}
             maxLength={200}
             disabled={disabled}
-            className={`w-full px-4 py-2 border rounded-sm ${
+            className={`w-full px-4 py-2 border rounded-xl ${
               disabled
                 ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
-                : "border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                : "border-gray-200 focus:ring-2 focus:ring-gray-950/10 focus:border-gray-950 outline-none"
             }`}
           />
           {!disabled && (
@@ -240,10 +240,10 @@ export function SubmitReviewForm({
             }
             rows={4}
             disabled={disabled}
-            className={`w-full px-4 py-2 border rounded-sm resize-none ${
+            className={`w-full px-4 py-2 border rounded-xl resize-none ${
               disabled
                 ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed placeholder:text-gray-400"
-                : "border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                : "border-gray-200 focus:ring-2 focus:ring-gray-950/10 focus:border-gray-950 outline-none"
             }`}
           />
           {!disabled && (
@@ -258,12 +258,12 @@ export function SubmitReviewForm({
             {t("reviews.images")} {!disabled && `(${imageUrls.length}/5)`}
           </label>
           {disabled ? (
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-400 rounded-sm cursor-not-allowed text-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-xl cursor-not-allowed text-sm">
               <Upload className="w-4 h-4" />
               {t("reviews.addImage")}
             </div>
           ) : (
-            <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-700 disabled:opacity-50 cursor-pointer text-sm">
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-gray-950 text-white rounded-xl hover:bg-black disabled:opacity-50 cursor-pointer text-sm font-semibold shadow-xs">
               {uploading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
@@ -287,7 +287,7 @@ export function SubmitReviewForm({
                   <AppImage
                     src={url}
                     alt={`Preview ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded-xs border border-gray-200"
+                    className="w-24 h-24 object-cover rounded-xl border border-gray-200"
                   />
                   <button
                     type="button"
@@ -313,7 +313,7 @@ export function SubmitReviewForm({
               type="button"
               onClick={onCancel}
               disabled={disabled || submitMutation.isPending}
-              className="px-6 py-2 border border-gray-300 rounded-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-6 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer text-sm font-medium"
             >
               {t("common.cancel")}
             </button>
@@ -321,7 +321,7 @@ export function SubmitReviewForm({
           <button
             type="submit"
             disabled={disabled || submitMutation.isPending || !content.trim()}
-            className="px-6 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+            className="px-6 py-2 bg-gray-950 text-white rounded-xl hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-xs cursor-pointer"
           >
             {submitMutation.isPending
               ? t("common.submitting")
