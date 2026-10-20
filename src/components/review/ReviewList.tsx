@@ -231,17 +231,12 @@ function ReviewCard({
     );
   };
 
-  const maskedName = (() => {
+  const buyerName = (() => {
     const name = review.userDisplayName || review.userName;
     if (name && name.trim().length > 0) {
-      const trimmed = name.trim();
-      if (trimmed.length <= 2) {
-        return trimmed.charAt(0) + "***";
-      }
-      return trimmed.charAt(0) + "*****" + trimmed.charAt(trimmed.length - 1);
+      return name.trim();
     }
-    const lastChar = review.userId ? review.userId.slice(-2).toLowerCase() : "1";
-    return 'b*****' + lastChar;
+    return t("reviews.customer") || "Khách hàng";
   })();
 
   const initial = (() => {
@@ -249,7 +244,7 @@ function ReviewCard({
     if (name && name.trim().length > 0) {
       return name.trim().charAt(0).toUpperCase();
     }
-    return "B";
+    return "K";
   })();
 
   return (
@@ -260,7 +255,7 @@ function ReviewCard({
             <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-50 relative">
               <AppImage
                 src={review.userAvatarUrl}
-                alt={maskedName}
+                alt={buyerName}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -271,7 +266,7 @@ function ReviewCard({
           )}
           <div>
             <div className="font-medium text-gray-900 text-sm">
-              {maskedName}
+              {buyerName}
             </div>
             <div className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(review.createdAt), {

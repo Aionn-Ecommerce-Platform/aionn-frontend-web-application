@@ -667,45 +667,48 @@ export default function ProductMainCard(props: Props) {
             <div className="mt-8 flex gap-3 lg:translate-y-1">
               <button
                 type="button"
-                className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-50 font-bold transition-all shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
+                className="group relative overflow-hidden h-12 flex-1 hover:flex-[1.15] rounded-xl border-2 border-gray-950 bg-white text-gray-950 hover:bg-gray-50/80 font-bold transition-all duration-300 ease-out shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:flex-1 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none cursor-pointer"
                 onClick={handleAddToCart}
                 disabled={!currentVariant || (stock !== null && stock <= 0) || adding}
               >
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-gray-900/5 to-transparent pointer-events-none" />
                 {adding ? (
-                  <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-2 relative z-10">
                     <Loader2 size={18} className="animate-spin text-gray-950" />
                     <span>{t("common.loading")}</span>
                   </span>
                 ) : (
-                  <>
+                  <span className="inline-flex items-center justify-center relative z-10">
                     <ShoppingCart
                       size={18}
-                      className="mr-2 text-current stroke-[2.2] shrink-0"
+                      className="mr-2 text-current stroke-[2.2] shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
                     />
-                    <span>
+                    <span className="transition-transform duration-300">
                       {stock !== null && stock <= 0
                         ? t("productDetail.outOfStock")
                         : t("products.addToCart")}
                     </span>
-                  </>
+                  </span>
                 )}
               </button>
               <button
                 type="button"
-                className="h-12 flex-1 rounded-xl bg-gray-950 hover:bg-black text-white font-bold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base border-0 select-none"
+                className="group relative overflow-hidden h-12 flex-1 hover:flex-[1.25] rounded-xl bg-gradient-to-r from-gray-950 via-gray-900 to-black hover:from-black hover:to-gray-900 text-white font-bold transition-all duration-300 ease-out shadow-xs hover:shadow-xl hover:shadow-gray-950/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:bg-gray-200 disabled:from-gray-200 disabled:to-gray-200 disabled:text-gray-400 disabled:hover:flex-1 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base border-0 select-none cursor-pointer"
                 onClick={handleBuyNow}
                 disabled={
                   !currentVariant || adding || (stock !== null && stock <= 0)
                 }
               >
-                <Zap size={17} className="mr-2 text-current fill-current shrink-0" />
-                <span>
-                  {stock !== null && stock <= 0
-                    ? t("productDetail.outOfStock")
-                    : t("products.buyNow")}
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                <span className="inline-flex items-center justify-center relative z-10">
+                  <Zap size={18} className="mr-2 text-current fill-current shrink-0 transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 group-hover:text-amber-300 group-hover:fill-amber-300" />
+                  <span className="transition-transform duration-300">
+                    {stock !== null && stock <= 0
+                      ? t("productDetail.outOfStock")
+                      : t("products.buyNow")}
+                  </span>
                 </span>
-              </button>
-            </div>
+              </button>            </div>
           </div>
         </div>
       </div>
