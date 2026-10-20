@@ -161,7 +161,7 @@ export default function ProductMainCard(props: Props) {
   );
 
   const selectAttribute = (key: string, value: string) => {
-    // Toggle off if clicking the already selected value
+    // 1. Toggle off if clicking the already selected value
     if (selectedAttributes[key] === value) {
       const nextAttributes = { ...selectedAttributes };
       delete nextAttributes[key];
@@ -183,8 +183,11 @@ export default function ProductMainCard(props: Props) {
       return;
     }
 
-    // When changing an attribute, retain compatible selections
-    const compatibleAttributes: Record<string, string> = { [key]: value };
+    // 2. Set the chosen attribute
+    const nextAttributes: Record<string, string> = { [key]: value };
+
+    // 3. Keep other currently selected attributes ONLY if they are compatible.
+    // If incompatible, DO NOT auto-switch; leave them unselected so the user chooses again!
     for (const [existingKey, existingValue] of Object.entries(
       selectedAttributes,
     )) {
@@ -195,35 +198,19 @@ export default function ProductMainCard(props: Props) {
           variant.attributeValues[existingKey] === existingValue,
       );
       if (isStillCompatible) {
-        compatibleAttributes[existingKey] = existingValue;
-      }
-    }
-
-    // Auto-complete any incompatible attributes with a valid matching variant
-    const matchingVariant = product.variants.find((variant) =>
-      variant.attributeValues[key] === value &&
-      Object.entries(compatibleAttributes).every(
-        ([k, v]) => variant.attributeValues[k] === v
-      )
-    ) ?? product.variants.find((variant) => variant.attributeValues[key] === value);
-
-    if (matchingVariant) {
-      for (const attrKey of attributeKeys) {
-        if (!compatibleAttributes[attrKey] && matchingVariant.attributeValues[attrKey]) {
-          compatibleAttributes[attrKey] = matchingVariant.attributeValues[attrKey];
-        }
+        nextAttributes[existingKey] = existingValue;
       }
     }
 
     setSelectionState({
       productId: product.productId,
-      values: compatibleAttributes,
+      values: nextAttributes,
     });
     const selectedVariantIndex = product.variants.findIndex((variant) =>
       attributeKeys.every(
         (attributeKey) =>
           variant.attributeValues[attributeKey] ===
-          compatibleAttributes[attributeKey],
+          nextAttributes[attributeKey],
       ),
     );
     setSelectedVariantIdx(
@@ -232,10 +219,19 @@ export default function ProductMainCard(props: Props) {
     setQuantity(1);
   };
 
-  const isOptionAvailable = (key: string, value: string) =>
-    product.variants.some(
-      (variant) => variant.attributeValues[key] === value,
+  const isOptionAvailable = (key: string, value: string) => {
+    const otherSelected = Object.entries(selectedAttributes).filter(
+      ([k]) => k !== key,
     );
+    if (otherSelected.length === 0) {
+      return product.variants.some((v) => v.attributeValues[key] === value);
+    }
+    return product.variants.some(
+      (v) =>
+        v.attributeValues[key] === value &&
+        otherSelected.every(([k, val]) => v.attributeValues[k] === val),
+    );
+  };
 
   return (
     <>
@@ -560,18 +556,21 @@ export default function ProductMainCard(props: Props) {
                         {(attributeOptions[key] ?? []).map((value) => {
                           const selected = selectedAttributes[key] === value;
                           const available = isOptionAvailable(key, value);
+                          const existsInProduct = product.variants.some(
+                            (v) => v.attributeValues[key] === value,
+                          );
                           return (
                             <button
                               key={value}
                               type="button"
-                              disabled={!available}
+                              disabled={!existsInProduct}
                               onClick={() => selectAttribute(key, value)}
-                              className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all cursor-pointer select-none ${
+                              className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all select-none ${
                                 selected
-                                  ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold"
+                                  ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold cursor-pointer"
                                   : available
-                                    ? "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950"
-                                    : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through"
+                                    ? "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 cursor-pointer"
+                                    : "border-gray-200 bg-gray-50/70 text-gray-400 hover:border-gray-300 hover:text-gray-600 cursor-pointer"
                               }`}
                             >
                               <span className="inline-flex items-center justify-center gap-1.5">
