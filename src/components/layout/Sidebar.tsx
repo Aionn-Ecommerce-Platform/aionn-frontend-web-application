@@ -97,6 +97,9 @@ const menuItems = [
 ];
 
 function getActiveHref(pathname: string): string | null {
+  if (pathname.includes('/return') || pathname.startsWith('/orders/returns')) {
+    return '/orders/returns';
+  }
   const matches = menuItems
     .filter(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),

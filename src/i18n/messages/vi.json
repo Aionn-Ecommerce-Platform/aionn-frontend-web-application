@@ -1547,7 +1547,18 @@
       "backToOrder": "Quay lại đơn hàng",
       "noReturns": "Không có yêu cầu trả hàng nào",
       "noReturnsDesc": "Bạn chưa tạo yêu cầu trả hàng/hoàn tiền nào.",
-      "viewMyOrders": "Xem đơn hàng của tôi"
+      "viewMyOrders": "Xem đơn hàng của tôi",
+      "evidenceLabel": "Hình ảnh minh chứng",
+      "uploadImage": "Tải lên hình ảnh",
+      "uploadHint": "PNG, JPG hoặc WebP tối đa 8MB",
+      "onlyImagesAllowed": "Chỉ chấp nhận tệp hình ảnh (PNG, JPG, WebP)",
+      "imageSizeLimit": "Kích thước hình ảnh không được vượt quá 8MB",
+      "imageUploadSuccess": "Tải ảnh minh chứng thành công",
+      "imageUploadFailed": "Tải ảnh thất bại, vui lòng thử lại",
+      "reasonLengthLimit": "Lý do trả hàng cần ít nhất 10 ký tự",
+      "submitSuccessToast": "Đã gửi yêu cầu trả hàng thành công",
+      "submitErrorToast": "Không thể gửi yêu cầu trả hàng",
+      "onlyCompletedCanReturn": "Chỉ đơn hàng đã hoàn thành mới có thể yêu cầu trả hàng. Trạng thái hiện tại:"
     }
   },
   "categories": {

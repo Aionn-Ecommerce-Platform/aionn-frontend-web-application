@@ -10,6 +10,7 @@ import { ArrowLeft, ImagePlus, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
+import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import {
   mediaService,
   orderReturnService,
@@ -96,18 +97,20 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-      </div>
+      <MemberPageLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader2 className="animate-spin text-blue-600" size={32} />
+        </div>
+      </MemberPageLayout>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <MemberPageLayout>
+      <div className="mb-6">
         <Link
           href={`/orders/${orderId}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-3"
         >
           <ArrowLeft size={16} />
           {t("orders.returns.backToOrder")}
@@ -131,18 +134,19 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
             </>
           )}
         </p>
+      </div>
 
-        {!canReturn && (
-          <div className="mt-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800">
-            {t("orders.returns.onlyCompletedCanReturn")}{" "}
-            <span className="font-semibold">{order?.status}</span>.
-          </div>
-        )}
+      {!canReturn && (
+        <div className="mb-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800">
+          {t("orders.returns.onlyCompletedCanReturn")}{" "}
+          <span className="font-semibold">{order?.status}</span>.
+        </div>
+      )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 bg-white rounded-2xl border border-gray-100 p-6 space-y-5"
-        >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5"
+      >
           <div>
             <label
               htmlFor="reason"
@@ -228,15 +232,17 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
             >
               {t("orders.returns.submit")}
             </Button>
-            <Link href={`/orders/${orderId}`}>
-              <Button type="button" variant="outline" disabled={submitting}>
-                {t("common.cancel")}
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={submitting}
+              onClick={() => router.push(`/orders/${orderId}`)}
+            >
+              {t("common.cancel")}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </MemberPageLayout>
   );
 }
 

@@ -1545,7 +1545,18 @@
       "backToOrder": "Back to Order",
       "noReturns": "You don't have any return requests",
       "noReturnsDesc": "You haven't created any return or refund requests yet.",
-      "viewMyOrders": "View my orders"
+      "viewMyOrders": "View my orders",
+      "evidenceLabel": "Evidence Photo",
+      "uploadImage": "Upload Photo",
+      "uploadHint": "PNG, JPG or WebP up to 8MB",
+      "onlyImagesAllowed": "Only image files are allowed (PNG, JPG, WebP)",
+      "imageSizeLimit": "Image file size cannot exceed 8MB",
+      "imageUploadSuccess": "Evidence photo uploaded successfully",
+      "imageUploadFailed": "Failed to upload photo, please try again",
+      "reasonLengthLimit": "Return reason must be at least 10 characters",
+      "submitSuccessToast": "Return request submitted successfully",
+      "submitErrorToast": "Failed to submit return request",
+      "onlyCompletedCanReturn": "Only completed orders can be returned. Current status:"
     },
     "noOrders": "No orders",
     "noOrdersDesc": "You haven't placed any orders yet"
