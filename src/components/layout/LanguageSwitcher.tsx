@@ -80,20 +80,26 @@ export default function LanguageSwitcher() {
                     setLocale(lang.code);
 
                     if (isAuthenticated) {
-                      const cached =
-                        qc.getQueryData<UserPreference>(qk.preferences);
                       const seq = ++updateSeqRef.current;
-                      preferenceService
-                        .updateGeneral({
-                          language: lang.code,
-                          currency: cached?.currency ?? "VND",
-                          timezone: cached?.timezone ?? "Asia/Ho_Chi_Minh",
-                          theme: cached?.theme ?? "light",
+                      void qc
+                        .ensureQueryData<UserPreference>({
+                          queryKey: qk.preferences,
+                          queryFn: () => preferenceService.get(),
                         })
-                        .then((updated) => {
-                          if (seq === updateSeqRef.current) {
-                            qc.setQueryData(qk.preferences, updated);
-                          }
+                        .then((base) => {
+                          if (seq !== updateSeqRef.current) return;
+                          return preferenceService
+                            .updateGeneral({
+                              language: lang.code,
+                              currency: base?.currency ?? "VND",
+                              timezone: base?.timezone ?? "Asia/Ho_Chi_Minh",
+                              theme: base?.theme ?? "light",
+                            })
+                            .then((updated) => {
+                              if (seq === updateSeqRef.current) {
+                                qc.setQueryData(qk.preferences, updated);
+                              }
+                            });
                         })
                         .catch(() => {
                           // Silent background update; does not interrupt user flow
