@@ -30,7 +30,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation, useChatSocket } from "@/hooks";
 import { formatTime } from "@/shared/lib/utils";
-import type { ChatMessage } from "@/types";
+import type { ChatConversation, ChatMessage } from "@/types";
 
 export function ChatInner({
   variant = "member",
@@ -52,14 +52,26 @@ export function ChatInner({
   const lastMessageCountRef = useRef(0);
   const lastConversationIdRef = useRef<string | null>(null);
 
-  const isConnectedRef = useRef(false);
+  const cachedFirstConvId =
+    qc.getQueryData<ChatConversation[]>(
+      qk.conversations({ includeArchived: false, limit: 50 }),
+    )?.[0]?.conversationId ?? null;
+
+  const effectiveSelectedId =
+    selectedId ?? presetConversationId ?? cachedFirstConvId;
+
+  const { isConnected, isPartnerTyping, sendTyping } = useChatSocket({
+    activeConversationId: effectiveSelectedId,
+    currentUserId: userId,
+    enabled: !isInitializing && isAuthenticated,
+  });
 
   const { data: conversations, isLoading: loadingConvs } = useQuery({
     queryKey: qk.conversations({ includeArchived: false, limit: 50 }),
     queryFn: () =>
       conversationService.listMine({ includeArchived: false, limit: 50 }),
     enabled: !isInitializing && isAuthenticated,
-    refetchInterval: () => (isConnectedRef.current ? false : 10000),
+    refetchInterval: isConnected ? false : 10000,
   });
 
   const filtered = useMemo(() => {
@@ -73,25 +85,9 @@ export function ChatInner({
     );
   }, [conversations, search]);
 
-  const effectiveSelectedId = useMemo(() => {
-    if (selectedId) return selectedId;
-    if (presetConversationId) return presetConversationId;
-    return filtered[0]?.conversationId ?? null;
-  }, [selectedId, presetConversationId, filtered]);
-
   const activeConv = filtered.find(
     (c) => c.conversationId === effectiveSelectedId,
   );
-
-  const { isConnected, isPartnerTyping, sendTyping } = useChatSocket({
-    activeConversationId: effectiveSelectedId,
-    currentUserId: userId,
-    enabled: !isInitializing && isAuthenticated,
-  });
-
-  useEffect(() => {
-    isConnectedRef.current = isConnected;
-  }, [isConnected]);
 
   const wasConnectedRef = useRef(false);
   useEffect(() => {
