@@ -85,11 +85,11 @@ function AdminProvidersInner() {
             description={t("adminProviders.emptyDescription")}
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-400 bg-gray-50">
+                  <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                       Channel / Type
                     </th>

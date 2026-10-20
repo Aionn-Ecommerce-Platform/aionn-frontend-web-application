@@ -179,7 +179,7 @@ function AdminProductApprovalInner() {
             {t("adminProductApproval.filterUnavailable")}
           </div>
         ) : loading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : filteredProducts.length > 0 ? (
@@ -187,7 +187,7 @@ function AdminProductApprovalInner() {
             {filteredProducts.map((product) => (
               <div
                 key={product.productId}
-                className="bg-white rounded-md border border-gray-400 p-6"
+                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
               >
                 <div className="flex gap-6">
                   <div className="flex-shrink-0">
@@ -332,7 +332,7 @@ function AdminProductApprovalInner() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <Package className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminProductApproval.emptyTitle")}

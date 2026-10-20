@@ -30,7 +30,7 @@ interface SummaryProps {
 export function CheckoutSummary(props: SummaryProps) {
   const finalTotal = props.total - props.discount + props.shipping;
   return (
-    <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6 h-fit lg:sticky lg:top-20">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 h-fit lg:sticky lg:top-20">
       <h2 className="text-base font-semibold text-gray-900 mb-5 pb-4 border-b">
         {props.t("checkout.orderSummary")}
       </h2>

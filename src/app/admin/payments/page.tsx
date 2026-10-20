@@ -61,7 +61,7 @@ function AdminPaymentsInner() {
         </p>
 
         <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white rounded-md border border-gray-400 p-5">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("adminPayments.lookupPaymentId")}
             </label>
@@ -94,7 +94,7 @@ function AdminPaymentsInner() {
             </div>
           </div>
 
-          <div className="bg-white rounded-md border border-gray-400 p-5">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("adminPayments.lookupOrderId")}
             </label>
@@ -182,8 +182,8 @@ function PaymentCard({
   const canRefund = payment.status === "PAID" && refundable > 0;
 
   return (
-    <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-400 flex items-start justify-between gap-4">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs text-gray-500 font-mono mb-1">
             {payment.paymentId}
@@ -237,7 +237,7 @@ function PaymentCard({
       </dl>
 
       {canRefund && (
-        <div className="px-6 py-4 border-t border-gray-400 bg-gray-50 flex justify-end">
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
           <Button variant="outline" size="sm" onClick={onRefund}>
             <RefreshCcw size={14} className="mr-1.5" />
             {t("adminPayments.refundRemaining", {

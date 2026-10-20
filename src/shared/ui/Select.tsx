@@ -65,7 +65,7 @@ export default function Select({
           disabled={disabled}
           onClick={() => setIsOpen((prev) => !prev)}
           className={cn(
-            "w-full flex items-center justify-between rounded-xl border border-gray-400 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all cursor-pointer font-medium text-left shadow-sm min-w-0",
+            "w-full flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all cursor-pointer font-medium text-left shadow-sm min-w-0",
             disabled && "bg-gray-50 opacity-50 cursor-not-allowed",
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500/10",
@@ -89,7 +89,7 @@ export default function Select({
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute left-0 mt-1.5 w-full bg-white rounded-xl border border-gray-400 shadow-lg py-1 z-50 max-h-60 overflow-y-auto">
+          <div className="absolute left-0 mt-1.5 w-full bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 max-h-60 overflow-y-auto">
             {options.map((opt) => {
               const isActive = opt.value === value;
               return (

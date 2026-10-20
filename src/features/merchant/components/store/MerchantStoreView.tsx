@@ -12,6 +12,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, EmptyState } from "@/shared/ui";
@@ -226,89 +227,145 @@ export default function MerchantStorePage({
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl border border-gray-400 overflow-hidden shadow-sm p-0 mb-8 transition-all duration-300">
-          <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-1/3 bg--merchant-surface p-6 text-white flex flex-col justify-between gap-6 relative">
-              <div className="flex items-center gap-4">
-                {merchant.logoUrl ? (
-                  <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-white/20 shrink-0">
-                    <Image
-                      src={merchant.logoUrl}
-                      alt={merchant.name}
-                      fill
-                      className="object-cover"
-                    />
+        {/* Modern Store Hero Banner */}
+        <div className="bg-white rounded-3xl border border-gray-200/80 overflow-hidden shadow-xs mb-8">
+          {/* Top Decorative Gradient Cover */}
+          <div className="h-32 sm:h-36 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(59,130,246,0.2),transparent_50%)]" />
+          </div>
+
+          {/* Store Info & Stats Content */}
+          <div className="px-6 sm:px-8 pb-8 pt-0 -mt-16 sm:-mt-20 relative">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 pb-6 border-b border-gray-100">
+              {/* Avatar + Store Identity */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
+                <div className="relative">
+                  {merchant.logoUrl ? (
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 relative rounded-2xl overflow-hidden border-4 border-white shadow-md bg-white shrink-0">
+                      <Image
+                        src={merchant.logoUrl}
+                        alt={merchant.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-extrabold border-4 border-white shadow-md shrink-0">
+                      {initial}
+                    </div>
+                  )}
+                  {merchant.status === "ACTIVE" && (
+                    <span
+                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-200 flex items-center justify-center"
+                      title={t("merchantStore.active")}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
+                      {merchant.name}
+                    </h1>
+                    <Badge
+                      variant={
+                        merchant.status === "ACTIVE" ? "success" : "warning"
+                      }
+                      className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    >
+                      {merchant.status === "ACTIVE"
+                        ? t("merchantStore.active")
+                        : merchant.status}
+                    </Badge>
                   </div>
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold border-2 border-white/20 shrink-0">
-                    {initial}
-                  </div>
-                )}
-                <div>
-                  <h1 className="text-lg font-bold truncate max-w-[200px]">
-                    {merchant.name}
-                  </h1>
+                  {merchant.description && (
+                    <p className="text-sm text-gray-600 line-clamp-1 max-w-xl">
+                      {merchant.description}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-400 font-mono">
+                    ID: {merchant.merchantId}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
                 <button
                   onClick={handleStartChat}
                   disabled={chatLoading}
-                  className="w-full py-1.5 px-3 border border-white rounded text-xs font-semibold hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {chatLoading ? (
-                    <Loader2 className="animate-spin text-white" size={12} />
+                    <Loader2 className="animate-spin text-white" size={16} />
                   ) : (
-                    <MessageCircle size={12} />
+                    <MessageCircle size={16} />
                   )}
-                  {t("merchantStore.chat")}
+                  <span>{t("merchantStore.chat")}</span>
                 </button>
               </div>
             </div>
 
-            <div className="lg:w-2/3 p-6 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm text-gray-700">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Store size={16} className="text-gray-500" />
-                  <span>
-                    {t("merchantStore.products")}:{" "}
-                    <span className="text--sale font-medium">
-                      {totalElements}
-                    </span>
-                  </span>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center shrink-0">
+                  <Store size={20} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-500" />
-                  <span>
-                    {t("merchantStore.location")}:{" "}
-                    <span className="text--sale font-medium">
-                      {displayProvince || t("merchantStore.notUpdated")}
-                    </span>
-                  </span>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    {t("merchantStore.products")}
+                  </p>
+                  <p className="text-base font-bold text-gray-900 mt-0.5">
+                    {totalElements}
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-500" />
-                  <span>
-                    Tham Gia:{" "}
-                    <span className="text--sale font-medium">
-                      {formattedDate}
-                    </span>
-                  </span>
+              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center shrink-0">
+                  <MapPin size={20} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      merchant.status === "ACTIVE" ? "success" : "warning"
-                    }
-                  >
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    {t("merchantStore.location")}
+                  </p>
+                  <p className="text-base font-bold text-gray-900 mt-0.5 truncate max-w-[150px]">
+                    {displayProvince || t("merchantStore.notUpdated")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-purple-100/70 text-purple-600 flex items-center justify-center shrink-0">
+                  <Calendar size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    {t("merchantStore.joined")}
+                  </p>
+                  <p className="text-base font-bold text-gray-900 mt-0.5">
+                    {formattedDate}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-600 flex items-center justify-center shrink-0">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Status
+                  </p>
+                  <p className="text-base font-bold text-gray-900 mt-0.5">
                     {merchant.status === "ACTIVE"
                       ? t("merchantStore.active")
                       : merchant.status}
-                  </Badge>
+                  </p>
                 </div>
               </div>
             </div>
@@ -330,12 +387,15 @@ export default function MerchantStorePage({
             claimVoucher.mutate(code);
           }}
         />
+
         <div ref={productsRef} className="flex flex-col lg:flex-row gap-8">
-          <aside className="w-full lg:w-60 shrink-0">
-            <div className="bg-white rounded-xl border border-gray-400 p-5 space-y-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-150 pb-3">
-                <Store size={16} className="text-gray-500" />
-                {t("merchants.shopCategories") || t("merchantStore.categories")}
+          <aside className="w-full lg:w-64 shrink-0">
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-5 space-y-4 shadow-xs sticky top-24">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <Store size={18} className="text-blue-600" />
+                <span>
+                  {t("merchants.shopCategories") || t("merchantStore.categories")}
+                </span>
               </h3>
 
               <ul className="space-y-1">
@@ -346,10 +406,10 @@ export default function MerchantStorePage({
                       setPage(0);
                       scrollToProducts();
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all font-medium flex items-center justify-between ${
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                       selectedCategory === null
-                        ? "bg-blue-50 text-blue-700 font-bold"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-55"
+                        ? "bg-blue-50 text-blue-700 font-bold shadow-xs"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     <span>
@@ -369,15 +429,15 @@ export default function MerchantStorePage({
                           setPage(0);
                           scrollToProducts();
                         }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all font-medium flex items-center justify-between ${
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                           isActive
-                            ? "bg-blue-50 text-blue-700 font-bold"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-55"
+                            ? "bg-blue-50 text-blue-700 font-bold shadow-xs"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         }`}
                       >
                         <span className="truncate mr-2">{label}</span>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-blue-100 text-blue-800" : "bg-gray-150 text-gray-500"}`}
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? "bg-blue-200/70 text-blue-800" : "bg-gray-100 text-gray-500"}`}
                         >
                           {count}
                         </span>
@@ -389,8 +449,8 @@ export default function MerchantStorePage({
             </div>
           </aside>
 
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
               {selectedCategory
                 ? categoryNameById.get(selectedCategory) ||
                   t("common.allProducts")
@@ -451,7 +511,7 @@ export default function MerchantStorePage({
                         setPage(Math.max(0, page - 1));
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-400 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Previous page"
                     >
                       <ChevronLeft size={16} />
@@ -479,10 +539,10 @@ export default function MerchantStorePage({
                             setPage(pageNum - 1);
                             scrollToProducts();
                           }}
-                          className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                          className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                             isCurrent
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/10 border border-blue-600"
-                              : "border border-gray-400 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900"
+                              ? "bg-blue-600 text-white shadow-xs border border-blue-600"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 shadow-xs"
                           }`}
                         >
                           {pageNum}
@@ -496,7 +556,7 @@ export default function MerchantStorePage({
                         setPage(page + 1);
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-400 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Next page"
                     >
                       <ChevronRight size={16} />

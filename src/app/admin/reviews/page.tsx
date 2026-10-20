@@ -79,7 +79,7 @@ function AdminReviewsInner() {
           </p>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <div className="flex items-end gap-3">
             <Input
               label="Product ID"
@@ -99,7 +99,7 @@ function AdminReviewsInner() {
         </div>
 
         {isLoading && (
-          <div className="bg-white rounded-md border border-gray-200 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         )}
@@ -119,7 +119,7 @@ function AdminReviewsInner() {
         )}
 
         {productId && !isLoading && !error && reviews.length === 0 && (
-          <div className="bg-white rounded-md border border-gray-200 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <MessageSquare className="mx-auto text-gray-400 mb-4" size={40} />
             <p className="text-sm text-gray-500">
               {t("adminReviews.empty", { id: productId })}
@@ -137,7 +137,7 @@ function AdminReviewsInner() {
             {reviews.map((review) => (
               <div
                 key={review.reviewId}
-                className="bg-white rounded-md border border-gray-200 p-5"
+                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
@@ -184,7 +184,7 @@ function AdminReviewsInner() {
                         key={i}
                         src={url}
                         alt={t("adminReviews.imageAlt", { index: i + 1 })}
-                        className="w-20 h-20 object-cover rounded-md border border-gray-200"
+                        className="w-20 h-20 object-cover rounded-2xl border border-gray-200/80 shadow-xs"
                       />
                     ))}
                   </div>

@@ -53,7 +53,7 @@ function AttributeDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-400 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-blue-400 focus:outline-none"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-blue-400 focus:outline-none"
         aria-expanded={open}
       >
         <span className="truncate">{current?.label}</span>
@@ -64,7 +64,7 @@ function AttributeDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-400 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -233,7 +233,7 @@ function NewProductInner() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <h2 className="font-semibold text-gray-900 mb-4">
               {t("merchant.productNew.basicInfo")}
             </h2>
@@ -251,7 +251,7 @@ function NewProductInner() {
             </div>
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">
                 {t("merchant.productNew.productImages")}
@@ -306,7 +306,7 @@ function NewProductInner() {
             />
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-gray-900">
@@ -383,7 +383,7 @@ function NewProductInner() {
             </div>
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <h2 className="font-semibold text-gray-900 mb-4">
               {t("merchant.productNew.aiMetadataTitle")}
             </h2>

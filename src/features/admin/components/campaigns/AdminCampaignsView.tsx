@@ -164,7 +164,7 @@ function AdminCampaignsInner() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : campaigns.length > 0 ? (
@@ -178,7 +178,7 @@ function AdminCampaignsInner() {
               return (
                 <div
                   key={campaign.campaignId}
-                  className="bg-white rounded-md border border-gray-400 p-6 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ function AdminCampaignsInner() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-400">
+                  <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
                     <Button
                       variant="outline"
                       size="sm"
@@ -324,7 +324,7 @@ function AdminCampaignsInner() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <Sparkles className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminCampaigns.emptyTitle")}

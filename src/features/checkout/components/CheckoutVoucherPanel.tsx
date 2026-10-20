@@ -41,7 +41,7 @@ export default function CheckoutVoucherPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text--commerce">

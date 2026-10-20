@@ -512,7 +512,8 @@
     "allProducts": "All products",
     "allStoreProducts": "All store products",
     "categoryEmpty": "No products in this category",
-    "categoryEmptyDescription": "Choose another category or check back later."
+    "categoryEmptyDescription": "Choose another category or check back later.",
+    "joined": "Joined"
   },
   "adminProductApproval": {
     "title": "Product review",

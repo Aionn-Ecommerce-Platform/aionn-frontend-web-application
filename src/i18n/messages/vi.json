@@ -512,7 +512,8 @@
     "allProducts": "Tất cả sản phẩm",
     "allStoreProducts": "Tất cả sản phẩm của cửa hàng",
     "categoryEmpty": "Cửa hàng chưa có sản phẩm thuộc danh mục này",
-    "categoryEmptyDescription": "Hãy chọn danh mục khác hoặc quay lại sau."
+    "categoryEmptyDescription": "Hãy chọn danh mục khác hoặc quay lại sau.",
+    "joined": "Tham gia"
   },
   "adminProductApproval": {
     "title": "Duyệt sản phẩm",

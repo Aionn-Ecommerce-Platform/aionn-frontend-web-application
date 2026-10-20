@@ -32,7 +32,7 @@ export function ProductImagesCard({
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   return (
-    <div className="bg-white rounded-md border border-gray-400 p-6">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-gray-900">
           {t("merchant.productEdit.productImages")}
@@ -132,7 +132,7 @@ export function CollectionsCard({
     }
   }
   return (
-    <div className="bg-white rounded-md border border-gray-400 p-6">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="font-semibold text-gray-900">
@@ -174,7 +174,7 @@ interface VariantsCardProps {
 export function VariantsCard(props: VariantsCardProps) {
   const { t } = useTranslation();
   return (
-    <div className="bg-white rounded-md border border-gray-400 p-6">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
       <h2 className="font-semibold text-gray-900 mb-4">
         {t("merchant.productEdit.variantsTitle")}
       </h2>
@@ -242,7 +242,7 @@ export function VariantsCard(props: VariantsCardProps) {
           })}
         </div>
       )}
-      <div className="border-t border-gray-400 pt-4">
+      <div className="border-t border-gray-100 pt-4">
         <p className="text-xs font-medium text-gray-500 uppercase mb-3">
           {t("merchant.productEdit.addVariant")}
         </p>

@@ -79,7 +79,7 @@ export default function VoucherManagement({
         {showForm ? (
           <form
             onSubmit={submit}
-            className="max-w-3xl bg-white border border-gray-400 rounded-xl p-5 mb-6 grid md:grid-cols-2 gap-4 shadow-sm"
+            className="max-w-3xl bg-white border border-gray-200 rounded-xl p-5 mb-6 grid md:grid-cols-2 gap-4 shadow-sm"
           >
             <Field label={t("promotions.mgmtFieldCode")}>
               <input
@@ -191,10 +191,10 @@ export default function VoucherManagement({
               return (
                 <div
                   key={v.voucherCode}
-                  className="relative flex bg-white border border-gray-400 rounded-xl hover:shadow-lg transition-all min-h-[128px]"
+                  className="relative flex bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all min-h-[128px]"
                 >
-                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
-                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
+                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
+                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
 
                   <div
                     className={`w-28 flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
@@ -210,7 +210,7 @@ export default function VoucherManagement({
                     </span>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-400 relative">
+                  <div className="flex-1 flex flex-col justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-200 relative">
                     <div>
                       <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2">
                         {t("promotions.discountAmount", {

@@ -48,7 +48,7 @@ function AdminShippingRatesInner() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-400 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t("adminShippingRates.lookupLabel")}
           </label>
@@ -92,8 +92,8 @@ function AdminShippingRatesInner() {
             description={t("adminShippingRates.emptyDescription")}
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-400">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100">
               <p className="text-xs text-gray-500 font-mono mb-1">
                 {rate.rateId}
               </p>
@@ -119,7 +119,7 @@ function AdminShippingRatesInner() {
                 value={formatDateTime(rate.updatedAt, locale)}
               />
             </dl>
-            <div className="px-6 py-4 border-t border-gray-400 bg-gray-50 flex justify-end">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
               <Button
                 variant="outline"
                 size="sm"

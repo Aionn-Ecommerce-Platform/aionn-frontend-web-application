@@ -48,7 +48,7 @@ export function StatusDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-400 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
         aria-expanded={open}
       >
         <span className="text-gray-500">
@@ -62,7 +62,7 @@ export function StatusDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl border border-gray-400 shadow-lg py-1 z-50 overflow-hidden">
+        <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 overflow-hidden">
           <DropdownItem
             label={t("merchant.productList.statusAll")}
             active={!value}
@@ -109,7 +109,7 @@ export function CategoryDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-400 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
         aria-expanded={open}
       >
         <span className="text-gray-500">
@@ -123,7 +123,7 @@ export function CategoryDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-400 shadow-lg py-1 z-50 overflow-hidden max-h-72 overflow-y-auto">
+        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 overflow-hidden max-h-72 overflow-y-auto">
           <DropdownItem
             label={t("merchant.productList.categoryAll")}
             active={!value}
@@ -195,7 +195,7 @@ export function PricePopover({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={togglePopover}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-400 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
         aria-expanded={open}
       >
         <span className="text-gray-500">
@@ -209,7 +209,7 @@ export function PricePopover({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-400 shadow-lg p-3 z-50">
+        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-lg p-3 z-50">
           <div className="space-y-2">
             <input
               type="number"

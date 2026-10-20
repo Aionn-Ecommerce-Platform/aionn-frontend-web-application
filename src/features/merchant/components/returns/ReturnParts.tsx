@@ -51,7 +51,7 @@ export function ReturnCard({
   const statusLabel = t(statusLabelKey[rtn.status]);
 
   return (
-    <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
       <div className="p-5 flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">

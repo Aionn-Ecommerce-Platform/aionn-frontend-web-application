@@ -141,13 +141,13 @@ function AdminBrandsInner() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : filteredBrands.length > 0 ? (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-400">
+              <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
                     {t("adminBrands.brand")}
@@ -237,7 +237,7 @@ function AdminBrandsInner() {
             </table>
 
             {data && totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-400">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
                 <p className="text-sm text-gray-600">
                   {t("common.pageOf", { page: page + 1, total: totalPages })}
                 </p>
@@ -263,7 +263,7 @@ function AdminBrandsInner() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <Award className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminBrands.emptyTitle")}

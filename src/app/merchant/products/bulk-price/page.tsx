@@ -118,7 +118,7 @@ function MerchantBulkPriceInner() {
           {t("merchant.bulkPrice.subtitle")}
         </p>
 
-        <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-5 mb-4">
+        <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t("merchant.bulkPrice.skuListLabel")}
           </label>
@@ -159,7 +159,7 @@ function MerchantBulkPriceInner() {
           )}
         </div>
 
-        <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-5 mb-4 space-y-4">
+        <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("merchant.bulkPrice.changeTypeLabel")}

@@ -80,7 +80,7 @@ function AdminOrdersInner() {
           </p>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <div className="flex items-end gap-3">
             <Input
               label="Order ID"
@@ -100,7 +100,7 @@ function AdminOrdersInner() {
         </div>
 
         {isLoading && (
-          <div className="bg-white rounded-md border border-gray-200 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         )}
@@ -120,7 +120,7 @@ function AdminOrdersInner() {
         )}
 
         {order && (
-          <div className="bg-white rounded-md border border-gray-200 p-6">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 font-mono">
@@ -158,7 +158,7 @@ function AdminOrdersInner() {
               </div>
               <div>
                 <p className="text-gray-500">{t("common.total")}</p>
-                <p className="font-bold text--commerce mt-0.5">
+                <p className="font-bold text-gray-950 font-bold mt-0.5">
                   {formatCurrency(
                     order.totalAmount + order.shippingFee,
                     order.currency,

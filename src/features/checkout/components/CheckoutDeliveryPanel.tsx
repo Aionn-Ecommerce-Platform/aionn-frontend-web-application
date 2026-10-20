@@ -49,7 +49,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
             <MapPin size={16} />
@@ -146,7 +146,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
           </Link>
         </div>
       </Modal>
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
             <Truck size={16} />

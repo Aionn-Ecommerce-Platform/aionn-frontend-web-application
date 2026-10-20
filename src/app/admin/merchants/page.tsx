@@ -112,7 +112,7 @@ function AdminMerchantsInner() {
           {t("adminMerchants.description")}
         </p>
 
-        <div className="bg-white rounded-md border border-gray-400 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
           <label
             htmlFor="merchant-id"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -160,8 +160,8 @@ function AdminMerchantsInner() {
             description={t("adminMerchants.emptyDescription")}
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-400 flex items-start justify-between gap-4">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
                   {merchant.name}
@@ -208,7 +208,7 @@ function AdminMerchantsInner() {
               />
             </dl>
 
-            <div className="px-6 py-4 border-t border-gray-400 bg-gray-50 flex flex-wrap gap-2">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap gap-2">
               {merchant.status === "ACTIVE" && (
                 <Button
                   variant="outline"

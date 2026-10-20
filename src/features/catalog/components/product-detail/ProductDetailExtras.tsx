@@ -63,9 +63,9 @@ export default function ProductDetailExtras(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-xs rounded-2xl">
             {product.merchantId?.charAt(0).toUpperCase() ?? "M"}
           </div>
           <div>
@@ -76,7 +76,7 @@ export default function ProductDetailExtras(props: Props) {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8.5 px-3.5 text-xs font-semibold border-red-500/80 bg-red-50/70 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 active:scale-95 transition-all rounded-sm shadow-xs cursor-pointer"
+                className="h-9 px-4 text-xs font-semibold border-blue-600 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
                 onClick={handleStartChat}
                 loading={chatLoading}
               >
@@ -87,7 +87,7 @@ export default function ProductDetailExtras(props: Props) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8.5 px-3.5 text-xs font-semibold border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 active:scale-95 transition-all rounded-sm shadow-xs cursor-pointer"
+                  className="h-9 px-4 text-xs font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer"
                 >
                   <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
                   {t("products.viewStore")}
@@ -135,7 +135,7 @@ export default function ProductDetailExtras(props: Props) {
         </div>
       </div>
       {product.aiDescription && (
-        <div className="bg-white rounded-sm border border-gray-400 p-6 lg:p-8 mt-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
@@ -144,7 +144,7 @@ export default function ProductDetailExtras(props: Props) {
           </p>
         </div>
       )}
-      <div className="bg-white rounded-sm border border-gray-400 p-6 lg:p-8 mt-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             {t("products.ratingLabel")}

@@ -29,11 +29,11 @@ export default function MerchantVouchers({
   if (!vouchers.length) return null;
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <Ticket size={18} className="text-orange-500" />
-        {t("promotions.tabShop")}
+      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Ticket size={20} className="text-blue-600" />
+        <span>{t("promotions.tabShop")}</span>
       </h2>
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {vouchers.map((voucher) => {
           const claimed = claimedCodes.has(voucher.voucherCode);
           const remaining = Math.max(voucher.usageLimit - voucher.usedCount, 0);
@@ -44,11 +44,11 @@ export default function MerchantVouchers({
           return (
             <div
               key={voucher.voucherCode}
-              className="flex bg-white border border-gray-400 rounded-xl min-h-[128px] shrink-0 w-[360px]"
+              className="flex bg-white border border-gray-200/80 rounded-2xl min-h-[128px] shrink-0 w-[360px] shadow-xs hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="w-28 flex flex-col items-center justify-center text-white px-2 text-center shrink-0 bg--shop">
+              <div className="w-28 flex flex-col items-center justify-center text-white px-3 text-center shrink-0 bg-gradient-to-br from-blue-600 to-indigo-600">
                 {merchant.logoUrl ? (
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/50 bg-white mb-1">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/60 bg-white mb-1.5 shadow-xs">
                     <AppImage
                       src={merchant.logoUrl}
                       alt={merchant.name}
@@ -56,15 +56,17 @@ export default function MerchantVouchers({
                     />
                   </div>
                 ) : (
-                  <Ticket size={20} />
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-1.5">
+                    <Ticket size={20} />
+                  </div>
                 )}
-                <span className="text-xs font-black uppercase truncate max-w-full">
+                <span className="text-xs font-bold uppercase truncate max-w-full">
                   {merchant.name}
                 </span>
               </div>
-              <div className="flex-1 flex items-center justify-between py-5 px-5 border-l border-dashed border-gray-400">
+              <div className="flex-1 flex items-center justify-between py-4 px-4.5 border-l border-dashed border-gray-200">
                 <div className="flex-1 pr-3">
-                  <h3 className="font-extrabold text-gray-900">
+                  <h3 className="font-extrabold text-gray-950 text-sm">
                     {t("promotions.discountAmount", {
                       amount: formatCurrency(
                         voucher.discountAmount,
@@ -72,53 +74,57 @@ export default function MerchantVouchers({
                       ),
                     })}
                   </h3>
-                  <p className="text-xs font-semibold">{voucher.voucherCode}</p>
-                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                  <p className="text-xs font-semibold text-gray-700 mt-0.5">{voucher.voucherCode}</p>
+                  <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
                     <Clock size={11} />
-                    {t("promotions.validUntil", {
-                      date: voucher.validUntil
-                        ? formatDate(voucher.validUntil, locale)
-                        : "N/A",
-                    })}
+                    <span>
+                      {t("promotions.validUntil", {
+                        date: voucher.validUntil
+                          ? formatDate(voucher.validUntil, locale)
+                          : "N/A",
+                      })}
+                    </span>
                   </div>
                   {voucher.usageLimit > 0 && (
-                    <>
-                      <p className="text-[11px] font-bold text--shop">
+                    <div className="mt-2">
+                      <p className="text-[11px] font-semibold text-blue-600">
                         {t("promotions.stockLeft", { count: remaining })}
                       </p>
-                      <div className="mt-2 bg-gray-200 h-1.5">
+                      <div className="mt-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="h-full bg--shop"
+                          className="h-full bg-blue-600 rounded-full"
                           style={{ width: `${Math.min(progress, 100)}%` }}
                         />
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
-                {remaining <= 0 ? (
-                  <button disabled className="text-xs text-gray-400">
-                    {t("promotions.fullyClaimed")}
-                  </button>
-                ) : claimed ? (
-                  <button
-                    onClick={onUse}
-                    className="font-bold text-xs text--commerce"
-                  >
-                    {t("promotions.useNow")}
-                  </button>
-                ) : (
-                  <button
-                    disabled={claimingCode === voucher.voucherCode}
-                    onClick={() => onClaim(voucher.voucherCode)}
-                    className="font-bold text-xs text--commerce"
-                  >
-                    {claimingCode === voucher.voucherCode ? (
-                      <Loader2 className="animate-spin" size={14} />
-                    ) : (
-                      t("promotions.save")
-                    )}
-                  </button>
-                )}
+                <div>
+                  {remaining <= 0 ? (
+                    <span className="text-xs text-gray-400 font-medium px-2 py-1">
+                      {t("promotions.fullyClaimed")}
+                    </span>
+                  ) : claimed ? (
+                    <button
+                      onClick={onUse}
+                      className="font-bold text-xs text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                    >
+                      {t("promotions.useNow")}
+                    </button>
+                  ) : (
+                    <button
+                      disabled={claimingCode === voucher.voucherCode}
+                      onClick={() => onClaim(voucher.voucherCode)}
+                      className="font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 active:scale-95 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    >
+                      {claimingCode === voucher.voucherCode ? (
+                        <Loader2 className="animate-spin" size={14} />
+                      ) : (
+                        t("promotions.save")
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );

@@ -95,7 +95,7 @@ function AdminWarehousesInner() {
           </p>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <div className="flex items-end gap-3">
             <Input
               label="Warehouse ID"
@@ -115,7 +115,7 @@ function AdminWarehousesInner() {
         </div>
 
         {isLoading && (
-          <div className="bg-white rounded-md border border-gray-200 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         )}
@@ -135,7 +135,7 @@ function AdminWarehousesInner() {
         )}
 
         {warehouse && (
-          <div className="bg-white rounded-md border border-gray-200 p-6">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 rounded-lg">

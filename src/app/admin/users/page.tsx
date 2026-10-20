@@ -140,11 +140,11 @@ function AdminUsersInner() {
             description={t("adminUsers.emptyDescription")}
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-400 bg-gray-50">
+                  <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
                       {t("adminUsers.user")}
                     </th>
@@ -225,7 +225,7 @@ function AdminUsersInner() {
             </div>
 
             {totalPages > 1 && (
-              <div className="border-t border-gray-400 px-6 py-3 flex items-center justify-between">
+              <div className="border-t border-gray-100 px-6 py-3 flex items-center justify-between">
                 <p className="text-xs text-gray-500">
                   {t("adminUsers.pagination", {
                     count: totalElements,

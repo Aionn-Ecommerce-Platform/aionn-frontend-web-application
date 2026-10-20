@@ -164,7 +164,7 @@ export default function CartPage() {
               </div>
             ) : (
               <>
-                <div className="hidden md:grid grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] items-center gap-3 rounded-md border border-gray-400 bg-white px-5 py-3 text-sm text-gray-500">
+                <div className="hidden md:grid grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] items-center gap-3 rounded-2xl border border-gray-200/80 shadow-xs bg-white px-5 py-3 text-sm text-gray-500">
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -192,7 +192,7 @@ export default function CartPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.18 }}
-                        className="grid gap-4 rounded-md border border-gray-400 bg-white p-4 transition-all hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 md:grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] md:items-center md:gap-3 md:px-5 md:py-4"
+                        className="grid gap-4 rounded-2xl border border-gray-200/80 shadow-xs bg-white p-4 transition-all hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 md:grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] md:items-center md:gap-3 md:px-5 md:py-4"
                       >
                         <input
                           type="checkbox"
@@ -291,7 +291,7 @@ export default function CartPage() {
           </div>
 
           <div>
-            <div className="sticky top-20 rounded-md border border-gray-400 bg-white p-6">
+            <div className="sticky top-20 rounded-2xl border border-gray-200/80 shadow-xs bg-white p-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-900">
                 {t("cart.orderSummary")}
               </h3>

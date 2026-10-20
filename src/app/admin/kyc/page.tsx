@@ -142,7 +142,7 @@ function AdminKycInner() {
               return (
                 <div
                   key={kyc.kycId}
-                  className="bg-white rounded-md border border-gray-400 p-5"
+                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
                 >
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex-1 min-w-0">

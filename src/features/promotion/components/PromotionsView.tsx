@@ -293,7 +293,7 @@ export default function PromotionsPage() {
             }
           />
         ) : displayedVouchers.length === 0 ? (
-          <div className="py-12 bg-white rounded-2xl border border-gray-400 p-8 shadow-sm">
+          <div className="py-12 bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
             {activeTab === "MINE" ? (
               <EmptyState
                 icon={Ticket}
@@ -349,10 +349,10 @@ export default function PromotionsPage() {
               return (
                 <div
                   key={v.voucherCode}
-                  className="relative flex bg-white border border-gray-400 rounded-xl hover:shadow-lg transition-all group min-h-[128px]"
+                  className="relative flex bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all group min-h-[128px]"
                 >
-                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
-                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
+                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
+                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
 
                   <div
                     className={`w-28 flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
@@ -385,7 +385,7 @@ export default function PromotionsPage() {
                     </span>
                   </div>
 
-                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-400 relative">
+                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-200 relative">
                     <div className="flex-1 pr-3">
                       <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2">
                         {t("promotions.discountAmount", {

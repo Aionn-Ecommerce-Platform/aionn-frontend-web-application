@@ -301,7 +301,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-md border border-gray-400 p-6 flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900">
                 {t("merchant.productEdit.status")}
@@ -362,7 +362,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
             initialCollectionIds={product.collectionIds ?? []}
           />
 
-          <div className="bg-white rounded-md border border-gray-400 p-6">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">
                 {t("merchant.productEdit.aiMetadata")}

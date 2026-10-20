@@ -169,10 +169,10 @@ export default function ProductMainCard(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-sm border border-gray-400 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
-            <div className="aspect-square relative bg-gray-50 rounded-sm overflow-hidden mb-4 border border-gray-400 group">
+            <div className="aspect-square relative bg-gray-50 rounded-sm overflow-hidden mb-4 border border-gray-200 group">
               <Image
                 src={images[selectedImage] ?? "/images/logo.png"}
                 alt={product.name}
@@ -185,7 +185,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Previous product image"
                   >
                     <ChevronLeft size={20} />
@@ -193,7 +193,7 @@ export default function ProductMainCard(props: Props) {
                   <button
                     type="button"
                     onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-400 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-xs border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Next product image"
                   >
                     <ChevronRight size={20} />
@@ -215,7 +215,7 @@ export default function ProductMainCard(props: Props) {
                       className={`w-16 h-16 relative rounded-xs overflow-hidden border flex-shrink-0 transition-all bg-white ${
                         selectedImage === i
                           ? "border-blue-600 ring-2 ring-blue-100"
-                          : "border-gray-400 hover:border-blue-500"
+                          : "border-gray-200 hover:border-blue-500"
                       }`}
                     >
                       <Image
@@ -496,7 +496,7 @@ export default function ProductMainCard(props: Props) {
                           className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
                             canDecrease
                               ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
-                              : "bg-white border border-gray-400 text-gray-400 cursor-not-allowed"
+                              : "bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
                           }`}
                         >
                           <Minus size={14} className="stroke-[2.5]" />
@@ -512,7 +512,7 @@ export default function ProductMainCard(props: Props) {
                           className={`w-9 h-9 rounded-xs flex items-center justify-center transition-all duration-150 ${
                             canIncrease
                               ? "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
-                              : "bg-white border border-gray-400 text-gray-400 cursor-not-allowed"
+                              : "bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
                           }`}
                         >
                           <Plus size={14} className="stroke-[2.5]" />
