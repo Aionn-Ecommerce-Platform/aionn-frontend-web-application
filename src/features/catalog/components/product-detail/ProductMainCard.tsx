@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -55,6 +55,45 @@ interface Props {
   handleBuyNow: () => void;
   t: T;
 }
+
+function FlashSaleCountdown({ endAt }: { endAt: string }) {
+  const [remainingMs, setRemainingMs] = useState(() => {
+    const target = new Date(endAt).getTime();
+    return Math.max(0, target - Date.now());
+  });
+
+  useEffect(() => {
+    const target = new Date(endAt).getTime();
+    const update = () => {
+      setRemainingMs(Math.max(0, target - Date.now()));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [endAt]);
+
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return (
+    <div className="flex items-center gap-1 font-mono font-bold text-xs select-none">
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+        {hours}
+      </span>
+      <span>:</span>
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+        {minutes}
+      </span>
+      <span>:</span>
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+        {seconds}
+      </span>
+    </div>
+  );
+}
+
 export default function ProductMainCard(props: Props) {
   const {
     product,
@@ -283,35 +322,86 @@ export default function ProductMainCard(props: Props) {
                 </span>
               </div>
 
-              <div className="mt-5 py-3">
-                {product.variants.length > 0 ? (
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <span
-                      className={`text-3xl sm:text-4xl font-bold tracking-tight leading-tight ${
-                        discountPercent > 0
-                          ? "text-orange-600"
-                          : "text-gray-900"
-                      }`}
-                    >
+              {/* Price / Flash Sale Section */}
+              {product.flashSale ? (
+                <div className="mt-5 rounded-2xl overflow-hidden border border-purple-500/30 bg-gradient-to-r from-purple-950 via-indigo-950 to-purple-900 text-white p-4 sm:p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-xs">
+                        <Zap size={13} className="fill-purple-200 text-purple-100 animate-pulse" />
+                        FLASH SALE
+                      </span>
+                      {discountPercent > 0 && (
+                        <span className="text-xs font-bold text-yellow-300 bg-white/10 border border-yellow-300/30 px-2 py-0.5 rounded-full">
+                          -{discountPercent}%
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-xs text-purple-200">
+                      <span className="font-semibold text-white/90">KẾT THÚC TRONG</span>
+                      <FlashSaleCountdown endAt={product.flashSale.endAt} />
+                    </div>
+                  </div>
+
+                  <div className="pt-3 flex items-baseline gap-3 flex-wrap">
+                    <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
                       {priceLabel}
                     </span>
                     {strikePrice && strikePrice > displayPrice && (
-                      <span className="text-lg text-gray-600 line-through">
+                      <span className="text-base sm:text-lg text-white/50 line-through">
                         {formatCurrency(strikePrice, displayCurrency, locale)}
                       </span>
                     )}
-                    {discountPercent > 0 && (
-                      <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-full">
-                        -{discountPercent}%
-                      </span>
-                    )}
                   </div>
-                ) : (
-                  <span className="text-lg text-gray-500">
-                    {t("products.noVariants")}
-                  </span>
-                )}
-              </div>
+
+                  {product.flashSale.saleStock > 0 && (
+                    <div className="mt-3 flex items-center gap-3 max-w-xs">
+                      <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-400 to-amber-300 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.min(100, Math.max(10, Math.round((product.flashSale.soldCount / product.flashSale.saleStock) * 100)))}`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-white/80 font-medium whitespace-nowrap">
+                        Đã bán {product.flashSale.soldCount}/{product.flashSale.saleStock} suất
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-5 py-3">
+                  {product.variants.length > 0 ? (
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <span
+                        className={`text-3xl sm:text-4xl font-bold tracking-tight leading-tight ${
+                          discountPercent > 0
+                            ? "text-red-600"
+                            : "text-gray-950"
+                        }`}
+                      >
+                        {priceLabel}
+                      </span>
+                      {strikePrice && strikePrice > displayPrice && (
+                        <span className="text-base sm:text-lg text-gray-400 line-through">
+                          {formatCurrency(strikePrice, displayCurrency, locale)}
+                        </span>
+                      )}
+                      {discountPercent > 0 && (
+                        <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-full">
+                          -{discountPercent}%
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-lg text-gray-500">
+                      {t("products.noVariants")}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="mt-6 space-y-5 text-sm">
                 <div className="grid w-full grid-cols-[88px_minmax(0,1fr)] items-start gap-3 text-left sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-6">

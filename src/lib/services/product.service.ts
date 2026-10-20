@@ -32,6 +32,69 @@ interface BulkPriceUpdateResult {
   failedSkus: string[];
 }
 
+
+async function attachFlashSalesToProducts(products: Product[]): Promise<Product[]> {
+  if (!products || products.length === 0) return products;
+  try {
+    const campaigns = await promotionService.getActiveFlashSales(100).catch(() => []);
+    if (!campaigns || campaigns.length === 0) return products;
+
+    const saleItems = campaigns.flatMap((campaign) =>
+      campaign.items.map((item) => ({ campaign, item })),
+    );
+    if (saleItems.length === 0) return products;
+
+    return products.map((product) => {
+      if (product.flashSale) return product;
+      const matches = saleItems.filter(
+        ({ item }) => item.productId === product.productId,
+      );
+      if (matches.length === 0) return product;
+
+      const cheapest = matches.reduce((best, current) =>
+        current.item.salePrice < best.item.salePrice ? current : best,
+      );
+      const skuOffersMap = new Map<
+        string,
+        {
+          skuId: string;
+          salePrice: number;
+          currency: string;
+          saleStock: number;
+          soldCount: number;
+        }
+      >();
+      for (const { item } of matches) {
+        const existing = skuOffersMap.get(item.skuId);
+        if (!existing || item.salePrice < existing.salePrice) {
+          skuOffersMap.set(item.skuId, {
+            skuId: item.skuId,
+            salePrice: item.salePrice,
+            currency: item.currency,
+            saleStock: item.saleStock,
+            soldCount: item.soldCount,
+          });
+        }
+      }
+
+      return {
+        ...product,
+        flashSale: {
+          campaignId: cheapest.campaign.campaignId,
+          endAt: cheapest.campaign.endDate,
+          salePrice: cheapest.item.salePrice,
+          currency: cheapest.item.currency,
+          saleStock: cheapest.item.saleStock,
+          soldCount: cheapest.item.soldCount,
+          skuOffers: Array.from(skuOffersMap.values()),
+        },
+      };
+    });
+  } catch {
+    return products;
+  }
+}
+
 export const productService = {
   get(productId: string) {
     return api.get<Product>(`/catalog/products/${productId}`, {
