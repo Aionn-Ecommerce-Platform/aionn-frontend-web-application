@@ -29,7 +29,7 @@ import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation, useChatSocket } from "@/hooks";
-import { formatTime } from "@/shared/lib/utils";
+import { formatTime, formatDateTime } from "@/shared/lib/utils";
 import type { ChatConversation, ChatMessage } from "@/types";
 
 export function ChatInner({
@@ -345,15 +345,27 @@ export function ChatInner({
       <AnimatePresence initial={false}>
         {sortedMessages.map((msg) => {
           const isMe = msg.senderId === userId;
+          const fullDateTime = formatMessageDateTime(msg.sentAt, locale);
           return (
             <motion.div
               key={msg.messageId}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.15 }}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-2 group ${
+                isMe ? "justify-end" : "justify-start"
+              }`}
             >
+              {isMe && (
+                <span
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-[11px] text-gray-400 font-medium select-none whitespace-nowrap pb-1 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  {fullDateTime}
+                </span>
+              )}
               <div
+                title={fullDateTime}
                 className={`max-w-[72%] px-4 py-2.5 text-xs sm:text-sm break-words shadow-2xs leading-relaxed ${
                   isMe
                     ? "bg-gray-950 text-white rounded-2xl rounded-br-xs font-medium"
@@ -362,13 +374,22 @@ export function ChatInner({
               >
                 {renderMessageBody(msg)}
                 <p
-                  className={`text-[10px] mt-1 text-right font-medium ${
+                  title={fullDateTime}
+                  className={`text-[10px] mt-1 text-right font-medium cursor-default ${
                     isMe ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
                   {formatMessageTime(msg.sentAt, locale)}
                 </p>
               </div>
+              {!isMe && (
+                <span
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-[11px] text-gray-400 font-medium select-none whitespace-nowrap pb-1 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  {fullDateTime}
+                </span>
+              )}
             </motion.div>
           );
         })}
@@ -821,6 +842,16 @@ function formatMessageTime(
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
   return formatTime(d, locale);
+}
+
+function formatMessageDateTime(
+  value: string | null | undefined,
+  locale = "vi",
+): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return formatDateTime(d, locale);
 }
 
 export default function ChatPage() {
