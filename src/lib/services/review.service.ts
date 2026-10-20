@@ -15,6 +15,9 @@ export interface Review {
   merchantRepliedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  userName?: string | null;
+  userDisplayName?: string | null;
+  userAvatarUrl?: string | null;
 }
 
 export interface RatingSummary {
@@ -115,3 +118,4 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/restore`);
   },
 };
+

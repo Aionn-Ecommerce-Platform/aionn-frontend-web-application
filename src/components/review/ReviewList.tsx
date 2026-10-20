@@ -231,18 +231,47 @@ function ReviewCard({
     );
   };
 
+  const maskedName = (() => {
+    const name = review.userDisplayName || review.userName;
+    if (name && name.trim().length > 0) {
+      const trimmed = name.trim();
+      if (trimmed.length <= 2) {
+        return trimmed.charAt(0) + "***";
+      }
+      return trimmed.charAt(0) + "*****" + trimmed.charAt(trimmed.length - 1);
+    }
+    const lastChar = review.userId ? review.userId.slice(-2).toLowerCase() : "1";
+    return 'b*****' + lastChar;
+  })();
+
+  const initial = (() => {
+    const name = review.userDisplayName || review.userName;
+    if (name && name.trim().length > 0) {
+      return name.trim().charAt(0).toUpperCase();
+    }
+    return "B";
+  })();
+
   return (
     <div className="border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors bg-white">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
-            <span className="text-xs font-bold text-gray-900">
-              {review.userId.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          {review.userAvatarUrl ? (
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-50 relative">
+              <AppImage
+                src={review.userAvatarUrl}
+                alt={maskedName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-linear-to-tr from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-700">
+              {initial}
+            </div>
+          )}
           <div>
-            <div className="font-medium text-gray-900">
-              {review.userId.substring(0, 8)}***
+            <div className="font-medium text-gray-900 text-sm">
+              {maskedName}
             </div>
             <div className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(review.createdAt), {
@@ -300,3 +329,5 @@ function ReviewCard({
     </div>
   );
 }
+
+

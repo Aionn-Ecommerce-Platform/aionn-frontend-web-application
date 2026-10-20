@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Loader2, MessageCircle, Star, Store } from "lucide-react";
-import { Button, Modal } from "@/shared/ui";
+import { AppImage, Button, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
 import toast from "react-hot-toast";
@@ -65,9 +65,19 @@ export default function ProductDetailExtras(props: Props) {
       {" "}
       <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gray-950 flex items-center justify-center text-white text-xl font-bold shadow-xs">
-            {product.merchantId?.charAt(0).toUpperCase() ?? "M"}
-          </div>
+          {merchant?.logoUrl ? (
+            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-200/90 shadow-xs bg-gray-50 shrink-0">
+              <AppImage
+                src={merchant.logoUrl}
+                alt={merchant.name || t("products.storeLabel")}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0">
+              {merchant?.name?.charAt(0).toUpperCase() ?? "M"}
+            </div>
+          )}
           <div>
             <h3 className="text-base font-bold text-gray-900">
               {merchant?.name ?? t("products.storeLabel")}
@@ -230,3 +240,4 @@ export default function ProductDetailExtras(props: Props) {
     </>
   );
 }
+
