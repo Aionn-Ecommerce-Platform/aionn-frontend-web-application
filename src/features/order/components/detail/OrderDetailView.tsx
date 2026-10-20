@@ -302,27 +302,27 @@ function OrderDetailInner({ id }: { id: string }) {
             {t("orders.orderDetails")}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs sm:text-sm text-gray-500">
-            <div className="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200/80 shadow-2xs">
-              <span className="font-semibold text-gray-600 uppercase text-[11px] tracking-wider">
-                {t("orders.orderId")}:
-              </span>
-              <span className="font-mono font-bold text-gray-950 select-all">
-                {order.orderSn || order.orderId}
-              </span>
+            <div className="inline-flex items-center gap-1.5">
+              <div className="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200/80 shadow-2xs">
+                <span className="font-semibold text-gray-600 uppercase text-[11px] tracking-wider">
+                  {t("orders.orderId")}:
+                </span>
+                <span className="font-mono font-bold text-gray-950 select-all">
+                  {order.orderSn || order.orderId}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={handleCopyOrderId}
-                className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-strong transition-colors cursor-pointer ml-1 p-0.5 rounded hover:bg-brand/10"
+                className="inline-flex items-center justify-center w-7 h-7 bg-white hover:bg-gray-50 border border-gray-200/80 rounded-lg text-gray-500 hover:text-gray-950 transition-colors shadow-2xs cursor-pointer"
                 title={t("orders.copyCode")}
+                aria-label={t("orders.copyCode")}
               >
                 {copied ? (
-                  <Check size={13} className="text-emerald-600" />
+                  <Check size={14} className="text-emerald-600" />
                 ) : (
-                  <Copy size={13} />
+                  <Copy size={14} />
                 )}
-                <span className="text-[11px] font-medium">
-                  {copied ? t("orders.copied") : t("orders.copy")}
-                </span>
               </button>
             </div>
             <span className="text-gray-300 hidden sm:inline">•</span>
