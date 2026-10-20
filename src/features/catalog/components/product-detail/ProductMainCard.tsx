@@ -161,7 +161,29 @@ export default function ProductMainCard(props: Props) {
   );
 
   const selectAttribute = (key: string, value: string) => {
-    // When changing an attribute, retain only selections that are compatible with [key]: value
+    // Toggle off if clicking the already selected value
+    if (selectedAttributes[key] === value) {
+      const nextAttributes = { ...selectedAttributes };
+      delete nextAttributes[key];
+      setSelectionState({
+        productId: product.productId,
+        values: nextAttributes,
+      });
+      const selectedVariantIndex = product.variants.findIndex((variant) =>
+        attributeKeys.every(
+          (attributeKey) =>
+            variant.attributeValues[attributeKey] ===
+            nextAttributes[attributeKey],
+        ),
+      );
+      setSelectedVariantIdx(
+        selectedVariantIndex >= 0 ? selectedVariantIndex : null,
+      );
+      setQuantity(1);
+      return;
+    }
+
+    // When changing an attribute, retain compatible selections
     const compatibleAttributes: Record<string, string> = { [key]: value };
     for (const [existingKey, existingValue] of Object.entries(
       selectedAttributes,
@@ -174,6 +196,22 @@ export default function ProductMainCard(props: Props) {
       );
       if (isStillCompatible) {
         compatibleAttributes[existingKey] = existingValue;
+      }
+    }
+
+    // Auto-complete any incompatible attributes with a valid matching variant
+    const matchingVariant = product.variants.find((variant) =>
+      variant.attributeValues[key] === value &&
+      Object.entries(compatibleAttributes).every(
+        ([k, v]) => variant.attributeValues[k] === v
+      )
+    ) ?? product.variants.find((variant) => variant.attributeValues[key] === value);
+
+    if (matchingVariant) {
+      for (const attrKey of attributeKeys) {
+        if (!compatibleAttributes[attrKey] && matchingVariant.attributeValues[attrKey]) {
+          compatibleAttributes[attrKey] = matchingVariant.attributeValues[attrKey];
+        }
       }
     }
 
@@ -196,13 +234,7 @@ export default function ProductMainCard(props: Props) {
 
   const isOptionAvailable = (key: string, value: string) =>
     product.variants.some(
-      (variant) =>
-        variant.attributeValues[key] === value &&
-        Object.entries(selectedAttributes).every(
-          ([selectedKey, selectedValue]) =>
-            selectedKey === key ||
-            variant.attributeValues[selectedKey] === selectedValue,
-        ),
+      (variant) => variant.attributeValues[key] === value,
     );
 
   return (
@@ -534,7 +566,7 @@ export default function ProductMainCard(props: Props) {
                               type="button"
                               disabled={!available}
                               onClick={() => selectAttribute(key, value)}
-                              className={`relative min-h-9 min-w-16 overflow-hidden rounded-xl px-3.5 py-1.5 border text-sm font-medium transition-all ${
+                              className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all cursor-pointer select-none ${
                                 selected
                                   ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold"
                                   : available
@@ -542,17 +574,16 @@ export default function ProductMainCard(props: Props) {
                                     : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through"
                               }`}
                             >
-                              {formatVariantValue(value)}
-                              {selected && (
-                                <>
-                                  <span className="absolute bottom-0 right-0 h-4 w-4 bg-white/20 [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
+                              <span className="inline-flex items-center justify-center gap-1.5">
+                                <span>{formatVariantValue(value)}</span>
+                                {selected && (
                                   <Check
-                                    size={9}
+                                    size={13}
                                     strokeWidth={3}
-                                    className="absolute bottom-0 right-0 text-white"
+                                    className="text-white shrink-0 -mr-0.5"
                                   />
-                                </>
-                              )}
+                                )}
+                              </span>
                             </button>
                           );
                         })}
