@@ -195,7 +195,7 @@ export default function MerchantStorePage({
   if (loadingM) {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-gray-800" size={32} />
       </div>
     );
   }
@@ -227,141 +227,122 @@ export default function MerchantStorePage({
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Modern Store Hero Banner */}
-        <div className="bg-white rounded-3xl border border-gray-200/80 overflow-hidden shadow-xs mb-8">
-          {/* Top Decorative Gradient Cover */}
-          <div className="h-32 sm:h-36 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(59,130,246,0.2),transparent_50%)]" />
-          </div>
-
-          {/* Store Info & Stats Content */}
-          <div className="px-6 sm:px-8 pb-8 pt-0 -mt-16 sm:-mt-20 relative">
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 pb-6 border-b border-gray-100">
-              {/* Avatar + Store Identity */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
-                <div className="relative">
-                  {merchant.logoUrl ? (
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 relative rounded-2xl overflow-hidden border-4 border-white shadow-md bg-white shrink-0">
-                      <Image
-                        src={merchant.logoUrl}
-                        alt={merchant.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-extrabold border-4 border-white shadow-md shrink-0">
-                      {initial}
-                    </div>
-                  )}
-                  {merchant.status === "ACTIVE" && (
-                    <span
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-200 flex items-center justify-center"
-                      title={t("merchantStore.active")}
-                    >
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    </span>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
-                      {merchant.name}
-                    </h1>
-                    <Badge
-                      variant={
-                        merchant.status === "ACTIVE" ? "success" : "warning"
-                      }
-                      className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                    >
-                      {merchant.status === "ACTIVE"
-                        ? t("merchantStore.active")
-                        : merchant.status}
-                    </Badge>
+        {/* Modern Clean Store Header Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-xs mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Store Profile Info */}
+            <div className="flex items-center gap-5">
+              <div className="relative shrink-0">
+                {merchant.logoUrl ? (
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-100 shadow-xs bg-gray-50">
+                    <Image
+                      src={merchant.logoUrl}
+                      alt={merchant.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                  {merchant.description && (
-                    <p className="text-sm text-gray-600 line-clamp-1 max-w-xl">
-                      {merchant.description}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 font-mono">
-                    ID: {merchant.merchantId}
-                  </p>
-                </div>
+                ) : (
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-2xl font-bold shadow-xs">
+                    {initial}
+                  </div>
+                )}
+                {merchant.status === "ACTIVE" && (
+                  <span
+                    className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center"
+                    title={t("merchantStore.active")}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </span>
+                )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleStartChat}
-                  disabled={chatLoading}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {chatLoading ? (
-                    <Loader2 className="animate-spin text-white" size={16} />
-                  ) : (
-                    <MessageCircle size={16} />
-                  )}
-                  <span>{t("merchantStore.chat")}</span>
-                </button>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
+                    {merchant.name}
+                  </h1>
+                  <Badge
+                    variant={
+                      merchant.status === "ACTIVE" ? "success" : "warning"
+                    }
+                    className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  >
+                    {merchant.status === "ACTIVE"
+                      ? t("merchantStore.active")
+                      : merchant.status}
+                  </Badge>
+                </div>
+                {merchant.description && (
+                  <p className="text-sm text-gray-500 line-clamp-1 max-w-xl">
+                    {merchant.description}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    onClick={handleStartChat}
+                    disabled={chatLoading}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-950 hover:bg-black active:scale-98 text-white rounded-xl text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {chatLoading ? (
+                      <Loader2 className="animate-spin text-white" size={14} />
+                    ) : (
+                      <MessageCircle size={14} />
+                    )}
+                    <span>{t("merchantStore.chat")}</span>
+                  </button>
+                  <span className="text-xs text-gray-400 font-mono">
+                    ID: {merchant.merchantId}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center shrink-0">
-                  <Store size={20} />
-                </div>
+            {/* Store Quick Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 border-t lg:border-t-0 lg:border-l border-gray-100 pt-6 lg:pt-0 lg:pl-8">
+              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+                <Store size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
                     {t("merchantStore.products")}
                   </p>
-                  <p className="text-base font-bold text-gray-900 mt-0.5">
+                  <p className="text-sm font-bold text-gray-950 mt-0.5">
                     {totalElements}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center shrink-0">
-                  <MapPin size={20} />
-                </div>
+              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+                <MapPin size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
                     {t("merchantStore.location")}
                   </p>
-                  <p className="text-base font-bold text-gray-900 mt-0.5 truncate max-w-[150px]">
+                  <p className="text-sm font-bold text-gray-950 mt-0.5 truncate max-w-[120px]">
                     {displayProvince || t("merchantStore.notUpdated")}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-purple-100/70 text-purple-600 flex items-center justify-center shrink-0">
-                  <Calendar size={20} />
-                </div>
+              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+                <Calendar size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
                     {t("merchantStore.joined")}
                   </p>
-                  <p className="text-base font-bold text-gray-900 mt-0.5">
+                  <p className="text-sm font-bold text-gray-950 mt-0.5">
                     {formattedDate}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck size={20} />
-                </div>
+              <div className="bg-gray-50/70 rounded-xl p-3 sm:p-3.5 border border-gray-100 flex items-center gap-3">
+                <ShieldCheck size={18} className="text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
                     Status
                   </p>
-                  <p className="text-base font-bold text-gray-900 mt-0.5">
+                  <p className="text-sm font-bold text-emerald-600 mt-0.5">
                     {merchant.status === "ACTIVE"
                       ? t("merchantStore.active")
                       : merchant.status}
@@ -390,9 +371,9 @@ export default function MerchantStorePage({
 
         <div ref={productsRef} className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-64 shrink-0">
-            <div className="bg-white rounded-2xl border border-gray-200/80 p-5 space-y-4 shadow-xs sticky top-24">
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs sticky top-24">
               <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-                <Store size={18} className="text-blue-600" />
+                <Store size={18} className="text-gray-500" />
                 <span>
                   {t("merchants.shopCategories") || t("merchantStore.categories")}
                 </span>
@@ -408,7 +389,7 @@ export default function MerchantStorePage({
                     }}
                     className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                       selectedCategory === null
-                        ? "bg-blue-50 text-blue-700 font-bold shadow-xs"
+                        ? "bg-gray-900 text-white font-bold shadow-xs"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
@@ -431,13 +412,13 @@ export default function MerchantStorePage({
                         }}
                         className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                           isActive
-                            ? "bg-blue-50 text-blue-700 font-bold shadow-xs"
+                            ? "bg-gray-900 text-white font-bold shadow-xs"
                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         }`}
                       >
                         <span className="truncate mr-2">{label}</span>
                         <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? "bg-blue-200/70 text-blue-800" : "bg-gray-100 text-gray-500"}`}
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}
                         >
                           {count}
                         </span>
@@ -462,7 +443,7 @@ export default function MerchantStorePage({
 
             {loadingP ? (
               <div className="py-20 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
+                <Loader2 className="animate-spin text-gray-700" size={28} />
               </div>
             ) : !searchResult || searchResult.page.content.length === 0 ? (
               <EmptyState
@@ -541,7 +522,7 @@ export default function MerchantStorePage({
                           }}
                           className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                             isCurrent
-                              ? "bg-blue-600 text-white shadow-xs border border-blue-600"
+                              ? "bg-gray-950 text-white shadow-xs border border-gray-950"
                               : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 shadow-xs"
                           }`}
                         >

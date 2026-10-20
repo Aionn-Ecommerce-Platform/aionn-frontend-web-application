@@ -30,7 +30,7 @@ export default function MerchantVouchers({
   return (
     <section className="mb-8">
       <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <Ticket size={20} className="text-blue-600" />
+        <Ticket size={20} className="text-gray-600" />
         <span>{t("promotions.tabShop")}</span>
       </h2>
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -44,9 +44,9 @@ export default function MerchantVouchers({
           return (
             <div
               key={voucher.voucherCode}
-              className="flex bg-white border border-gray-200/80 rounded-2xl min-h-[128px] shrink-0 w-[360px] shadow-xs hover:shadow-md transition-all overflow-hidden"
+              className="flex bg-white border border-gray-100 rounded-2xl min-h-[128px] shrink-0 w-[360px] shadow-xs hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="w-28 flex flex-col items-center justify-center text-white px-3 text-center shrink-0 bg-gradient-to-br from-blue-600 to-indigo-600">
+              <div className="w-28 flex flex-col items-center justify-center text-white px-3 text-center shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600">
                 {merchant.logoUrl ? (
                   <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/60 bg-white mb-1.5 shadow-xs">
                     <AppImage
@@ -64,7 +64,7 @@ export default function MerchantVouchers({
                   {merchant.name}
                 </span>
               </div>
-              <div className="flex-1 flex items-center justify-between py-4 px-4.5 border-l border-dashed border-gray-200">
+              <div className="flex-1 flex items-center justify-between py-4 px-4.5 border-l border-dashed border-gray-100">
                 <div className="flex-1 pr-3">
                   <h3 className="font-extrabold text-gray-950 text-sm">
                     {t("promotions.discountAmount", {
@@ -87,12 +87,12 @@ export default function MerchantVouchers({
                   </div>
                   {voucher.usageLimit > 0 && (
                     <div className="mt-2">
-                      <p className="text-[11px] font-semibold text-blue-600">
+                      <p className="text-[11px] font-semibold text-gray-500">
                         {t("promotions.stockLeft", { count: remaining })}
                       </p>
                       <div className="mt-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="h-full bg-blue-600 rounded-full"
+                          className="h-full bg-indigo-500 rounded-full"
                           style={{ width: `${Math.min(progress, 100)}%` }}
                         />
                       </div>
@@ -107,7 +107,7 @@ export default function MerchantVouchers({
                   ) : claimed ? (
                     <button
                       onClick={onUse}
-                      className="font-bold text-xs text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                      className="font-bold text-xs text-gray-900 border border-gray-200 hover:border-gray-900 bg-white px-3.5 py-1.5 rounded-full transition-all cursor-pointer"
                     >
                       {t("promotions.useNow")}
                     </button>
@@ -115,7 +115,7 @@ export default function MerchantVouchers({
                     <button
                       disabled={claimingCode === voucher.voucherCode}
                       onClick={() => onClaim(voucher.voucherCode)}
-                      className="font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 active:scale-95 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                      className="font-bold text-xs text-white bg-gray-950 hover:bg-black active:scale-95 px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs disabled:opacity-50"
                     >
                       {claimingCode === voucher.voucherCode ? (
                         <Loader2 className="animate-spin" size={14} />
