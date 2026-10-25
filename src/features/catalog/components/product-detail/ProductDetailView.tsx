@@ -64,6 +64,11 @@ export default function ProductDetailPage({
     enabled: Boolean(product?.merchantId),
   });
 
+  const { data: ratingSummary } = useQuery({
+    queryKey: ["product-rating-summary", id],
+    queryFn: () => reviewService.getProductRatingSummary(id),
+  });
+
   useEffect(() => {
     if (!product) return;
 
@@ -320,10 +325,10 @@ export default function ProductDetailPage({
   const priceLabel = currentVariant
     ? formatCurrency(displayPrice, displayCurrency)
     : priceRangeLabel;
-  const reviewCount = product.reviewCount ?? 0;
+  const reviewCount = ratingSummary?.total ?? product.reviewCount ?? 0;
   const currentRating =
-    reviewCount > 0 && product.rating !== undefined && product.rating > 0
-      ? product.rating
+    reviewCount > 0
+      ? (ratingSummary?.average ?? (product.rating !== undefined && product.rating > 0 ? product.rating : 0))
       : 0;
   const roundedRating = Math.round(currentRating);
   const soldCount = product.soldCount ?? 0;
