@@ -1855,7 +1855,7 @@
     "cancelDeletionMessage": "Tài khoản sẽ được giữ lại và bạn có thể tiếp tục sử dụng bình thường."
   },
   "promotions": {
-    "title": "Khuyến mãi & Voucher",
+    "title": "Khuyến mãi",
     "description": "Thu thập voucher giảm giá, tham gia Flash Sale và nhận ưu đãi đặc biệt mỗi ngày.",
     "runningCampaigns": "Chiến dịch đang diễn ra",
     "noCampaigns": "Chưa có chiến dịch nào đang chạy",

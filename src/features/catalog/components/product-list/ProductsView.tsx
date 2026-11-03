@@ -298,24 +298,16 @@ function ProductsInner() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
               {queryText ? queryText : t("products.title")}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {isLoading
-                ? t("products.loading")
-                : queryText
-                  ? t("products.searchResults", {
+            {queryText && (
+              <p className="text-sm text-gray-500 mt-1">
+                {isLoading
+                  ? t("products.loading")
+                  : t("products.searchResults", {
                       count: totalElements,
                       query: queryText,
-                    })
-                  : hasActiveFilter
-                    ? t("products.resultsCountFiltered").replace(
-                        "{count}",
-                        String(totalElements),
-                      )
-                    : t("products.resultsCount").replace(
-                        "{count}",
-                        String(totalElements),
-                      )}
-            </p>
+                    })}
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <QuickSortTabs value={sortParam} onChange={setSort} t={t} />

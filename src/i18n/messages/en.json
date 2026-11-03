@@ -1855,7 +1855,7 @@
     "cancelDeletionMessage": "Your account will be kept and you can continue using it normally."
   },
   "promotions": {
-    "title": "Promotions & Vouchers",
+    "title": "Promotions",
     "description": "Collect discount vouchers, join Flash Sales and receive special offers daily.",
     "runningCampaigns": "Active Campaigns",
     "noCampaigns": "No active campaigns",

@@ -7,8 +7,6 @@ import {
   ArrowRight,
   Layers,
   PackageSearch,
-  Search,
-  X,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button, EmptyState } from "@/shared/ui";
@@ -19,7 +17,6 @@ import type { CategoryTreeNode } from "@/types";
 
 export default function CategoriesView() {
   const { t } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedDeptId, setSelectedDeptId] = useState<string>("all");
 
   const {
@@ -46,45 +43,15 @@ export default function CategoriesView() {
     };
   }, [rawTree]);
 
-  // Filtered tree based on department tab and search query
+  // Filtered tree based on department tab
   const filteredTree = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    return rawTree
-      .filter((root) => {
-        if (selectedDeptId !== "all" && root.category.categoryId !== selectedDeptId) {
-          return false;
-        }
-        return true;
-      })
-      .map((root) => {
-        if (!query) return root;
-
-        const rootMatches = root.category.name.toLowerCase().includes(query);
-        const matchingChildren = root.children.filter((child) =>
-          child.category.name.toLowerCase().includes(query),
-        );
-
-        if (rootMatches) {
-          // If root department name matches, show all its children or only matching ones if some match
-          return root;
-        }
-
-        if (matchingChildren.length > 0) {
-          return {
-            ...root,
-            children: matchingChildren,
-          };
-        }
-
-        return null;
-      })
-      .filter((root): root is CategoryTreeNode => root !== null);
-  }, [rawTree, selectedDeptId, searchQuery]);
-
-  const totalFilteredSubcategories = useMemo(() => {
-    return filteredTree.reduce((acc, r) => acc + r.children.length, 0);
-  }, [filteredTree]);
+    return rawTree.filter((root) => {
+      if (selectedDeptId !== "all" && root.category.categoryId !== selectedDeptId) {
+        return false;
+      }
+      return true;
+    });
+  }, [rawTree, selectedDeptId]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -96,33 +63,8 @@ export default function CategoriesView() {
           </h1>
         </div>
 
-        {/* Quick Search Row - Separate row below Header */}
-        <div className="relative w-full max-w-md">
-          <Search
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("categories.searchPlaceholder")}
-            className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-gray-900 shadow-xs transition-colors"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-              aria-label="Clear search"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-
         {/* Department Quick Filter Tabs (Voucher style) */}
-        {!loading && !error && rawTree.length > 0 && !searchQuery && (
+        {!loading && !error && rawTree.length > 0 && (
           <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar pt-1">
             <button
               type="button"
@@ -154,27 +96,6 @@ export default function CategoriesView() {
                 </button>
               );
             })}
-          </div>
-        )}
-
-        {/* Search Results Summary Banner */}
-        {searchQuery && (
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-300 p-4 shadow-2xs">
-            <span className="text-xs sm:text-sm text-gray-700">
-              {t("categories.searchResults")
-                .replace("{query}", searchQuery)
-                .replace(
-                  "{count}",
-                  String(totalFilteredSubcategories + filteredTree.length),
-                )}
-            </span>
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="text-xs font-bold text-brand hover:underline cursor-pointer"
-            >
-              {t("categories.clearSearch")}
-            </button>
           </div>
         )}
 
@@ -230,28 +151,8 @@ export default function CategoriesView() {
         ) : filteredTree.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title={
-              searchQuery
-                ? t("categories.noSearchResults")
-                : t("categories.noCategories")
-            }
-            description={
-              searchQuery
-                ? t("categories.noSearchResultsDesc")
-                : t("categories.noCategoriesDesc")
-            }
-            action={
-              searchQuery ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSearchQuery("")}
-                  className="mt-4 rounded-xl cursor-pointer"
-                >
-                  {t("categories.clearSearch")}
-                </Button>
-              ) : undefined
-            }
+            title={t("categories.noCategories")}
+            description={t("categories.noCategoriesDesc")}
           />
         ) : (
           /* Department Sections */

@@ -236,8 +236,14 @@ export default function PromotionsPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex items-center gap-2.5 mb-8 overflow-x-auto pb-2 scrollbar-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {t("promotions.title")}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar">
           {[
             { id: "ALL", label: `${t("promotions.tabAll")} (${allCount})` },
             {
