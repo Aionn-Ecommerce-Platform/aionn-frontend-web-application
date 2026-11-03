@@ -34,29 +34,27 @@ export function QuickSortTabs({
   ] as const;
 
   return (
-    <div className="flex h-10 items-center gap-2.5 bg-gray-100/90 px-3 rounded-xl border border-gray-300 shadow-2xs">
-      <span className="text-xs sm:text-sm text-gray-600 font-medium select-none shrink-0">
+    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <span className="text-xs sm:text-sm text-gray-600 font-semibold select-none shrink-0 mr-1">
         {t("products.sortBy") || "Sắp xếp theo"}
       </span>
-      <div className="flex items-center gap-1.5">
-        {tabs.map((tab) => {
-          const active = value === tab.value;
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => onChange(tab.value as ProductSort)}
-              className={`h-7.5 px-3 rounded-lg text-xs sm:text-sm transition-all cursor-pointer select-none inline-flex items-center justify-center font-medium ${
-                active
-                  ? "bg-[#ee4d2d] text-white shadow-xs font-semibold"
-                  : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-200/70 shadow-2xs"
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {tabs.map((tab) => {
+        const active = value === tab.value;
+        return (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => onChange(tab.value as ProductSort)}
+            className={`px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
+              active
+                ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -91,7 +89,7 @@ export function SortDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 items-center gap-2 px-4 rounded-xl text-xs sm:text-sm text-gray-800 bg-white border border-gray-300 hover:border-gray-950 transition-all font-semibold shadow-xs focus:outline-none cursor-pointer"
+        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm text-gray-800 bg-white border border-gray-950 hover:bg-gray-100 hover:text-black transition-all font-semibold shadow-xs focus:outline-none cursor-pointer whitespace-nowrap"
         aria-label="Sort products"
         aria-expanded={open}
       >
@@ -100,12 +98,12 @@ export function SortDropdown({
         </span>
         <ChevronDown
           size={14}
-          className={`transition-transform text-gray-500 ${open ? "rotate-180" : ""}`}
+          className={`transition-transform text-gray-700 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-300 shadow-xl py-1.5 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-950 shadow-xl py-1.5 z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
             const active = opt.value === value;
             return (
@@ -117,13 +115,13 @@ export function SortDropdown({
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs sm:text-sm transition-colors cursor-pointer ${
                   active
-                    ? "bg-brand/10 text-brand font-bold"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "bg-gray-950 text-white font-bold"
+                    : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <span>{t(opt.labelKey)}</span>
                 {active && (
-                  <Check size={14} className="text-brand shrink-0 ml-2" />
+                  <Check size={14} className="text-white shrink-0 ml-2" />
                 )}
               </button>
             );

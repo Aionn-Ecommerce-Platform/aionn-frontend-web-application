@@ -274,39 +274,6 @@ function ProductsInner() {
     });
   }, [facets, brandNameById, brandIds]);
 
-  const activeDeptId = useMemo(() => {
-    if (categoryIds.length === 0) return "all";
-    if (!categoryTree) return "all";
-    for (const root of categoryTree) {
-      if (categoryIds.includes(root.category.categoryId)) {
-        return root.category.categoryId;
-      }
-      if (
-        root.children.some((c) =>
-          categoryIds.includes(c.category.categoryId),
-        )
-      ) {
-        return root.category.categoryId;
-      }
-    }
-    return "all";
-  }, [categoryIds, categoryTree]);
-
-  const handleSelectDepartment = (deptId: string) => {
-    setParam(
-      (sp) => {
-        if (deptId === "all") {
-          sp.delete("categoryIds");
-          sp.delete("categoryId");
-        } else {
-          sp.set("categoryIds", deptId);
-          sp.delete("categoryId");
-        }
-      },
-      { scroll: true },
-    );
-  };
-
   const hasActiveFilter = hasCatalogFilters([
     categoryIds.length,
     brandIds.length,
@@ -326,50 +293,20 @@ function ProductsInner() {
         </div>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
-              {queryText ? queryText : t("products.title")}
-            </h1>
-            {queryText && (
-              <p className="text-sm text-gray-500 mt-1">
-                {isLoading
-                  ? t("products.loading")
-                  : t("products.searchResults", {
-                      count: totalElements,
-                      query: queryText,
-                    })}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
-            <SortDropdown value={sortParam} onChange={setSort} t={t} />
-            <div className="flex h-10 border border-gray-300 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "grid"
-                    ? "bg-gray-950 text-white shadow-xs"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-                aria-label="Grid view"
-              >
-                <Grid3X3 size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "list"
-                    ? "bg-gray-950 text-white shadow-xs"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-                aria-label="List view"
-              >
-                <List size={16} />
-              </button>
-            </div>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {queryText ? queryText : t("products.title")}
+          </h1>
+          {queryText && (
+            <p className="text-sm text-gray-500 mt-1">
+              {isLoading
+                ? t("products.loading")
+                : t("products.searchResults", {
+                    count: totalElements,
+                    query: queryText,
+                  })}
+            </p>
+          )}
         </div>
 
         {hasActiveFilter && (
@@ -458,41 +395,38 @@ function ProductsInner() {
             onPrice={setPriceRange}
           />
           <div className="flex-1 min-w-0">
-            {/* Department Quick Filter Tabs at the head of product grid */}
-            {categoryTree && categoryTree.length > 0 && (
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-4 no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => handleSelectDepartment("all")}
-                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
-                    activeDeptId === "all"
-                      ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
-                      : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
-                  }`}
-                >
-                  {t("categories.allDepartments")} ({categoryTree.length})
-                </button>
-
-                {categoryTree.map((root) => {
-                  const active = activeDeptId === root.category.categoryId;
-                  const count = root.children.length;
-                  return (
-                    <button
-                      key={root.category.categoryId}
-                      type="button"
-                      onClick={() => handleSelectDepartment(root.category.categoryId)}
-                      className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
-                        active
-                          ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
-                          : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
-                      }`}
-                    >
-                      {root.category.name} ({count})
-                    </button>
-                  );
-                })}
+            {/* Sorting and view mode controls at the head of product grid */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
+                <SortDropdown value={sortParam} onChange={setSort} t={t} />
               </div>
-            )}
+              <div className="flex items-center h-8.5 border border-gray-950 rounded-full overflow-hidden bg-white shadow-xs p-0.5 shrink-0">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`flex h-full items-center justify-center px-2.5 rounded-full transition-all cursor-pointer ${
+                    viewMode === "grid"
+                      ? "bg-gray-950 text-white shadow-xs"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Grid3X3 size={15} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`flex h-full items-center justify-center px-2.5 rounded-full transition-all cursor-pointer ${
+                    viewMode === "list"
+                      ? "bg-gray-950 text-white shadow-xs"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                  aria-label="List view"
+                >
+                  <List size={15} />
+                </button>
+              </div>
+            </div>
+
             <CatalogResults
               products={products}
               loading={isLoading}
