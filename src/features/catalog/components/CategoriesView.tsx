@@ -208,13 +208,13 @@ export default function CategoriesView() {
               >
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
                   {/* Parent Category Skeleton */}
-                  <div className="col-span-2 sm:col-span-2 lg:col-span-2 rounded-2xl bg-gray-900 p-5 flex items-center justify-between min-h-[160px] sm:min-h-[175px]">
+                  <div className="col-span-2 sm:col-span-2 lg:col-span-2 rounded-2xl bg-gradient-to-br from-purple-950 via-indigo-950 to-purple-900 border border-purple-800/40 p-5 flex items-center justify-between min-h-[160px] sm:min-h-[175px]">
                     <div className="space-y-3">
-                      <div className="h-3 w-16 bg-gray-800 rounded-md" />
-                      <div className="h-6 w-32 bg-gray-800 rounded-md" />
-                      <div className="h-8 w-28 bg-gray-800 rounded-xl" />
+                      <div className="h-3 w-16 bg-purple-900/60 rounded-md" />
+                      <div className="h-6 w-32 bg-purple-900/60 rounded-md" />
+                      <div className="h-8 w-28 bg-purple-900/60 rounded-xl" />
                     </div>
-                    <div className="w-24 h-24 bg-gray-800 rounded-2xl" />
+                    <div className="w-24 h-24 bg-purple-900/60 rounded-2xl" />
                   </div>
                   {/* Child Categories Skeletons */}
                   {Array.from({ length: 3 }).map((__, cIdx) => (
@@ -285,20 +285,30 @@ export default function CategoriesView() {
                   className="transition-all"
                 >
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
-                    {/* Parent Category Banner Card: Same height, on the same row */}
+                    {/* Parent Category Banner Card: Purple gradient matching FlashSale on Home */}
                     <Link
                       href={`/products?categoryIds=${rootCat.categoryId}`}
-                      className="col-span-2 sm:col-span-2 lg:col-span-2 group relative bg-gradient-to-br from-gray-950 via-gray-900 to-black rounded-2xl border border-gray-800 hover:border-gray-600 p-4 sm:p-5 flex items-center justify-between text-white shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden min-h-[160px] sm:min-h-[175px]"
+                      className="col-span-2 sm:col-span-2 lg:col-span-2 group relative bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 rounded-2xl border border-purple-800/50 hover:border-purple-400 p-4 sm:p-5 flex items-center justify-between text-white shadow-md shadow-purple-950/20 hover:shadow-2xl hover:shadow-purple-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden min-h-[160px] sm:min-h-[175px]"
                     >
-                      {/* Ambient background glow circles */}
-                      <div className="absolute -top-10 -right-10 w-36 h-36 bg-brand/25 rounded-full blur-2xl pointer-events-none" />
-                      <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-blue-500/15 rounded-full blur-2xl pointer-events-none" />
+                      {/* Ambient background glowing orbs */}
+                      <div className="absolute -top-10 -left-10 w-36 h-36 bg-purple-600/30 rounded-full blur-2xl pointer-events-none" />
+                      <div className="absolute -bottom-8 -right-8 w-36 h-36 bg-fuchsia-600/25 rounded-full blur-2xl pointer-events-none" />
+
+                      {/* Cyber geometric micro dot texture */}
+                      <div
+                        className="absolute inset-0 opacity-[0.14] pointer-events-none"
+                        style={{
+                          backgroundImage:
+                            "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
+                          backgroundSize: "20px 20px",
+                        }}
+                      />
 
                       {/* Left: Info & Button */}
                       <div className="relative z-10 flex flex-col justify-between h-full pr-3 max-w-[62%]">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center p-1 shadow-inner shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-1 shadow-inner shrink-0">
                               {rootCat.iconUrl ? (
                                 <div className="relative w-full h-full">
                                   <Image
@@ -310,10 +320,10 @@ export default function CategoriesView() {
                                   />
                                 </div>
                               ) : (
-                                <Layers size={14} className="text-white/80" />
+                                <Layers size={14} className="text-purple-200" />
                               )}
                             </div>
-                            <span className="text-[10px] font-semibold tracking-wider uppercase text-white/50">
+                            <span className="text-[10px] font-semibold tracking-wider uppercase text-purple-200/70">
                               {t("categories.title") || "Ngành hàng"}
                             </span>
                           </div>
@@ -324,7 +334,7 @@ export default function CategoriesView() {
                         </div>
 
                         <div className="pt-2">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-950 bg-white hover:bg-gray-100 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-950 bg-white hover:bg-purple-50 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors">
                             <span>{t("categories.viewAllProducts")}</span>
                             <ArrowRight
                               size={13}
@@ -347,7 +357,7 @@ export default function CategoriesView() {
                             />
                           </div>
                         ) : (
-                          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                          <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-purple-200/60">
                             <Layers size={32} strokeWidth={1.5} />
                           </div>
                         )}
