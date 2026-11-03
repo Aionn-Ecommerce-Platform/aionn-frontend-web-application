@@ -1591,7 +1591,19 @@
     "viewAll": "Xem tất cả",
     "noCategories": "Chưa có danh mục nào",
     "failedToLoad": "Không tải được danh mục",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "searchPlaceholder": "Tìm kiếm danh mục...",
+    "allDepartments": "Tất cả ngành hàng",
+    "subcategoriesCount": "{count} danh mục con",
+    "viewAllProducts": "Xem tất cả sản phẩm",
+    "searchResults": "Kết quả tìm kiếm cho \"{query}\" ({count} danh mục)",
+    "noSearchResults": "Không tìm thấy danh mục phù hợp",
+    "noSearchResultsDesc": "Vui lòng thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.",
+    "clearSearch": "Xóa tìm kiếm",
+    "breadcrumbHome": "Trang chủ",
+    "breadcrumbCategories": "Danh mục sản phẩm",
+    "noSubcategories": "Chưa có danh mục con",
+    "exploreDepartment": "Khám phá các sản phẩm trong ngành hàng này"
   },
   "feedback": {
     "title": "Chúng tôi trân trọng ý kiến của bạn",

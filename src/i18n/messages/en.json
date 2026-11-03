@@ -1591,7 +1591,19 @@
     "viewAll": "View All",
     "noCategories": "No categories available",
     "failedToLoad": "Failed to load categories",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "searchPlaceholder": "Search categories...",
+    "allDepartments": "All Departments",
+    "subcategoriesCount": "{count} subcategories",
+    "viewAllProducts": "View all products",
+    "searchResults": "Search results for \"{query}\" ({count} categories)",
+    "noSearchResults": "No matching categories found",
+    "noSearchResultsDesc": "Try searching with different keywords or clear the filter.",
+    "clearSearch": "Clear search",
+    "breadcrumbHome": "Home",
+    "breadcrumbCategories": "Categories",
+    "noSubcategories": "No subcategories available",
+    "exploreDepartment": "Explore all products in this department"
   },
   "feedback": {
     "title": "We value your feedback",
