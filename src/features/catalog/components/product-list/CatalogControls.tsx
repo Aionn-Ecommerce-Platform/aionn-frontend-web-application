@@ -141,7 +141,7 @@ export function ChipButton({
   return (
     <button
       onClick={onRemove}
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-gray-950 text-gray-800 hover:bg-gray-100 hover:text-black transition-colors cursor-pointer"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-600 border border-purple-800 text-white hover:bg-purple-700 hover:text-white transition-colors cursor-pointer"
     >
       <span>{label}</span>
       <X size={12} className="text-gray-500" />
@@ -174,7 +174,7 @@ export function FacetSection({
         <ul className="space-y-1.5">
           {visible.map((item, index) => (
             <li key={`${item.id}-${index}`}>
-              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-black group">
+              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-white group">
                 <span className="flex items-center gap-2 min-w-0">
                   <input
                     type="checkbox"
@@ -183,7 +183,7 @@ export function FacetSection({
                     onChange={() => onToggle(item.id)}
                     className="rounded border-gray-300 text-gray-950 focus:ring-gray-300 accent-gray-950 cursor-pointer"
                   />
-                  <span className="truncate text-gray-700 group-hover:text-black font-medium">
+                  <span className="truncate text-purple-200 group-hover:text-white font-medium">
                     {item.label}
                   </span>
                 </span>
@@ -194,7 +194,7 @@ export function FacetSection({
             <li>
               <button
                 onClick={() => setExpanded((v) => !v)}
-                className="text-xs text-gray-950 hover:underline font-semibold cursor-pointer"
+                className="text-xs text-purple-200 hover:text-white font-semibold cursor-pointer"
               >
                 {expanded
                   ? t("products.collapse")

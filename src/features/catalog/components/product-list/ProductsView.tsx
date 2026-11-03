@@ -310,8 +310,8 @@ function ProductsInner() {
         </div>
 
         {hasActiveFilter && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-950 shadow-xs">
-            <span className="text-gray-900 font-bold text-xs mr-1 uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-4 rounded-2xl border border-purple-800/60 shadow-xs text-white">
+            <span className="text-white font-bold text-xs mr-1 uppercase tracking-wider">
               {t("products.filterBy")}:
             </span>
             {categoryIds.map((id) => (
