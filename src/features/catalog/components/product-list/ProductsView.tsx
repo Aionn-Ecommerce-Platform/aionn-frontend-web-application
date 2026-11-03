@@ -312,7 +312,7 @@ function ProductsInner() {
           <div className="flex flex-wrap items-center gap-2.5">
             <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
             <SortDropdown value={sortParam} onChange={setSort} t={t} />
-            <div className="flex h-10 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
+            <div className="flex h-10 border border-gray-300 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
@@ -340,7 +340,7 @@ function ProductsInner() {
         </div>
 
         {hasActiveFilter && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-300 shadow-xs">
             <span className="text-gray-900 font-bold text-xs mr-1 uppercase tracking-wider">
               {t("products.filterBy")}:
             </span>

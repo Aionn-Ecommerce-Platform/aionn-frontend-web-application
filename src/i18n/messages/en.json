@@ -1256,7 +1256,7 @@
     "loginToReviewNotice": "Please log in to review this product."
   },
   "products": {
-    "title": "Products",
+    "title": "All Products",
     "bestSeller": "BEST SELLER",
     "loading": "Loading...",
     "resultsCount": "{count} products",

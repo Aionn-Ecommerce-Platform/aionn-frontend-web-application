@@ -38,14 +38,14 @@ export default function CatalogSidebar(props: Props) {
   const { t, locale } = useTranslation();
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="bg-white rounded-2xl border border-gray-200/90 p-5 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-gray-300 p-5 space-y-6 shadow-xs">
         <h3 className="font-bold text-gray-950 text-base">{t("products.filters")}</h3>
-        <label className="flex items-center gap-2.5 text-sm cursor-pointer font-medium text-gray-800 hover:text-brand transition-colors">
+        <label className="flex items-center gap-2.5 text-sm cursor-pointer font-medium text-gray-800 hover:text-gray-950 transition-colors">
           <input
             type="checkbox"
             checked={props.onSale}
             onChange={props.onSaleChange}
-            className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
+            className="rounded border-gray-300 text-gray-950 focus:ring-gray-300 accent-gray-950 cursor-pointer"
           />
           {t("products.onSale")}
         </label>
@@ -61,7 +61,7 @@ export default function CatalogSidebar(props: Props) {
           items={props.brandItems}
           onToggle={props.onBrand}
         />
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <h4 className="text-sm font-bold text-gray-900 mb-2">
             {t("products.location")}
           </h4>
@@ -73,7 +73,7 @@ export default function CatalogSidebar(props: Props) {
                     type="checkbox"
                     checked={props.provinceCodes.includes(province.code)}
                     onChange={() => props.onProvince(province.code)}
-                    className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
+                    className="rounded border-gray-300 text-gray-950 focus:ring-gray-300 accent-gray-950 cursor-pointer"
                   />
                   {cleanProvinceName(
                     locale === "en" && province.nameEn
@@ -85,7 +85,7 @@ export default function CatalogSidebar(props: Props) {
             ))}
           </ul>
         </div>
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <h4 className="text-sm font-bold text-gray-900 mb-2">{t("products.rating")}</h4>
           {[5, 4, 3, 2, 1].map((stars) => (
             <button
@@ -93,7 +93,7 @@ export default function CatalogSidebar(props: Props) {
               onClick={() => props.onRating(stars)}
               className={`flex items-center gap-2 text-sm w-full p-2 rounded-xl transition-all cursor-pointer ${
                 props.rating === stars
-                  ? "bg-brand/10 text-brand font-bold"
+                  ? "bg-gray-950 text-white font-bold shadow-xs"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >

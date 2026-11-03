@@ -34,7 +34,7 @@ export function QuickSortTabs({
   ] as const;
 
   return (
-    <div className="flex h-10 items-center gap-2.5 bg-gray-100/90 px-3 rounded-xl border border-gray-200/80 shadow-2xs">
+    <div className="flex h-10 items-center gap-2.5 bg-gray-100/90 px-3 rounded-xl border border-gray-300 shadow-2xs">
       <span className="text-xs sm:text-sm text-gray-600 font-medium select-none shrink-0">
         {t("products.sortBy") || "Sắp xếp theo"}
       </span>
@@ -91,7 +91,7 @@ export function SortDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 items-center gap-2 px-4 rounded-xl text-xs sm:text-sm text-gray-800 bg-white border border-gray-200 hover:border-gray-900 transition-all font-semibold shadow-xs focus:outline-none cursor-pointer"
+        className="flex h-10 items-center gap-2 px-4 rounded-xl text-xs sm:text-sm text-gray-800 bg-white border border-gray-300 hover:border-gray-950 transition-all font-semibold shadow-xs focus:outline-none cursor-pointer"
         aria-label="Sort products"
         aria-expanded={open}
       >
@@ -105,7 +105,7 @@ export function SortDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-200/90 shadow-xl py-1.5 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-300 shadow-xl py-1.5 z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
             const active = opt.value === value;
             return (
@@ -144,12 +144,10 @@ export function ChipButton({
   return (
     <button
       onClick={onRemove}
-      className="inline-flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 border border-gray-300 text-gray-800 hover:bg-gray-200 hover:text-black transition-colors cursor-pointer"
     >
-      <Badge variant="info">
-        <span className="mr-1">{label}</span>
-        <X size={10} />
-      </Badge>
+      <span>{label}</span>
+      <X size={12} className="text-gray-500" />
     </button>
   );
 }
@@ -179,16 +177,16 @@ export function FacetSection({
         <ul className="space-y-1.5">
           {visible.map((item, index) => (
             <li key={`${item.id}-${index}`}>
-              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-brand group">
+              <label className="flex items-center justify-between text-sm cursor-pointer hover:text-black group">
                 <span className="flex items-center gap-2 min-w-0">
                   <input
                     type="checkbox"
                     aria-label={item.label}
                     checked={item.selected}
                     onChange={() => onToggle(item.id)}
-                    className="rounded border-gray-300 text-brand focus:ring-brand accent-brand cursor-pointer"
+                    className="rounded border-gray-300 text-gray-950 focus:ring-gray-300 accent-gray-950 cursor-pointer"
                   />
-                  <span className="truncate text-gray-700 group-hover:text-brand font-medium">
+                  <span className="truncate text-gray-700 group-hover:text-black font-medium">
                     {item.label}
                   </span>
                 </span>
@@ -199,7 +197,7 @@ export function FacetSection({
             <li>
               <button
                 onClick={() => setExpanded((v) => !v)}
-                className="text-xs text-brand hover:underline font-semibold cursor-pointer"
+                className="text-xs text-gray-950 hover:underline font-semibold cursor-pointer"
               >
                 {expanded
                   ? t("products.collapse")
@@ -249,23 +247,22 @@ export function PriceFilter({
           value={minInput}
           onChange={(e) => setMinInput(e.target.value)}
           placeholder={`${t("products.priceFrom")} ${placeholderMin}`}
-          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:border-gray-900 focus:outline-none transition-colors"
+          className="w-full px-3 py-2 text-xs border border-gray-300 rounded-xl focus:border-gray-950 focus:outline-none transition-colors"
         />
         <input
           type="number"
           value={maxInput}
           onChange={(e) => setMaxInput(e.target.value)}
           placeholder={`${t("products.priceTo")} ${placeholderMax}`}
-          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:border-gray-900 focus:outline-none transition-colors"
+          className="w-full px-3 py-2 text-xs border border-gray-300 rounded-xl focus:border-gray-950 focus:outline-none transition-colors"
         />
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full rounded-xl border-gray-900 text-gray-900 hover:bg-gray-950 hover:text-white font-bold transition-all cursor-pointer"
+        <button
+          type="button"
           onClick={() => onApply(minInput || undefined, maxInput || undefined)}
+          className="w-full py-1.5 text-xs font-semibold rounded-full border border-gray-950 bg-white text-gray-900 hover:bg-gray-950 hover:text-white transition-all shadow-xs cursor-pointer"
         >
           {t("products.apply")}
-        </Button>
+        </button>
       </div>
     </div>
   );

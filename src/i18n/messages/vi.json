@@ -1256,7 +1256,7 @@
     "loginToReviewNotice": "Bạn cần đăng nhập tài khoản để có thể đánh giá sản phẩm."
   },
   "products": {
-    "title": "Sản phẩm",
+    "title": "Tất cả sản phẩm",
     "bestSeller": "BÁN CHẠY",
     "loading": "Đang tải...",
     "resultsCount": "{count} sản phẩm",
