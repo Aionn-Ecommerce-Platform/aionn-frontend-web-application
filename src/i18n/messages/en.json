@@ -1908,7 +1908,7 @@
     "mgmtScopePlatform": "Platform"
   },
   "merchants": {
-    "title": "Store Directory",
+    "title": "Stores",
     "subtitle": "Discover official and high-quality storefronts on our platform.",
     "errorLoading": "Error loading store directory",
     "errorLoadingDesc": "An error occurred while querying the server. Please try again later.",

@@ -1908,7 +1908,7 @@
     "mgmtScopePlatform": "Hệ thống"
   },
   "merchants": {
-    "title": "Danh sách cửa hàng",
+    "title": "Cửa hàng",
     "subtitle": "Khám phá các gian hàng chính hãng và chất lượng cao trên nền tảng của chúng tôi.",
     "errorLoading": "Lỗi tải danh sách cửa hàng",
     "errorLoadingDesc": "Có lỗi xảy ra khi truy vấn dữ liệu từ máy chủ. Vui lòng thử lại sau.",
