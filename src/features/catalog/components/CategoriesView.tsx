@@ -5,14 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
-  ChevronRight,
   Layers,
   PackageSearch,
   Search,
   X,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Badge, Button, EmptyState } from "@/shared/ui";
+import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { categoryService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
@@ -90,62 +89,43 @@ export default function CategoriesView() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Breadcrumb Navigation */}
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-2 text-xs text-gray-500"
-        >
-          <Link
-            href="/"
-            className="hover:text-gray-900 transition-colors flex items-center gap-1"
-          >
-            {t("categories.breadcrumbHome")}
-          </Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="font-semibold text-gray-900">
-            {t("categories.breadcrumbCategories")}
-          </span>
-        </nav>
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {t("categories.title")}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {loading
+              ? t("categories.loading")
+              : stats.departments > 0
+                ? t("categories.subtitle")
+                : ""}
+          </p>
+        </div>
 
-        {/* Page Header with Search */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
-              {t("categories.title")}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {loading
-                ? t("categories.loading")
-                : stats.departments > 0
-                  ? t("categories.subtitle")
-                  : ""}
-            </p>
-          </div>
-
-          {/* Quick Search Input */}
-          <div className="relative w-full md:w-80">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("categories.searchPlaceholder")}
-              className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-white border border-gray-200/90 rounded-xl focus:outline-none focus:border-gray-900 shadow-xs transition-colors"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label="Clear search"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+        {/* Quick Search Row - Separate row below Header */}
+        <div className="relative w-full max-w-md">
+          <Search
+            size={16}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("categories.searchPlaceholder")}
+            className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-white border border-gray-200/90 rounded-xl focus:outline-none focus:border-gray-900 shadow-xs transition-colors"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Department Quick Filter Tabs */}
@@ -331,19 +311,9 @@ export default function CategoriesView() {
                       </div>
 
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-lg sm:text-xl font-bold text-gray-950 tracking-tight">
-                            {rootCat.name}
-                          </h2>
-                          {children.length > 0 && (
-                            <Badge variant="default" className="text-[11px] font-medium text-gray-600 rounded-full">
-                              {t("categories.subcategoriesCount").replace(
-                                "{count}",
-                                String(children.length),
-                              )}
-                            </Badge>
-                          )}
-                        </div>
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-950 tracking-tight">
+                          {rootCat.name}
+                        </h2>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {t("categories.exploreDepartment")}
                         </p>
