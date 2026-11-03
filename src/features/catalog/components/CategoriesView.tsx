@@ -114,7 +114,7 @@ export default function CategoriesView() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t("categories.searchPlaceholder")}
-            className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-white border border-gray-200/90 rounded-xl focus:outline-none focus:border-gray-900 shadow-xs transition-colors"
+            className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-gray-900 shadow-xs transition-colors"
           />
           {searchQuery && (
             <button
@@ -137,7 +137,7 @@ export default function CategoriesView() {
               className={`h-9 px-4 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap select-none inline-flex items-center gap-1.5 font-medium ${
                 selectedDeptId === "all"
                   ? "bg-gray-950 text-white shadow-xs font-semibold"
-                  : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-200/80 shadow-2xs"
+                  : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-300 shadow-2xs"
               }`}
             >
               <span>{t("categories.allDepartments")}</span>
@@ -162,7 +162,7 @@ export default function CategoriesView() {
                   className={`h-9 px-3.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap select-none inline-flex items-center gap-1.5 font-medium ${
                     active
                       ? "bg-gray-950 text-white shadow-xs font-semibold"
-                      : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-200/80 shadow-2xs"
+                      : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-300 shadow-2xs"
                   }`}
                 >
                   <span>{root.category.name}</span>
@@ -185,7 +185,7 @@ export default function CategoriesView() {
 
         {/* Search Results Summary Banner */}
         {searchQuery && (
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-200/90 p-4 shadow-2xs">
+          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-300 p-4 shadow-2xs">
             <span className="text-xs sm:text-sm text-gray-700">
               {t("categories.searchResults")
                 .replace("{query}", searchQuery)
@@ -211,7 +211,7 @@ export default function CategoriesView() {
             {Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={`dept-skel-${idx}`}
-                className="bg-white rounded-2xl border border-gray-200/90 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5 animate-pulse"
+                className="bg-white rounded-2xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5 animate-pulse"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -227,7 +227,7 @@ export default function CategoriesView() {
                   {Array.from({ length: 6 }).map((__, cIdx) => (
                     <div
                       key={`card-skel-${cIdx}`}
-                      className="bg-gray-50 rounded-2xl p-4 flex flex-col items-center gap-3 border border-gray-100"
+                      className="bg-gray-50 rounded-2xl p-4 flex flex-col items-center gap-3 border border-gray-200"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-gray-200" />
                       <div className="h-3 w-20 bg-gray-200 rounded-md" />
@@ -289,12 +289,12 @@ export default function CategoriesView() {
               return (
                 <section
                   key={rootCat.categoryId}
-                  className="bg-white rounded-2xl border border-gray-200/90 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all"
+                  className="bg-white rounded-2xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all"
                 >
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-200">
                     <div className="flex items-center gap-3.5">
-                      <div className="relative w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center p-2 shadow-2xs shrink-0 overflow-hidden">
+                      <div className="relative w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center p-2 shadow-2xs shrink-0 overflow-hidden">
                         {rootCat.iconUrl ? (
                           <div className="relative w-full h-full">
                             <Image
@@ -342,9 +342,9 @@ export default function CategoriesView() {
                           <Link
                             key={childCat.categoryId}
                             href={`/products?categoryIds=${childCat.categoryId}`}
-                            className="group relative bg-gray-50/70 hover:bg-white rounded-2xl border border-gray-200/70 hover:border-gray-900/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-3 sm:p-4 text-center flex flex-col items-center justify-between min-h-[145px] sm:min-h-[160px] cursor-pointer"
+                            className="group relative bg-white rounded-2xl border border-gray-300 hover:border-gray-950 hover:shadow-xl hover:shadow-black/5 hover:-translate-y-0.5 transition-all duration-200 p-3 sm:p-4 text-center flex flex-col items-center justify-between min-h-[145px] sm:min-h-[160px] cursor-pointer"
                           >
-                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-gray-100/90 p-2 shadow-2xs flex items-center justify-center mb-2.5 group-hover:scale-105 group-hover:border-gray-200 transition-all duration-200">
+                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-50 border border-gray-200 p-2 shadow-2xs flex items-center justify-center mb-2.5 group-hover:scale-105 group-hover:border-gray-300 transition-all duration-200">
                               {childCat.iconUrl ? (
                                 <div className="relative w-full h-full">
                                   <Image
