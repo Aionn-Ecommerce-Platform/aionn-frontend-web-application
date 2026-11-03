@@ -71,8 +71,8 @@ export default function CategoriesView() {
               onClick={() => setSelectedDeptId("all")}
               className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 selectedDeptId === "all"
-                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                  : "bg-white text-gray-800 border-2 border-gray-950 hover:bg-gray-100 hover:text-black"
+                  ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                  : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
               }`}
             >
               {t("categories.allDepartments")} ({stats.departments})
@@ -88,8 +88,8 @@ export default function CategoriesView() {
                   onClick={() => setSelectedDeptId(root.category.categoryId)}
                   className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                     active
-                      ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                      : "bg-white text-gray-800 border-2 border-gray-950 hover:bg-gray-100 hover:text-black"
+                      ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                      : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
                   }`}
                 >
                   {root.category.name} ({count})
