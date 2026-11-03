@@ -201,31 +201,33 @@ export default function CategoriesView() {
         {loading ? (
           /* Modern Department Skeletons */
           <div className="space-y-8">
-            {Array.from({ length: 3 }).map((_, idx) => (
+            {Array.from({ length: 2 }).map((_, idx) => (
               <div
                 key={`dept-skel-${idx}`}
-                className="bg-white rounded-2xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5 animate-pulse"
+                className="bg-white rounded-3xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.04)] animate-pulse"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-200" />
-                    <div className="space-y-2">
-                      <div className="h-5 w-40 bg-gray-200 rounded-md" />
-                      <div className="h-3 w-24 bg-gray-100 rounded-md" />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+                  {/* Left Hero Skeleton */}
+                  <div className="lg:col-span-4 rounded-2xl bg-gray-900 p-6 sm:p-7 flex flex-col justify-between min-h-[320px]">
+                    <div>
+                      <div className="w-12 h-12 rounded-xl bg-gray-800 mb-4" />
+                      <div className="h-6 w-36 bg-gray-800 rounded-md" />
                     </div>
+                    <div className="w-28 h-28 mx-auto bg-gray-800 rounded-2xl my-4" />
+                    <div className="h-11 w-full bg-gray-800 rounded-xl" />
                   </div>
-                  <div className="h-8 w-28 bg-gray-200 rounded-xl" />
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-                  {Array.from({ length: 6 }).map((__, cIdx) => (
-                    <div
-                      key={`card-skel-${cIdx}`}
-                      className="p-3 sm:p-4 flex flex-col items-center gap-2.5 rounded-2xl"
-                    >
-                      <div className="w-16 h-16 rounded-2xl bg-gray-100" />
-                      <div className="h-3 w-16 bg-gray-100 rounded-md" />
-                    </div>
-                  ))}
+                  {/* Right Grid Skeletons */}
+                  <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4">
+                    {Array.from({ length: 3 }).map((__, cIdx) => (
+                      <div
+                        key={`card-skel-${cIdx}`}
+                        className="rounded-2xl border border-gray-200 p-5 flex flex-col items-center justify-center gap-3 min-h-[160px]"
+                      >
+                        <div className="w-18 h-18 rounded-2xl bg-gray-100" />
+                        <div className="h-3.5 w-24 bg-gray-100 rounded-md" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -282,95 +284,128 @@ export default function CategoriesView() {
               return (
                 <section
                   key={rootCat.categoryId}
-                  className="bg-white rounded-2xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all"
+                  className="bg-white rounded-3xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.04)] transition-all"
                 >
-                  {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-300">
-                    <div className="flex items-center gap-3.5">
-                      <div className="relative w-12 h-12 rounded-2xl bg-gray-50 border border-gray-300 flex items-center justify-center p-2 shadow-2xs shrink-0 overflow-hidden">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+                    {/* Left Column: Department Hero Showcase Banner */}
+                    <div className="lg:col-span-4 xl:col-span-4 rounded-2xl bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6 sm:p-7 text-white flex flex-col justify-between relative overflow-hidden shadow-lg border border-gray-800 group">
+                      {/* Ambient background glow circles */}
+                      <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
+                      <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+
+                      {/* Header info */}
+                      <div className="relative z-10">
+                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center p-2 mb-4 shadow-inner">
+                          {rootCat.iconUrl ? (
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={rootCat.iconUrl}
+                                alt={rootCat.name}
+                                fill
+                                sizes="48px"
+                                className="object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <Layers size={22} className="text-white/80" />
+                          )}
+                        </div>
+
+                        <span className="text-xs font-semibold tracking-wider uppercase text-white/60">
+                          {t("categories.title") || "Ngành hàng"}
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+                          {rootCat.name}
+                        </h2>
+                      </div>
+
+                      {/* Hero Image Showcase */}
+                      <div className="relative z-10 my-6 flex justify-center items-center py-2">
                         {rootCat.iconUrl ? (
-                          <div className="relative w-full h-full">
+                          <div className="relative w-36 h-36 sm:w-40 sm:h-40 group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]">
                             <Image
                               src={rootCat.iconUrl}
                               alt={rootCat.name}
                               fill
-                              sizes="48px"
+                              sizes="(max-width: 640px) 144px, 160px"
                               className="object-contain"
                             />
                           </div>
                         ) : (
-                          <Layers size={22} className="text-gray-400" />
+                          <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                            <Layers size={48} strokeWidth={1.5} />
+                          </div>
                         )}
                       </div>
 
-                      <div>
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-950 tracking-tight">
-                          {rootCat.name}
-                        </h2>
+                      {/* Bottom Action Button */}
+                      <div className="relative z-10 pt-2">
+                        <Link
+                          href={`/products?categoryIds=${rootCat.categoryId}`}
+                          className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-gray-950 font-bold text-sm py-3 px-5 rounded-xl shadow-md transition-all group-hover:shadow-xl cursor-pointer"
+                        >
+                          <span>{t("categories.viewAllProducts")}</span>
+                          <ArrowRight
+                            size={16}
+                            className="transition-transform duration-200 group-hover:translate-x-1"
+                          />
+                        </Link>
                       </div>
                     </div>
 
-                    <Link
-                      href={`/products?categoryIds=${rootCat.categoryId}`}
-                      className="group inline-flex items-center gap-2 bg-gray-900 hover:bg-black text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow-md transition-all rounded-xl px-4 py-2 border-none cursor-pointer"
-                    >
-                      <span>{t("categories.viewAllProducts")}</span>
-                      <ArrowRight
-                        size={14}
-                        className="transition-transform duration-200 group-hover:translate-x-1"
-                      />
-                    </Link>
-                  </div>
+                    {/* Right Column: Subcategories Grid */}
+                    <div className="lg:col-span-8 xl:col-span-8 flex flex-col justify-center">
+                      {children.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4 h-full content-center">
+                          {children.map((child) => {
+                            const childCat = child.category;
 
-                  {/* Subcategories Grid */}
-                  {children.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 pt-5">
-                      {children.map((child) => {
-                        const childCat = child.category;
+                            return (
+                              <Link
+                                key={childCat.categoryId}
+                                href={`/products?categoryIds=${childCat.categoryId}`}
+                                className="group relative bg-white hover:bg-white rounded-2xl border border-gray-300 hover:border-gray-950 p-4 sm:p-5 flex flex-col items-center justify-center text-center shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer min-h-[160px] sm:min-h-[175px]"
+                              >
+                                <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/70 p-3 mb-3 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ease-out border border-gray-100">
+                                  {childCat.iconUrl ? (
+                                    <div className="relative w-full h-full">
+                                      <Image
+                                        src={childCat.iconUrl}
+                                        alt={childCat.name}
+                                        fill
+                                        sizes="(max-width: 640px) 72px, 80px"
+                                        className="object-contain drop-shadow-sm"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <Layers
+                                      size={26}
+                                      className="text-gray-400 group-hover:text-brand transition-colors"
+                                    />
+                                  )}
+                                </div>
 
-                        return (
+                                <h3 className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-black line-clamp-2 transition-colors px-1 leading-snug">
+                                  {childCat.name}
+                                </h3>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center text-gray-500 bg-gray-50/70 rounded-2xl border border-dashed border-gray-200">
+                          <p className="text-sm">{t("categories.noSubcategories")}</p>
                           <Link
-                            key={childCat.categoryId}
-                            href={`/products?categoryIds=${childCat.categoryId}`}
-                            className="group flex flex-col items-center text-center p-3 sm:p-4 rounded-2xl hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
+                            href={`/products?categoryIds=${rootCat.categoryId}`}
+                            className="inline-flex items-center gap-1.5 text-xs text-brand font-bold hover:underline mt-2"
                           >
-                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-50 flex items-center justify-center p-2 mb-2.5 transition-transform duration-300 ease-out group-hover:scale-105">
-                              {childCat.iconUrl ? (
-                                <div className="relative w-full h-full">
-                                  <Image
-                                    src={childCat.iconUrl}
-                                    alt={childCat.name}
-                                    fill
-                                    sizes="(max-width: 640px) 64px, 80px"
-                                    className="object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-500 group-hover:bg-gray-100 transition-colors">
-                                  <Layers size={22} strokeWidth={1.75} />
-                                </div>
-                              )}
-                            </div>
-
-                            <h3 className="text-xs sm:text-[13px] font-semibold text-gray-800 group-hover:text-brand line-clamp-2 transition-colors px-1 leading-snug">
-                              {childCat.name}
-                            </h3>
+                            <span>{t("categories.viewAllProducts")}</span>
+                            <ArrowRight size={13} />
                           </Link>
-                        );
-                      })}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="pt-6 pb-2 text-center text-sm text-gray-500">
-                      <p>{t("categories.noSubcategories")}</p>
-                      <Link
-                        href={`/products?categoryIds=${rootCat.categoryId}`}
-                        className="inline-flex items-center gap-1 text-xs text-brand font-semibold hover:underline mt-2"
-                      >
-                        <span>{t("categories.viewAllProducts")}</span>
-                        <ArrowRight size={12} />
-                      </Link>
-                    </div>
-                  )}
+                  </div>
                 </section>
               );
             })}
