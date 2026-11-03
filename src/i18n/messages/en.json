@@ -2821,5 +2821,23 @@
       "MATCHES_YOUR_INTERESTS": "For you",
       "NEW_ARRIVAL": "New arrival"
     }
+  },
+  "returnPolicyPage": {
+    "breadcrumbHome": "Home",
+    "breadcrumbPolicy": "Policies",
+    "breadcrumbReturns": "15-Day Returns & Refunds",
+    "heroBadge": "100% Buyer Protection Guaranteed",
+    "heroTitle": "15-Day Free Return & Refund Policy",
+    "heroDesc": "Aionn is committed to providing a worry-free shopping experience with our 15-day free return policy, simple procedures, and rapid refunds.",
+    "lastUpdated": "Last updated: November 2026",
+    "sectionCommitmentsTitle": "Aionn 3 Core Commitments",
+    "sectionConditionsTitle": "Eligible Return Conditions",
+    "sectionNonReturnableTitle": "Non-Returnable Items & Conditions",
+    "sectionProcessTitle": "4-Step Return & Refund Procedure",
+    "sectionFaqTitle": "Frequently Asked Questions",
+    "needHelpTitle": "Need Further Assistance?",
+    "needHelpDesc": "The Aionn Customer Support team is available 24/7 to assist you.",
+    "chatNow": "Chat with Support",
+    "contactUs": "Contact Information"
   }
 }

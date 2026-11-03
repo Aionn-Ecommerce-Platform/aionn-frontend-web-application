@@ -2821,5 +2821,23 @@
       "MATCHES_YOUR_INTERESTS": "Dành cho bạn",
       "NEW_ARRIVAL": "Mới ra mắt"
     }
+  },
+  "returnPolicyPage": {
+    "breadcrumbHome": "Trang chủ",
+    "breadcrumbPolicy": "Chính sách",
+    "breadcrumbReturns": "Đổi trả & Hoàn tiền 15 ngày",
+    "heroBadge": "Bảo vệ quyền lợi người mua 100%",
+    "heroTitle": "Chính sách Trả hàng & Hoàn tiền 15 ngày",
+    "heroDesc": "Aionn cam kết mang đến trải nghiệm mua sắm an tâm tuyệt đối với chính sách đổi trả miễn phí trong 15 ngày, thủ tục đơn giản và hoàn tiền nhanh chóng.",
+    "lastUpdated": "Cập nhật lần cuối: Tháng 11/2026",
+    "sectionCommitmentsTitle": "3 Cam kết vàng của Aionn",
+    "sectionConditionsTitle": "Điều kiện áp dụng trả hàng",
+    "sectionNonReturnableTitle": "Trường hợp không áp dụng đổi trả",
+    "sectionProcessTitle": "Quy trình 4 bước Trả hàng & Hoàn tiền",
+    "sectionFaqTitle": "Câu hỏi thường gặp",
+    "needHelpTitle": "Bạn cần hỗ trợ thêm?",
+    "needHelpDesc": "Đội ngũ Chăm sóc khách hàng Aionn luôn sẵn sàng hỗ trợ bạn 24/7.",
+    "chatNow": "Chat với hỗ trợ viên",
+    "contactUs": "Xem thông tin liên hệ"
   }
 }
