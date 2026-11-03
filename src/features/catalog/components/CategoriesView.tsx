@@ -227,10 +227,10 @@ export default function CategoriesView() {
                   {Array.from({ length: 6 }).map((__, cIdx) => (
                     <div
                       key={`card-skel-${cIdx}`}
-                      className="bg-gray-50 rounded-2xl p-4 flex flex-col items-center gap-3 border border-gray-200"
+                      className="p-3 sm:p-4 flex flex-col items-center gap-2.5 rounded-2xl"
                     >
-                      <div className="w-16 h-16 rounded-2xl bg-gray-200" />
-                      <div className="h-3 w-20 bg-gray-200 rounded-md" />
+                      <div className="w-16 h-16 rounded-2xl bg-gray-100" />
+                      <div className="h-3 w-16 bg-gray-100 rounded-md" />
                     </div>
                   ))}
                 </div>
@@ -314,20 +314,17 @@ export default function CategoriesView() {
                         <h2 className="text-lg sm:text-xl font-bold text-gray-950 tracking-tight">
                           {rootCat.name}
                         </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {t("categories.exploreDepartment")}
-                        </p>
                       </div>
                     </div>
 
                     <Link
                       href={`/products?categoryIds=${rootCat.categoryId}`}
-                      className="inline-flex items-center gap-1.5 self-start sm:self-center px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-gray-800 bg-gray-100/90 hover:bg-gray-950 hover:text-white transition-all shadow-2xs cursor-pointer group"
+                      className="group inline-flex items-center gap-2 bg-gray-900 hover:bg-black text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow-md transition-all rounded-xl px-4 py-2 border-none cursor-pointer"
                     >
                       <span>{t("categories.viewAllProducts")}</span>
                       <ArrowRight
                         size={14}
-                        className="transition-transform group-hover:translate-x-0.5"
+                        className="transition-transform duration-200 group-hover:translate-x-1"
                       />
                     </Link>
                   </div>
@@ -342,9 +339,9 @@ export default function CategoriesView() {
                           <Link
                             key={childCat.categoryId}
                             href={`/products?categoryIds=${childCat.categoryId}`}
-                            className="group relative bg-white rounded-2xl border border-gray-300 hover:border-gray-950 hover:shadow-xl hover:shadow-black/5 hover:-translate-y-0.5 transition-all duration-200 p-3 sm:p-4 text-center flex flex-col items-center justify-between min-h-[145px] sm:min-h-[160px] cursor-pointer"
+                            className="group flex flex-col items-center text-center p-3 sm:p-4 rounded-2xl hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
                           >
-                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-50 border border-gray-200 p-2 shadow-2xs flex items-center justify-center mb-2.5 group-hover:scale-105 group-hover:border-gray-300 transition-all duration-200">
+                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-50 flex items-center justify-center p-2 mb-2.5 transition-transform duration-300 ease-out group-hover:scale-105">
                               {childCat.iconUrl ? (
                                 <div className="relative w-full h-full">
                                   <Image
@@ -352,30 +349,19 @@ export default function CategoriesView() {
                                     alt={childCat.name}
                                     fill
                                     sizes="(max-width: 640px) 64px, 80px"
-                                    className="object-contain drop-shadow-2xs"
+                                    className="object-contain"
                                   />
                                 </div>
                               ) : (
-                                <Layers
-                                  size={24}
-                                  className="text-gray-400 group-hover:text-brand transition-colors"
-                                />
+                                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-500 group-hover:bg-gray-100 transition-colors">
+                                  <Layers size={22} strokeWidth={1.75} />
+                                </div>
                               )}
                             </div>
 
-                            <div className="w-full flex-1 flex flex-col justify-center">
-                              <h3 className="text-xs sm:text-[13px] font-semibold text-gray-800 group-hover:text-gray-950 line-clamp-2 transition-colors px-1 leading-snug">
-                                {childCat.name}
-                              </h3>
-                            </div>
-
-                            <span className="text-[11px] font-medium text-gray-400 group-hover:text-brand flex items-center gap-1 mt-2 transition-colors">
-                              <span>{t("categories.viewAll") || "Xem ngay"}</span>
-                              <ArrowRight
-                                size={11}
-                                className="transition-transform group-hover:translate-x-0.5"
-                              />
-                            </span>
+                            <h3 className="text-xs sm:text-[13px] font-semibold text-gray-800 group-hover:text-brand line-clamp-2 transition-colors px-1 leading-snug">
+                              {childCat.name}
+                            </h3>
                           </Link>
                         );
                       })}
