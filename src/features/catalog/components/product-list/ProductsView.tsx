@@ -23,7 +23,7 @@ import {
 } from "@/lib/domain/catalog";
 import type { ProductSort } from "@/types";
 
-import { ChipButton, SortDropdown } from "./CatalogControls";
+import { ChipButton, QuickSortTabs, SortDropdown } from "./CatalogControls";
 import CatalogSidebar from "./CatalogSidebar";
 import CatalogResults from "./CatalogResults";
 function ProductsInner() {
@@ -317,7 +317,8 @@ function ProductsInner() {
                       )}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
             <SortDropdown value={sortParam} onChange={setSort} t={t} />
             <div className="flex h-10 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
               <button

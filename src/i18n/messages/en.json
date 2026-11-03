@@ -1280,8 +1280,8 @@
     "sortNewest": "Newest",
     "sortPriceAsc": "Price: Low to High",
     "sortPriceDesc": "Price: High to Low",
-    "sortBestSeller": "Best Sellers",
-    "sortRelevance": "Relevance",
+    "sortBestSeller": "Top Sales",
+    "sortRelevance": "Popular",
     "sortLabel": "Sort",
     "shipping": "Shipping Carrier",
     "location": "Location",
@@ -1319,7 +1319,9 @@
     "specifications": "Specifications",
     "ratingLabel": "Product Reviews",
     "relatedProducts": "Related Products",
-    "filterBy": "Filter by"
+    "filterBy": "Filter by",
+    "sortBy": "Sort by",
+    "sortPopular": "Popular"
   },
   "footer": {
     "description": "Smart e-commerce platform, connecting buyers and sellers efficiently.",

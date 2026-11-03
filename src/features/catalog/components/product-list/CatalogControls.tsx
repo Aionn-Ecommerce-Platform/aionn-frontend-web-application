@@ -11,11 +11,55 @@ interface SortOption {
 }
 
 const SORT_OPTIONS = [
+  { value: "RELEVANCE", labelKey: "products.sortPopular" },
   { value: "NEWEST", labelKey: "products.sortNewest" },
   { value: "BEST_SELLER", labelKey: "products.sortBestSeller" },
   { value: "PRICE_ASC", labelKey: "products.sortPriceAsc" },
   { value: "PRICE_DESC", labelKey: "products.sortPriceDesc" },
 ] as const satisfies readonly SortOption[];
+
+export function QuickSortTabs({
+  value,
+  onChange,
+  t,
+}: {
+  value: ProductSort;
+  onChange: (val: ProductSort) => void;
+  t: (key: string) => string;
+}) {
+  const tabs = [
+    { value: "RELEVANCE", label: t("products.sortPopular") || "Phổ Biến" },
+    { value: "NEWEST", label: t("products.sortNewest") || "Mới Nhất" },
+    { value: "BEST_SELLER", label: t("products.sortBestSeller") || "Bán Chạy" },
+  ] as const;
+
+  return (
+    <div className="flex h-10 items-center gap-2.5 bg-gray-100/90 px-3 rounded-xl border border-gray-200/80 shadow-2xs">
+      <span className="text-xs sm:text-sm text-gray-600 font-medium select-none shrink-0">
+        {t("products.sortBy") || "Sắp xếp theo"}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {tabs.map((tab) => {
+          const active = value === tab.value;
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => onChange(tab.value as ProductSort)}
+              className={`h-7.5 px-3 rounded-lg text-xs sm:text-sm transition-all cursor-pointer select-none inline-flex items-center justify-center font-medium ${
+                active
+                  ? "bg-[#ee4d2d] text-white shadow-xs font-semibold"
+                  : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-200/70 shadow-2xs"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function SortDropdown({
   value,

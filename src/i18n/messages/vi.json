@@ -1277,10 +1277,10 @@
     "noProductsDefault": "Hãy quay lại sau.",
     "failedToLoad": "Không tải được sản phẩm",
     "failedToLoadDesc": "Vui lòng thử lại sau.",
-    "sortNewest": "Mới nhất",
+    "sortNewest": "Mới Nhất",
     "sortPriceAsc": "Giá tăng dần",
     "sortPriceDesc": "Giá giảm dần",
-    "sortRelevance": "Liên quan",
+    "sortRelevance": "Phổ Biến",
     "sortLabel": "Sắp xếp",
     "shipping": "Đơn vị vận chuyển",
     "location": "Nơi bán",
@@ -1296,7 +1296,7 @@
     "collapse": "Thu gọn",
     "showMore": "Xem thêm ({count})",
     "filterBy": "Lọc theo",
-    "sortBestSeller": "Bán chạy nhất",
+    "sortBestSeller": "Bán Chạy",
     "noCategoriesFound": "Không tìm thấy danh mục",
     "noBrandsFound": "Không tìm thấy thương hiệu",
     "merchant": "Người bán",
@@ -1319,7 +1319,9 @@
     "descriptionLabel": "Mô tả sản phẩm",
     "specifications": "Thông số",
     "ratingLabel": "Đánh giá sản phẩm",
-    "relatedProducts": "Sản phẩm tương tự"
+    "relatedProducts": "Sản phẩm tương tự",
+    "sortBy": "Sắp xếp theo",
+    "sortPopular": "Phổ Biến"
   },
   "footer": {
     "description": "Nền tảng thương mại điện tử thông minh, kết nối người mua và người bán một cách hiệu quả.",
