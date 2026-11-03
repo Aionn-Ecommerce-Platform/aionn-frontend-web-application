@@ -274,6 +274,39 @@ function ProductsInner() {
     });
   }, [facets, brandNameById, brandIds]);
 
+  const activeDeptId = useMemo(() => {
+    if (categoryIds.length === 0) return "all";
+    if (!categoryTree) return "all";
+    for (const root of categoryTree) {
+      if (categoryIds.includes(root.category.categoryId)) {
+        return root.category.categoryId;
+      }
+      if (
+        root.children.some((c) =>
+          categoryIds.includes(c.category.categoryId),
+        )
+      ) {
+        return root.category.categoryId;
+      }
+    }
+    return "all";
+  }, [categoryIds, categoryTree]);
+
+  const handleSelectDepartment = (deptId: string) => {
+    setParam(
+      (sp) => {
+        if (deptId === "all") {
+          sp.delete("categoryIds");
+          sp.delete("categoryId");
+        } else {
+          sp.set("categoryIds", deptId);
+          sp.delete("categoryId");
+        }
+      },
+      { scroll: true },
+    );
+  };
+
   const hasActiveFilter = hasCatalogFilters([
     categoryIds.length,
     brandIds.length,
@@ -424,7 +457,42 @@ function ProductsInner() {
             onRating={toggleRating}
             onPrice={setPriceRange}
           />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
+            {/* Department Quick Filter Tabs at the head of product grid */}
+            {categoryTree && categoryTree.length > 0 && (
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-4 no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => handleSelectDepartment("all")}
+                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                    activeDeptId === "all"
+                      ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                      : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
+                  }`}
+                >
+                  {t("categories.allDepartments")} ({categoryTree.length})
+                </button>
+
+                {categoryTree.map((root) => {
+                  const active = activeDeptId === root.category.categoryId;
+                  const count = root.children.length;
+                  return (
+                    <button
+                      key={root.category.categoryId}
+                      type="button"
+                      onClick={() => handleSelectDepartment(root.category.categoryId)}
+                      className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                        active
+                          ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                          : "bg-white text-gray-800 border border-gray-950 hover:bg-gray-100 hover:text-black"
+                      }`}
+                    >
+                      {root.category.name} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <CatalogResults
               products={products}
               loading={isLoading}
