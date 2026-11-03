@@ -310,7 +310,7 @@ function ProductsInner() {
         </div>
 
         {hasActiveFilter && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-300 shadow-xs">
+          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-950 shadow-xs">
             <span className="text-gray-900 font-bold text-xs mr-1 uppercase tracking-wider">
               {t("products.filterBy")}:
             </span>

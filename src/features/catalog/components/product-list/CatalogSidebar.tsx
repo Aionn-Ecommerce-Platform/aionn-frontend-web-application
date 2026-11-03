@@ -38,7 +38,7 @@ export default function CatalogSidebar(props: Props) {
   const { t, locale } = useTranslation();
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="bg-white rounded-2xl border border-gray-300 p-5 space-y-6 shadow-xs">
+      <div className="bg-white rounded-2xl border border-gray-950 p-5 space-y-6 shadow-xs">
         <h3 className="font-bold text-gray-950 text-base">{t("products.filters")}</h3>
         <label className="flex items-center gap-2.5 text-sm cursor-pointer font-medium text-gray-800 hover:text-gray-950 transition-colors">
           <input

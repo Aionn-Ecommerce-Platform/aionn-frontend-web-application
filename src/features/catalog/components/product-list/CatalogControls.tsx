@@ -141,7 +141,7 @@ export function ChipButton({
   return (
     <button
       onClick={onRemove}
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 border border-gray-300 text-gray-800 hover:bg-gray-200 hover:text-black transition-colors cursor-pointer"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-gray-950 text-gray-800 hover:bg-gray-100 hover:text-black transition-colors cursor-pointer"
     >
       <span>{label}</span>
       <X size={12} className="text-gray-500" />
