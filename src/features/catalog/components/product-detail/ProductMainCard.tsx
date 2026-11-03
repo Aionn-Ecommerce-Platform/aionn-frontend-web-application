@@ -22,6 +22,7 @@ import { formatCurrency } from "@/shared/lib/utils";
 import type { Address, Product, ProductVariant } from "@/types";
 import type { Locale } from "@/stores/locale.store";
 import { formatVariantKey, formatVariantValue } from "./product-detail-utils";
+import ReturnPolicyModal from "./ReturnPolicyModal";
 
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
@@ -135,6 +136,7 @@ export default function ProductMainCard(props: Props) {
   const selectedAttributes =
     selectionState.productId === product.productId ? selectionState.values : {};
   const [isProtectionExpanded, setIsProtectionExpanded] = useState(false);
+  const [isReturnPolicyModalOpen, setIsReturnPolicyModalOpen] = useState(false);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -510,7 +512,10 @@ export default function ProductMainCard(props: Props) {
                         id="buyer-protection-trigger"
                         aria-expanded={isProtectionExpanded}
                         aria-controls="buyer-protection-details"
-                        onClick={() => setIsProtectionExpanded((prev) => !prev)}
+                        onClick={() => {
+                          setIsProtectionExpanded(false);
+                          setIsReturnPolicyModalOpen(true);
+                        }}
                         onFocus={() => setIsProtectionExpanded(true)}
                         onBlur={(e) => {
                           if (
@@ -561,6 +566,24 @@ export default function ProductMainCard(props: Props) {
                               {t("productDetail.freeReturnsDescription")}
                             </p>
                           </div>
+                        </div>
+
+                        <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-[11px] text-gray-400">
+                            {t("productDetail.buyerProtection")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsProtectionExpanded(false);
+                              setIsReturnPolicyModalOpen(true);
+                            }}
+                            className="text-xs font-semibold text-red-500 hover:text-red-600 inline-flex items-center gap-0.5 cursor-pointer transition-colors"
+                          >
+                            <span>{t("productDetail.learnMore") || "Tìm hiểu thêm"}</span>
+                            <ChevronRight size={13} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -720,6 +743,11 @@ export default function ProductMainCard(props: Props) {
           </div>
         </div>
       </div>
+
+      <ReturnPolicyModal
+        isOpen={isReturnPolicyModalOpen}
+        onClose={() => setIsReturnPolicyModalOpen(false)}
+      />
     </>
   );
 }
