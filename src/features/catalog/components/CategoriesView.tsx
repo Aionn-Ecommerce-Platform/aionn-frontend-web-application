@@ -121,55 +121,36 @@ export default function CategoriesView() {
           )}
         </div>
 
-        {/* Department Quick Filter Tabs */}
+        {/* Department Quick Filter Tabs (Voucher style) */}
         {!loading && !error && rawTree.length > 0 && !searchQuery && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar pt-1">
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar pt-1">
             <button
               type="button"
               onClick={() => setSelectedDeptId("all")}
-              className={`h-9 px-4 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap select-none inline-flex items-center gap-1.5 font-medium ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 selectedDeptId === "all"
-                  ? "bg-gray-950 text-white shadow-xs font-semibold"
-                  : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-300 shadow-2xs"
+                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
+                  : "bg-white text-gray-800 border-2 border-gray-950 hover:bg-gray-100 hover:text-black"
               }`}
             >
-              <span>{t("categories.allDepartments")}</span>
-              <span
-                className={`text-[11px] px-1.5 py-0.2 rounded-md ${
-                  selectedDeptId === "all"
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {stats.departments}
-              </span>
+              {t("categories.allDepartments")} ({stats.departments})
             </button>
 
             {rawTree.map((root) => {
               const active = selectedDeptId === root.category.categoryId;
+              const count = root.children.length;
               return (
                 <button
                   key={root.category.categoryId}
                   type="button"
                   onClick={() => setSelectedDeptId(root.category.categoryId)}
-                  className={`h-9 px-3.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap select-none inline-flex items-center gap-1.5 font-medium ${
+                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                     active
-                      ? "bg-gray-950 text-white shadow-xs font-semibold"
-                      : "bg-white text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-300 shadow-2xs"
+                      ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
+                      : "bg-white text-gray-800 border-2 border-gray-950 hover:bg-gray-100 hover:text-black"
                   }`}
                 >
-                  <span>{root.category.name}</span>
-                  {root.children.length > 0 && (
-                    <span
-                      className={`text-[11px] px-1.5 py-0.2 rounded-md ${
-                        active
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {root.children.length}
-                    </span>
-                  )}
+                  {root.category.name} ({count})
                 </button>
               );
             })}
