@@ -23,7 +23,7 @@ import {
 } from "@/lib/domain/catalog";
 import type { ProductSort } from "@/types";
 
-import { ChipButton, QuickSortTabs, SortDropdown } from "./CatalogControls";
+import { ChipButton, QuickSortTabs } from "./CatalogControls";
 import CatalogSidebar from "./CatalogSidebar";
 import CatalogResults from "./CatalogResults";
 function ProductsInner() {
@@ -397,10 +397,7 @@ function ProductsInner() {
           <div className="flex-1 min-w-0">
             {/* Sorting and view mode controls at the head of product grid */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
-                <SortDropdown value={sortParam} onChange={setSort} t={t} />
-              </div>
+              <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
               <div className="flex items-center h-8.5 border border-gray-950 rounded-full overflow-hidden bg-white shadow-xs p-0.5 shrink-0">
                 <button
                   onClick={() => setViewMode("grid")}

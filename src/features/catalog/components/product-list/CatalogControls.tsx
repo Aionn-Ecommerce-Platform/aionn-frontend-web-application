@@ -31,13 +31,12 @@ export function QuickSortTabs({
     { value: "RELEVANCE", label: t("products.sortPopular") || "Phổ Biến" },
     { value: "NEWEST", label: t("products.sortNewest") || "Mới Nhất" },
     { value: "BEST_SELLER", label: t("products.sortBestSeller") || "Bán Chạy" },
+    { value: "PRICE_ASC", label: t("products.sortPriceAsc") || "Giá tăng dần" },
+    { value: "PRICE_DESC", label: t("products.sortPriceDesc") || "Giá giảm dần" },
   ] as const;
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-      <span className="text-xs sm:text-sm text-gray-600 font-semibold select-none shrink-0 mr-1">
-        {t("products.sortBy") || "Sắp xếp theo"}
-      </span>
+    <div className="flex flex-wrap items-center gap-2">
       {tabs.map((tab) => {
         const active = value === tab.value;
         return (
