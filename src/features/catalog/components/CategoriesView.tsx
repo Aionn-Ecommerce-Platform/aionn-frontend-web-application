@@ -200,11 +200,11 @@ export default function CategoriesView() {
         {/* Main Content Area */}
         {loading ? (
           /* Modern Department Skeletons */
-          <div className="space-y-8">
+          <div className="space-y-10 sm:space-y-12">
             {Array.from({ length: 2 }).map((_, idx) => (
               <div
                 key={`dept-skel-${idx}`}
-                className="bg-white rounded-3xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.04)] animate-pulse"
+                className="animate-pulse"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
                   {/* Left Hero Skeleton */}
@@ -221,7 +221,7 @@ export default function CategoriesView() {
                     {Array.from({ length: 3 }).map((__, cIdx) => (
                       <div
                         key={`card-skel-${cIdx}`}
-                        className="rounded-2xl border border-gray-200 p-5 flex flex-col items-center justify-center gap-3 min-h-[160px]"
+                        className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col items-center justify-center gap-3 min-h-[160px]"
                       >
                         <div className="w-18 h-18 rounded-2xl bg-gray-100" />
                         <div className="h-3.5 w-24 bg-gray-100 rounded-md" />
@@ -276,7 +276,7 @@ export default function CategoriesView() {
           />
         ) : (
           /* Department Sections */
-          <div className="space-y-8">
+          <div className="space-y-10 sm:space-y-12">
             {filteredTree.map((root) => {
               const rootCat = root.category;
               const children = root.children;
@@ -284,7 +284,7 @@ export default function CategoriesView() {
               return (
                 <section
                   key={rootCat.categoryId}
-                  className="bg-white rounded-3xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.04)] transition-all"
+                  className="transition-all"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
                     {/* Left Column: Department Hero Showcase Banner */}
