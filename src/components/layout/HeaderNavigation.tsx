@@ -68,7 +68,7 @@ export default function HeaderNavigation({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="hidden md:block border-t border-gray-100">
+      <div className="hidden md:block">
         <div>
           <nav className="flex items-center gap-8 h-10 text-sm">
             {primaryLinks.map((link) => (
