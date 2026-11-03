@@ -139,15 +139,18 @@ export default function ProductMainCard(props: Props) {
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!thumbnailContainerRef.current) return;
-    const activeThumb = thumbnailContainerRef.current.children[
+    const container = thumbnailContainerRef.current;
+    if (!container) return;
+    const activeThumb = container.children[
       selectedImage
     ] as HTMLElement | undefined;
     if (activeThumb) {
-      activeThumb.scrollIntoView({
+      const targetLeft =
+        activeThumb.offsetLeft -
+        (container.clientWidth - activeThumb.clientWidth) / 2;
+      container.scrollTo({
+        left: targetLeft,
         behavior: "smooth",
-        block: "nearest",
-        inline: "center",
       });
     }
   }, [selectedImage]);

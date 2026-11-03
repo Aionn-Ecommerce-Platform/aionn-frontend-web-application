@@ -70,6 +70,10 @@ export default function ProductDetailPage({
   });
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [id]);
+
+  useEffect(() => {
     if (!product) return;
 
     if (isAuthenticated) {
