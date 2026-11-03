@@ -94,13 +94,6 @@ export default function CategoriesView() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("categories.title")}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {loading
-              ? t("categories.loading")
-              : stats.departments > 0
-                ? t("categories.subtitle")
-                : ""}
-          </p>
         </div>
 
         {/* Quick Search Row - Separate row below Header */}
@@ -292,9 +285,9 @@ export default function CategoriesView() {
                   className="bg-white rounded-2xl border border-gray-300 p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all"
                 >
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-300">
                     <div className="flex items-center gap-3.5">
-                      <div className="relative w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center p-2 shadow-2xs shrink-0 overflow-hidden">
+                      <div className="relative w-12 h-12 rounded-2xl bg-gray-50 border border-gray-300 flex items-center justify-center p-2 shadow-2xs shrink-0 overflow-hidden">
                         {rootCat.iconUrl ? (
                           <div className="relative w-full h-full">
                             <Image
