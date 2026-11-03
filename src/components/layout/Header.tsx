@@ -359,7 +359,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white shadow-xs">
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-950 shadow-xs">
       <div className="bg-gray-50 border-b border-gray-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-end gap-5 h-8 text-gray-600">
@@ -547,7 +547,7 @@ export default function Header() {
             >
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
               />
               <input
                 ref={searchInputRef}
@@ -556,7 +556,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100/80 focus:bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-200 outline-none transition-all shadow-xs"
+                className="w-full pl-11 pr-22 py-2.5 rounded-full bg-white text-sm text-gray-900 placeholder:text-gray-400 border-2 border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
@@ -574,7 +574,7 @@ export default function Header() {
               <button
                 type="submit"
                 aria-label={t("common.search")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-900 hover:bg-black text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-gray-950 hover:bg-black text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
               >
                 <Search size={16} />
               </button>
