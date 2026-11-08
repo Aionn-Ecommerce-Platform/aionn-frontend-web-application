@@ -19,13 +19,6 @@ export interface ShipmentAddress {
   countryCode: string;
 }
 
-export interface ShipmentDimensions {
-  weightGram: number;
-  lengthCm: number;
-  widthCm: number;
-  heightCm: number;
-}
-
 export interface Shipment {
   shipmentId: string;
   orderId: string;

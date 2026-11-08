@@ -10,6 +10,7 @@ export interface RecommendationItem {
   name: string;
   imageUrl: string;
   priceFrom: number;
+  originalPriceFrom?: number | null;
   currency: string;
   score: number;
   reason: RecommendationReason;

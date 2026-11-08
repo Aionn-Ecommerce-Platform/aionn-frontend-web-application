@@ -199,8 +199,10 @@ const AUTH_PATHS_WITHOUT_REFRESH = [
 
 function shouldAttemptRefresh(path: string, opts: RequestOptions): boolean {
   if (opts.anonymous || opts.skipAuthRetry) return false;
+  // Match the exact path tail so /auth/login-history isn't treated as /auth/login.
+  const normalized = (path.split("?")[0] ?? path).replace(/\/+$/, "");
   return !AUTH_PATHS_WITHOUT_REFRESH.some((authPath) =>
-    path.includes(authPath),
+    normalized.endsWith(authPath),
   );
 }
 
@@ -239,6 +241,11 @@ async function execute<T>(
     const refreshed = await refreshTokens();
     if (refreshed) {
       res = await rawFetch(url, init, opts);
+      // A retried call can still 401; clear tokens so refresh doesn't loop.
+      if (res.status === 401) {
+        tokenStore.setTokens(null);
+        if (onUnauthorized) onUnauthorized();
+      }
     } else if (res.status === 401) {
       tokenStore.setTokens(null);
       if (onUnauthorized) onUnauthorized();
@@ -255,6 +262,7 @@ export async function request<T>(
   opts: RequestOptions = {},
 ): Promise<T> {
   const envelope = await execute<T>(path, opts);
+  // 204/no-body is valid for void endpoints; callers expecting data need a body.
   if (envelope === null) return undefined as T;
   return envelope.data;
 }

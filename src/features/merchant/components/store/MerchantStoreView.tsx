@@ -470,7 +470,6 @@ export default function MerchantStorePage({
                         price={price}
                         originalPrice={originalPrice}
                         image={image}
-                        merchant={product.merchantId}
                         rating={product.rating}
                         reviewCount={product.reviewCount}
                         sold={product.soldCount}

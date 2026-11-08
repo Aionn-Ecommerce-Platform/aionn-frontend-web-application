@@ -34,7 +34,6 @@ export function OrderDetailModal({
 
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
   const payment = payments && payments.length > 0 ? payments[0] : null;
-
   const createShipmentMutation = useMutation({
     mutationFn: () => {
       return shippingService.create({
@@ -53,12 +52,7 @@ export function OrderDetailModal({
           provinceCode: order.recipientProvinceCode ?? "",
           countryCode: order.recipientCountryCode ?? "VN",
         },
-        dimensions: {
-          weightGram: 500,
-          lengthCm: 15,
-          widthCm: 10,
-          heightCm: 5,
-        },
+        items: order.items.map((item) => ({ skuId: item.skuId, qty: item.qty })),
         codAmount: order.totalAmount,
         shippingFee: order.shippingFee,
         currency: order.currency,

@@ -79,9 +79,7 @@ export async function uploadAssetToCloudinary(
       if (parsed.protocol === "https:") {
         url = data.url;
       }
-    } catch {
-      // Invalid URL format
-    }
+    } catch {}
   }
   if (!url) throw new Error("Cloudinary did not return a secure HTTPS URL");
   if (!data.public_id) throw new Error("Cloudinary did not return a public ID");

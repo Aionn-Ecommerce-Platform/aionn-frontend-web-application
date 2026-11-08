@@ -16,15 +16,12 @@ import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
 import {
   categoryService,
-  productService,
   promotionService,
   recommendationService,
 } from "@/lib/services";
 import type {
   CategoryTreeNode,
   FlashSaleInfo,
-  Product,
-  ProductVariant,
   RecommendationReason,
 } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
@@ -45,11 +42,6 @@ const fadeUp = {
   },
 };
 
-function lowestPrice(p: Product): number | null {
-  if (!p.variants || p.variants.length === 0) return null;
-  return Math.min(...p.variants.map((v) => v.price));
-}
-
 export default function HomePage() {
   const { t } = useTranslation();
 
@@ -58,26 +50,13 @@ export default function HomePage() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const featuredParams = {
-    status: "PUBLISHED" as const,
-    page: 0,
-    size: 40,
-  };
-  const { data: featuredResult, isLoading: featuredLoading } = useQuery({
-    queryKey: qk.productSearch(featuredParams),
-    queryFn: () => productService.search(featuredParams),
-  });
-  const featured = useMemo(
-    () => featuredResult?.page.content ?? [],
-    [featuredResult],
-  );
-
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.user?.userId);
   const merchantRegisterHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
-    const { data: activeFlashSales = [] } = useQuery({
+
+  const { data: activeFlashSales = [] } = useQuery({
     queryKey: qk.activeFlashSales(10),
     queryFn: () => promotionService.getActiveFlashSales(10),
   });
@@ -113,12 +92,11 @@ export default function HomePage() {
 
   const { data: homeRecommendations = [], isLoading: recommendationLoading } =
     useQuery({
-      queryKey: qk.recommendationsHome(18, userId),
-      queryFn: () => recommendationService.getHomeFeed(18),
+      queryKey: qk.recommendationsHome(30, userId),
+      queryFn: () => recommendationService.getHomeFeed(30),
     });
 
   const recommendedProducts = useMemo(() => {
-    const seen = new Set<string>();
     const out: Array<{
       id: string;
       name: string;
@@ -135,25 +113,13 @@ export default function HomePage() {
       currency?: string;
     }> = [];
 
-    const featuredMap = new Map(featured.map((p) => [p.productId, p]));
-
     for (const r of homeRecommendations) {
-      if (seen.has(r.productId)) continue;
-      seen.add(r.productId);
-      const f = featuredMap.get(r.productId);
-      const fsInfo = flashSaleMap.get(r.productId) ?? f?.flashSale;
-
-      let lowestVariant: ProductVariant | undefined;
-      for (const v of f?.variants ?? []) {
-        if (!lowestVariant || v.price < lowestVariant.price) {
-          lowestVariant = v;
-        }
-      }
-      const regularPrice = lowestVariant?.price ?? r.priceFrom;
+      const fsInfo = flashSaleMap.get(r.productId) ?? null;
+      const regularPrice = r.priceFrom;
       const originalPrice = fsInfo
         ? regularPrice
-        : lowestVariant?.originalPrice && lowestVariant.originalPrice > regularPrice
-          ? lowestVariant.originalPrice
+        : r.originalPriceFrom != null && r.originalPriceFrom > regularPrice
+          ? r.originalPriceFrom
           : undefined;
 
       out.push({
@@ -162,54 +128,16 @@ export default function HomePage() {
         price: regularPrice,
         originalPrice,
         image: r.imageUrl || "/images/logo.png",
-        merchant: f?.merchantId,
-        rating: f?.rating ?? 4.8,
-        reviewCount: f?.reviewCount ?? 15,
-        sold: f?.soldCount ?? (r.score ? Math.round(Number(r.score) * 1000) : 120),
         flashSale: fsInfo,
-        isBestSeller: f?.isBestSeller,
         recommendationReason: r.reason,
         currency: r.currency,
       });
     }
 
-    for (const p of featured) {
-      if (seen.has(p.productId)) continue;
-      seen.add(p.productId);
-      const fsInfo = flashSaleMap.get(p.productId) ?? p.flashSale;
-      let lowestVariant: ProductVariant | undefined;
-      for (const v of p.variants ?? []) {
-        if (!lowestVariant || v.price < lowestVariant.price) {
-          lowestVariant = v;
-        }
-      }
-      const regularPrice = lowestVariant?.price ?? lowestPrice(p) ?? 0;
-      const originalPrice = fsInfo
-        ? regularPrice
-        : lowestVariant?.originalPrice && lowestVariant.originalPrice > regularPrice
-          ? lowestVariant.originalPrice
-          : undefined;
-
-      out.push({
-        id: p.productId,
-        name: p.name,
-        price: regularPrice,
-        originalPrice,
-        image: p.imageList?.[0] ?? "/images/logo.png",
-        merchant: p.merchantId,
-        rating: p.rating ?? 4.8,
-        reviewCount: p.reviewCount ?? 15,
-        sold: p.soldCount,
-        flashSale: fsInfo,
-        isBestSeller: p.isBestSeller,
-        currency: lowestVariant?.currency,
-      });
-    }
-
     return out.slice(0, 30);
-  }, [homeRecommendations, featured, flashSaleMap]);
+  }, [homeRecommendations, flashSaleMap]);
 
-  const recommendedLoading = featuredLoading || recommendationLoading;
+  const recommendedLoading = recommendationLoading;
 
   const { data: categoriesTree, isLoading: catLoading } = useQuery({
     queryKey: qk.categoriesTree,
@@ -449,7 +377,6 @@ export default function HomePage() {
                     price={product.price}
                     originalPrice={product.originalPrice}
                     image={product.image}
-                    merchant={product.merchant}
                     rating={product.rating}
                     reviewCount={product.reviewCount}
                     sold={product.sold}

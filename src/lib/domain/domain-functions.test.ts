@@ -182,8 +182,6 @@ describe("catalog domain", () => {
       ["CAT_PHO", "Điện thoại"],
     ]);
 
-    // Scenario 1: All matching products belong to CAT_HBE subtree (e.g. searching "mascara")
-    // CAT_HBE is encompassing ancestor, so it is hidden and only subcategory is shown
     const resultSpecific = buildCategoryFilterItems({
       names,
       counts: { CAT_HBE: 9, CAT_SKN: 9 },
@@ -194,7 +192,6 @@ describe("catalog domain", () => {
       { id: "CAT_SKN", label: "Chăm sóc da", count: 9, selected: false },
     ]);
 
-    // Scenario 2: User explicitly selected CAT_HBE -> it should stay visible
     const resultSelected = buildCategoryFilterItems({
       names,
       counts: { CAT_HBE: 9, CAT_SKN: 9 },
@@ -206,8 +203,6 @@ describe("catalog domain", () => {
       { id: "CAT_HBE", label: "Sức khỏe & Sắc đẹp", count: 9, selected: true },
     ]);
 
-    // Scenario 3: Results span multiple top-level categories (e.g. searching "eeee")
-    // Neither parent encompasses all candidates, so both are retained
     const resultBroad = buildCategoryFilterItems({
       names,
       counts: { CAT_SKN: 5, CAT_PHO: 3 },

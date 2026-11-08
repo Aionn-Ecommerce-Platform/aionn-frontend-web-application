@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PackageX, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -23,6 +23,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { logger } from "@/shared/lib/logger";
+import { getErrorMessage } from "@/shared/lib/errors";
 import type { Address } from "@/types";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
 import ProductMainCard from "./ProductMainCard";
@@ -42,6 +43,7 @@ export default function ProductDetailPage({
   const router = useRouter();
   const { t, locale } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.user?.userId);
   const addItem = useCartStore((s) => s.addItem);
 
   const {
@@ -55,7 +57,7 @@ export default function ProductDetailPage({
 
   const { data: relatedProducts, isLoading: relatedLoading } = useQuery({
     queryKey: qk.recommendationsSimilar(id, 6),
-    queryFn: () => recommendationService.getSimilarProducts(id, 6),
+    queryFn: () => recommendationService.getSimilarProducts(id, 10),
   });
 
   const { data: merchant } = useQuery({
@@ -122,7 +124,8 @@ export default function ProductDetailPage({
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const { data: eligibility } = useQuery({
-    queryKey: ["review-eligibility", id, isAuthenticated],
+    // Include userId so different accounts don't share cached eligibility.
+    queryKey: ["review-eligibility", id, userId],
     queryFn: () => reviewService.checkEligibility(id),
     enabled: isAuthenticated,
   });
@@ -209,12 +212,6 @@ export default function ProductDetailPage({
       setShippingLoading(true);
       setShippingFee(null);
       setEstimatedDeliveryAt(null);
-      const dimensions = {
-        weightGram: 500,
-        lengthCm: 15,
-        widthCm: 10,
-        heightCm: 5,
-      };
       const quoteAddr = {
         fullName: destAddress.contactName,
         phone: destAddress.phone,
@@ -224,9 +221,17 @@ export default function ProductDetailPage({
         provinceCode: destAddress.provinceCode,
         countryCode: "VN",
       };
+      const quoteSku = pricingVariant?.skuId ?? product?.variants[0]?.skuId;
+      if (!quoteSku) return;
 
+      const quoteVariant = product?.variants.find((v) => v.skuId === quoteSku);
       shippingService
-        .quote(quoteAddr, dimensions, "VND")
+        .quote(
+          quoteAddr,
+          [{ skuId: quoteSku, qty: 1 }],
+          quoteVariant?.currency ?? "VND",
+          quoteVariant?.price ?? 0,
+        )
         .then((q) => {
           if (!active) return;
           setShippingFee(q.fee);
@@ -248,7 +253,7 @@ export default function ProductDetailPage({
       active = false;
       clearTimeout(timer);
     };
-  }, [isAuthenticated, destAddress, locale]);
+  }, [isAuthenticated, destAddress, locale, product]);
 
   if (loading) {
     return (
@@ -298,7 +303,7 @@ export default function ProductDetailPage({
   } else if (variantOriginal && variantOriginal > variantPrice) {
     strikePrice = variantOriginal;
   }
-  const discountPercent =
+  const variantDiscountPercent =
     strikePrice && strikePrice > displayPrice
       ? Math.round((1 - displayPrice / strikePrice) * 100)
       : 0;
@@ -329,10 +334,40 @@ export default function ProductDetailPage({
   const priceLabel = currentVariant
     ? formatCurrency(displayPrice, displayCurrency)
     : priceRangeLabel;
+
+  const variantOriginals = product.variants
+    .map((variant) => variant.originalPrice)
+    .filter((v): v is number => v != null && v > 0);
+  const minOriginal = variantOriginals.length
+    ? Math.min(...variantOriginals)
+    : undefined;
+  const maxOriginal = variantOriginals.length
+    ? Math.max(...variantOriginals)
+    : undefined;
+  const strikeRangeLabel =
+    !currentVariant && minOriginal != null && maxOriginal != null
+      ? minOriginal !== maxOriginal
+        ? `${formatCurrency(minOriginal, displayCurrency)} - ${formatCurrency(maxOriginal, displayCurrency)}`
+        : formatCurrency(minOriginal, displayCurrency)
+      : null;
+  const rangeDiscountPercent =
+    !currentVariant &&
+    minOriginal != null &&
+    maxOriginal != null &&
+    maxOriginal > minDisplayPrice &&
+    minDisplayPrice > 0
+      ? Math.round((1 - minDisplayPrice / maxOriginal) * 100)
+      : 0;
+  const discountPercent = currentVariant
+    ? variantDiscountPercent
+    : rangeDiscountPercent;
   const reviewCount = ratingSummary?.total ?? product.reviewCount ?? 0;
   const currentRating =
     reviewCount > 0
-      ? (ratingSummary?.average ?? (product.rating !== undefined && product.rating > 0 ? product.rating : 0))
+      ? (ratingSummary?.average ??
+        (product.rating !== undefined && product.rating > 0
+          ? product.rating
+          : 0))
       : 0;
   const roundedRating = Math.round(currentRating);
   const soldCount = product.soldCount ?? 0;
@@ -340,15 +375,17 @@ export default function ProductDetailPage({
     ? `${t("orders.estimatedDelivery")}: ${formatDate(estimatedDeliveryAt, locale)}`
     : null;
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (): Promise<boolean> => {
     if (!currentVariant) {
-      toast.error(t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng");
-      return;
+      toast.error(
+        t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng",
+      );
+      return false;
     }
     if (!isAuthenticated) {
       toast.error(t("products.loginRequiredToAddCart"));
       router.push(`/auth/login?redirect=/products/${id}`);
-      return;
+      return false;
     }
     setAdding(true);
     try {
@@ -372,7 +409,10 @@ export default function ProductDetailPage({
         { authenticated: isAuthenticated },
       );
       toast.success(t("products.addedToCart"));
-    } catch {
+      return true;
+    } catch (err) {
+      toast.error(getErrorMessage(err, t("products.addToCartError")));
+      return false;
     } finally {
       setAdding(false);
     }
@@ -380,15 +420,19 @@ export default function ProductDetailPage({
 
   const handleBuyNow = async () => {
     if (!currentVariant) {
-      toast.error(t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng");
+      toast.error(
+        t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng",
+      );
       return;
     }
     if (!isAuthenticated) {
       router.push(`/auth/login?redirect=/products/${id}`);
       return;
     }
-    await handleAddToCart();
-    router.push("/cart");
+    const added = await handleAddToCart();
+    if (added) {
+      router.push("/cart");
+    }
   };
 
   const handleStartChat = async () => {
@@ -449,6 +493,7 @@ export default function ProductDetailPage({
           priceLabel={priceLabel}
           currentVariant={currentVariant}
           strikePrice={strikePrice}
+          strikeLabel={strikeRangeLabel}
           displayPrice={displayPrice}
           displayCurrency={displayCurrency}
           discountPercent={discountPercent}

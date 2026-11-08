@@ -14,6 +14,11 @@ export interface ProductVariant {
   price: number;
   originalPrice?: number;
   currency: string;
+  /** Weight is required to publish. */
+  weightGram?: number | null;
+  lengthCm?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
 }
 
 interface FlashSaleSkuOffer {

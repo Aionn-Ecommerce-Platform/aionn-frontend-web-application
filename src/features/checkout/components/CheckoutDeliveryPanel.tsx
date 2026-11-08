@@ -83,7 +83,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                   {activeAddress?.contactName}
                 </p>
                 {activeAddress?.isDefault && (
-                  <span className="border border-orange-200 px-1.5 py-0.5 text-xs font-medium text--commerce">
+                  <span className="border border-orange-200 px-1.5 py-0.5 text-xs font-medium text-commerce">
                     {t("addresses.defaultBadge")}
                   </span>
                 )}

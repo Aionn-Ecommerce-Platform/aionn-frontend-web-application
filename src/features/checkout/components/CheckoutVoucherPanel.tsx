@@ -44,7 +44,7 @@ export default function CheckoutVoucherPanel(props: Props) {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text--commerce">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-commerce">
               <Ticket size={16} />
             </span>
             {locale === "vi" ? "Voucher" : "Voucher"}
@@ -78,7 +78,7 @@ export default function CheckoutVoucherPanel(props: Props) {
         {voucherCode ? (
           <div className="mt-4 flex items-center justify-between rounded-xl border border-orange-200 bg-gradient-to-r from-orange-50 to-rose-50 px-4 py-3">
             <div>
-              <code className="font-mono text-sm font-bold text--commerce">
+              <code className="font-mono text-sm font-bold text-commerce">
                 {voucherCode}
               </code>
               {selectedVoucher?.voucherDiscountAmount ? (
@@ -107,7 +107,7 @@ export default function CheckoutVoucherPanel(props: Props) {
           <button
             type="button"
             onClick={() => setVoucherModalOpen(true)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text--commerce"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-commerce"
           >
             <Ticket size={16} />
             {locale === "vi"
@@ -156,13 +156,13 @@ export default function CheckoutVoucherPanel(props: Props) {
                 const shortfall = Math.max(minimumOrder - totalAmount, 0);
                 const ccy = voucher.voucherCurrency ?? currency;
 
-                let leftBgColor = "bg--commerce";
+                let leftBgColor = "bg-commerce";
                 let leftTagText = t("checkout.platform");
                 if (isFreeship) {
-                  leftBgColor = "bg--shipping";
+                  leftBgColor = "bg-shipping";
                   leftTagText = t("checkout.freeShippingShort");
                 } else if (isShop) {
-                  leftBgColor = "bg--shop";
+                  leftBgColor = "bg-shop";
                   leftTagText = t("checkout.shop");
                 }
 
@@ -171,9 +171,9 @@ export default function CheckoutVoucherPanel(props: Props) {
                     key={voucher.userVoucherId}
                     className={`relative flex bg-white border rounded-xl transition-all min-h-[128px] ${
                       isSelected
-                        ? "border--commerce shadow-md ring-2 ring--commerce/30"
+                        ? "border-commerce shadow-md ring-2 ring-commerce/30"
                         : meetsMinimum
-                          ? "border-gray-300 hover:shadow-lg hover:border--commerce"
+                          ? "border-gray-300 hover:shadow-lg hover:border-commerce"
                           : "border-gray-200 opacity-60"
                     }`}
                   >
@@ -255,7 +255,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                           <button
                             type="button"
                             disabled
-                            className="bg--commerce text-white font-extrabold px-5 py-2 text-sm rounded-xl min-w-[96px] flex items-center justify-center cursor-default"
+                            className="bg-commerce text-white font-extrabold px-5 py-2 text-sm rounded-xl min-w-[96px] flex items-center justify-center cursor-default"
                           >
                             <Check size={16} className="mr-1" />
                             {t("checkout.selected")}
@@ -267,7 +267,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                               handleApplyVoucher(voucher.voucherCode)
                             }
                             disabled={applyingVoucher}
-                            className="bg-white font-extrabold px-5 py-2 text-sm rounded-xl border-2 border--commerce text--commerce hover:bg--commerce hover:text-white transition-all cursor-pointer min-w-[96px] flex items-center justify-center disabled:opacity-50"
+                            className="bg-white font-extrabold px-5 py-2 text-sm rounded-xl border-2 border-commerce text-commerce hover:bg-commerce hover:text-white transition-all cursor-pointer min-w-[96px] flex items-center justify-center disabled:opacity-50"
                           >
                             {applyingVoucher ? (
                               <Loader2 className="animate-spin" size={16} />

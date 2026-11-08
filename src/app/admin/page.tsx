@@ -52,12 +52,7 @@ function AdminDashboardInner() {
   });
   const { data: pendingProducts } = useQuery({
     queryKey: ["admin-dashboard", "pending-products"],
-    queryFn: () =>
-      productService.searchByMerchant({
-        status: "PENDING_REVIEW",
-        page: 0,
-        size: 1,
-      }),
+    queryFn: () => productService.listPendingReviews({ page: 0, size: 1 }),
   });
   const { data: submittedKyc } = useQuery({
     queryKey: ["admin-dashboard", "kyc", "submitted"],

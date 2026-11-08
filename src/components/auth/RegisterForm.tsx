@@ -126,11 +126,7 @@ export default function RegisterForm({
       setRegId(session.regId);
       setResendAvailableAt(session.resendAvailableAt);
       setStep("verify");
-      if (session.otpCode) {
-        toast(`OTP (dev): ${session.otpCode}`, { duration: 6000, icon: "🔧" });
-      } else {
-        toast.success(t("auth.otpSentToast"));
-      }
+      toast.success(t("auth.otpSentToast"));
     } catch (err) {
       recaptchaRef.current?.reset();
       setCaptchaToken(null);
@@ -165,11 +161,7 @@ export default function RegisterForm({
     try {
       const session = await registrationService.resendOtp(regId);
       setResendAvailableAt(session.resendAvailableAt);
-      if (session.otpCode) {
-        toast(`OTP (dev): ${session.otpCode}`, { duration: 6000, icon: "🔧" });
-      } else {
-        toast.success(t("auth.otpResentSuccess"));
-      }
+      toast.success(t("auth.otpResentSuccess"));
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -275,7 +267,7 @@ export default function RegisterForm({
             )}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
               size="lg"
               loading={loading}
               disabled={!canInitiateRegistration}
@@ -326,14 +318,19 @@ export default function RegisterForm({
             maxLength={6}
             required
           />
-          <Button type="submit" className="w-full" size="lg" loading={loading}>
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
+            size="lg"
+            loading={loading}
+          >
             {t("auth.verifyOtp")}
           </Button>
           <button
             type="button"
             onClick={handleResend}
             disabled={resendCountdown > 0 || loading}
-            className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="w-full text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             {resendCountdown > 0
               ? `${t("auth.resendOtp")} (${resendCountdown}s)`
@@ -393,7 +390,7 @@ export default function RegisterForm({
           <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer">
             <input
               type="checkbox"
-              className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="mt-0.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
               required
@@ -411,7 +408,7 @@ export default function RegisterForm({
           </label>
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
             size="lg"
             loading={loading}
             disabled={!agreed}

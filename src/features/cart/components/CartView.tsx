@@ -73,6 +73,8 @@ export default function CartPage() {
     (sum, item) => sum + item.price * item.qty,
     0,
   );
+  const cartCurrency =
+    selectedItems[0]?.currency ?? items[0]?.currency ?? "VND";
   const allSelected =
     items.length > 0 && selectedSkuIds.length === items.length;
   const selectedCheckoutPath = `/checkout?items=${encodeURIComponent(
@@ -269,7 +271,7 @@ export default function CartPage() {
                           <p className="text-sm text-gray-500 md:hidden">
                             {t("cart.amount")}
                           </p>
-                          <p className="font-bold text--commerce">
+                          <p className="font-bold text-purple-700">
                             {formatCurrency(lineAmount, item.currency, locale)}
                           </p>
                         </div>
@@ -306,15 +308,15 @@ export default function CartPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">{t("cart.subtotal")}</span>
                   <span className="font-medium">
-                    {formatCurrency(selectedAmount, "VND", locale)}
+                    {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-gray-100 pt-3">
                   <span className="font-semibold text-gray-900">
                     {t("cart.total")}
                   </span>
-                  <span className="text-2xl font-bold text--commerce">
-                    {formatCurrency(selectedAmount, "VND", locale)}
+                  <span className="text-2xl font-bold text-purple-700">
+                    {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
               </div>

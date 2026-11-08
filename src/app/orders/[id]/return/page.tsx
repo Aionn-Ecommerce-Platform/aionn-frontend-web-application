@@ -18,7 +18,6 @@ import {
   uploadToCloudinary,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
-import { formatCurrency } from "@/shared/lib/utils";
 import { getErrorMessage, getFieldErrors } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 
@@ -121,7 +120,9 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {t("orders.orderId")}{" "}
-          <span className="font-mono font-semibold text-gray-900 select-all">{orderId}</span>
+          <span className="font-mono font-semibold text-gray-900 select-all">
+            {orderId}
+          </span>
         </p>
       </div>
 
@@ -136,105 +137,103 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         onSubmit={handleSubmit}
         className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5"
       >
-          <div>
-            <label
-              htmlFor="reason"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              {t("orders.returns.reason")}
-            </label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) =>
-                setReason(e.target.value.slice(0, MAX_REASON_LEN))
-              }
-              rows={5}
-              disabled={!canReturn || submitting}
-              placeholder={t("orders.returns.reasonPlaceholder")}
-              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
-            />
-            <div className="mt-1 flex items-center justify-between text-xs">
-              <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
-              <span className="text-gray-400">
-                {reason.length}/{MAX_REASON_LEN}
-              </span>
-            </div>
+        <div>
+          <label
+            htmlFor="reason"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            {t("orders.returns.reason")}
+          </label>
+          <textarea
+            id="reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value.slice(0, MAX_REASON_LEN))}
+            rows={5}
+            disabled={!canReturn || submitting}
+            placeholder={t("orders.returns.reasonPlaceholder")}
+            className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
+          />
+          <div className="mt-1 flex items-center justify-between text-xs">
+            <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
+            <span className="text-gray-400">
+              {reason.length}/{MAX_REASON_LEN}
+            </span>
           </div>
+        </div>
 
-          <div>
-            <p className="block text-sm font-medium text-gray-700 mb-1.5">
-              {t("orders.returns.evidenceLabel")}
-            </p>
-            {evidenceUrl ? (
-              <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
-                <div className="relative">
-                  <AppImage
-                    src={evidenceUrl}
-                    alt="Evidence"
-                    className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setEvidenceUrl(null)}
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
-                    aria-label={t("common.deleteImage")}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("orders.returns.evidenceLabel")}
+          </p>
+          {evidenceUrl ? (
+            <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
+              <div className="relative">
+                <AppImage
+                  src={evidenceUrl}
+                  alt="Evidence"
+                  className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setEvidenceUrl(null)}
+                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
+                  aria-label={t("common.deleteImage")}
+                >
+                  <X size={14} />
+                </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={!canReturn || uploading || submitting}
-                className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {uploading ? (
-                  <Loader2 className="animate-spin text-blue-600" size={28} />
-                ) : (
-                  <>
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
-                      <ImagePlus size={24} />
-                    </div>
-                    <span className="text-sm font-semibold text-gray-700">
-                      {t("orders.returns.uploadImage")}
-                    </span>
-                    <span className="mt-1 text-xs text-gray-400">
-                      {t("orders.returns.uploadHint")}
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePickEvidence}
-              className="hidden"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <Button
-              type="submit"
-              loading={submitting}
-              disabled={!canReturn || uploading || submitting}
-            >
-              {t("orders.returns.submit")}
-            </Button>
-            <Button
+            </div>
+          ) : (
+            <button
               type="button"
-              variant="outline"
-              disabled={submitting}
-              onClick={() => router.push(`/orders/${orderId}`)}
+              onClick={() => fileRef.current?.click()}
+              disabled={!canReturn || uploading || submitting}
+              className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
             >
-              {t("common.cancel")}
-            </Button>
-          </div>
-        </form>
+              {uploading ? (
+                <Loader2 className="animate-spin text-blue-600" size={28} />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                    <ImagePlus size={24} />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {t("orders.returns.uploadImage")}
+                  </span>
+                  <span className="mt-1 text-xs text-gray-400">
+                    {t("orders.returns.uploadHint")}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePickEvidence}
+            className="hidden"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 pt-2">
+          <Button
+            type="submit"
+            loading={submitting}
+            disabled={!canReturn || uploading || submitting}
+          >
+            {t("orders.returns.submit")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={() => router.push(`/orders/${orderId}`)}
+          >
+            {t("common.cancel")}
+          </Button>
+        </div>
+      </form>
     </MemberPageLayout>
   );
 }

@@ -81,7 +81,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
   return (
     <div className="space-y-6">
       {summary && totalReviews > 0 && (
-        <div className="bg-gray-50/70 border border-gray-200/90 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8 pb-2">
           <div className="flex flex-col items-center justify-center min-w-[140px] text-center">
             <div className="text-xl sm:text-2xl font-medium text-gray-950">
               <span className="text-3xl sm:text-4xl font-bold">
@@ -105,11 +105,12 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-wrap gap-2.5">
+          {/* Filter pills match the catalog sort pills (rounded-full, dark active) */}
+          <div className="flex-1 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setActiveFilter("all")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${activeFilter === "all" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:text-gray-950"}`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "all" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.allFilter")}
             </button>
@@ -120,7 +121,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
                   key={star}
                   type="button"
                   onClick={() => setActiveFilter(star as 5 | 4 | 3 | 2 | 1)}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${activeFilter === star ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:text-gray-950"}`}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === star ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
                 >
                   {t("reviews.starFilter", { star, count })}
                 </button>
@@ -129,14 +130,14 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             <button
               type="button"
               onClick={() => setActiveFilter("with_comment")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${activeFilter === "with_comment" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:text-gray-950"}`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_comment" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withComment", { count: commentCount })}
             </button>
             <button
               type="button"
               onClick={() => setActiveFilter("with_media")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${activeFilter === "with_media" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:text-gray-950"}`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_media" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withMedia", { count: mediaCount })}
             </button>

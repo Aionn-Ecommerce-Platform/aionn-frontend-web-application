@@ -94,7 +94,6 @@ function AdminBannersInner() {
           displayOrder: prevCurrentOrder,
         });
       } catch (err) {
-        // Rollback current banner order if adjacent update fails
         await adminPromotionBannerService
           .update(current.bannerId, { displayOrder: prevCurrentOrder })
           .catch(() => {});

@@ -20,6 +20,10 @@ interface VariantDraft {
   attribute: string;
   value: string;
   price: string;
+  weightGram: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
 }
 
 function AttributeDropdown({
@@ -102,7 +106,15 @@ function NewProductInner() {
   const [tags, setTags] = useState("");
   const [aiDescription, setAiDescription] = useState("");
   const [variants, setVariants] = useState<VariantDraft[]>([
-    { attribute: "color", value: "", price: "" },
+    {
+      attribute: "color",
+      value: "",
+      price: "",
+      weightGram: "",
+      lengthCm: "",
+      widthCm: "",
+      heightCm: "",
+    },
   ]);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -146,7 +158,18 @@ function NewProductInner() {
   }
 
   const addVariant = () => {
-    setVariants([...variants, { attribute: "color", value: "", price: "" }]);
+    setVariants([
+      ...variants,
+      {
+        attribute: "color",
+        value: "",
+        price: "",
+        weightGram: "",
+        lengthCm: "",
+        widthCm: "",
+        heightCm: "",
+      },
+    ]);
   };
 
   const updateVariant = (idx: number, patch: Partial<VariantDraft>) => {
@@ -170,12 +193,30 @@ function NewProductInner() {
 
       for (const v of variants) {
         const price = parseFloat(v.price);
+        const weightGram = parseInt(v.weightGram, 10);
         if (!v.value.trim() || !Number.isFinite(price) || price <= 0) continue;
+        if (!Number.isFinite(weightGram) || weightGram <= 0) {
+          toast.error(
+            t("merchant.productNew.errorWeightRequired", {
+              value: v.value,
+            }),
+          );
+          continue;
+        }
+        const lengthCm = parseFloat(v.lengthCm);
+        const widthCm = parseFloat(v.widthCm);
+        const heightCm = parseFloat(v.heightCm);
+        const hasBox =
+          Number.isFinite(lengthCm) &&
+          Number.isFinite(widthCm) &&
+          Number.isFinite(heightCm);
         try {
           await productService.defineVariant(product.productId, {
             attributeValues: { [v.attribute]: v.value.trim() },
             price,
             currency: "VND",
+            weightGram,
+            ...(hasBox ? { lengthCm, widthCm, heightCm } : {}),
           });
         } catch (err) {
           toast.error(
@@ -366,6 +407,63 @@ function NewProductInner() {
                       value={v.price}
                       onChange={(e) =>
                         updateVariant(i, { price: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-32">
+                    <Input
+                      label={
+                        i === 0
+                          ? t("merchant.productNew.weightGramLabel")
+                          : undefined
+                      }
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      placeholder="500"
+                      value={v.weightGram}
+                      onChange={(e) =>
+                        updateVariant(i, { weightGram: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.lengthCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="15"
+                      value={v.lengthCm}
+                      onChange={(e) =>
+                        updateVariant(i, { lengthCm: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.widthCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="10"
+                      value={v.widthCm}
+                      onChange={(e) =>
+                        updateVariant(i, { widthCm: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.heightCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="5"
+                      value={v.heightCm}
+                      onChange={(e) =>
+                        updateVariant(i, { heightCm: e.target.value })
                       }
                     />
                   </div>

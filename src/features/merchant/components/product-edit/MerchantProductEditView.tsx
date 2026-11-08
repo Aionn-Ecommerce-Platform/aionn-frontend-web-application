@@ -67,6 +67,10 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     attribute: "color",
     value: "",
     price: "",
+    weightGram: "",
+    lengthCm: "",
+    widthCm: "",
+    heightCm: "",
   });
 
   const [savingMeta, setSavingMeta] = useState(false);
@@ -77,6 +81,17 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   );
   const [removingVariant, setRemovingVariant] = useState<string | null>(null);
   const [addingVariant, setAddingVariant] = useState(false);
+  const [parcelDrafts, setParcelDrafts] = useState<Record<string, string>>(
+    () => {
+      const seeded: Record<string, string> = {};
+      for (const v of product.variants) {
+        seeded[v.skuId] =
+          v.weightGram == null ? "" : String(v.weightGram);
+      }
+      return seeded;
+    },
+  );
+  const [savingParcel, setSavingParcel] = useState<string | null>(null);
   const [statusBusy, setStatusBusy] = useState<"deactivate" | "restore" | null>(
     null,
   );
@@ -198,8 +213,34 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     }
   }
 
-  async function handleRemoveVariant(skuId: string) {
-    if (!confirm(t("merchant.productEdit.confirmRemoveVariant"))) return;
+  async function handleSaveParcel(skuId: string) {
+    const raw = parcelDrafts[skuId];
+    const weightGram = parseInt(raw ?? "", 10);
+    if (!Number.isFinite(weightGram) || weightGram <= 0) {
+      toast.error(t("merchant.productEdit.errorWeightPositive"));
+      return;
+    }
+    const existing = product.variants.find((v) => v.skuId === skuId);
+    setSavingParcel(skuId);
+    try {
+      const updated = await productService.changeVariantParcel(productId, skuId, {
+        weightGram,
+        ...(existing?.lengthCm != null ? { lengthCm: existing.lengthCm } : {}),
+        ...(existing?.widthCm != null ? { widthCm: existing.widthCm } : {}),
+        ...(existing?.heightCm != null ? { heightCm: existing.heightCm } : {}),
+      });
+      applyOptimistic(updated);
+      toast.success(t("merchant.productEdit.parcelSaved"));
+    } catch (err) {
+      toast.error(
+        getErrorMessage(err, t("merchant.productEdit.parcelSaveFailed")),
+      );
+    } finally {
+      setSavingParcel(null);
+    }
+  }
+
+  async function handleRemoveVariant(skuId: string) {    if (!confirm(t("merchant.productEdit.confirmRemoveVariant"))) return;
     setRemovingVariant(skuId);
     try {
       const updated = await productService.removeVariant(productId, skuId);
@@ -214,19 +255,30 @@ function MerchantProductEditForm({ product }: { product: Product }) {
 
   async function handleAddVariant() {
     const price = parseFloat(newVariant.price);
+    const weightGram = parseInt(newVariant.weightGram, 10);
     if (!newVariant.value.trim() || !Number.isFinite(price) || price <= 0) {
       toast.error(t("merchant.productEdit.errorVariantInputs"));
       return;
     }
+    if (!Number.isFinite(weightGram) || weightGram <= 0) {
+      toast.error(t("merchant.productNew.errorWeightRequired", { value: newVariant.value }));
+      return;
+    }
+    const lengthCm = parseFloat(newVariant.lengthCm);
+    const widthCm = parseFloat(newVariant.widthCm);
+    const heightCm = parseFloat(newVariant.heightCm);
+    const hasBox = Number.isFinite(lengthCm) && Number.isFinite(widthCm) && Number.isFinite(heightCm);
     setAddingVariant(true);
     try {
       const updated = await productService.defineVariant(productId, {
         attributeValues: { [newVariant.attribute]: newVariant.value.trim() },
         price,
         currency: product.variants[0]?.currency ?? "VND",
+        weightGram,
+        ...(hasBox ? { lengthCm, widthCm, heightCm } : {}),
       });
       applyOptimistic(updated);
-      setNewVariant({ attribute: newVariant.attribute, value: "", price: "" });
+      setNewVariant({ attribute: newVariant.attribute, value: "", price: "", weightGram: "", lengthCm: "", widthCm: "", heightCm: "" });
       toast.success(t("merchant.productEdit.variantAdded"));
     } catch (err) {
       toast.error(
@@ -347,12 +399,18 @@ function MerchantProductEditForm({ product }: { product: Product }) {
             prices={variantPrices}
             savingSku={savingVariantPrice}
             removingSku={removingVariant}
+            parcelWeights={parcelDrafts}
+            savingParcelSku={savingParcel}
             draft={newVariant}
             adding={addingVariant}
             onPrice={(sku, value) =>
               setVariantPrices((current) => ({ ...current, [sku]: value }))
             }
             onSavePrice={handleSaveVariantPrice}
+            onParcelWeight={(sku, value) =>
+              setParcelDrafts((current) => ({ ...current, [sku]: value }))
+            }
+            onSaveParcel={handleSaveParcel}
             onRemove={handleRemoveVariant}
             onDraft={setNewVariant}
             onAdd={handleAddVariant}

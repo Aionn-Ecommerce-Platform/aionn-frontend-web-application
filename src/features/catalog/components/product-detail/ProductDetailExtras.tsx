@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { productService } from "@/lib/services";
 import Link from "next/link";
 import { Loader2, MessageCircle, Star, Store } from "lucide-react";
-import { AppImage, Button, Modal } from "@/shared/ui";
+import { AppImage, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
 import toast from "react-hot-toast";
@@ -41,6 +43,15 @@ export default function ProductDetailExtras(props: Props) {
 
   const [showReviewForm, setShowReviewForm] = useState(false);
 
+  const { data: merchantProductPage } = useQuery({
+    queryKey: ["merchant", "product-count", product.merchantId],
+    queryFn: () =>
+      productService.searchCatalog({ merchantId: product.merchantId, size: 1 }),
+    enabled: Boolean(product.merchantId),
+    staleTime: 5 * 60_000,
+  });
+  const merchantProductCount = merchantProductPage?.page.totalElements;
+
   const handleReviewButtonClick = () => {
     if (!isAuthenticated) {
       toast.error(t("reviews.loginToReviewNotice"));
@@ -63,7 +74,7 @@ export default function ProductDetailExtras(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
           {merchant?.logoUrl ? (
             <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-200/90 shadow-xs bg-gray-50 shrink-0">
@@ -90,9 +101,15 @@ export default function ProductDetailExtras(props: Props) {
                 disabled={chatLoading}
               >
                 {chatLoading ? (
-                  <Loader2 size={14} className="mr-1.5 shrink-0 animate-spin text-white" />
+                  <Loader2
+                    size={14}
+                    className="mr-1.5 shrink-0 animate-spin text-white"
+                  />
                 ) : (
-                  <MessageCircle size={14} className="mr-1.5 shrink-0 text-white" />
+                  <MessageCircle
+                    size={14}
+                    className="mr-1.5 shrink-0 text-white"
+                  />
                 )}
                 <span>{t("productDetail.chatNow")}</span>
               </button>
@@ -109,31 +126,13 @@ export default function ProductDetailExtras(props: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-sm text-gray-600 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6 flex-1 max-w-xl">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("products.ratingLabel")}
-            </p>
-            <p className="text-base font-bold text-gray-900 mt-1">4.8 / 5.0</p>
-          </div>
+        <div className="flex items-center gap-8 text-sm text-gray-600 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6">
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wider">
               {t("common.allProducts")}
             </p>
-            <p className="text-base font-bold text-gray-900 mt-1">142</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("productDetail.responseRate")}
-            </p>
-            <p className="text-base font-bold text-gray-900 mt-1">98%</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("productDetail.responseTime")}
-            </p>
             <p className="text-base font-bold text-gray-900 mt-1">
-              {t("productDetail.withinHours")}
+              {merchantProductCount ?? "—"}
             </p>
           </div>
           <div>
@@ -141,22 +140,20 @@ export default function ProductDetailExtras(props: Props) {
               {t("merchants.joined")}
             </p>
             <p className="text-base font-bold text-gray-900 mt-1">
-              {t("productDetail.twoYearsAgo")}
+              {formatRelativeJoin(merchant?.createdAt, _locale)}
             </p>
           </div>
         </div>
       </div>
       {product.aiDescription && (
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
-          <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-            {product.aiDescription}
-          </p>
+          <ProductDescription text={product.aiDescription} />
         </div>
       )}
-      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             {t("products.ratingLabel")}
@@ -191,7 +188,7 @@ export default function ProductDetailExtras(props: Props) {
           <h2 className="text-lg font-semibold text-gray-900 mb-6">
             {t("products.relatedProducts")}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
             {relatedProducts.map((p) => {
               const isRec = "priceFrom" in p;
               const variants = !isRec ? (p.variants ?? []) : [];
@@ -203,13 +200,12 @@ export default function ProductDetailExtras(props: Props) {
               }
               const price = isRec ? p.priceFrom : (lowestVariant?.price ?? 0);
               const originalPrice = isRec
-                ? undefined
+                ? (p.originalPriceFrom ?? undefined)
                 : lowestVariant?.originalPrice;
               const image = isRec
                 ? p.imageUrl || "/images/logo.png"
                 : (p.imageList?.[0] ?? "/images/logo.png");
               const recommendationReason = isRec ? p.reason : undefined;
-              const merchant = isRec ? undefined : p.merchantId;
               const rating = isRec ? undefined : p.rating;
               const reviewCount = isRec ? undefined : p.reviewCount;
               const sold = isRec ? undefined : p.soldCount;
@@ -224,7 +220,6 @@ export default function ProductDetailExtras(props: Props) {
                   price={price}
                   originalPrice={originalPrice}
                   image={image}
-                  merchant={merchant}
                   rating={rating}
                   reviewCount={reviewCount}
                   sold={sold}
@@ -241,3 +236,56 @@ export default function ProductDetailExtras(props: Props) {
   );
 }
 
+function formatRelativeJoin(
+  createdAt: string | undefined,
+  locale: string,
+): string {
+  if (!createdAt) return "—";
+  const joined = new Date(createdAt);
+  if (Number.isNaN(joined.getTime())) return "—";
+  const now = new Date();
+  let months =
+    (now.getFullYear() - joined.getFullYear()) * 12 +
+    (now.getMonth() - joined.getMonth());
+  if (months < 0) months = 0;
+  const years = Math.floor(months / 12);
+  const vi = locale === "vi";
+  if (years >= 1) {
+    const rem = months % 12;
+    return vi
+      ? rem > 0
+        ? `${years} năm ${rem} tháng trước`
+        : `${years} năm trước`
+      : rem > 0
+        ? `${years}y ${rem}m ago`
+        : `${years}y ago`;
+  }
+  if (months >= 1) return vi ? `${months} tháng trước` : `${months}m ago`;
+  const days = Math.floor(
+    (now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  return vi ? `${days} ngày trước` : `${days}d ago`;
+}
+
+function ProductDescription({ text }: { text: string }) {
+  const normalized = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{2,}/g, "\n\n")
+    .replace(/^[ \t]+|[ \t]+$/gm, "")
+    .trim();
+  const body = normalized.replace(
+    /^(mô tả sản phẩm|description|product description)\s*\n+/i,
+    "",
+  );
+  const paragraphs = body.split(/\n{2,}/).filter(Boolean);
+
+  return (
+    <div className="text-gray-600 leading-relaxed space-y-4">
+      {paragraphs.map((para, i) => (
+        <p key={i} className="whitespace-pre-line">
+          {para}
+        </p>
+      ))}
+    </div>
+  );
+}

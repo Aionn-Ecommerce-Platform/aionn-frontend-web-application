@@ -25,6 +25,7 @@ const initialForm = {
   usageLimit: "",
   validFrom: "",
   validUntil: "",
+  type: "ORDER_DISCOUNT" as "ORDER_DISCOUNT" | "FREE_SHIPPING",
 };
 
 export default function VoucherManagement({
@@ -60,6 +61,7 @@ export default function VoucherManagement({
       usageLimit: Number(form.usageLimit),
       validFrom: new Date(form.validFrom).toISOString(),
       validUntil: new Date(form.validUntil).toISOString(),
+      type: form.type,
     });
   };
 
@@ -117,7 +119,27 @@ export default function VoucherManagement({
                 className="field"
               />
             </Field>
-            <div />
+            <Field label={t("promotions.mgmtFieldType")}>
+              <select
+                value={form.type}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    type: e.target.value as
+                      | "ORDER_DISCOUNT"
+                      | "FREE_SHIPPING",
+                  })
+                }
+                className="field"
+              >
+                <option value="ORDER_DISCOUNT">
+                  {t("promotions.mgmtTypeOrder")}
+                </option>
+                <option value="FREE_SHIPPING">
+                  {t("promotions.mgmtTypeFreeship")}
+                </option>
+              </select>
+            </Field>
             <Field label={t("promotions.mgmtFieldStart")}>
               <input
                 required
@@ -169,16 +191,14 @@ export default function VoucherManagement({
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vouchers.map((v) => {
               const isShop = v.scope === "SHOP";
-              const isFreeship = v.voucherCode
-                .toLowerCase()
-                .includes("freeship");
-              let leftBgColor = "bg--commerce";
+              const isFreeship = v.type === "FREE_SHIPPING";
+              let leftBgColor = "bg-commerce";
               let leftTagText = t("promotions.platformLabel");
               if (isFreeship) {
-                leftBgColor = "bg--shipping";
+                leftBgColor = "bg-shipping";
                 leftTagText = t("promotions.freeshipLabel");
               } else if (isShop) {
-                leftBgColor = "bg--shop";
+                leftBgColor = "bg-shop";
                 leftTagText = t("promotions.tabShop");
               }
               const expiryString = v.validUntil
@@ -233,10 +253,10 @@ export default function VoucherManagement({
                           <div
                             className={`text-[11px] font-bold mt-1 ${
                               isFreeship
-                                ? "text--shipping"
+                                ? "text-shipping"
                                 : isShop
-                                  ? "text--shop"
-                                  : "text--commerce"
+                                  ? "text-shop"
+                                  : "text-commerce"
                             }`}
                           >
                             {t("promotions.stockLeft", {
@@ -253,10 +273,10 @@ export default function VoucherManagement({
                           <div
                             className={`h-full rounded-full ${
                               isFreeship
-                                ? "bg--shipping"
+                                ? "bg-shipping"
                                 : isShop
-                                  ? "bg--shop"
-                                  : "bg--commerce"
+                                  ? "bg-shop"
+                                  : "bg-commerce"
                             }`}
                             style={{
                               width: `${Math.min(progressPercent, 100)}%`,

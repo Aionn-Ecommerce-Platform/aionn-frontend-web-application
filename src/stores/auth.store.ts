@@ -77,6 +77,8 @@ export const useAuthStore = create<AuthState>()(
           const tokens = await authService.refresh();
           tokenStore.setTokens(tokens);
 
+          // Refresh success is authoritative; a transient profile failure must
+          // not log the user out.
           let user: UserProfile | null = get().user;
           try {
             user = await userService.getMyProfile();

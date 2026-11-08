@@ -152,7 +152,6 @@ export interface RegistrationSession {
   regId: string;
   resendAvailableAt: string;
   expiredAt: string;
-  otpCode?: string | null;
 }
 
 export interface VerifyOtpResult {

@@ -157,17 +157,31 @@ export function CollectionsCard({
   );
 }
 
+interface VariantDraft {
+  attribute: string;
+  value: string;
+  price: string;
+  weightGram: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
+}
+
 interface VariantsCardProps {
   variants: ProductVariant[];
   prices: Record<string, string>;
   savingSku: string | null;
   removingSku: string | null;
-  draft: { attribute: string; value: string; price: string };
+  parcelWeights: Record<string, string>;
+  savingParcelSku: string | null;
+  draft: VariantDraft;
   adding: boolean;
   onPrice: (sku: string, value: string) => void;
   onSavePrice: (sku: string) => void;
+  onParcelWeight: (sku: string, value: string) => void;
+  onSaveParcel: (sku: string) => void;
   onRemove: (sku: string) => void;
-  onDraft: (draft: { attribute: string; value: string; price: string }) => void;
+  onDraft: (draft: VariantDraft) => void;
   onAdd: () => void;
 }
 
@@ -206,6 +220,11 @@ export function VariantsCard(props: VariantsCardProps) {
                       price: formatCurrency(variant.price, variant.currency),
                     })}
                   </p>
+                  {variant.weightGram == null && (
+                    <p className="text-xs text-amber-600">
+                      {t("merchant.productEdit.missingWeight")}
+                    </p>
+                  )}
                 </div>
                 <div className="w-32">
                   <Input
@@ -217,6 +236,29 @@ export function VariantsCard(props: VariantsCardProps) {
                     }
                   />
                 </div>
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder={t("merchant.productNew.weightGramLabel")}
+                    value={props.parcelWeights[variant.skuId] ?? ""}
+                    onChange={(event) =>
+                      props.onParcelWeight(variant.skuId, event.target.value)
+                    }
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={
+                    (props.parcelWeights[variant.skuId] ?? "") ===
+                    (variant.weightGram == null ? "" : String(variant.weightGram))
+                  }
+                  loading={props.savingParcelSku === variant.skuId}
+                  onClick={() => props.onSaveParcel(variant.skuId)}
+                >
+                  {t("merchant.productEdit.saveParcel")}
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -246,7 +288,7 @@ export function VariantsCard(props: VariantsCardProps) {
         <p className="text-xs font-medium text-gray-500 uppercase mb-3">
           {t("merchant.productEdit.addVariant")}
         </p>
-        <div className="flex items-end gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
           <select
             value={props.draft.attribute}
             onChange={(event) =>
@@ -279,6 +321,47 @@ export function VariantsCard(props: VariantsCardProps) {
               value={props.draft.price}
               onChange={(event) =>
                 props.onDraft({ ...props.draft, price: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-28">
+            <Input
+              label={t("merchant.productNew.weightGramLabel")}
+              type="number"
+              min={1}
+              value={props.draft.weightGram}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, weightGram: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.lengthCmLabel")}
+              type="number"
+              value={props.draft.lengthCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, lengthCm: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.widthCmLabel")}
+              type="number"
+              value={props.draft.widthCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, widthCm: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.heightCmLabel")}
+              type="number"
+              value={props.draft.heightCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, heightCm: event.target.value })
               }
             />
           </div>

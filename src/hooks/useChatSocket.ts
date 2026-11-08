@@ -61,10 +61,9 @@ export function useChatSocket({
 
   const handleIncomingMessage = useCallback(
     (msg: ChatMessage) => {
-      // 0. Cancel any in-flight messages query to prevent older HTTP response overwriting new socket message
+      // Prevent an older in-flight HTTP response from overwriting this message.
       void qc.cancelQueries({ queryKey: qk.messages(msg.conversationId) });
 
-      // 1. Append or update message in query cache
       qc.setQueryData<ChatMessage[]>(
         qk.messages(msg.conversationId),
         (prev) => {
@@ -76,7 +75,6 @@ export function useChatSocket({
         },
       );
 
-      // 2. Update conversation preview and unread count in conversations query cache
       qc.setQueriesData<ChatConversation[]>(
         { queryKey: ["chat", "conversations"] },
         (prev) => {
@@ -101,10 +99,8 @@ export function useChatSocket({
         },
       );
 
-      // 3. Invalidate or refresh
       qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
 
-      // 4. If current conversation is active and msg is from someone else, mark as read
       if (
         activeConversationIdRef.current === msg.conversationId &&
         msg.senderId !== currentUserIdRef.current
@@ -208,7 +204,6 @@ export function useChatSocket({
       },
       onConnect: () => {
         setIsConnected(true);
-        // Subscribe to user queue messages
         userSubRef.current = client.subscribe(
           "/user/queue/messages",
           (frame: IMessage) => {
@@ -221,7 +216,6 @@ export function useChatSocket({
           },
         );
 
-        // Subscribe to active conversation topic
         subscribeToActiveConversation(client, activeConversationIdRef.current);
       },
       onDisconnect: () => {
@@ -261,7 +255,6 @@ export function useChatSocket({
     };
   }, [enabled, handleIncomingMessage, subscribeToActiveConversation]);
 
-  // Handle active conversation changes while already connected
   useEffect(() => {
     const client = clientRef.current;
     if (client?.connected) {

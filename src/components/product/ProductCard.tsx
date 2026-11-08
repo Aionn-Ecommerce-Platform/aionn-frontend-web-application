@@ -13,7 +13,6 @@ interface ProductCardProps {
   price: number;
   originalPrice?: number;
   image: string;
-  merchant?: string;
   rating?: number;
   reviewCount?: number;
   sold?: number;
@@ -31,7 +30,6 @@ export default function ProductCard({
   price,
   originalPrice,
   image,
-  merchant: _merchant,
   rating,
   reviewCount,
   sold,
@@ -44,6 +42,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
   const isFlashSale = !!flashSale;
+  const isSale = !isFlashSale && !!originalPrice && originalPrice > price;
   const displayPrice = isFlashSale ? flashSale.salePrice : price;
   const strikePrice = isFlashSale
     ? price
@@ -58,7 +57,11 @@ export default function ProductCard({
   const currentRating =
     hasReviews && rating !== undefined && rating > 0 ? rating : 0;
   const soldCount = sold ?? 0;
-  const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
+  const showSold = sold !== undefined;
+  const displayedSold =
+    soldCount >= 1000
+      ? `${(soldCount / 1000).toFixed(soldCount >= 10000 ? 0 : 1).replace(/\.0$/, "")}k+`
+      : String(soldCount);
 
   let leadingBadge: React.ReactNode = null;
   if (isFlashSale) {
@@ -71,6 +74,13 @@ export default function ProductCard({
           className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]"
         />
         FLASH SALE
+      </span>
+    );
+  } else if (isSale) {
+    leadingBadge = (
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-red-500/20 z-10 select-none">
+        <Zap size={11} className="fill-red-200 text-red-100" />
+        SALE
       </span>
     );
   } else if (recommendationReason === "TRENDING") {
@@ -188,7 +198,7 @@ export default function ProductCard({
             isFlashSale ? "border-purple-200/80" : "border-gray-200/80",
           )}
         >
-          {hasReviews ? (
+          {hasReviews && currentRating > 0 ? (
             <div className="flex items-center gap-1">
               <div className="flex items-center text-amber-400">
                 {[...Array(5)].map((_, i) => {
@@ -219,9 +229,11 @@ export default function ProductCard({
                 {provinceName}
               </span>
             )}
-            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
-              {t("home.soldCount").replace("{count}", displayedSold)}
-            </span>
+            {showSold && (
+              <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
+                {t("home.soldCount").replace("{count}", displayedSold)}
+              </span>
+            )}
           </div>
         </div>
       </div>
