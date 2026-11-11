@@ -16,14 +16,12 @@ import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
 import {
   categoryService,
-  productService,
   promotionService,
   recommendationService,
 } from "@/lib/services";
 import type {
   CategoryTreeNode,
   FlashSaleInfo,
-  Product,
   RecommendationReason,
 } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
@@ -44,11 +42,6 @@ const fadeUp = {
   },
 };
 
-function lowestPrice(p: Product): number | null {
-  if (!p.variants || p.variants.length === 0) return null;
-  return Math.min(...p.variants.map((v) => v.price));
-}
-
 export default function HomePage() {
   const { t } = useTranslation();
 
@@ -57,33 +50,53 @@ export default function HomePage() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const featuredParams = {
-    status: "PUBLISHED" as const,
-    page: 0,
-    size: 40,
-  };
-  const { data: featuredResult, isLoading: featuredLoading } = useQuery({
-    queryKey: qk.productSearch(featuredParams),
-    queryFn: () => productService.search(featuredParams),
-  });
-  const featured = useMemo(
-    () => featuredResult?.page.content ?? [],
-    [featuredResult],
-  );
-
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.user?.userId);
   const merchantRegisterHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
+
+  const { data: activeFlashSales = [] } = useQuery({
+    queryKey: qk.activeFlashSales(10),
+    queryFn: () => promotionService.getActiveFlashSales(10),
+  });
+
+  const flashSaleMap = useMemo(() => {
+    const map = new Map<string, FlashSaleInfo>();
+    for (const campaign of activeFlashSales) {
+      for (const item of campaign.items) {
+        const existing = map.get(item.productId);
+        if (!existing || item.salePrice < existing.salePrice) {
+          map.set(item.productId, {
+            campaignId: campaign.campaignId,
+            endAt: campaign.endDate,
+            salePrice: item.salePrice,
+            currency: item.currency,
+            saleStock: item.saleStock,
+            soldCount: item.soldCount,
+            skuOffers: campaign.items
+              .filter((i) => i.productId === item.productId)
+              .map((i) => ({
+                skuId: i.skuId,
+                salePrice: i.salePrice,
+                currency: i.currency,
+                saleStock: i.saleStock,
+                soldCount: i.soldCount,
+              })),
+          });
+        }
+      }
+    }
+    return map;
+  }, [activeFlashSales]);
+
   const { data: homeRecommendations = [], isLoading: recommendationLoading } =
     useQuery({
-      queryKey: qk.recommendationsHome(18, userId),
-      queryFn: () => recommendationService.getHomeFeed(18),
+      queryKey: qk.recommendationsHome(30, userId),
+      queryFn: () => recommendationService.getHomeFeed(30),
     });
 
   const recommendedProducts = useMemo(() => {
-    const seen = new Set<string>();
     const out: Array<{
       id: string;
       name: string;
@@ -100,57 +113,34 @@ export default function HomePage() {
       currency?: string;
     }> = [];
 
-    const featuredMap = new Map(featured.map((p) => [p.productId, p]));
-
     for (const r of homeRecommendations) {
-      if (seen.has(r.productId)) continue;
-      seen.add(r.productId);
-      const f = featuredMap.get(r.productId);
+      const fsInfo = flashSaleMap.get(r.productId) ?? null;
+      const regularPrice = r.priceFrom;
+      const originalPrice = fsInfo
+        ? regularPrice
+        : r.originalPriceFrom != null && r.originalPriceFrom > regularPrice
+          ? r.originalPriceFrom
+          : undefined;
+
       out.push({
         id: r.productId,
         name: r.name,
-        price: r.priceFrom,
+        price: regularPrice,
+        originalPrice,
         image: r.imageUrl || "/images/logo.png",
-        merchant: f?.merchantId,
-        rating: f?.rating ?? 4.8,
-        reviewCount: f?.reviewCount ?? 15,
-        sold: f?.soldCount ?? (r.score ? Math.round(Number(r.score) * 1000) : 120),
-        flashSale: f?.flashSale,
-        isBestSeller: f?.isBestSeller,
+        rating: r.rating ?? undefined,
+        reviewCount: r.reviewCount ?? undefined,
+        sold: r.soldCount ?? undefined,
+        flashSale: fsInfo,
         recommendationReason: r.reason,
         currency: r.currency,
       });
     }
 
-    for (const p of featured) {
-      if (seen.has(p.productId)) continue;
-      seen.add(p.productId);
-      let lowestVariant: (typeof p.variants)[number] | undefined;
-      for (const v of p.variants ?? []) {
-        if (!lowestVariant || v.price < lowestVariant.price) {
-          lowestVariant = v;
-        }
-      }
-      out.push({
-        id: p.productId,
-        name: p.name,
-        price: lowestVariant?.price ?? lowestPrice(p) ?? 0,
-        originalPrice: lowestVariant?.originalPrice,
-        image: p.imageList?.[0] ?? "/images/logo.png",
-        merchant: p.merchantId,
-        rating: p.rating ?? 4.8,
-        reviewCount: p.reviewCount ?? 15,
-        sold: p.soldCount,
-        flashSale: p.flashSale,
-        isBestSeller: p.isBestSeller,
-        currency: lowestVariant?.currency,
-      });
-    }
-
     return out.slice(0, 30);
-  }, [homeRecommendations, featured]);
+  }, [homeRecommendations, flashSaleMap]);
 
-  const recommendedLoading = featuredLoading || recommendationLoading;
+  const recommendedLoading = recommendationLoading;
 
   const { data: categoriesTree, isLoading: catLoading } = useQuery({
     queryKey: qk.categoriesTree,
@@ -390,7 +380,6 @@ export default function HomePage() {
                     price={product.price}
                     originalPrice={product.originalPrice}
                     image={product.image}
-                    merchant={product.merchant}
                     rating={product.rating}
                     reviewCount={product.reviewCount}
                     sold={product.sold}

@@ -66,6 +66,21 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/shops/:path*",
+        destination: "/merchants/:path*",
+        permanent: true,
+      },
+      {
+        source: "/shops",
+        destination: "/merchants",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

@@ -58,7 +58,7 @@ function MerchantTransfersInner() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-400 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t("merchant.transfers.lookupLabel")}
           </label>

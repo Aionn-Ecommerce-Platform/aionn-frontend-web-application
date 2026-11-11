@@ -19,6 +19,7 @@ import {
   Bot,
   ShieldCheck,
   FileCheck,
+  Heart,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -46,6 +47,11 @@ const menuItems = [
     translationKey: "memberSidebar.orders",
     href: "/orders",
     icon: ShoppingBag,
+  },
+  {
+    translationKey: "memberSidebar.wishlist",
+    href: "/account/wishlist",
+    icon: Heart,
   },
   {
     translationKey: "memberSidebar.returns",
@@ -97,6 +103,9 @@ const menuItems = [
 ];
 
 function getActiveHref(pathname: string): string | null {
+  if (pathname.includes('/return') || pathname.startsWith('/orders/returns')) {
+    return '/orders/returns';
+  }
   const matches = menuItems
     .filter(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),

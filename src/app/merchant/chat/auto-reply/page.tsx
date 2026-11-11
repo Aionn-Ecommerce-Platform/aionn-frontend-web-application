@@ -133,8 +133,8 @@ function MerchantAutoReplyInner() {
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : (
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6 space-y-6">
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-400">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 space-y-6">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-100">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-blue-50 rounded-lg">
                   <Bot className="text-blue-600" size={20} />
@@ -255,7 +255,7 @@ function MerchantAutoReplyInner() {
               </p>
             </Field>
 
-            <div className="pt-4 border-t border-gray-400 flex items-center justify-between">
+            <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
               <p className="text-xs text-gray-400">
                 {cfg
                   ? t("merchant.autoReply.lastUpdated", {

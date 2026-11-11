@@ -20,6 +20,15 @@ export const voucherService = {
     );
   },
 
+  grant(body: {
+    userId: string;
+    voucherCode: string;
+    reason?: string;
+    entitlementKey?: string;
+  }) {
+    return api.post<UserVoucher>("/promotions/vouchers/admin/grant", body);
+  },
+
   reserve(
     voucherCode: string,
     body: {

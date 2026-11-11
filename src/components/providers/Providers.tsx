@@ -7,12 +7,14 @@ import AuthInitializer from "./AuthInitializer";
 import CartSyncBoundary from "./CartSyncBoundary";
 import GlobalFetchProgress from "./GlobalFetchProgress";
 import LocaleInitializer from "./LocaleInitializer";
+import NotificationRealtimeBoundary from "./NotificationRealtimeBoundary";
 import { queryClient } from "@/lib/query-client";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthInitializer />
+      <NotificationRealtimeBoundary />
       <CartSyncBoundary />
       <GlobalFetchProgress />
       <LocaleInitializer />

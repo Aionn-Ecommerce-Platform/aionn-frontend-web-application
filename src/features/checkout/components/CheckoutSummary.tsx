@@ -30,7 +30,7 @@ interface SummaryProps {
 export function CheckoutSummary(props: SummaryProps) {
   const finalTotal = props.total - props.discount + props.shipping;
   return (
-    <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6 h-fit lg:sticky lg:top-20">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 h-fit lg:sticky lg:top-20">
       <h2 className="text-base font-semibold text-gray-900 mb-5 pb-4 border-b">
         {props.t("checkout.orderSummary")}
       </h2>
@@ -45,7 +45,7 @@ export function CheckoutSummary(props: SummaryProps) {
           </span>
         </div>
         {props.voucher && props.voucherValid && (
-          <div className="flex justify-between text--commerce">
+          <div className="flex justify-between text-commerce">
             <span className="flex gap-1">
               <Ticket size={13} />
               {props.voucher.voucherCode}
@@ -73,7 +73,7 @@ export function CheckoutSummary(props: SummaryProps) {
         </div>
         <div className="border-t pt-4 flex justify-between">
           <span className="font-semibold">{props.t("cart.total")}</span>
-          <span className="text-2xl font-bold text--commerce">
+          <span className="text-2xl font-bold text-commerce">
             {formatCurrency(finalTotal, props.currency)}
           </span>
         </div>
@@ -126,10 +126,9 @@ export function CheckoutRecommendations({
             ? product.imageUrl || "/images/logo.png"
             : getProductCardSummary(product).image;
           const reason = isRec ? product.reason : undefined;
-          const merchant = isRec ? undefined : product.merchantId;
-          const rating = isRec ? undefined : product.rating;
-          const reviewCount = isRec ? undefined : product.reviewCount;
-          const sold = isRec ? undefined : product.soldCount;
+          const rating = product.rating ?? undefined;
+          const reviewCount = product.reviewCount ?? undefined;
+          const sold = product.soldCount ?? undefined;
           const flashSale = isRec ? undefined : product.flashSale;
           const provinceName = isRec
             ? undefined
@@ -144,7 +143,6 @@ export function CheckoutRecommendations({
               price={price}
               originalPrice={originalPrice}
               image={image}
-              merchant={merchant}
               rating={rating}
               reviewCount={reviewCount}
               sold={sold}

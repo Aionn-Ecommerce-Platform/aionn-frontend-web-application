@@ -17,15 +17,20 @@ export { consentService } from "./consent.service";
 export { feedbackService, adminFeedbackService } from "./feedback.service";
 
 export { productService } from "./product.service";
+export { wishlistService } from "./wishlist.service";
+export { stockAlertService } from "./stock-alert.service";
 export { recommendationService } from "./recommendation.service";
 export { searchHistoryService } from "./search-history.service";
 export { categoryService } from "./category.service";
+export { collectionService } from "./collection.service";
+export type { Collection } from "./collection.service";
 export { merchantService } from "./merchant.service";
 export { brandService } from "./brand.service";
 export { attributeTemplateService } from "./attribute-template.service";
 
 export { reviewService } from "./review.service";
 export type { Review, SubmitReviewRequest } from "./review.service";
+export { questionService } from "./question.service";
 
 export { warehouseService } from "./warehouse.service";
 export { inventoryService, stockTransferService } from "./inventory.service";
@@ -43,6 +48,7 @@ export {
 } from "./chat.service";
 
 export { notificationService } from "./notification.service";
+export { webPushService } from "./push.service";
 
 export { voucherService } from "./voucher.service";
 export { campaignService, shopVoucherService } from "./campaign.service";

@@ -1,11 +1,33 @@
 import api from "@/shared/api";
-import type { Merchant } from "@/types";
+import type { Merchant, MerchantStorefrontStats } from "@/types";
 
 export const merchantService = {
   get(merchantId: string) {
     return api.get<Merchant>(`/catalog/merchants/${merchantId}`, {
       anonymous: true,
     });
+  },
+  getStorefrontStats(merchantId: string) {
+    return api.get<MerchantStorefrontStats>(
+      `/catalog/merchants/${merchantId}/storefront-stats`,
+    );
+  },
+  updateCommissionRate(merchantId: string, commissionRate: number) {
+    return api.put<Merchant>(
+      `/catalog/merchants/${merchantId}/commission-rate`,
+      { commissionRate },
+    );
+  },
+  updateGlobalCommissionRate(commissionRate: number) {
+    return api.put<void>("/catalog/merchants/settings/commission-rate", {
+      commissionRate,
+    });
+  },
+  follow(merchantId: string) {
+    return api.post<void>(`/catalog/merchants/${merchantId}/follow`, {});
+  },
+  unfollow(merchantId: string) {
+    return api.delete<void>(`/catalog/merchants/${merchantId}/follow`);
   },
   list(page = 0, size = 20) {
     return api.get<Merchant[]>("/catalog/merchants", {

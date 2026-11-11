@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Loader2,
@@ -14,7 +14,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import SocialAccountsPanel from "@/components/settings/SocialAccountsPanel";
-import { preferenceService } from "@/lib/services";
+import { preferenceService, webPushService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -30,6 +30,46 @@ function SettingsInner() {
   });
   const [savingAiPrivacy, setSavingAiPrivacy] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  useEffect(() => {
+    if (!webPushService.isSupported()) return;
+    let active = true;
+    webPushService
+      .getSubscription()
+      .then((subscription) => {
+        if (!active) return;
+        setPushSupported(true);
+        setPushEnabled(Boolean(subscription));
+      })
+      .catch(() => {
+        if (active) setPushSupported(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handlePushToggle(enabled: boolean) {
+    setPushBusy(true);
+    try {
+      if (enabled) {
+        await webPushService.enable();
+        setPushEnabled(true);
+        toast.success(t("settings.pushEnabled"));
+      } else {
+        await webPushService.disable();
+        setPushEnabled(false);
+        toast.success(t("settings.pushDisabled"));
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   function writePreferences(next: UserPreference) {
     qc.setQueryData(qk.preferences, next);
@@ -245,6 +285,33 @@ function SettingsInner() {
               </div>
             </div>
           </div>
+
+          {/* Card: Browser push */}
+          {pushSupported && (
+            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+              <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
+                <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                  <Bell size={16} />
+                </div>
+                {t("settings.pushTitle")}
+              </h3>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {t("settings.pushSubtitle")}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {t("settings.pushDescription")}
+                  </p>
+                </div>
+                <Switch
+                  checked={pushEnabled}
+                  onChange={handlePushToggle}
+                  disabled={pushBusy}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Card: Social Accounts Panel */}
           <SocialAccountsPanel />

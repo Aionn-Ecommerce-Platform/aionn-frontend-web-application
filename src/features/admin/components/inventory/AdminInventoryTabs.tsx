@@ -150,7 +150,7 @@ export function LookupTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-inventory-by-sku", submittedSkuId],
-    queryFn: () => inventoryService.listBySku(submittedSkuId),
+    queryFn: () => inventoryService.adminListBySku(submittedSkuId),
     enabled: submittedSkuId.length > 0,
   });
 

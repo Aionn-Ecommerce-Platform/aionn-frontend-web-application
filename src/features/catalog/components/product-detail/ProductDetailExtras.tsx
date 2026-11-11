@@ -1,13 +1,18 @@
 "use client";
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { productService, wishlistService } from "@/lib/services";
 import Link from "next/link";
-import { MessageCircle, Star, Store } from "lucide-react";
-import { Button, Modal } from "@/shared/ui";
+import { Heart, Loader2, MessageCircle, Star, Store } from "lucide-react";
+import { AppImage, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
+import ProductQA from "@/components/product/ProductQA";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
 import toast from "react-hot-toast";
 import type { Merchant, Product, RecommendationItem } from "@/types";
 import type { Locale } from "@/stores/locale.store";
+import { translate } from "@/i18n/translate";
+import { DESCRIPTION_HEADING_PATTERN } from "./product-detail-utils";
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
   product: Product;
@@ -40,6 +45,47 @@ export default function ProductDetailExtras(props: Props) {
   } = props;
 
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const qc = useQueryClient();
+
+  const { data: wishlistStatus } = useQuery({
+    queryKey: ["wishlist-status", id],
+    queryFn: () => wishlistService.status(id),
+    enabled: isAuthenticated,
+  });
+
+  const wishlistMutation = useMutation({
+    mutationFn: () =>
+      wishlistStatus?.wishlisted
+        ? wishlistService.remove(id)
+        : wishlistService.add(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wishlist-status", id] });
+      qc.invalidateQueries({ queryKey: ["wishlist"] });
+      toast.success(
+        wishlistStatus?.wishlisted
+          ? t("wishlist.removed")
+          : t("wishlist.added"),
+      );
+    },
+    onError: () => toast.error(t("wishlist.updateFailed")),
+  });
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.error(t("wishlist.loginRequired"));
+      return;
+    }
+    wishlistMutation.mutate();
+  };
+
+  const { data: merchantProductPage } = useQuery({
+    queryKey: ["merchant", "product-count", product.merchantId],
+    queryFn: () =>
+      productService.searchCatalog({ merchantId: product.merchantId, size: 1 }),
+    enabled: Boolean(product.merchantId),
+    staleTime: 5 * 60_000,
+  });
+  const merchantProductCount = merchantProductPage?.page.totalElements;
 
   const handleReviewButtonClick = () => {
     if (!isAuthenticated) {
@@ -63,95 +109,122 @@ export default function ProductDetailExtras(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-sm border border-gray-100 shadow-xs p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md">
-            {product.merchantId?.charAt(0).toUpperCase() ?? "M"}
-          </div>
+          {merchant?.logoUrl ? (
+            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-200/90 shadow-xs bg-gray-50 shrink-0">
+              <AppImage
+                src={merchant.logoUrl}
+                alt={merchant.name || t("products.storeLabel")}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0">
+              {merchant?.name?.charAt(0).toUpperCase() ?? "M"}
+            </div>
+          )}
           <div>
             <h3 className="text-base font-bold text-gray-900">
               {merchant?.name ?? t("products.storeLabel")}
             </h3>
             <div className="mt-3 flex items-center gap-2.5 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8.5 px-3.5 text-xs font-semibold border-red-500/80 bg-red-50/70 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 active:scale-95 transition-all rounded-sm shadow-xs cursor-pointer"
+              <button
+                type="button"
+                className="h-9 px-4 text-xs font-semibold bg-gray-950 text-white hover:bg-black active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center disabled:opacity-50 select-none"
                 onClick={handleStartChat}
-                loading={chatLoading}
+                disabled={chatLoading}
               >
-                <MessageCircle size={14} className="mr-1.5 shrink-0" />
-                {t("productDetail.chatNow")}
-              </Button>
+                {chatLoading ? (
+                  <Loader2
+                    size={14}
+                    className="mr-1.5 shrink-0 animate-spin text-white"
+                  />
+                ) : (
+                  <MessageCircle
+                    size={14}
+                    className="mr-1.5 shrink-0 text-white"
+                  />
+                )}
+                <span>{t("productDetail.chatNow")}</span>
+              </button>
               <Link href={`/merchants/${product.merchantId}`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8.5 px-3.5 text-xs font-semibold border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 active:scale-95 transition-all rounded-sm shadow-xs cursor-pointer"
+                <button
+                  type="button"
+                  className="h-9 px-4 text-xs font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none"
                 >
                   <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
-                  {t("products.viewStore")}
-                </Button>
+                  <span>{t("products.viewStore")}</span>
+                </button>
               </Link>
+              <button
+                type="button"
+                onClick={handleWishlist}
+                disabled={wishlistMutation.isPending}
+                className={`h-9 px-4 text-xs font-semibold border transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none disabled:opacity-50 ${
+                  wishlistStatus?.wishlisted
+                    ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300"
+                }`}
+              >
+                {wishlistMutation.isPending ? (
+                  <Loader2 size={14} className="mr-1.5 shrink-0 animate-spin" />
+                ) : (
+                  <Heart
+                    size={14}
+                    className={`mr-1.5 shrink-0 ${
+                      wishlistStatus?.wishlisted
+                        ? "fill-rose-500 text-rose-500"
+                        : "text-gray-500"
+                    }`}
+                  />
+                )}
+                <span>
+                  {wishlistStatus?.wishlisted
+                    ? t("wishlist.saved")
+                    : t("wishlist.save")}
+                </span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-sm text-gray-600 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6 flex-1 max-w-xl">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("products.ratingLabel")}
-            </p>
-            <p className="text-base font-bold text--commerce mt-1">4.8 / 5.0</p>
-          </div>
+        <div className="flex items-center gap-8 text-sm text-gray-600 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6">
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wider">
               {t("common.allProducts")}
             </p>
-            <p className="text-base font-bold text-gray-900 mt-1">142</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("productDetail.responseRate")}
-            </p>
-            <p className="text-base font-bold text-gray-900 mt-1">98%</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("productDetail.responseTime")}
-            </p>
             <p className="text-base font-bold text-gray-900 mt-1">
-              {t("productDetail.withinHours")}
+              {merchantProductCount ?? "—"}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
-              {t("merchant.joined")}
+              {t("merchants.joined")}
             </p>
             <p className="text-base font-bold text-gray-900 mt-1">
-              {t("productDetail.twoYearsAgo")}
+              {formatRelativeJoin(merchant?.createdAt, _locale)}
             </p>
           </div>
         </div>
       </div>
       {product.aiDescription && (
-        <div className="bg-white rounded-sm border border-gray-400 p-6 lg:p-8 mt-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
-          <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-            {product.aiDescription}
-          </p>
+          <ProductDescription text={product.aiDescription} />
         </div>
       )}
-      <div className="bg-white rounded-sm border border-gray-400 p-6 lg:p-8 mt-6 overflow-hidden">
+      <ProductQA productId={id} authenticated={isAuthenticated} />
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             {t("products.ratingLabel")}
           </h2>
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-950 hover:bg-black text-white font-semibold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
             onClick={handleReviewButtonClick}
           >
             <Star size={15} className="text-white fill-white" />
@@ -179,7 +252,7 @@ export default function ProductDetailExtras(props: Props) {
           <h2 className="text-lg font-semibold text-gray-900 mb-6">
             {t("products.relatedProducts")}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
             {relatedProducts.map((p) => {
               const isRec = "priceFrom" in p;
               const variants = !isRec ? (p.variants ?? []) : [];
@@ -191,16 +264,15 @@ export default function ProductDetailExtras(props: Props) {
               }
               const price = isRec ? p.priceFrom : (lowestVariant?.price ?? 0);
               const originalPrice = isRec
-                ? undefined
+                ? (p.originalPriceFrom ?? undefined)
                 : lowestVariant?.originalPrice;
               const image = isRec
                 ? p.imageUrl || "/images/logo.png"
                 : (p.imageList?.[0] ?? "/images/logo.png");
               const recommendationReason = isRec ? p.reason : undefined;
-              const merchant = isRec ? undefined : p.merchantId;
-              const rating = isRec ? undefined : p.rating;
-              const reviewCount = isRec ? undefined : p.reviewCount;
-              const sold = isRec ? undefined : p.soldCount;
+              const rating = p.rating ?? undefined;
+              const reviewCount = p.reviewCount ?? undefined;
+              const sold = p.soldCount ?? undefined;
               const flashSale = isRec ? undefined : p.flashSale;
               const currency = isRec ? p.currency : lowestVariant?.currency;
 
@@ -208,11 +280,11 @@ export default function ProductDetailExtras(props: Props) {
                 <ProductCard
                   key={p.productId}
                   id={p.productId}
+                  slug={(p as { slug?: string | null }).slug}
                   name={p.name}
                   price={price}
                   originalPrice={originalPrice}
                   image={image}
-                  merchant={merchant}
                   rating={rating}
                   reviewCount={reviewCount}
                   sold={sold}
@@ -226,5 +298,57 @@ export default function ProductDetailExtras(props: Props) {
         </section>
       )}
     </>
+  );
+}
+
+function formatRelativeJoin(
+  createdAt: string | undefined,
+  locale: string,
+): string {
+  if (!createdAt) return "—";
+  const joined = new Date(createdAt);
+  if (Number.isNaN(joined.getTime())) return "—";
+  const now = new Date();
+  let months =
+    (now.getFullYear() - joined.getFullYear()) * 12 +
+    (now.getMonth() - joined.getMonth());
+  if (months < 0) months = 0;
+  const years = Math.floor(months / 12);
+  const resolved: Locale = locale === "en" ? "en" : "vi";
+  if (years >= 1) {
+    const rem = months % 12;
+    return rem > 0
+      ? translate(resolved, "productDetail.yearsMonthsAgo", {
+          years,
+          months: rem,
+        })
+      : translate(resolved, "productDetail.yearsAgo", { years });
+  }
+  if (months >= 1) {
+    return translate(resolved, "productDetail.monthsAgo", { months });
+  }
+  const days = Math.floor(
+    (now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  return translate(resolved, "productDetail.daysAgo", { days });
+}
+
+function ProductDescription({ text }: { text: string }) {
+  const normalized = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{2,}/g, "\n\n")
+    .replace(/^[ \t]+|[ \t]+$/gm, "")
+    .trim();
+  const body = normalized.replace(DESCRIPTION_HEADING_PATTERN, "");
+  const paragraphs = body.split(/\n{2,}/).filter(Boolean);
+
+  return (
+    <div className="text-gray-600 leading-relaxed space-y-4">
+      {paragraphs.map((para, i) => (
+        <p key={i} className="whitespace-pre-line">
+          {para}
+        </p>
+      ))}
+    </div>
   );
 }

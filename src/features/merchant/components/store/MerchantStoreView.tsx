@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { use, useState, useMemo, useRef } from "react";
+import { use, useState, useMemo, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -12,6 +12,12 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Star,
+  Package,
+  Clock3,
+  Users,
+  Heart,
+  ShoppingBag,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, EmptyState } from "@/shared/ui";
@@ -35,6 +41,28 @@ import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import type { Product, UserVoucher } from "@/types";
 import MerchantVouchers from "./MerchantVouchers";
 
+function StatItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400">
+        <span className="text-gray-400">{icon}</span>
+        <span className="truncate">{label}</span>
+      </div>
+      <p className="mt-1 text-sm sm:text-[15px] font-bold text-gray-800 truncate">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 export default function MerchantStorePage({
   params,
 }: {
@@ -57,6 +85,37 @@ export default function MerchantStorePage({
     queryKey: ["merchant", id],
     queryFn: () => merchantService.get(id),
   });
+
+  const { data: storefrontStats } = useQuery({
+    queryKey: ["merchant-storefront-stats", id],
+    queryFn: () => merchantService.getStorefrontStats(id),
+  });
+
+  const followMutation = useMutation({
+    mutationFn: () =>
+      storefrontStats?.following
+        ? merchantService.unfollow(id)
+        : merchantService.follow(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-storefront-stats", id],
+      });
+      toast.success(
+        storefrontStats?.following
+          ? t("merchantStore.unfollowed")
+          : t("merchantStore.followed"),
+      );
+    },
+    onError: () => toast.error(t("merchantStore.followError")),
+  });
+
+  const handleFollow = () => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?redirect=/merchants/${id}`);
+      return;
+    }
+    followMutation.mutate();
+  };
 
   const scrollToProducts = () => {
     if (productsRef.current) {
@@ -194,7 +253,7 @@ export default function MerchantStorePage({
   if (loadingM) {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-gray-800" size={32} />
       </div>
     );
   }
@@ -214,6 +273,16 @@ export default function MerchantStorePage({
     ? formatMonthYear(merchant.createdAt, locale)
     : t("merchants.yearsAgo");
 
+  const compactNumber = (value: number) =>
+    new Intl.NumberFormat(locale === "en" ? "en-US" : "vi-VN", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+
+  const responseTimeLabel = t(
+    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "UNKNOWN"}`,
+  );
+
   const displayProvince = merchant.provinceCode
     ? provinceNameByCode.get(merchant.provinceCode)
     : merchant.provinceName
@@ -226,12 +295,13 @@ export default function MerchantStorePage({
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl border border-gray-400 overflow-hidden shadow-sm p-0 mb-8 transition-all duration-300">
-          <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-1/3 bg--merchant-surface p-6 text-white flex flex-col justify-between gap-6 relative">
-              <div className="flex items-center gap-4">
+        {/* Store header card */}
+        <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-8">
+          <div className="flex flex-col xl:flex-row xl:items-start gap-6">
+            <div className="flex items-start gap-5 xl:w-[360px] shrink-0">
+              <div className="relative shrink-0">
                 {merchant.logoUrl ? (
-                  <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-white/20 shrink-0">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-50">
                     <Image
                       src={merchant.logoUrl}
                       alt={merchant.name}
@@ -240,77 +310,122 @@ export default function MerchantStorePage({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold border-2 border-white/20 shrink-0">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-2xl font-bold shadow-xs">
                     {initial}
                   </div>
                 )}
-                <div>
-                  <h1 className="text-lg font-bold truncate max-w-[200px]">
+                {merchant.status === "ACTIVE" && (
+                  <span
+                    className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-xs"
+                    title={t("merchantStore.active")}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </span>
+                )}
+              </div>
+
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
                     {merchant.name}
                   </h1>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleStartChat}
-                  disabled={chatLoading}
-                  className="w-full py-1.5 px-3 border border-white rounded text-xs font-semibold hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
-                >
-                  {chatLoading ? (
-                    <Loader2 className="animate-spin text-white" size={12} />
-                  ) : (
-                    <MessageCircle size={12} />
-                  )}
-                  {t("merchantStore.chat")}
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:w-2/3 p-6 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm text-gray-700">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Store size={16} className="text-gray-500" />
-                  <span>
-                    {t("merchantStore.products")}:{" "}
-                    <span className="text--sale font-medium">
-                      {totalElements}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-500" />
-                  <span>
-                    {t("merchantStore.location")}:{" "}
-                    <span className="text--sale font-medium">
-                      {displayProvince || t("merchantStore.notUpdated")}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-500" />
-                  <span>
-                    Tham Gia:{" "}
-                    <span className="text--sale font-medium">
-                      {formattedDate}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
                   <Badge
                     variant={
                       merchant.status === "ACTIVE" ? "success" : "warning"
                     }
+                    className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                   >
                     {merchant.status === "ACTIVE"
                       ? t("merchantStore.active")
                       : merchant.status}
                   </Badge>
                 </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <MapPin size={13} className="shrink-0" />
+                  <span className="truncate">
+                    {displayProvince || t("merchantStore.notUpdated")}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 flex-wrap">
+                  <button
+                    onClick={handleStartChat}
+                    disabled={chatLoading}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-rose-50 text-rose-600 border border-rose-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {chatLoading ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <MessageCircle size={14} />
+                    )}
+                    <span>{t("merchantStore.chat")}</span>
+                  </button>
+                  <button
+                    onClick={scrollToProducts}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                  >
+                    <ShoppingBag size={14} />
+                    <span>{t("merchantStore.viewShop")}</span>
+                  </button>
+                  <button
+                    onClick={handleFollow}
+                    disabled={followMutation.isPending}
+                    className={
+                      storefrontStats?.following
+                        ? "inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                        : "inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                    }
+                  >
+                    {followMutation.isPending ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <Heart
+                        size={14}
+                        className={storefrontStats?.following ? "fill-rose-500 text-rose-500" : "fill-white"}
+                      />
+                    )}
+                    <span>
+                      {storefrontStats?.following
+                        ? t("merchantStore.following")
+                        : t("merchantStore.follow")}
+                    </span>
+                  </button>
+                </div>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5 border-t xl:border-t-0 xl:border-l border-gray-200/80 pt-6 xl:pt-0 xl:pl-8 flex-1">
+              <StatItem
+                icon={<Star size={16} />}
+                label={t("merchantStore.reviews")}
+                value={compactNumber(storefrontStats?.reviewCount ?? 0)}
+              />
+              <StatItem
+                icon={<Package size={16} />}
+                label={t("merchantStore.products")}
+                value={compactNumber(storefrontStats?.productCount ?? totalElements)}
+              />
+              <StatItem
+                icon={<MessageCircle size={16} />}
+                label={t("merchantStore.responseRate")}
+                value={`${storefrontStats?.responseRatePercent ?? 0}%`}
+              />
+              <StatItem
+                icon={<Clock3 size={16} />}
+                label={t("merchantStore.responseTimeLabel")}
+                value={responseTimeLabel}
+              />
+              <StatItem
+                icon={<Calendar size={16} />}
+                label={t("merchantStore.joined")}
+                value={formattedDate}
+              />
+              <StatItem
+                icon={<Users size={16} />}
+                label={t("merchantStore.followers")}
+                value={compactNumber(storefrontStats?.followerCount ?? 0)}
+              />
             </div>
           </div>
         </div>
@@ -330,12 +445,15 @@ export default function MerchantStorePage({
             claimVoucher.mutate(code);
           }}
         />
+
         <div ref={productsRef} className="flex flex-col lg:flex-row gap-8">
-          <aside className="w-full lg:w-60 shrink-0">
-            <div className="bg-white rounded-xl border border-gray-400 p-5 space-y-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-150 pb-3">
-                <Store size={16} className="text-gray-500" />
-                {t("merchants.shopCategories") || t("merchantStore.categories")}
+          <aside className="w-full lg:w-64 shrink-0">
+            <div className="bg-white rounded-2xl border border-gray-200/90 p-5 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] sticky top-24">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-200/80 pb-3">
+                <Store size={18} className="text-gray-500" />
+                <span>
+                  {t("merchants.shopCategories") || t("merchantStore.categories")}
+                </span>
               </h3>
 
               <ul className="space-y-1">
@@ -346,10 +464,10 @@ export default function MerchantStorePage({
                       setPage(0);
                       scrollToProducts();
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all font-medium flex items-center justify-between ${
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                       selectedCategory === null
-                        ? "bg-blue-50 text-blue-700 font-bold"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-55"
+                        ? "bg-gray-900 text-white font-bold shadow-xs"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     <span>
@@ -369,15 +487,15 @@ export default function MerchantStorePage({
                           setPage(0);
                           scrollToProducts();
                         }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all font-medium flex items-center justify-between ${
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all font-medium flex items-center justify-between cursor-pointer ${
                           isActive
-                            ? "bg-blue-50 text-blue-700 font-bold"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-55"
+                            ? "bg-gray-900 text-white font-bold shadow-xs"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         }`}
                       >
                         <span className="truncate mr-2">{label}</span>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-blue-100 text-blue-800" : "bg-gray-150 text-gray-500"}`}
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}
                         >
                           {count}
                         </span>
@@ -389,8 +507,8 @@ export default function MerchantStorePage({
             </div>
           </aside>
 
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
               {selectedCategory
                 ? categoryNameById.get(selectedCategory) ||
                   t("common.allProducts")
@@ -402,7 +520,7 @@ export default function MerchantStorePage({
 
             {loadingP ? (
               <div className="py-20 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
+                <Loader2 className="animate-spin text-gray-700" size={28} />
               </div>
             ) : !searchResult || searchResult.page.content.length === 0 ? (
               <EmptyState
@@ -432,7 +550,6 @@ export default function MerchantStorePage({
                         price={price}
                         originalPrice={originalPrice}
                         image={image}
-                        merchant={product.merchantId}
                         rating={product.rating}
                         reviewCount={product.reviewCount}
                         sold={product.soldCount}
@@ -451,7 +568,7 @@ export default function MerchantStorePage({
                         setPage(Math.max(0, page - 1));
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-400 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Previous page"
                     >
                       <ChevronLeft size={16} />
@@ -479,10 +596,10 @@ export default function MerchantStorePage({
                             setPage(pageNum - 1);
                             scrollToProducts();
                           }}
-                          className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                          className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                             isCurrent
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/10 border border-blue-600"
-                              : "border border-gray-400 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900"
+                              ? "bg-gray-950 text-white shadow-xs border border-gray-950"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 shadow-xs"
                           }`}
                         >
                           {pageNum}
@@ -496,7 +613,7 @@ export default function MerchantStorePage({
                         setPage(page + 1);
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-400 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Next page"
                     >
                       <ChevronRight size={16} />

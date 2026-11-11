@@ -236,8 +236,14 @@ export default function PromotionsPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex items-center gap-2.5 mb-8 overflow-x-auto pb-2 scrollbar-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {t("promotions.title")}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar">
           {[
             { id: "ALL", label: `${t("promotions.tabAll")} (${allCount})` },
             {
@@ -261,8 +267,8 @@ export default function PromotionsPage() {
               }}
               className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                  : "bg-white text-gray-700 border-2 border-gray-900 hover:bg-gray-100 hover:text-black"
+                  ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                  : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
               }`}
             >
               {tab.label}
@@ -272,7 +278,7 @@ export default function PromotionsPage() {
 
         {loadingCamp || loadingVouchers || (isAuthenticated && loadingMine) ? (
           <div className="py-24 flex flex-col items-center justify-center gap-4">
-            <Loader2 className="animate-spin text--commerce" size={40} />
+            <Loader2 className="animate-spin text-commerce" size={40} />
             <p className="text-gray-500 text-sm font-medium animate-pulse">
               {t("promotions.loadingVouchers")}
             </p>
@@ -286,14 +292,14 @@ export default function PromotionsPage() {
               <Button
                 variant="outline"
                 onClick={handleRetryAll}
-                className="border--commerce text--commerce hover:bg-orange-50"
+                className="border-commerce text-commerce hover:bg-orange-50"
               >
                 {t("common.retry")}
               </Button>
             }
           />
         ) : displayedVouchers.length === 0 ? (
-          <div className="py-12 bg-white rounded-2xl border border-gray-400 p-8 shadow-sm">
+          <div className="py-12 bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
             {activeTab === "MINE" ? (
               <EmptyState
                 icon={Ticket}
@@ -302,7 +308,7 @@ export default function PromotionsPage() {
                 action={
                   <Button
                     onClick={() => setActiveTab("ALL")}
-                    className="bg--commerce hover:bg--commerce-strong text-white font-bold"
+                    className="bg-commerce hover:bg-commerce-strong text-white font-bold"
                   >
                     {t("promotions.tabAll")}{" "}
                     <ArrowRight size={16} className="ml-1" />
@@ -326,13 +332,26 @@ export default function PromotionsPage() {
                 .includes("freeship");
               const isShop = v.scope === "SHOP";
 
-              let leftBgColor = "bg--commerce";
+              let leftBgColor =
+                "bg-gradient-to-br from-purple-700 via-fuchsia-600 to-indigo-700";
+              let accentText = "text-purple-600";
+              let accentBar = "bg-purple-600";
+              let accentBorder = "border-purple-500";
+              let accentHover = "hover:bg-purple-700";
               let leftTagText = t("promotions.platformLabel");
               if (isFreeship) {
-                leftBgColor = "bg--shipping";
+                leftBgColor = "bg-gradient-to-br from-teal-500 to-emerald-600";
+                accentText = "text-teal-600";
+                accentBar = "bg-teal-500";
+                accentBorder = "border-teal-500";
+                accentHover = "hover:bg-teal-600";
                 leftTagText = t("promotions.freeshipLabel");
               } else if (isShop) {
-                leftBgColor = "bg--shop";
+                leftBgColor = "bg-gradient-to-br from-blue-600 to-indigo-600";
+                accentText = "text-blue-600";
+                accentBar = "bg-blue-600";
+                accentBorder = "border-blue-500";
+                accentHover = "hover:bg-blue-700";
                 leftTagText = t("promotions.tabShop");
               }
 
@@ -349,13 +368,13 @@ export default function PromotionsPage() {
               return (
                 <div
                   key={v.voucherCode}
-                  className="relative flex bg-white border border-gray-400 rounded-xl hover:shadow-lg transition-all group min-h-[128px]"
+                  className="relative flex bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all group min-h-[128px] overflow-hidden"
                 >
-                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
-                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
+                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
+                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
 
                   <div
-                    className={`w-28 flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
+                    className={`w-28 rounded-l-xl flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
                   >
                     {isShop && v.merchantLogo ? (
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/50 bg-white mb-1 shadow">
@@ -385,7 +404,7 @@ export default function PromotionsPage() {
                     </span>
                   </div>
 
-                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-400 relative">
+                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-200 relative">
                     <div className="flex-1 pr-3">
                       <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2">
                         {t("promotions.discountAmount", {
@@ -414,13 +433,7 @@ export default function PromotionsPage() {
                         </div>
                         {v.usageLimit > 0 && (
                           <div
-                            className={`text-[11px] font-bold mt-1 ${
-                              isFreeship
-                                ? "text--shipping"
-                                : isShop
-                                  ? "text--shop"
-                                  : "text--commerce"
-                            }`}
+                            className={`text-[11px] font-bold mt-1 ${accentText}`}
                           >
                             {t("promotions.stockLeft", {
                               count: remainingClaims,
@@ -433,13 +446,7 @@ export default function PromotionsPage() {
                         <div className="mt-3.5">
                           <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${
-                                isFreeship
-                                  ? "bg--shipping"
-                                  : isShop
-                                    ? "bg--shop"
-                                    : "bg--commerce"
-                              }`}
+                              className={`h-full rounded-full ${accentBar}`}
                               style={{
                                 width: `${Math.min(progressPercent, 100)}%`,
                               }}
@@ -460,7 +467,7 @@ export default function PromotionsPage() {
                       ) : isClaimed ? (
                         <button
                           onClick={() => router.push("/products")}
-                          className="bg-white font-extrabold px-6 py-2.5 text-sm rounded-xl border-2 border--commerce text--commerce hover:bg--commerce hover:text-white shadow-sm transition-all duration-200 cursor-pointer min-w-[100px] flex items-center justify-center"
+                          className={`bg-white font-extrabold px-6 py-2.5 text-sm rounded-xl border-2 ${accentBorder} ${accentText} ${accentHover} hover:text-white shadow-sm transition-all duration-200 cursor-pointer min-w-[100px] flex items-center justify-center`}
                         >
                           {t("promotions.useNow")}
                         </button>
@@ -474,11 +481,11 @@ export default function PromotionsPage() {
                             }
                             claimMutation.mutate(v.voucherCode);
                           }}
-                          className="bg-white font-extrabold px-6 py-2.5 text-sm rounded-xl border-2 border--commerce text--commerce hover:bg--commerce hover:text-white shadow-sm transition-all duration-200 cursor-pointer min-w-[100px] flex items-center justify-center"
+                          className={`bg-white font-extrabold px-6 py-2.5 text-sm rounded-xl border-2 ${accentBorder} ${accentText} ${accentHover} hover:text-white shadow-sm transition-all duration-200 cursor-pointer min-w-[100px] flex items-center justify-center`}
                         >
                           {isClaiming ? (
                             <Loader2
-                              className="animate-spin text--commerce"
+                              className={`animate-spin ${accentText}`}
                               size={16}
                             />
                           ) : (

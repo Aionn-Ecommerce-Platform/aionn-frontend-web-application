@@ -57,7 +57,7 @@ export default function CheckoutPaymentPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -79,14 +79,14 @@ export default function CheckoutPaymentPanel(props: Props) {
             <Loader2 className="animate-spin text-blue-600" size={20} />
           </div>
         ) : isVnpay ? (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-gray-100">
               <CreditCard size={16} />
             </span>
             <span className="font-medium text-gray-900">VNPay</span>
           </div>
         ) : effectivePaymentMethod ? (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-gray-100">
               <CreditCard size={16} />
             </span>
@@ -95,7 +95,7 @@ export default function CheckoutPaymentPanel(props: Props) {
             </span>
           </div>
         ) : (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm ring-1 ring-gray-100">
               <Banknote size={16} />
             </span>

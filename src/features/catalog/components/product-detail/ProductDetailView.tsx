@@ -7,7 +7,7 @@ import { PackageX, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import {
   productService,
@@ -18,13 +18,16 @@ import {
   inventoryService,
   reviewService,
   merchantService,
+  stockAlertService,
 } from "@/lib/services";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { logger } from "@/shared/lib/logger";
+import { getErrorMessage } from "@/shared/lib/errors";
 import type { Address } from "@/types";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
+import { productIdFromParam, productPath } from "@/shared/lib/product-url";
 import ProductMainCard from "./ProductMainCard";
 import ProductDetailExtras from "./ProductDetailExtras";
 import {
@@ -38,10 +41,12 @@ export default function ProductDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id: routeParam } = use(params);
+  const id = productIdFromParam(decodeURIComponent(routeParam));
   const router = useRouter();
   const { t, locale } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.user?.userId);
   const addItem = useCartStore((s) => s.addItem);
 
   const {
@@ -53,9 +58,17 @@ export default function ProductDetailPage({
     queryFn: () => productService.getWithActiveFlashSale(id),
   });
 
+  useEffect(() => {
+    if (!product) return;
+    const canonical = productPath(product);
+    if (window.location.pathname !== canonical) {
+      router.replace(canonical, { scroll: false });
+    }
+  }, [product, router]);
+
   const { data: relatedProducts, isLoading: relatedLoading } = useQuery({
     queryKey: qk.recommendationsSimilar(id, 6),
-    queryFn: () => recommendationService.getSimilarProducts(id, 6),
+    queryFn: () => recommendationService.getSimilarProducts(id, 10),
   });
 
   const { data: merchant } = useQuery({
@@ -63,6 +76,15 @@ export default function ProductDetailPage({
     queryFn: () => merchantService.get(product!.merchantId),
     enabled: Boolean(product?.merchantId),
   });
+
+  const { data: ratingSummary } = useQuery({
+    queryKey: ["product-rating-summary", id],
+    queryFn: () => reviewService.getProductRatingSummary(id),
+  });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [id]);
 
   useEffect(() => {
     if (!product) return;
@@ -113,7 +135,8 @@ export default function ProductDetailPage({
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const { data: eligibility } = useQuery({
-    queryKey: ["review-eligibility", id, isAuthenticated],
+    // Include userId so different accounts don't share cached eligibility.
+    queryKey: ["review-eligibility", id, userId],
     queryFn: () => reviewService.checkEligibility(id),
     enabled: isAuthenticated,
   });
@@ -130,6 +153,55 @@ export default function ProductDetailPage({
     selectedVariantIdx === null
       ? undefined
       : product?.variants?.[selectedVariantIdx];
+
+  const fallbackFlashSaleSku = product?.flashSale?.skuOffers.reduce(
+    (lowest, offer) => (offer.salePrice < lowest.salePrice ? offer : lowest),
+  );
+  const pricingVariant =
+    currentVariant ??
+    product?.variants?.find(
+      (variant) => variant.skuId === fallbackFlashSaleSku?.skuId,
+    ) ??
+    product?.variants?.[0];
+
+  const qc = useQueryClient();
+  const alertSkuId = pricingVariant?.skuId;
+  const { data: stockAlert } = useQuery({
+    queryKey: ["stock-alert", id, alertSkuId],
+    queryFn: () => stockAlertService.status(id, alertSkuId!),
+    enabled: isAuthenticated && !!alertSkuId,
+  });
+  const stockAlertMutation = useMutation({
+    mutationFn: () =>
+      stockAlert?.subscribed
+        ? stockAlertService.unsubscribe(id, alertSkuId!)
+        : stockAlertService.subscribe(id, alertSkuId!),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stock-alert", id, alertSkuId] });
+      toast.success(
+        stockAlert?.subscribed
+          ? t("productDetail.stockAlertCancelled")
+          : t("productDetail.stockAlertRegistered"),
+      );
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+  const handleStockAlert = () => {
+    if (!isAuthenticated) {
+      toast.error(t("wishlist.loginRequired"));
+      router.push(
+      `/auth/login?redirect=${encodeURIComponent(
+        product ? productPath(product) : `/products/${id}`,
+      )}`,
+    );
+      return;
+    }
+    if (!alertSkuId) {
+      toast.error(t("products.selectVariantNotice"));
+      return;
+    }
+    stockAlertMutation.mutate();
+  };
 
   useEffect(() => {
     let active = true;
@@ -200,12 +272,6 @@ export default function ProductDetailPage({
       setShippingLoading(true);
       setShippingFee(null);
       setEstimatedDeliveryAt(null);
-      const dimensions = {
-        weightGram: 500,
-        lengthCm: 15,
-        widthCm: 10,
-        heightCm: 5,
-      };
       const quoteAddr = {
         fullName: destAddress.contactName,
         phone: destAddress.phone,
@@ -215,9 +281,17 @@ export default function ProductDetailPage({
         provinceCode: destAddress.provinceCode,
         countryCode: "VN",
       };
+      const quoteSku = pricingVariant?.skuId ?? product?.variants[0]?.skuId;
+      if (!quoteSku) return;
 
+      const quoteVariant = product?.variants.find((v) => v.skuId === quoteSku);
       shippingService
-        .quote(quoteAddr, dimensions, "VND")
+        .quote(
+          quoteAddr,
+          [{ skuId: quoteSku, qty: 1 }],
+          quoteVariant?.currency ?? "VND",
+          quoteVariant?.price ?? 0,
+        )
         .then((q) => {
           if (!active) return;
           setShippingFee(q.fee);
@@ -239,12 +313,12 @@ export default function ProductDetailPage({
       active = false;
       clearTimeout(timer);
     };
-  }, [isAuthenticated, destAddress, locale]);
+  }, [isAuthenticated, destAddress, locale, product, pricingVariant?.skuId]);
 
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-gray-900" size={32} />
       </div>
     );
   }
@@ -268,15 +342,6 @@ export default function ProductDetailPage({
 
   const images = getProductImages(product.imageList);
 
-  const fallbackFlashSaleSku = product.flashSale?.skuOffers.reduce(
-    (lowest, offer) => (offer.salePrice < lowest.salePrice ? offer : lowest),
-  );
-  const pricingVariant =
-    currentVariant ??
-    product.variants.find(
-      (variant) => variant.skuId === fallbackFlashSaleSku?.skuId,
-    ) ??
-    product.variants[0];
   const flashSaleSku = product.flashSale?.skuOffers.find(
     (offer) => offer.skuId === pricingVariant?.skuId,
   );
@@ -289,7 +354,7 @@ export default function ProductDetailPage({
   } else if (variantOriginal && variantOriginal > variantPrice) {
     strikePrice = variantOriginal;
   }
-  const discountPercent =
+  const variantDiscountPercent =
     strikePrice && strikePrice > displayPrice
       ? Math.round((1 - displayPrice / strikePrice) * 100)
       : 0;
@@ -320,10 +385,40 @@ export default function ProductDetailPage({
   const priceLabel = currentVariant
     ? formatCurrency(displayPrice, displayCurrency)
     : priceRangeLabel;
-  const reviewCount = product.reviewCount ?? 0;
+
+  const variantOriginals = product.variants
+    .map((variant) => variant.originalPrice)
+    .filter((v): v is number => v != null && v > 0);
+  const minOriginal = variantOriginals.length
+    ? Math.min(...variantOriginals)
+    : undefined;
+  const maxOriginal = variantOriginals.length
+    ? Math.max(...variantOriginals)
+    : undefined;
+  const strikeRangeLabel =
+    !currentVariant && minOriginal != null && maxOriginal != null
+      ? minOriginal !== maxOriginal
+        ? `${formatCurrency(minOriginal, displayCurrency)} - ${formatCurrency(maxOriginal, displayCurrency)}`
+        : formatCurrency(minOriginal, displayCurrency)
+      : null;
+  const rangeDiscountPercent =
+    !currentVariant &&
+    minOriginal != null &&
+    maxOriginal != null &&
+    maxOriginal > minDisplayPrice &&
+    minDisplayPrice > 0
+      ? Math.round((1 - minDisplayPrice / maxOriginal) * 100)
+      : 0;
+  const discountPercent = currentVariant
+    ? variantDiscountPercent
+    : rangeDiscountPercent;
+  const reviewCount = ratingSummary?.total ?? product.reviewCount ?? 0;
   const currentRating =
-    reviewCount > 0 && product.rating !== undefined && product.rating > 0
-      ? product.rating
+    reviewCount > 0
+      ? (ratingSummary?.average ??
+        (product.rating !== undefined && product.rating > 0
+          ? product.rating
+          : 0))
       : 0;
   const roundedRating = Math.round(currentRating);
   const soldCount = product.soldCount ?? 0;
@@ -331,12 +426,21 @@ export default function ProductDetailPage({
     ? `${t("orders.estimatedDelivery")}: ${formatDate(estimatedDeliveryAt, locale)}`
     : null;
 
-  const handleAddToCart = async () => {
-    if (!currentVariant) return;
+  const handleAddToCart = async (): Promise<boolean> => {
+    if (!currentVariant) {
+      toast.error(
+        t("products.selectVariantNotice"),
+      );
+      return false;
+    }
     if (!isAuthenticated) {
       toast.error(t("products.loginRequiredToAddCart"));
-      router.push(`/auth/login?redirect=/products/${id}`);
-      return;
+      router.push(
+      `/auth/login?redirect=${encodeURIComponent(
+        product ? productPath(product) : `/products/${id}`,
+      )}`,
+    );
+      return false;
     }
     setAdding(true);
     try {
@@ -349,6 +453,7 @@ export default function ProductDetailPage({
         {
           skuId: currentVariant.skuId,
           productId: product.productId,
+          slug: product.slug,
           productName: product.name,
           imageUrl: images[0] ?? "/images/logo.png",
           price: displayPrice,
@@ -360,19 +465,34 @@ export default function ProductDetailPage({
         { authenticated: isAuthenticated },
       );
       toast.success(t("products.addedToCart"));
-    } catch {
+      return true;
+    } catch (err) {
+      toast.error(getErrorMessage(err, t("products.addToCartError")));
+      return false;
     } finally {
       setAdding(false);
     }
   };
 
   const handleBuyNow = async () => {
-    if (!isAuthenticated) {
-      router.push(`/auth/login?redirect=/products/${id}`);
+    if (!currentVariant) {
+      toast.error(
+        t("products.selectVariantNotice"),
+      );
       return;
     }
-    await handleAddToCart();
-    router.push("/cart");
+    if (!isAuthenticated) {
+      router.push(
+      `/auth/login?redirect=${encodeURIComponent(
+        product ? productPath(product) : `/products/${id}`,
+      )}`,
+    );
+      return;
+    }
+    const added = await handleAddToCart();
+    if (added) {
+      router.push("/cart");
+    }
   };
 
   const handleStartChat = async () => {
@@ -433,6 +553,7 @@ export default function ProductDetailPage({
           priceLabel={priceLabel}
           currentVariant={currentVariant}
           strikePrice={strikePrice}
+          strikeLabel={strikeRangeLabel}
           displayPrice={displayPrice}
           displayCurrency={displayCurrency}
           discountPercent={discountPercent}
@@ -449,6 +570,9 @@ export default function ProductDetailPage({
           adding={adding}
           handleAddToCart={handleAddToCart}
           handleBuyNow={handleBuyNow}
+          onNotifyRestock={handleStockAlert}
+          restockSubscribed={stockAlert?.subscribed ?? false}
+          restockLoading={stockAlertMutation.isPending}
           t={t}
         />
         <ProductDetailExtras

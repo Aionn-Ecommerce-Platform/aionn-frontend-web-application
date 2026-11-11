@@ -230,7 +230,7 @@ function AdminAttributeTemplatesInner() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-md border border-gray-400 p-4">
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">
                 {t("common.categories")}
               </h3>
@@ -257,7 +257,7 @@ function AdminAttributeTemplatesInner() {
 
           <div className="lg:col-span-2">
             {!selectedCategory ? (
-              <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
                 <Tags className="mx-auto text-gray-400 mb-4" size={48} />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("adminAttributeTemplates.selectCategory")}
@@ -267,11 +267,11 @@ function AdminAttributeTemplatesInner() {
                 </p>
               </div>
             ) : loadingTemplate ? (
-              <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
                 <Loader2 className="animate-spin text-blue-600" size={28} />
               </div>
             ) : template ? (
-              <div className="bg-white rounded-md border border-gray-400 p-6">
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -327,7 +327,7 @@ function AdminAttributeTemplatesInner() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
                 <Tags className="mx-auto text-gray-400 mb-4" size={48} />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("adminAttributeTemplates.emptyTitle")}

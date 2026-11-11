@@ -29,38 +29,12 @@ export function formatVariantValue(value: string): string {
   return String(value).trim();
 }
 
-export function formatVariantSummary(
-  attributeValues?: Record<string, string> | null,
-): string {
-  if (!attributeValues) return "";
-  return Object.values(attributeValues)
-    .map(formatVariantValue)
-    .filter(Boolean)
-    .join(" / ");
-}
-
-export function getVariantLabelFromAttributes(
-  attributeValues: Record<string, string> | undefined,
-  locale: Locale,
-): string {
-  const keys = Object.keys(attributeValues ?? {}).map((key) =>
-    key.trim().toLowerCase(),
-  );
-  if (keys.includes("color") && keys.includes("size")) {
-    return translate(locale, "productDetail.colorAndSize");
-  }
-  if (keys.includes("storage") && keys.includes("color")) {
-    return translate(locale, "productDetail.storageAndColor");
-  }
-  if (keys.includes("type") && keys.includes("color")) {
-    return translate(locale, "productDetail.typeAndColor");
-  }
-  if (keys.length > 0) {
-    return keys.map((key) => formatVariantKey(key, locale)).join(" & ");
-  }
-
-  return translate(locale, "productDetail.classification");
-}
+/**
+ * Product descriptions arrive with a localized heading. Matching it is content parsing rather than
+ * UI copy, so the pattern lives with the other product-detail helpers instead of inside a component.
+ */
+export const DESCRIPTION_HEADING_PATTERN =
+  /^(mô tả sản phẩm|description|product description)\s*\n+/i;
 
 export function getProductImages(imageList: string[]): string[] {
   if (!imageList || imageList.length === 0) {

@@ -34,7 +34,6 @@ export function OrderDetailModal({
 
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
   const payment = payments && payments.length > 0 ? payments[0] : null;
-
   const createShipmentMutation = useMutation({
     mutationFn: () => {
       return shippingService.create({
@@ -53,12 +52,7 @@ export function OrderDetailModal({
           provinceCode: order.recipientProvinceCode ?? "",
           countryCode: order.recipientCountryCode ?? "VN",
         },
-        dimensions: {
-          weightGram: 500,
-          lengthCm: 15,
-          widthCm: 10,
-          heightCm: 5,
-        },
+        items: order.items.map((item) => ({ skuId: item.skuId, qty: item.qty })),
         codAmount: order.totalAmount,
         shippingFee: order.shippingFee,
         currency: order.currency,
@@ -164,7 +158,14 @@ export function OrderDetailModal({
           </div>
         </div>
 
-        <div className="border-t border-gray-400 pt-4">
+        {order.note && (
+          <div className="mt-4 rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-900">
+            <span className="font-semibold">{t("orders.deliveryNote")}:</span>{" "}
+            {order.note}
+          </div>
+        )}
+
+        <div className="border-t border-gray-100 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailProducts")}
           </h4>
@@ -191,14 +192,14 @@ export function OrderDetailModal({
               </span>
               <span>{formatCurrency(order.shippingFee, order.currency)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-400 text-blue-600">
+            <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-100 text-blue-600">
               <span>{t("merchant.orders.detailGrandTotal")}</span>
               <span>{formatCurrency(order.totalAmount, order.currency)}</span>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-400 pt-4">
+        <div className="border-t border-gray-100 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailPayment")}
           </h4>
@@ -239,7 +240,7 @@ export function OrderDetailModal({
           )}
         </div>
 
-        <div className="border-t border-gray-400 pt-4">
+        <div className="border-t border-gray-100 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailShipping")}
           </h4>
@@ -421,7 +422,7 @@ export function OrderDetailModal({
           (shipment &&
             shipment.status === "DELIVERED" &&
             order.status !== "COMPLETED")) && (
-          <div className="border-t border-gray-400 pt-4 flex justify-between items-center bg-green-50 p-4 rounded-md">
+          <div className="border-t border-gray-100 pt-4 flex justify-between items-center bg-green-50 p-4 rounded-md">
             <div>
               <p className="text-sm font-semibold text-green-800">
                 {t("merchant.orders.completeBoxTitle")}
@@ -441,7 +442,7 @@ export function OrderDetailModal({
           </div>
         )}
 
-        <div className="border-t border-gray-400 pt-4 flex justify-end">
+        <div className="border-t border-gray-100 pt-4 flex justify-end">
           <Button variant="outline" onClick={onClose}>
             {t("merchant.orders.btnClose")}
           </Button>

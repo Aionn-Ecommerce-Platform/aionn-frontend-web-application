@@ -181,7 +181,7 @@ function AdminNotificationTemplatesInner() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-md border border-gray-200 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : templates.length > 0 ? (
@@ -193,7 +193,7 @@ function AdminNotificationTemplatesInner() {
               return (
                 <div
                   key={template.templateId}
-                  className="bg-white rounded-md border border-gray-200 p-6"
+                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -260,7 +260,7 @@ function AdminNotificationTemplatesInner() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-200 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <Mail className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminTemplates.emptyTitle")}

@@ -50,7 +50,7 @@ export function PeriodDropdown<T extends string | number>({
         type="button"
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
-        className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm text-gray-700 bg-gray-50/80 border border-gray-400 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm text-gray-700 bg-gray-50/80 border border-gray-200 hover:bg-white transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={label}
         aria-expanded={open}
       >
@@ -63,7 +63,7 @@ export function PeriodDropdown<T extends string | number>({
 
       {open && (
         <div
-          className={`absolute right-0 mt-2 ${width} bg-white rounded-xl border border-gray-400 shadow-lg py-1 z-50 overflow-hidden max-h-72 overflow-y-auto`}
+          className={`absolute right-0 mt-2 ${width} bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 overflow-hidden max-h-72 overflow-y-auto`}
         >
           {options.map((opt) => {
             const active = opt.value === value;

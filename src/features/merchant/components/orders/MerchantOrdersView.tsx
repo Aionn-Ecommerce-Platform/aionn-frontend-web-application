@@ -124,7 +124,7 @@ function MerchantOrdersInner() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t("merchant.orders.searchPlaceholder")}
-              className="w-full rounded-xl border border-gray-400 bg-white py-2.5 pl-10 pr-3 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
           <PeriodDropdown
@@ -182,10 +182,10 @@ function MerchantOrdersInner() {
             description={t("merchant.orders.emptyDesc")}
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-400 bg-gray-50">
+                <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
                     {t("merchant.orders.tableOrder")}
                   </th>

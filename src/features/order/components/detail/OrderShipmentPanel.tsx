@@ -1,8 +1,12 @@
 "use client";
-import { Truck } from "lucide-react";
+import { useState } from "react";
+import { Truck, Copy, Check } from "lucide-react";
+import toast from "react-hot-toast";
+import { Badge } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { getShipmentStatus } from "@/lib/domain/status/shipment";
 import { formatDate } from "@/shared/lib/utils";
+import { getErrorMessage } from "@/shared/lib/errors";
 import type { Shipment } from "@/types";
 
 const STEPS = [
@@ -20,6 +24,21 @@ export default function OrderShipmentPanel({
   shipment: Shipment;
 }) {
   const { t, locale } = useTranslation();
+  const [trackingCopied, setTrackingCopied] = useState(false);
+
+  const handleCopyTrackingCode = () => {
+    if (!shipment?.trackingCode) return;
+    navigator.clipboard
+      .writeText(shipment.trackingCode)
+      .then(() => {
+        setTrackingCopied(true);
+        toast.success(t("orders.copiedToast"));
+        setTimeout(() => setTrackingCopied(false), 2000);
+      })
+      .catch((err) => {
+        toast.error(getErrorMessage(err));
+      });
+  };
   const labels = [
     "orders.trackingStepRequested",
     "orders.trackingStepRegistered",
@@ -44,19 +63,42 @@ export default function OrderShipmentPanel({
         </div>
         <div>
           <p className="text-xs text-gray-500 font-medium">{t("orders.trackingNumber")}</p>
-          <p className="font-mono font-bold text-gray-950 mt-0.5">
-            {shipment.trackingCode || t("orders.noTrackingYet")}
-          </p>
+          <div className="inline-flex items-center gap-1.5 mt-0.5">
+            <span className="font-mono font-bold text-gray-950">
+              {shipment.trackingCode || t("orders.noTrackingYet")}
+            </span>
+            {shipment.trackingCode && (
+              <button
+                type="button"
+                onClick={handleCopyTrackingCode}
+                className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200/80 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-950 transition-colors shadow-2xs cursor-pointer"
+                title={t("orders.copyCode")}
+                aria-label={t("orders.copyCode")}
+              >
+                {trackingCopied ? (
+                  <Check size={13} className="text-emerald-600" />
+                ) : (
+                  <Copy size={13} />
+                )}
+              </button>
+            )}
+          </div>
         </div>
         <div>
-          <p className="text-xs text-gray-500 font-medium">{t("orders.shippingStatus")}</p>
-          <span className="font-bold text-brand mt-0.5 inline-block">
-            {t(getShipmentStatus(shipment.status).labelKey)}
-            {shipment.currentLocation ? ` (${shipment.currentLocation})` : ""}
-            {shipment.lastFailureReason
-              ? `: ${shipment.lastFailureReason}`
-              : ""}
-          </span>
+          <p className="text-xs text-gray-500 font-medium mb-1.5">{t("orders.shippingStatus")}</p>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={getShipmentStatus(shipment.status).variant}
+              className="text-xs px-2.5 py-0.5 font-semibold"
+            >
+              {t(getShipmentStatus(shipment.status).labelKey)}
+            </Badge>
+            {shipment.lastFailureReason && (
+              <span className="text-xs text-rose-600 font-medium">
+                ({shipment.lastFailureReason})
+              </span>
+            )}
+          </div>
         </div>
         {shipment.shipperName && (
           <div>

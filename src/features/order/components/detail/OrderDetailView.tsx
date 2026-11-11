@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Suspense, use, useState } from "react";
+import { Suspense, use, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
@@ -26,11 +26,15 @@ import {
   shippingService,
   productService,
   addressService,
+  geographyService,
   paymentMethodService,
+  paymentService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
+import { resolveProvinceName } from "@/shared/lib/address-utils";
+import { productPath } from "@/shared/lib/product-url";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -126,7 +130,71 @@ function OrderDetailInner({ id }: { id: string }) {
   const orderAddress =
     addresses.find((a) => a.addressId === order?.addressId) ?? null;
 
+  const { data: provinces = [] } = useQuery({
+    queryKey: qk.provinces("VN"),
+    queryFn: () => geographyService.listProvinces("VN"),
+  });
+
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
+
+  const { data: payment } = useQuery({
+    queryKey: ["order-payment", order?.paymentId],
+    queryFn: () => paymentService.get(order!.paymentId!),
+    enabled: !!order?.paymentId,
+  });
+
+  const { subtotal, discount } = useMemo(() => {
+    if (!order) return { subtotal: 0, discount: 0 };
+    const itemsSubtotal = (order.items ?? []).reduce(
+      (sum, it) => sum + (it.unitPrice ?? 0) * (it.qty ?? 0),
+      0,
+    );
+    const computedDiscount = Math.max(
+      0,
+      itemsSubtotal + (order.shippingFee ?? 0) - (order.totalAmount ?? 0),
+    );
+    return { subtotal: itemsSubtotal, discount: computedDiscount };
+  }, [order]);
+
+  const deliveryInfo = useMemo(() => {
+    const recipientName =
+      order?.recipientName?.trim() || orderAddress?.contactName?.trim() || null;
+    const recipientPhone =
+      order?.recipientPhone?.trim() || orderAddress?.phone?.trim() || null;
+
+    let addressLine = order?.recipientAddressLine?.trim() || null;
+
+    if (addressLine) {
+      const prov = resolveProvinceName(
+        order?.recipientProvinceCode,
+        provinces,
+        locale,
+      );
+      if (prov && !addressLine.toLowerCase().includes(prov.toLowerCase())) {
+        addressLine = `${addressLine}, ${prov}`;
+      }
+    } else if (orderAddress) {
+      addressLine =
+        orderAddress.fullAddress ||
+        [
+          orderAddress.detailAddress,
+          orderAddress.wardName,
+          orderAddress.districtName,
+          orderAddress.provinceName,
+        ]
+          .filter(Boolean)
+          .join(", ");
+    }
+
+    const hasInfo = Boolean(recipientName || recipientPhone || addressLine);
+
+    return {
+      hasInfo,
+      recipientName,
+      recipientPhone,
+      addressLine,
+    };
+  }, [order, orderAddress, provinces, locale]);
 
   const cancelMutation = useMutation({
     mutationFn: () => orderService.cancel(id, t("orders.cancelReasonCustomer")),
@@ -247,32 +315,31 @@ function OrderDetailInner({ id }: { id: string }) {
             {t("orders.orderDetails")}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs sm:text-sm text-gray-500">
-            <div className="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200/80 shadow-2xs">
-              <span className="font-semibold text-gray-600 uppercase text-[11px] tracking-wider">
-                {t("orders.orderId")}:
-              </span>
-              <span className="font-mono font-bold text-gray-950 select-all">
-                {order.orderSn || order.orderId}
-              </span>
+            <div className="inline-flex items-center gap-1.5">
+              <div className="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200/80 shadow-2xs">
+                <span className="font-semibold text-gray-600 uppercase text-[11px] tracking-wider">
+                  {t("orders.orderId")}:
+                </span>
+                <span className="font-mono font-bold text-gray-950 select-all">
+                  {order.orderSn || order.orderId}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={handleCopyOrderId}
-                className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-strong transition-colors cursor-pointer ml-1 p-0.5 rounded hover:bg-brand/10"
+                className="inline-flex items-center justify-center w-7 h-7 bg-white hover:bg-gray-50 border border-gray-200/80 rounded-lg text-gray-500 hover:text-gray-950 transition-colors shadow-2xs cursor-pointer"
                 title={t("orders.copyCode")}
+                aria-label={t("orders.copyCode")}
               >
                 {copied ? (
-                  <Check size={13} className="text-emerald-600" />
+                  <Check size={14} className="text-emerald-600" />
                 ) : (
-                  <Copy size={13} />
+                  <Copy size={14} />
                 )}
-                <span className="text-[11px] font-medium">
-                  {copied ? t("orders.copied") : t("orders.copy")}
-                </span>
               </button>
             </div>
             <span className="text-gray-300 hidden sm:inline">•</span>
             <span className="text-xs sm:text-sm font-medium text-gray-500">
-              {t("orders.orderDate")}{" "}
               {formatDateTime(
                 order.createdAt,
                 locale === "vi" ? "vi-VN" : "en-US",
@@ -342,19 +409,22 @@ function OrderDetailInner({ id }: { id: string }) {
             {t("orders.products")}
           </h3>
           <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
             {order.items.map((item) => {
               const lookup = skuLookup.get(item.skuId);
               const product = lookup?.product;
               const variant = lookup?.variant;
-              const variantLabel = formatVariantLabel(variant?.attributeValues);
-              const image = product?.imageList?.[0];
+              const variantLabel =
+                item.variantLabel ?? formatVariantLabel(variant?.attributeValues);
+              const image = item.imageUrl ?? product?.imageList?.[0];
+              const displayName = item.productName ?? product?.name;
               return (
-                <div key={item.skuId} className="flex gap-3.5 py-2.5 border-b border-gray-100 last:border-none">
+                <div key={item.skuId} className="flex gap-3.5 py-2.5">
                   <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex-shrink-0 overflow-hidden relative p-1">
                     {image ? (
                       <Image
                         src={image}
-                        alt={product?.name ?? item.skuId}
+                        alt={displayName ?? item.skuId}
                         fill
                         sizes="64px"
                         className="object-contain p-1"
@@ -369,14 +439,14 @@ function OrderDetailInner({ id }: { id: string }) {
                   <div className="min-w-0 flex-1">
                     {product ? (
                       <Link
-                        href={`/products/${product.productId}`}
+                        href={productPath(product)}
                         className="text-sm font-semibold text-gray-900 hover:text-brand line-clamp-2 transition-colors"
                       >
-                        {product.name}
+                        {displayName}
                       </Link>
                     ) : (
                       <p className="text-sm font-semibold text-gray-900 truncate">
-                        SKU: {item.skuId}
+                        {displayName ?? `SKU: ${item.skuId}`}
                       </p>
                     )}
                     {variantLabel && (
@@ -392,11 +462,28 @@ function OrderDetailInner({ id }: { id: string }) {
                 </div>
               );
             })}
-            <div className="border-t border-gray-100 pt-3 flex justify-between text-xs sm:text-sm">
-              <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
-              <span className="font-semibold text-gray-800">{formatCurrency(order.shippingFee, order.currency)}</span>
             </div>
-            <div className="flex justify-between items-baseline pt-1">
+            <div className="border-t border-gray-100 pt-3 space-y-1.5 text-xs sm:text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium">{t("cart.subtotal")}</span>
+                <span className="font-semibold text-gray-800">
+                  {formatCurrency(subtotal, order.currency)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium">{t("cart.shippingFee")}</span>
+                <span className="font-semibold text-gray-800">
+                  {formatCurrency(order.shippingFee, order.currency)}
+                </span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-emerald-600 font-medium">
+                  <span>{t("cart.discount")}</span>
+                  <span>-{formatCurrency(discount, order.currency)}</span>
+                </div>
+              )}
+            </div>
+            <div className="border-t border-gray-100 flex justify-between items-baseline pt-2">
               <span className="font-bold text-gray-900 text-sm">
                 {t("cart.total")}
               </span>
@@ -415,38 +502,34 @@ function OrderDetailInner({ id }: { id: string }) {
               </div>
               {t("orders.deliverySection")}
             </h3>
-            {orderAddress ? (
+            {deliveryInfo.hasInfo ? (
               <div className="text-sm space-y-2">
-                <p className="text-gray-700">
-                  <span className="font-medium text-gray-500">
-                    {t("orders.recipientName")}:
-                  </span>{" "}
-                  <span className="font-semibold text-gray-900">{orderAddress.contactName}</span>
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium text-gray-500">
-                    {t("orders.recipientPhone")}:
-                  </span>{" "}
-                  <span className="font-semibold text-gray-900 font-mono">{orderAddress.phone}</span>
-                </p>
-                <div className="flex items-start gap-2 text-gray-700">
-                  <p>
+                {deliveryInfo.recipientName && (
+                  <p className="text-gray-700">
                     <span className="font-medium text-gray-500">
-                      {t("orders.recipientAddress")}:
+                      {t("orders.recipientName")}:
                     </span>{" "}
-                    <span className="font-semibold text-gray-900">
-                      {orderAddress.fullAddress ||
-                        [
-                          orderAddress.detailAddress,
-                          orderAddress.wardName,
-                          orderAddress.districtName,
-                          orderAddress.provinceName,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                    </span>
+                    <span className="font-semibold text-gray-900">{deliveryInfo.recipientName}</span>
                   </p>
-                </div>
+                )}
+                {deliveryInfo.recipientPhone && (
+                  <p className="text-gray-700">
+                    <span className="font-medium text-gray-500">
+                      {t("orders.recipientPhone")}:
+                    </span>{" "}
+                    <span className="font-semibold text-gray-900 font-mono">{deliveryInfo.recipientPhone}</span>
+                  </p>
+                )}
+                {deliveryInfo.addressLine && (
+                  <div className="flex items-start gap-2 text-gray-700">
+                    <p>
+                      <span className="font-medium text-gray-500">
+                        {t("orders.recipientAddress")}:
+                      </span>{" "}
+                      <span className="font-semibold text-gray-900">{deliveryInfo.addressLine}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-start gap-2 text-sm text-gray-600">
@@ -461,6 +544,22 @@ function OrderDetailInner({ id }: { id: string }) {
                 </span>
               </div>
             )}
+            {order.note && (
+              <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-sm text-amber-900">
+                <span className="font-semibold">
+                  {t("orders.deliveryNote")}:
+                </span>{" "}
+                {order.note}
+              </div>
+            )}
+            {order.shippingService && (
+              <p className="mt-2 text-xs text-gray-500">
+                {t("orders.shippingService")}:{" "}
+                <span className="font-semibold text-gray-700">
+                  {order.shippingService}
+                </span>
+              </p>
+            )}
           </div>
           <div className="bg-white rounded-2xl border border-gray-200/90 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <h3 className="font-bold text-gray-950 mb-3 text-base">
@@ -468,15 +567,23 @@ function OrderDetailInner({ id }: { id: string }) {
             </h3>
             {(() => {
               const pm = order.paymentMethodId;
-              if (pm === "VNPAY") {
+              const gw = payment?.gateway;
+              if (pm === "VNPAY" || gw === "VNPAY") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">VNPAY</p>
                 );
               }
-              if (pm === "COD") {
+              if (pm === "COD" || gw === "COD") {
                 return (
                   <p className="text-sm text-gray-900 font-semibold">
                     {t("checkout.cod")}
+                  </p>
+                );
+              }
+              if (pm === "STRIPE" || gw === "STRIPE") {
+                return (
+                  <p className="text-sm text-gray-900 font-semibold">
+                    {t("orders.stripeCard")}
                   </p>
                 );
               }
@@ -494,6 +601,13 @@ function OrderDetailInner({ id }: { id: string }) {
                   </div>
                 );
               }
+              if (payment?.gateway) {
+                return (
+                  <p className="text-sm text-gray-900 font-semibold uppercase">
+                    {payment.gateway}
+                  </p>
+                );
+              }
               return (
                 <p className="text-sm text-gray-600">
                   {pm ?? t("orders.noPaymentMethod")}
@@ -504,6 +618,16 @@ function OrderDetailInner({ id }: { id: string }) {
               <p className="text-xs text-gray-400 mt-2 font-mono">
                 {t("orders.transactionId")}: {order.paymentId}
               </p>
+            )}
+            {payment?.invoiceUrl && (
+              <a
+                href={payment.invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-strong underline underline-offset-2"
+              >
+                {t("orders.downloadInvoice")}
+              </a>
             )}
           </div>
           <div className="flex gap-3">
@@ -519,11 +643,14 @@ function OrderDetailInner({ id }: { id: string }) {
               </Button>
             )}
             {canReturn && (
-              <Link href={`/orders/${order.orderId}/return`} className="flex-1">
-                <Button variant="outline" className="w-full rounded-xl border-gray-900 font-bold" size="sm">
-                  {t("orders.requestReturn")}
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl border-gray-900 font-bold"
+                size="sm"
+                onClick={() => router.push(`/orders/${order.orderId}/return`)}
+              >
+                {t("orders.requestReturn")}
+              </Button>
             )}
             {canCancel && (
               <Button

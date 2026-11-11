@@ -293,7 +293,6 @@ function NotificationsInner() {
         size="md"
       >
         {selectedNotif && (() => {
-          // Detect related target action
           const content = `${selectedNotif.subject ?? ""} ${selectedNotif.content ?? ""}`;
           const orderMatch = /ORD_[a-z0-9]+/i.exec(content);
           const orderId = orderMatch ? orderMatch[0] : null;

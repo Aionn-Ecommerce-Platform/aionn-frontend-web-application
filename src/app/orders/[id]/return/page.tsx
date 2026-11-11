@@ -10,6 +10,7 @@ import { ArrowLeft, ImagePlus, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
+import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import {
   mediaService,
   orderReturnService,
@@ -17,8 +18,8 @@ import {
   uploadToCloudinary,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
-import { formatCurrency } from "@/shared/lib/utils";
 import { getErrorMessage, getFieldErrors } from "@/shared/lib/errors";
+import { formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 
 const MAX_REASON_LEN = 500;
@@ -34,6 +35,10 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [selectedItems, setSelectedItems] = useState<Record<
+    string,
+    number
+  > | null>(null);
 
   const { data: order, isLoading } = useQuery({
     queryKey: qk.order(orderId),
@@ -41,6 +46,40 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
   });
 
   const canReturn = order?.status === "COMPLETED";
+
+  const effectiveSelected =
+    selectedItems ??
+    (order
+      ? Object.fromEntries(order.items.map((item) => [item.skuId, item.qty]))
+      : {});
+  const selectedList = Object.entries(effectiveSelected)
+    .filter(([, qty]) => qty > 0)
+    .map(([skuId, qty]) => ({ skuId, qty }));
+  const estimatedRefund = (order?.items ?? []).reduce((sum, item) => {
+    const qty = effectiveSelected[item.skuId] ?? 0;
+    return qty ? sum + item.unitPrice * qty : sum;
+  }, 0);
+
+  function toggleItem(skuId: string, maxQty: number) {
+    setSelectedItems((current) => {
+      const base = current ?? effectiveSelected;
+      const next = { ...base };
+      if (next[skuId]) {
+        delete next[skuId];
+      } else {
+        next[skuId] = maxQty;
+      }
+      return next;
+    });
+  }
+
+  function changeQty(skuId: string, maxQty: number, qty: number) {
+    const clamped = Math.max(1, Math.min(maxQty, qty || 1));
+    setSelectedItems((current) => ({
+      ...(current ?? effectiveSelected),
+      [skuId]: clamped,
+    }));
+  }
 
   async function handlePickEvidence(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -82,6 +121,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
       const ret = await orderReturnService.request(orderId, {
         reason: trimmed,
         evidenceUrl,
+        items: selectedList.length ? selectedList : undefined,
       });
       toast.success(t("orders.returns.submitSuccessToast"));
       router.replace(`/orders/returns?highlight=${ret.returnId}`);
@@ -96,18 +136,20 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-      </div>
+      <MemberPageLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader2 className="animate-spin text-blue-600" size={32} />
+        </div>
+      </MemberPageLayout>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <MemberPageLayout>
+      <div className="mb-6">
         <Link
           href={`/orders/${orderId}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-3"
         >
           <ArrowLeft size={16} />
           {t("orders.returns.backToOrder")}
@@ -118,67 +160,110 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {t("orders.orderId")}{" "}
-          <span className="font-mono font-semibold text-gray-900 select-all">{orderId}</span>
-          {order?.totalAmount != null && (
-            <>
-              {" • "}
-              <span className="font-medium text-gray-700">
-                {formatCurrency(
-                  order.totalAmount + (order.shippingFee ?? 0),
-                  order.currency,
-                )}
-              </span>
-            </>
-          )}
+          <span className="font-mono font-semibold text-gray-900 select-all">
+            {orderId}
+          </span>
         </p>
+      </div>
 
-        {!canReturn && (
-          <div className="mt-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800">
-            {t("orders.returns.onlyCompletedCanReturn")}{" "}
-            <span className="font-semibold">{order?.status}</span>.
+      {!canReturn && (
+        <div className="mb-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800">
+          {t("orders.returns.onlyCompletedCanReturn")}{" "}
+          <span className="font-semibold">{order?.status}</span>.
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5"
+      >
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("orders.returns.selectItems")}
+          </p>
+          <div className="space-y-2">
+            {order?.items.map((item) => {
+              const selectedQty = effectiveSelected[item.skuId] ?? 0;
+              return (
+                <div
+                  key={item.skuId}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3.5 py-3"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedQty > 0}
+                    disabled={!canReturn || submitting}
+                    onChange={() => toggleItem(item.skuId, item.qty)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 line-clamp-2">
+                      {item.productName ?? item.skuId}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")} &times;{" "}
+                      {item.qty}
+                      {item.variantLabel ? ` · ${item.variantLabel}` : ""}
+                    </p>
+                  </div>
+                  {selectedQty > 0 && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={item.qty}
+                      value={selectedQty}
+                      disabled={!canReturn || submitting}
+                      onChange={(e) =>
+                        changeQty(item.skuId, item.qty, Number(e.target.value))
+                      }
+                      className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-sm"
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
+          <p className="mt-2 text-sm font-semibold text-gray-900">
+            {t("orders.returns.estimatedRefund")}:{" "}
+            {formatCurrency(estimatedRefund, order?.currency ?? "VND")}
+          </p>
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 bg-white rounded-2xl border border-gray-100 p-6 space-y-5"
-        >
-          <div>
-            <label
-              htmlFor="reason"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              {t("orders.returns.reason")}
-            </label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) =>
-                setReason(e.target.value.slice(0, MAX_REASON_LEN))
-              }
-              rows={5}
-              disabled={!canReturn || submitting}
-              placeholder={t("orders.returns.reasonPlaceholder")}
-              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
-            />
-            <div className="mt-1 flex items-center justify-between text-xs">
-              <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
-              <span className="text-gray-400">
-                {reason.length}/{MAX_REASON_LEN}
-              </span>
-            </div>
+        <div>
+          <label
+            htmlFor="reason"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            {t("orders.returns.reason")}
+          </label>
+          <textarea
+            id="reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value.slice(0, MAX_REASON_LEN))}
+            rows={5}
+            disabled={!canReturn || submitting}
+            placeholder={t("orders.returns.reasonPlaceholder")}
+            className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
+          />
+          <div className="mt-1 flex items-center justify-between text-xs">
+            <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
+            <span className="text-gray-400">
+              {reason.length}/{MAX_REASON_LEN}
+            </span>
           </div>
+        </div>
 
-          <div>
-            <p className="block text-sm font-medium text-gray-700 mb-1.5">
-              {t("orders.returns.evidenceLabel")}
-            </p>
-            {evidenceUrl ? (
-              <div className="relative inline-block">
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("orders.returns.evidenceLabel")}
+          </p>
+          {evidenceUrl ? (
+            <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
+              <div className="relative">
                 <AppImage
                   src={evidenceUrl}
                   alt="Evidence"
-                  className="w-40 h-40 object-cover rounded-xl border border-gray-200"
+                  className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
                 />
                 <button
                   type="button"
@@ -189,54 +274,59 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
                   <X size={14} />
                 </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={!canReturn || uploading || submitting}
-                className="flex flex-col items-center justify-center w-40 h-40 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
-              >
-                {uploading ? (
-                  <Loader2 className="animate-spin" size={22} />
-                ) : (
-                  <>
-                    <ImagePlus size={22} />
-                    <span className="mt-1.5 text-xs">
-                      {t("orders.returns.uploadImage")}
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePickEvidence}
-              className="hidden"
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              {t("orders.returns.uploadHint")}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <Button
-              type="submit"
-              loading={submitting}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
               disabled={!canReturn || uploading || submitting}
+              className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
             >
-              {t("orders.returns.submit")}
-            </Button>
-            <Link href={`/orders/${orderId}`}>
-              <Button type="button" variant="outline" disabled={submitting}>
-                {t("common.cancel")}
-              </Button>
-            </Link>
-          </div>
-        </form>
-      </div>
-    </div>
+              {uploading ? (
+                <Loader2 className="animate-spin text-blue-600" size={28} />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                    <ImagePlus size={24} />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {t("orders.returns.uploadImage")}
+                  </span>
+                  <span className="mt-1 text-xs text-gray-400">
+                    {t("orders.returns.uploadHint")}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePickEvidence}
+            className="hidden"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 pt-2">
+          <Button
+            type="submit"
+            loading={submitting}
+            disabled={!canReturn || uploading || submitting}
+          >
+            {t("orders.returns.submit")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={() => router.push(`/orders/${orderId}`)}
+          >
+            {t("common.cancel")}
+          </Button>
+        </div>
+      </form>
+    </MemberPageLayout>
   );
 }
 

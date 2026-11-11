@@ -4,16 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { Flame, Sparkles, Star, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
+import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
 import type { FlashSaleInfo, RecommendationReason } from "@/types";
 
 interface ProductCardProps {
   id: string;
+  slug?: string | null;
   name: string;
   price: number;
   originalPrice?: number;
   image: string;
-  merchant?: string;
   rating?: number;
   reviewCount?: number;
   sold?: number;
@@ -27,11 +28,11 @@ interface ProductCardProps {
 
 export default function ProductCard({
   id,
+  slug,
   name,
   price,
   originalPrice,
   image,
-  merchant: _merchant,
   rating,
   reviewCount,
   sold,
@@ -44,6 +45,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
   const isFlashSale = !!flashSale;
+  const isSale = !isFlashSale && !!originalPrice && originalPrice > price;
   const displayPrice = isFlashSale ? flashSale.salePrice : price;
   const strikePrice = isFlashSale
     ? price
@@ -58,7 +60,11 @@ export default function ProductCard({
   const currentRating =
     hasReviews && rating !== undefined && rating > 0 ? rating : 0;
   const soldCount = sold ?? 0;
-  const displayedSold = soldCount >= 1000 ? "1k+" : String(soldCount);
+  const showSold = sold !== undefined;
+  const displayedSold =
+    soldCount >= 1000
+      ? `${(soldCount / 1000).toFixed(soldCount >= 10000 ? 0 : 1).replace(/\.0$/, "")}k+`
+      : String(soldCount);
 
   let leadingBadge: React.ReactNode = null;
   if (isFlashSale) {
@@ -66,8 +72,18 @@ export default function ProductCard({
       <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-md shadow-purple-500/25 z-10 select-none">
         {/* Micro electric shimmer */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none animate-electric-glimmer" />
-        <Zap size={11} className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" />
+        <Zap
+          size={11}
+          className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+        />
         FLASH SALE
+      </span>
+    );
+  } else if (isSale) {
+    leadingBadge = (
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-red-500/20 z-10 select-none">
+        <Zap size={11} className="fill-red-200 text-red-100" />
+        SALE
       </span>
     );
   } else if (recommendationReason === "TRENDING") {
@@ -95,12 +111,12 @@ export default function ProductCard({
 
   return (
     <Link
-      href={`/products/${id}`}
+      href={productPath({ productId: id, slug })}
       className={cn(
         "group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300",
         isFlashSale
           ? "bg-white border-2 border-purple-400 shadow-md shadow-purple-500/10 hover:border-purple-600 hover:shadow-xl hover:shadow-purple-500/20"
-          : "bg-white border border-gray-200 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5",
+          : "bg-white border border-gray-300 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5",
         className,
       )}
     >
@@ -182,12 +198,10 @@ export default function ProductCard({
         <div
           className={cn(
             "mt-3 pt-2 flex items-center justify-between text-[11px] text-gray-400 border-t",
-            isFlashSale
-              ? "border-purple-200/80"
-              : "border-gray-200/80",
+            isFlashSale ? "border-purple-200/80" : "border-gray-200/80",
           )}
         >
-          {hasReviews ? (
+          {hasReviews && currentRating > 0 ? (
             <div className="flex items-center gap-1">
               <div className="flex items-center text-amber-400">
                 {[...Array(5)].map((_, i) => {
@@ -218,9 +232,11 @@ export default function ProductCard({
                 {provinceName}
               </span>
             )}
-            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
-              {t("home.soldCount").replace("{count}", displayedSold)}
-            </span>
+            {showSold && (
+              <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
+                {t("home.soldCount").replace("{count}", displayedSold)}
+              </span>
+            )}
           </div>
         </div>
       </div>

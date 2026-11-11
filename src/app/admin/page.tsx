@@ -52,12 +52,7 @@ function AdminDashboardInner() {
   });
   const { data: pendingProducts } = useQuery({
     queryKey: ["admin-dashboard", "pending-products"],
-    queryFn: () =>
-      productService.searchByMerchant({
-        status: "PENDING_REVIEW",
-        page: 0,
-        size: 1,
-      }),
+    queryFn: () => productService.listPendingReviews({ page: 0, size: 1 }),
   });
   const { data: submittedKyc } = useQuery({
     queryKey: ["admin-dashboard", "kyc", "submitted"],
@@ -177,7 +172,7 @@ function AdminDashboardInner() {
                     <Link
                       key={stat.label}
                       href={stat.href}
-                      className="flex items-center justify-between rounded-md border border-gray-200 px-4 py-3 hover:border-blue-200 hover:bg-blue-50"
+                      className="flex items-center justify-between rounded-2xl border border-gray-200/80 shadow-xs px-4 py-3 hover:border-blue-200 hover:bg-blue-50"
                     >
                       <div>
                         <p className="text-sm font-medium text-gray-900">

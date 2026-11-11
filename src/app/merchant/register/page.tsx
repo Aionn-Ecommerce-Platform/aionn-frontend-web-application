@@ -53,7 +53,7 @@ function MerchantRegisterInner() {
   if (success) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center max-w-lg bg-white rounded-3xl border border-gray-400 p-8 sm:p-12 shadow-md">
+        <div className="text-center max-w-lg bg-white rounded-3xl border border-gray-200 p-8 sm:p-12 shadow-md">
           <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle size={40} className="text-emerald-600" />
           </div>
@@ -131,7 +131,7 @@ function MerchantRegisterInner() {
 
         <div className="grid lg:grid-cols-12 gap-8 items-stretch">
           <div className="lg:col-span-7 flex">
-            <div className="bg-white rounded-3xl border border-gray-400 p-8 sm:p-10 shadow-sm w-full">
+            <div className="bg-white rounded-3xl border border-gray-200 p-8 sm:p-10 shadow-sm w-full">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 rounded-md bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
                   <Store size={24} />
@@ -151,7 +151,7 @@ function MerchantRegisterInner() {
                   error={fieldErrors.name}
                   required
                   maxLength={100}
-                  className="rounded-md border-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all py-3 font-medium text-base"
+                  className="rounded-md border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all py-3 font-medium text-base"
                 />
 
                 <div className="bg-blue-50/50 rounded-2xl border border-blue-100 p-6 space-y-4">
@@ -193,7 +193,7 @@ function MerchantRegisterInner() {
             </h2>
 
             <div className="grid flex-1 grid-cols-1 gap-3 pt-4">
-              <div className="bg-white rounded-2xl border border-gray-400 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-9 h-9 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-3">
                   <Sparkles size={18} />
                 </div>
@@ -205,7 +205,7 @@ function MerchantRegisterInner() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-400 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-9 h-9 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-3">
                   <MessageSquare size={18} />
                 </div>
@@ -217,7 +217,7 @@ function MerchantRegisterInner() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-400 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-9 h-9 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 mb-3">
                   <BarChart3 size={18} />
                 </div>
@@ -229,7 +229,7 @@ function MerchantRegisterInner() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-400 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-9 h-9 rounded-md bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-3">
                   <Ticket size={18} />
                 </div>

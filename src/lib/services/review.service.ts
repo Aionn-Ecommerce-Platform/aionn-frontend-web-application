@@ -13,11 +13,17 @@ export interface Review {
   status: ReviewStatus;
   merchantReply: string | null;
   merchantRepliedAt: string | null;
+  reportedByMerchantId?: string | null;
+  reportReason?: string | null;
+  reportedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  userName?: string | null;
+  userDisplayName?: string | null;
+  userAvatarUrl?: string | null;
 }
 
-export interface RatingSummary {
+interface RatingSummary {
   productId?: string;
   average: number;
   total: number;
@@ -101,6 +107,20 @@ export const reviewService = {
     return api.post<Review>(`/catalog/reviews/${reviewId}/reply`, data);
   },
 
+  report(reviewId: string, data: { reason: string }) {
+    return api.post<Review>(`/catalog/reviews/${reviewId}/report`, data);
+  },
+
+  listReported(page = 0, size = 20) {
+    return api.page<Review>("/catalog/admin/reviews/reported", {
+      query: { page, size },
+    });
+  },
+
+  adminDelete(reviewId: string) {
+    return api.delete<void>(`/catalog/admin/reviews/${reviewId}`);
+  },
+
   hide(reviewId: string) {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/hide`);
   },
@@ -115,3 +135,4 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/restore`);
   },
 };
+

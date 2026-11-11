@@ -1,9 +1,56 @@
+import type { GeographyItem } from "@/types";
+
 interface LocalizedAddress {
   detailAddress: string;
   wardName?: string | null;
   districtName?: string | null;
   provinceName?: string | null;
   fullAddress?: string | null;
+}
+
+const ISO_PROVINCE_MAP: Record<string, { vi: string; en: string }> = {
+  "VN-HN": { vi: "Thành phố Hà Nội", en: "Hanoi" },
+  "VN-SG": { vi: "Thành phố Hồ Chí Minh", en: "Ho Chi Minh City" },
+  "VN-HCM": { vi: "Thành phố Hồ Chí Minh", en: "Ho Chi Minh City" },
+  "VN-DN": { vi: "Tỉnh Đồng Nai", en: "Dong Nai Province" },
+  "VN-DAD": { vi: "Thành phố Đà Nẵng", en: "Da Nang" },
+  "VN-HP": { vi: "Thành phố Hải Phòng", en: "Hai Phong" },
+  "VN-HPH": { vi: "Thành phố Hải Phòng", en: "Hai Phong" },
+  "VN-CT": { vi: "Thành phố Cần Thơ", en: "Can Tho" },
+  "VN-BD": { vi: "Tỉnh Bình Dương", en: "Binh Duong Province" },
+  "VN-KH": { vi: "Tỉnh Khánh Hòa", en: "Khanh Hoa Province" },
+  "VN-QN": { vi: "Tỉnh Quảng Ninh", en: "Quang Ninh Province" },
+  "01": { vi: "Thành phố Hà Nội", en: "Hanoi" },
+  "79": { vi: "Thành phố Hồ Chí Minh", en: "Ho Chi Minh City" },
+};
+
+export function resolveProvinceName(
+  provinceCode: string | null | undefined,
+  provinces?: GeographyItem[],
+  locale = "vi",
+): string | null {
+  if (!provinceCode) return null;
+  const normalized = provinceCode.trim();
+  if (!normalized) return null;
+
+  if (provinces && provinces.length > 0) {
+    const match = provinces.find(
+      (p) =>
+        p.code.toLowerCase() === normalized.toLowerCase() ||
+        p.code.toLowerCase() === normalized.replace(/^vn-/i, "").toLowerCase(),
+    );
+    if (match) {
+      return locale === "en" && match.nameEn ? match.nameEn : match.name;
+    }
+  }
+
+  const upperCode = normalized.toUpperCase();
+  const isoMatch = ISO_PROVINCE_MAP[upperCode];
+  if (isoMatch) {
+    return locale === "en" ? isoMatch.en : isoMatch.vi;
+  }
+
+  return null;
 }
 
 export function cleanProvinceName(name: string): string {

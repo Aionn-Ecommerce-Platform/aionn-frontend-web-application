@@ -23,7 +23,7 @@ import {
 } from "@/lib/domain/catalog";
 import type { ProductSort } from "@/types";
 
-import { ChipButton, SortDropdown } from "./CatalogControls";
+import { ChipButton, QuickSortTabs } from "./CatalogControls";
 import CatalogSidebar from "./CatalogSidebar";
 import CatalogResults from "./CatalogResults";
 function ProductsInner() {
@@ -45,9 +45,9 @@ function ProductsInner() {
   );
   const priceMin = searchParams.get("priceMin");
   const priceMax = searchParams.get("priceMax");
-  const sortParam = (searchParams.get("sort") ?? "NEWEST") as ProductSort;
+  const sortParam = (searchParams.get("sort") ?? "RELEVANCE") as ProductSort;
   const page = Number(searchParams.get("page") ?? 0) || 0;
-  const size = 50;
+  const size = 48;
 
   const ratingMin = searchParams.get("ratingMin")
     ? Number(searchParams.get("ratingMin"))
@@ -288,67 +288,30 @@ function ProductsInner() {
   return (
     <div className="bg-gray-50 min-h-screen relative">
       {isFetching && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-blue-100/30 z-[9999] overflow-hidden">
-          <div className="animate-top-loader rounded-r-full" />
+        <div className="fixed top-0 left-0 right-0 h-1 bg-black/10 z-[9999] overflow-hidden">
+          <div className="animate-top-loader rounded-r-full !bg-gray-950" />
         </div>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
-              {queryText ? queryText : t("products.title")}
-            </h1>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+            {queryText ? queryText : t("products.title")}
+          </h1>
+          {queryText && (
             <p className="text-sm text-gray-500 mt-1">
               {isLoading
                 ? t("products.loading")
-                : queryText
-                  ? t("products.searchResults", {
-                      count: totalElements,
-                      query: queryText,
-                    })
-                  : hasActiveFilter
-                    ? t("products.resultsCountFiltered").replace(
-                        "{count}",
-                        String(totalElements),
-                      )
-                    : t("products.resultsCount").replace(
-                        "{count}",
-                        String(totalElements),
-                      )}
+                : t("products.searchResults", {
+                    count: totalElements,
+                    query: queryText,
+                  })}
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <SortDropdown value={sortParam} onChange={setSort} t={t} />
-            <div className="flex h-10 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs p-0.5">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "grid"
-                    ? "bg-gray-950 text-white shadow-xs"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-                aria-label="Grid view"
-              >
-                <Grid3X3 size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`flex h-full items-center justify-center px-3 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "list"
-                    ? "bg-gray-950 text-white shadow-xs"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-                aria-label="List view"
-              >
-                <List size={16} />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {hasActiveFilter && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white p-4 rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-            <span className="text-gray-900 font-bold text-xs mr-1 uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-2 mb-6 text-sm bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-4 rounded-2xl border border-purple-800/60 shadow-xs text-white">
+            <span className="text-white font-bold text-xs mr-1 uppercase tracking-wider">
               {t("products.filterBy")}:
             </span>
             {categoryIds.map((id) => (
@@ -405,7 +368,7 @@ function ProductsInner() {
             ))}
             <button
               onClick={clearAll}
-              className="text-xs text-brand hover:underline font-bold transition-colors ml-2 cursor-pointer"
+              className="text-xs text-white/90 hover:text-white hover:underline font-bold transition-colors ml-2 cursor-pointer"
             >
               {t("products.clearAll")}
             </button>
@@ -423,7 +386,7 @@ function ProductsInner() {
             priceMin={priceMin}
             priceMax={priceMax}
             priceBounds={facets?.priceRange ?? null}
-            attributes={facets?.attributes ?? {}}
+            attributes={{}}
             onSaleChange={toggleOnSale}
             onCategory={(id) => toggleMulti("categoryIds", id)}
             onBrand={(id) => toggleMulti("brandIds", id)}
@@ -431,7 +394,35 @@ function ProductsInner() {
             onRating={toggleRating}
             onPrice={setPriceRange}
           />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
+              <div className="flex items-center h-8.5 border border-gray-950 rounded-full overflow-hidden bg-white shadow-xs p-0.5 shrink-0">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`flex h-full items-center justify-center px-2.5 rounded-full transition-all cursor-pointer ${
+                    viewMode === "grid"
+                      ? "bg-gray-950 text-white shadow-xs"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Grid3X3 size={15} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`flex h-full items-center justify-center px-2.5 rounded-full transition-all cursor-pointer ${
+                    viewMode === "list"
+                      ? "bg-gray-950 text-white shadow-xs"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                  aria-label="List view"
+                >
+                  <List size={15} />
+                </button>
+              </div>
+            </div>
+
             <CatalogResults
               products={products}
               loading={isLoading}

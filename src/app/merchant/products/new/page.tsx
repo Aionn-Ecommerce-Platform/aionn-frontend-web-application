@@ -20,6 +20,10 @@ interface VariantDraft {
   attribute: string;
   value: string;
   price: string;
+  weightGram: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
 }
 
 function AttributeDropdown({
@@ -53,7 +57,7 @@ function AttributeDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-400 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-blue-400 focus:outline-none"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-blue-400 focus:outline-none"
         aria-expanded={open}
       >
         <span className="truncate">{current?.label}</span>
@@ -64,7 +68,7 @@ function AttributeDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-400 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -102,7 +106,15 @@ function NewProductInner() {
   const [tags, setTags] = useState("");
   const [aiDescription, setAiDescription] = useState("");
   const [variants, setVariants] = useState<VariantDraft[]>([
-    { attribute: "color", value: "", price: "" },
+    {
+      attribute: "color",
+      value: "",
+      price: "",
+      weightGram: "",
+      lengthCm: "",
+      widthCm: "",
+      heightCm: "",
+    },
   ]);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -146,7 +158,18 @@ function NewProductInner() {
   }
 
   const addVariant = () => {
-    setVariants([...variants, { attribute: "color", value: "", price: "" }]);
+    setVariants([
+      ...variants,
+      {
+        attribute: "color",
+        value: "",
+        price: "",
+        weightGram: "",
+        lengthCm: "",
+        widthCm: "",
+        heightCm: "",
+      },
+    ]);
   };
 
   const updateVariant = (idx: number, patch: Partial<VariantDraft>) => {
@@ -170,12 +193,30 @@ function NewProductInner() {
 
       for (const v of variants) {
         const price = parseFloat(v.price);
+        const weightGram = parseInt(v.weightGram, 10);
         if (!v.value.trim() || !Number.isFinite(price) || price <= 0) continue;
+        if (!Number.isFinite(weightGram) || weightGram <= 0) {
+          toast.error(
+            t("merchant.productNew.errorWeightRequired", {
+              value: v.value,
+            }),
+          );
+          continue;
+        }
+        const lengthCm = parseFloat(v.lengthCm);
+        const widthCm = parseFloat(v.widthCm);
+        const heightCm = parseFloat(v.heightCm);
+        const hasBox =
+          Number.isFinite(lengthCm) &&
+          Number.isFinite(widthCm) &&
+          Number.isFinite(heightCm);
         try {
           await productService.defineVariant(product.productId, {
             attributeValues: { [v.attribute]: v.value.trim() },
             price,
             currency: "VND",
+            weightGram,
+            ...(hasBox ? { lengthCm, widthCm, heightCm } : {}),
           });
         } catch (err) {
           toast.error(
@@ -233,7 +274,7 @@ function NewProductInner() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <h2 className="font-semibold text-gray-900 mb-4">
               {t("merchant.productNew.basicInfo")}
             </h2>
@@ -251,7 +292,7 @@ function NewProductInner() {
             </div>
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">
                 {t("merchant.productNew.productImages")}
@@ -306,7 +347,7 @@ function NewProductInner() {
             />
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-gray-900">
@@ -369,6 +410,63 @@ function NewProductInner() {
                       }
                     />
                   </div>
+                  <div className="w-32">
+                    <Input
+                      label={
+                        i === 0
+                          ? t("merchant.productNew.weightGramLabel")
+                          : undefined
+                      }
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      placeholder="500"
+                      value={v.weightGram}
+                      onChange={(e) =>
+                        updateVariant(i, { weightGram: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.lengthCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="15"
+                      value={v.lengthCm}
+                      onChange={(e) =>
+                        updateVariant(i, { lengthCm: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.widthCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="10"
+                      value={v.widthCm}
+                      onChange={(e) =>
+                        updateVariant(i, { widthCm: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      label={i === 0 ? t("merchant.productNew.heightCmLabel") : undefined}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder="5"
+                      value={v.heightCm}
+                      onChange={(e) =>
+                        updateVariant(i, { heightCm: e.target.value })
+                      }
+                    />
+                  </div>
                   {variants.length > 1 && (
                     <button
                       type="button"
@@ -383,7 +481,7 @@ function NewProductInner() {
             </div>
           </div>
 
-          <div className="max-w-3xl bg-white rounded-md border border-gray-400 p-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
             <h2 className="font-semibold text-gray-900 mb-4">
               {t("merchant.productNew.aiMetadataTitle")}
             </h2>

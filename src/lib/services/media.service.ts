@@ -36,7 +36,7 @@ export async function uploadToCloudinary(
   return asset.url;
 }
 
-export interface CloudinaryAsset {
+interface CloudinaryAsset {
   url: string;
   publicId: string;
 }
@@ -51,6 +51,9 @@ export async function uploadAssetToCloudinary(
   form.append("timestamp", String(signature.timestamp));
   form.append("signature", signature.signature);
   if (signature.folder) form.append("folder", signature.folder);
+  // Cloudinary includes "type" in the signature when the backend sets it (KYC uploads
+  // are signed as private assets); omitting it makes the signature invalid.
+  if (signature.type) form.append("type", signature.type);
 
   const res = await fetch(signature.uploadUrl, {
     method: "POST",
@@ -79,9 +82,7 @@ export async function uploadAssetToCloudinary(
       if (parsed.protocol === "https:") {
         url = data.url;
       }
-    } catch {
-      // Invalid URL format
-    }
+    } catch {}
   }
   if (!url) throw new Error("Cloudinary did not return a secure HTTPS URL");
   if (!data.public_id) throw new Error("Cloudinary did not return a public ID");

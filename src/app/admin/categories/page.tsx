@@ -244,11 +244,11 @@ function AdminCategoriesInner() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : tree && tree.length > 0 ? (
-          <div className="bg-white rounded-md border border-gray-400 p-4">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
             {tree.map((node) => (
               <CategoryTreeItem
                 key={node.category.categoryId}
@@ -261,7 +261,7 @@ function AdminCategoriesInner() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <FolderTree className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminCategories.emptyTitle")}

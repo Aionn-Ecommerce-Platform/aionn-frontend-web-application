@@ -8,6 +8,7 @@ import {
   Boxes,
   CreditCard,
   Folder,
+  HelpCircle,
   Home,
   Image,
   ListChecks,
@@ -89,6 +90,11 @@ const merchantItems: ConsoleMenuItem[] = [
     icon: MessageSquare,
   },
   {
+    labelKey: "console.merchant.questions",
+    href: "/merchant/questions",
+    icon: HelpCircle,
+  },
+  {
     labelKey: "console.merchant.vouchers",
     href: "/merchant/promotions/vouchers",
     icon: Ticket,
@@ -156,6 +162,12 @@ const adminItems: ConsoleMenuItem[] = [
     href: "/admin/categories",
     icon: Folder,
     roles: ["SYSTEM_ADMIN", "CS_ADMIN"],
+  },
+  {
+    labelKey: "console.admin.collections",
+    href: "/admin/collections",
+    icon: Folder,
+    roles: ["SYSTEM_ADMIN"],
   },
   {
     labelKey: "console.admin.attributes",
@@ -246,10 +258,10 @@ export default function ConsoleLayout({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           <aside className="w-64 flex-shrink-0 hidden lg:block">
-            <div className="bg-white rounded-md border border-gray-400 p-5 space-y-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-150 pb-3">
-                <Icon size={16} className="text-gray-500" />
-                {title}
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-5 space-y-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] sticky top-24">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3.5">
+                <Icon size={18} className="text-blue-600" />
+                <span>{title}</span>
               </h3>
               <nav className="space-y-1">
                 {items.map((item) => {
@@ -263,15 +275,15 @@ export default function ConsoleLayout({
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                        "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                         isActive
-                          ? "bg-blue-50 text-blue-700 font-bold"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-55",
+                          ? "bg-blue-50 text-blue-700 font-semibold shadow-xs"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
                       )}
                     >
                       <ItemIcon
                         size={18}
-                        className={isActive ? "text-blue-700" : "text-gray-500"}
+                        className={isActive ? "text-blue-600" : "text-gray-400"}
                       />
                       <span>{t(item.labelKey)}</span>
                     </Link>

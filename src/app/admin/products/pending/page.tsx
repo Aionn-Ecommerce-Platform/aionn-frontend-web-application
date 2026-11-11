@@ -34,25 +34,12 @@ import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 function AdminProductApprovalInner() {
   const { t, locale } = useTranslation();
   const [page, setPage] = useState(0);
-  const [filter, setFilter] = useState<"PENDING" | "REJECTED" | "ALL">(
-    "PENDING",
-  );
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
-  const searchParams = {
-    page,
-    size: 20,
-    status:
-      filter === "PENDING"
-        ? ("PENDING_REVIEW" as const)
-        : filter === "REJECTED"
-          ? ("REJECTED" as const)
-          : undefined,
-  };
+  const query = { page, size: 20 };
   const { data, isLoading: loading } = useQuery({
-    queryKey: qk.productSearchByMerchant(searchParams),
-    queryFn: () => productService.searchByMerchant(searchParams),
-    enabled: filter === "PENDING",
+    queryKey: qk.adminPendingReviews(query),
+    queryFn: () => productService.listPendingReviews(query),
   });
   const refetch = () => qc.invalidateQueries({ queryKey: ["products"] });
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
@@ -138,25 +125,6 @@ function AdminProductApprovalInner() {
         </h1>
 
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex gap-2">
-            {(["PENDING", "REJECTED", "ALL"] as const).map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? "primary" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setFilter(f);
-                  setPage(0);
-                }}
-              >
-                {f === "PENDING"
-                  ? t("adminProductApproval.pending")
-                  : f === "REJECTED"
-                    ? t("adminProductApproval.rejected")
-                    : t("common.all")}
-              </Button>
-            ))}
-          </div>
           <div className="flex-1">
             <div className="relative max-w-md">
               <Search
@@ -174,12 +142,8 @@ function AdminProductApprovalInner() {
           </div>
         </div>
 
-        {filter !== "PENDING" ? (
-          <div className="rounded-md border border-amber-300 bg-amber-50 p-6 text-center text-sm text-amber-800">
-            {t("adminProductApproval.filterUnavailable")}
-          </div>
-        ) : loading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : filteredProducts.length > 0 ? (
@@ -187,7 +151,7 @@ function AdminProductApprovalInner() {
             {filteredProducts.map((product) => (
               <div
                 key={product.productId}
-                className="bg-white rounded-md border border-gray-400 p-6"
+                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
               >
                 <div className="flex gap-6">
                   <div className="flex-shrink-0">
@@ -332,15 +296,13 @@ function AdminProductApprovalInner() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <Package className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("adminProductApproval.emptyTitle")}
             </h3>
             <p className="text-sm text-gray-500">
-              {filter === "PENDING"
-                ? t("adminProductApproval.emptyPending")
-                : t("adminProductApproval.changeFilter")}
+              {t("adminProductApproval.emptyPending")}
             </p>
           </div>
         )}

@@ -101,9 +101,7 @@ export default function LanguageSwitcher() {
                               }
                             });
                         })
-                        .catch(() => {
-                          // Silent background update; does not interrupt user flow
-                        });
+                        .catch(() => {});
                     }
 
                     qc.invalidateQueries();

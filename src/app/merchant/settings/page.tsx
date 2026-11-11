@@ -114,7 +114,7 @@ function MerchantSettingsInner() {
   if (!merchant) {
     return (
       <div className="bg-gray-50 min-h-screen flex items-center justify-center px-4">
-        <div className="bg-white rounded-md border border-gray-400 p-8 max-w-md text-center">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-8 max-w-md text-center">
           <Store className="mx-auto text-gray-300 mb-4" size={40} />
           <h2 className="text-base font-semibold text-gray-900 mb-1">
             {t("merchant.settings.noMerchantTitle")}
@@ -185,7 +185,7 @@ function MerchantSettingsInner() {
           </div>
         )}
 
-        <div className="bg-white rounded-md border border-gray-400 p-6 space-y-5">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 space-y-5">
           <Field label={t("merchant.settings.nameLabel")} required>
             <input
               type="text"
@@ -261,7 +261,7 @@ function MerchantSettingsInner() {
             </select>
           </Field>
 
-          <div className="pt-4 border-t border-gray-400 flex items-center justify-between">
+          <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
             <p className="text-xs text-gray-400">
               {t("merchant.settings.updatedAt", {
                 time: formatDateTime(merchant.updatedAt),

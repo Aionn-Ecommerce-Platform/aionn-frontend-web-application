@@ -7,10 +7,11 @@ import {
   Smartphone,
   Clock,
   AlertTriangle,
+  Trash2,
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, ConfirmDialog } from "@/shared/ui";
+import { Button, Badge } from "@/shared/ui";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { MfaModal, PasswordModal } from "./SecurityModals";
@@ -159,18 +160,20 @@ function SecurityInner() {
     }
   }
 
-  async function handleRequestDeletion() {
+  async function handleRequestDeletion(payload?: { password: string; mfaCode?: string }) {
     setActionLoading(true);
     try {
-      await userService.requestAccountDeletion();
+      await userService.requestAccountDeletion(payload);
+
       toast.success(t("security.deleteRequested"));
 
       await refreshProfile();
+      setDeleteAccountOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
       setActionLoading(false);
-      setDeleteAccountOpen(false);
+
     }
   }
 
@@ -180,6 +183,7 @@ function SecurityInner() {
       await userService.cancelAccountDeletion();
       toast.success(t("security.deleteCancelled"));
       await refreshProfile();
+      setDeleteAccountOpen(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -241,7 +245,13 @@ function SecurityInner() {
             </div>
             <Button
               size="sm"
-              onClick={() => setMfaModalOpen(true)}
+              onClick={() => {
+              setMfaPassword("");
+              setMfaCode("");
+              setMfaStep("password");
+              setMfaSetup(null);
+              setMfaModalOpen(true);
+            }}
               className="bg-brand hover:bg-brand-strong text-white font-semibold rounded-xl shadow-xs shrink-0"
             >
               {t("security.enableNow")}
@@ -379,16 +389,21 @@ function SecurityInner() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-red-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
-          <div className="flex items-center gap-3.5 mb-5 border-b border-red-100 pb-4">
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-              <AlertTriangle size={20} />
+        <div className="bg-gradient-to-b from-red-50/70 via-red-50/20 to-white rounded-2xl border-2 border-red-200/90 shadow-[0_4px_24px_rgba(239,68,68,0.08)] p-6 sm:p-7 transition-all">
+          <div className="flex items-center gap-3.5 mb-5 border-b border-red-200/70 pb-4">
+            <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 ring-4 ring-red-50">
+              <AlertTriangle size={20} className="stroke-[2.2]" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-red-950">
-                {t("security.dangerTitle")}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-red-950">
+                  {t("security.dangerTitle")}
+                </h3>
+                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 rounded-md border border-red-200">
+                  Danger Zone
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-red-700/80 mt-0.5 font-medium">
                 {t("security.dangerDesc")}
               </p>
             </div>
@@ -411,9 +426,9 @@ function SecurityInner() {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 rounded-xl p-4 border border-red-100 shadow-2xs">
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-bold text-gray-900">
                   {t("security.deleteAccount")}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -424,8 +439,9 @@ function SecurityInner() {
                 variant="danger"
                 size="sm"
                 onClick={() => setDeleteAccountOpen(true)}
-                className="rounded-xl shrink-0"
+                className="rounded-xl shrink-0 flex items-center gap-1.5 font-semibold shadow-xs"
               >
+                <Trash2 size={15} />
                 {t("security.requestDeletion")}
               </Button>
             </div>
@@ -451,31 +467,19 @@ function SecurityInner() {
         password={mfaPassword}
         code={mfaCode}
         secret={mfaSetup?.secret}
+        otpauthUri={mfaSetup?.otpauthUri}
         loading={mfaLoading}
         onClose={() => {
           setMfaModalOpen(false);
           setMfaStep("password");
           setMfaSetup(null);
+          setMfaPassword("");
+          setMfaCode("");
         }}
         onPassword={setMfaPassword}
         onCode={setMfaCode}
         onSetup={handleMfaSetup}
         onEnable={handleMfaEnable}
-      />
-      <ConfirmDialog
-        isOpen={revokeGroupKey !== null}
-        onClose={() => setRevokeGroupKey(null)}
-        onConfirm={() => {
-          if (!revokeGroupKey || !sessions.data) return;
-          const group = groupSessions(sessions.data, currentSessionId).find(
-            (g) => g.key === revokeGroupKey,
-          );
-          if (group) void handleRevokeGroup(group);
-        }}
-        title={t("security.revokeSessionTitle")}
-        message={t("security.revokeSessionMessage")}
-        confirmLabel={t("security.revoke")}
-        loading={actionLoading}
       />
       <SecurityConfirmations
         revokeOpen={revokeGroupKey !== null}

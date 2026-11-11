@@ -91,7 +91,7 @@ function AdminNotificationDispatchInner() {
           {t("adminNotificationDispatch.title")}
         </h1>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
             <Send size={18} className="text-blue-600" />
             {t("adminNotificationDispatch.dispatchTitle")}
@@ -167,7 +167,7 @@ function AdminNotificationDispatchInner() {
           </div>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
             <BarChart3 size={18} className="text-purple-600" />
             Campaign Analytics

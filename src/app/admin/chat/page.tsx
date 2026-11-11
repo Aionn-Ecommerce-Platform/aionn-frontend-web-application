@@ -45,7 +45,7 @@ function AdminChatInner() {
           <p className="text-sm text-gray-500">{t("adminChat.description")}</p>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <div className="flex items-end gap-3 mb-4">
             <Input
               label="Conversation ID"
@@ -73,7 +73,7 @@ function AdminChatInner() {
           </div>
         </div>
 
-        <div className="bg-white rounded-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <MessageCircle size={16} className="text-blue-600" />
             {t("adminChat.myConversations")}

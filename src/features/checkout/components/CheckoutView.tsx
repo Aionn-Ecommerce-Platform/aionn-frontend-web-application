@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Truck } from "lucide-react";
+import { Check, Truck } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, EmptyState } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -57,7 +57,9 @@ function CheckoutInner() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.user?.userId);
   const selectedSkuParam = searchParams.get("items") ?? "";
-  const [selectedSkuIds, setSelectedSkuIds] = useState<string[] | null>(null);
+  const [selectedSkuIds] = useState<string[]>(() =>
+    getStoredCheckoutSelection(selectedSkuParam),
+  );
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -71,14 +73,9 @@ function CheckoutInner() {
   const [savingPaymentPreference, setSavingPaymentPreference] = useState(false);
 
   useEffect(() => {
-    const selection = getStoredCheckoutSelection(selectedSkuParam);
-    const frameId = window.requestAnimationFrame(() => {
-      setSelectedSkuIds(selection);
-    });
     if (selectedSkuParam) {
       router.replace("/checkout", { scroll: false });
     }
-    return () => window.cancelAnimationFrame(frameId);
   }, [router, selectedSkuParam]);
   const checkoutItems = useMemo(
     () => selectCheckoutItems(items, selectedSkuIds),
@@ -88,6 +85,9 @@ function CheckoutInner() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
   );
+  const [note, setNote] = useState("");
+  const [selectedShippingService, setSelectedShippingService] =
+    useState("STANDARD");
   const { data: addresses, isLoading: loadingAddr } = useQuery({
     queryKey: qk.addresses,
     queryFn: () => addressService.list(),
@@ -186,17 +186,19 @@ function CheckoutInner() {
     queryKey: [
       "shipping-quote",
       effectiveAddressId,
-      checkoutItems.map((item) => item.skuId).join(","),
+      activeAddress?.districtCode,
+      activeAddress?.wardCode,
+      checkoutItems.map((item) => `${item.skuId}x${item.qty ?? 1}`).join(","),
       checkoutItems[0]?.currency,
+      // Goods subtotal drives the freeship threshold, so it belongs in the key.
+      checkoutItems.reduce((sum, item) => sum + item.price * (item.qty ?? 1), 0),
     ],
     queryFn: async () => {
       if (!activeAddress) return null;
-      const dimensions = {
-        weightGram: 500,
-        lengthCm: 15,
-        widthCm: 10,
-        heightCm: 5,
-      };
+      const items = checkoutItems.map((item) => ({
+        skuId: item.skuId,
+        qty: item.qty ?? 1,
+      }));
       const quoteAddr = {
         fullName: activeAddress.contactName,
         phone: activeAddress.phone,
@@ -206,17 +208,26 @@ function CheckoutInner() {
         provinceCode: activeAddress.provinceCode,
         countryCode: "VN",
       };
+      const goodsSubtotal = checkoutItems.reduce(
+        (sum, item) => sum + item.price * (item.qty ?? 1),
+        0,
+      );
       return shippingService.quote(
         quoteAddr,
-        dimensions,
+        items,
         checkoutItems[0]?.currency ?? "VND",
+        goodsSubtotal,
       );
     },
     enabled: !!activeAddress && checkoutItems.length > 0,
   });
 
-  const resolvedShippingFee = shippingQuote?.fee ?? 0;
-
+  const shippingOptions = shippingQuote?.options ?? [];
+  const selectedShippingOption =
+    shippingOptions.find((option) => option.code === selectedShippingService) ??
+    shippingOptions[0];
+  const resolvedShippingFee =
+    selectedShippingOption?.fee ?? shippingQuote?.fee ?? 0;
   const selectedVoucher = useMemo(
     () =>
       userVouchers.find((voucher) => voucher.voucherCode === voucherCode) ??
@@ -231,8 +242,8 @@ function CheckoutInner() {
     () => calculateCheckoutPricing(checkoutItems, selectedVoucher),
     [checkoutItems, selectedVoucher],
   );
-  const deliveryDateLabel = shippingQuote?.estimatedDeliveryAt
-    ? `${t("checkout.estimatedDelivery")}: ${formatDate(shippingQuote.estimatedDeliveryAt, locale)}`
+  const deliveryDateLabel = (selectedShippingOption?.estimatedDeliveryAt ?? shippingQuote?.estimatedDeliveryAt)
+    ? `${t("checkout.estimatedDelivery")}: ${formatDate(selectedShippingOption?.estimatedDeliveryAt ?? shippingQuote!.estimatedDeliveryAt!, locale)}`
     : null;
 
   const { data: recommendedProducts } = useQuery({
@@ -246,7 +257,9 @@ function CheckoutInner() {
       await applyVoucher(code, { authenticated: isAuthenticated });
       setVoucherModalOpen(false);
       toast.success(t("checkout.voucherApplied"));
-    } catch {
+    } catch (error) {
+      // Surface the rejection reason so a failed voucher apply isn't silent.
+      toast.error(getErrorMessage(error));
     } finally {
       setApplyingVoucher(false);
     }
@@ -304,8 +317,15 @@ function CheckoutInner() {
     }
   };
 
+  // One idempotency key per place-order attempt, held in a ref so a React
+  // Query retry reuses it instead of minting a new payment.
+  const placeIdempotencyKeyRef = useRef<string | null>(null);
   const placeMutation = useMutation({
     mutationFn: async () => {
+      if (!placeIdempotencyKeyRef.current) {
+        placeIdempotencyKeyRef.current = crypto.randomUUID();
+      }
+      const idempotencyKey = placeIdempotencyKeyRef.current;
       if (checkoutItems.length === 0) {
         throw new Error(t("cart.emptyCart"));
       }
@@ -341,6 +361,8 @@ function CheckoutInner() {
         },
         selectedSkuIds: checkoutItems.map((item) => item.skuId),
         gateway,
+        note: note.trim() || undefined,
+        shippingService: selectedShippingOption?.code,
       });
 
       if (!method && !isVnpay) {
@@ -354,10 +376,7 @@ function CheckoutInner() {
         amount: total,
         currency: order.currency,
         gateway,
-        idempotencyKey:
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        idempotencyKey,
       });
       return { order, payment };
     },
@@ -399,15 +418,10 @@ function CheckoutInner() {
     onError: (err) => {
       toast.error(getErrorMessage(err, t("checkout.orderFailed")));
     },
+    onSettled: () => {
+      placeIdempotencyKeyRef.current = null;
+    },
   });
-
-  if (selectedSkuIds === null) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-      </div>
-    );
-  }
 
   if (items.length === 0 || checkoutItems.length === 0) {
     return (
@@ -454,6 +468,11 @@ function CheckoutInner() {
               currency={checkoutItems[0]?.currency}
               onModal={setAddressModalOpen}
               onAddress={setSelectedAddressId}
+              note={note}
+              onNote={setNote}
+              shippingOptions={shippingOptions}
+              selectedService={selectedShippingOption?.code ?? "STANDARD"}
+              onSelectService={setSelectedShippingService}
               t={t}
             />
             <CheckoutVoucherPanel

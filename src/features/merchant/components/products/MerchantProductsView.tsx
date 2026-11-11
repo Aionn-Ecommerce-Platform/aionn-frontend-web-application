@@ -10,6 +10,7 @@ import { categoryService, productService } from "@/lib/services";
 import { useAuthStore } from "@/stores/auth.store";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { formatCurrency } from "@/shared/lib/utils";
+import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
 import type { ProductStatus } from "@/types";
 import {
@@ -96,7 +97,7 @@ function MerchantProductsInner() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t("merchant.productList.searchPlaceholder")}
-            className="min-w-64 flex-1 rounded-xl border border-gray-400 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="min-w-64 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
           <StatusDropdown value={status} onChange={setStatus} />
           <CategoryDropdown
@@ -149,11 +150,11 @@ function MerchantProductsInner() {
             }
           />
         ) : (
-          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-400 bg-gray-50">
+                  <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
                       {t("merchant.productList.colProduct")}
                     </th>
@@ -208,7 +209,7 @@ function MerchantProductsInner() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-1">
-                            <Link href={`/products/${product.productId}`}>
+                            <Link href={productPath(product)}>
                               <button
                                 className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600"
                                 title={t("merchant.productList.viewAction")}

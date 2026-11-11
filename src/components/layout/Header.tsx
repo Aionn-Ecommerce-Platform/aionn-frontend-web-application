@@ -19,6 +19,7 @@ import {
   LogOut,
   Settings,
   Package,
+  Heart,
   Store,
   MessageSquare,
   Phone,
@@ -77,7 +78,6 @@ function SearchDropdown({
 
   const trimmedQuery = searchQuery.trim();
 
-  // Mode 1: Empty input (History + Trending, max 5 items in total)
   if (!trimmedQuery) {
     const historyItems = recentSearches.slice(0, 5);
     const recommendLimit = Math.max(0, 5 - historyItems.length);
@@ -131,7 +131,6 @@ function SearchDropdown({
     );
   }
 
-  // Mode 2: User is typing (Live autocomplete suggestions, max 5 items)
   return (
     <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
       {isSuggestionsLoading && (
@@ -198,13 +197,17 @@ export default function Header() {
   const debouncedSearchQuery = useDebounce(searchQuery.trim(), 250);
 
   const { data: trendingRecommendations = [] } = useQuery({
-    queryKey: ["search-trending-recommendations"],
+    // Key by user so another account on the same browser can't reuse this feed.
+    queryKey: [
+      "search-trending-recommendations",
+      user?.userId ?? "guest",
+    ],
     queryFn: () => recommendationService.getHomeFeed(5),
     enabled: searchOpen && !debouncedSearchQuery,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: liveSuggestions = [], isFetching: isSuggestionsFetching } =
+  const { data: liveSuggestionsResult, isFetching: isSuggestionsFetching } =
     useQuery({
       queryKey: ["search-live-suggestions", debouncedSearchQuery],
       queryFn: () => productService.searchSuggestions(debouncedSearchQuery, 5),
@@ -212,6 +215,7 @@ export default function Header() {
       placeholderData: keepPreviousData,
       staleTime: 30 * 1000,
     });
+  const liveSuggestions = liveSuggestionsResult?.page.content ?? [];
 
   const isSuggestionsLoading =
     (searchOpen &&
@@ -360,7 +364,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-950 shadow-xs">
-      <div className="bg-gray-50 border-b border-gray-200 text-xs">
+      <div className="bg-gray-50 border-b border-gray-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-end gap-5 h-8 text-gray-600">
             <Link
@@ -547,7 +551,7 @@ export default function Header() {
             >
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
               />
               <input
                 ref={searchInputRef}
@@ -556,7 +560,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100/80 focus:bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-200 outline-none transition-all shadow-xs"
+                className="w-full pl-11 pr-22 py-2.5 rounded-full bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
@@ -574,7 +578,7 @@ export default function Header() {
               <button
                 type="submit"
                 aria-label={t("common.search")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-900 hover:bg-black text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-gray-950 hover:bg-black text-white flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer z-10"
               >
                 <Search size={16} />
               </button>
@@ -666,6 +670,13 @@ export default function Header() {
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <Package size={16} /> {t("common.orders")}
+                        </Link>
+                        <Link
+                          href="/account/wishlist"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Heart size={16} /> {t("memberSidebar.wishlist")}
                         </Link>
                         {hasMerchant && (
                           <Link

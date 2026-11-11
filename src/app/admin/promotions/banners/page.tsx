@@ -94,7 +94,6 @@ function AdminBannersInner() {
           displayOrder: prevCurrentOrder,
         });
       } catch (err) {
-        // Rollback current banner order if adjacent update fails
         await adminPromotionBannerService
           .update(current.bannerId, { displayOrder: prevCurrentOrder })
           .catch(() => {});
@@ -231,7 +230,7 @@ function AdminBannersInner() {
             {banners.map((b, index) => (
               <div
                 key={b.bannerId}
-                className="bg-white rounded-md border border-gray-400 overflow-hidden"
+                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden"
               >
                 <div className="aspect-[16/6] bg-gray-100 relative overflow-hidden">
                   <AppImage
@@ -247,7 +246,7 @@ function AdminBannersInner() {
                   <h3 className="font-semibold text-gray-900 mb-1">
                     {b.title}
                   </h3>
-                  <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-400">
+                  <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                     <Button
                       size="sm"
                       variant="ghost"

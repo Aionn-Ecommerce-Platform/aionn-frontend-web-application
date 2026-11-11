@@ -16,6 +16,9 @@ interface OrderItem {
   unitPrice: number;
   warehouseId: string | null;
   reservationId: string | null;
+  productName?: string | null;
+  imageUrl?: string | null;
+  variantLabel?: string | null;
 }
 
 export interface Order {
@@ -45,6 +48,8 @@ export interface Order {
   updatedAt: string;
   completedAt: string | null;
   cancelledAt: string | null;
+  note?: string | null;
+  shippingService?: string | null;
 }
 
 export interface MerchantOrderAnalytics {

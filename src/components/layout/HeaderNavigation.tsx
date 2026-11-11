@@ -21,6 +21,7 @@ export default function HeaderNavigation({
     { href: "/products", label: t("nav.allProducts") },
     { href: "/categories", label: t("nav.categories") },
     { href: "/promotions", label: t("nav.promotions") },
+    { href: "/flash-sales", label: t("nav.flashSales") },
     { href: "/merchants", label: t("nav.shops") },
   ];
   const mobileLinks = [
@@ -49,7 +50,7 @@ export default function HeaderNavigation({
                 />
                 <input
                   placeholder={t("common.search")}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm focus:ring-2 focus:ring-blue-100 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-950 bg-white text-gray-900 text-sm focus:ring-2 focus:ring-gray-300 focus:outline-none"
                 />
               </div>
               <nav className="space-y-1">
@@ -68,7 +69,7 @@ export default function HeaderNavigation({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="hidden md:block border-t border-gray-100">
+      <div className="hidden md:block">
         <div>
           <nav className="flex items-center gap-8 h-10 text-sm">
             {primaryLinks.map((link) => (

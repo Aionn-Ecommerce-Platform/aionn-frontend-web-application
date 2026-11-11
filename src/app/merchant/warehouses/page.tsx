@@ -85,7 +85,7 @@ function MerchantWarehousesInner() {
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-md border border-gray-400 p-12 flex justify-center">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
           </div>
         ) : !warehouses || warehouses.length === 0 ? (
@@ -101,7 +101,7 @@ function MerchantWarehousesInner() {
               return (
                 <div
                   key={wh.warehouseId}
-                  className="bg-white rounded-md border border-gray-400 p-5"
+                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ function MerchantWarehousesInner() {
                     })}
                   </p>
 
-                  <div className="flex items-center gap-2 pt-3 border-t border-gray-400">
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
                     {wh.status === "ACTIVE" ? (
                       <Button
                         variant="outline"

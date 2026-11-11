@@ -81,13 +81,13 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
   return (
     <div className="space-y-6">
       {summary && totalReviews > 0 && (
-        <div className="bg-orange-50/40 border border-orange-100 rounded-sm p-6 flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8 pb-2">
           <div className="flex flex-col items-center justify-center min-w-[140px] text-center">
-            <div className="text-xl sm:text-2xl font-medium text-red-500">
+            <div className="text-xl sm:text-2xl font-medium text-gray-950">
               <span className="text-3xl sm:text-4xl font-bold">
                 {averageRating.toFixed(1)}
               </span>{" "}
-              <span className="text-base sm:text-lg">
+              <span className="text-base sm:text-lg text-gray-500">
                 {t("reviews.outOfFive")}
               </span>
             </div>
@@ -97,23 +97,20 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
                   key={star}
                   className={`w-5 h-5 ${
                     star <= Math.round(averageRating)
-                      ? "fill-red-500 text-red-500"
-                      : "text-gray-300 fill-gray-200"
+                      ? "fill-amber-400 text-amber-400"
+                      : "text-gray-200 fill-gray-100"
                   }`}
                 />
               ))}
             </div>
           </div>
 
-          <div className="flex-1 flex flex-wrap gap-2.5">
+          {/* Filter pills match the catalog sort pills (rounded-full, dark active) */}
+          <div className="flex-1 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setActiveFilter("all")}
-              className={`px-4 py-1.5 text-sm rounded-xs border transition-colors ${
-                activeFilter === "all"
-                  ? "border-red-500 text-red-500 bg-white font-medium shadow-2xs"
-                  : "border-gray-200 text-gray-700 bg-white hover:border-gray-300"
-              }`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "all" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.allFilter")}
             </button>
@@ -124,11 +121,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
                   key={star}
                   type="button"
                   onClick={() => setActiveFilter(star as 5 | 4 | 3 | 2 | 1)}
-                  className={`px-4 py-1.5 text-sm rounded-xs border transition-colors ${
-                    activeFilter === star
-                      ? "border-red-500 text-red-500 bg-white font-medium shadow-2xs"
-                      : "border-gray-200 text-gray-700 bg-white hover:border-gray-300"
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === star ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
                 >
                   {t("reviews.starFilter", { star, count })}
                 </button>
@@ -137,22 +130,14 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             <button
               type="button"
               onClick={() => setActiveFilter("with_comment")}
-              className={`px-4 py-1.5 text-sm rounded-xs border transition-colors ${
-                activeFilter === "with_comment"
-                  ? "border-red-500 text-red-500 bg-white font-medium shadow-2xs"
-                  : "border-gray-200 text-gray-700 bg-white hover:border-gray-300"
-              }`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_comment" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withComment", { count: commentCount })}
             </button>
             <button
               type="button"
               onClick={() => setActiveFilter("with_media")}
-              className={`px-4 py-1.5 text-sm rounded-xs border transition-colors ${
-                activeFilter === "with_media"
-                  ? "border-red-500 text-red-500 bg-white font-medium shadow-2xs"
-                  : "border-gray-200 text-gray-700 bg-white hover:border-gray-300"
-              }`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_media" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withMedia", { count: mediaCount })}
             </button>
@@ -186,7 +171,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
             aria-label={t("common.previous")}
-            className="h-8.5 px-2.5 border border-gray-200 rounded-xs text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            className="h-8.5 px-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronLeft size={16} />
           </button>
@@ -195,9 +180,9 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               key={i}
               type="button"
               onClick={() => setPage(i)}
-              className={`min-w-8.5 h-8.5 px-3 rounded-xs text-sm font-medium transition-colors cursor-pointer ${
+              className={`min-w-8.5 h-8.5 px-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                 page === i
-                  ? "bg-red-500 text-white shadow-xs font-semibold"
+                  ? "bg-gray-950 text-white shadow-xs font-semibold"
                   : "border border-gray-200 text-gray-700 hover:bg-gray-50"
               }`}
             >
@@ -211,7 +196,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             }
             disabled={page >= Math.max(1, totalPages) - 1}
             aria-label={t("common.next")}
-            className="h-8.5 px-2.5 border border-gray-200 rounded-xs text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            className="h-8.5 px-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronRight size={16} />
           </button>
@@ -238,7 +223,7 @@ function ReviewCard({
             key={star}
             className={`w-4 h-4 ${
               star <= rating
-                ? "fill-yellow-400 text-yellow-400"
+                ? "fill-amber-400 text-amber-400"
                 : "text-gray-300"
             }`}
           />
@@ -247,18 +232,42 @@ function ReviewCard({
     );
   };
 
+  const buyerName = (() => {
+    const name = review.userDisplayName || review.userName;
+    if (name && name.trim().length > 0) {
+      return name.trim();
+    }
+    return t("reviews.customer");
+  })();
+
+  const initial = (() => {
+    const name = review.userDisplayName || review.userName;
+    if (name && name.trim().length > 0) {
+      return name.trim().charAt(0).toUpperCase();
+    }
+    return "K";
+  })();
+
   return (
-    <div className="border border-gray-200 rounded-sm p-4 hover:shadow-md transition-shadow">
+    <div className="border border-gray-200/90 rounded-2xl p-5 hover:border-gray-300 transition-colors bg-white shadow-xs">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-purple-600">
-              {review.userId.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          {review.userAvatarUrl ? (
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-50 relative">
+              <AppImage
+                src={review.userAvatarUrl}
+                alt={buyerName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-linear-to-tr from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-700">
+              {initial}
+            </div>
+          )}
           <div>
-            <div className="font-medium text-gray-900">
-              {review.userId.substring(0, 8)}***
+            <div className="font-medium text-gray-900 text-sm">
+              {buyerName}
             </div>
             <div className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(review.createdAt), {
@@ -288,16 +297,16 @@ function ReviewCard({
               key={idx}
               src={url}
               alt={`Review image ${idx + 1}`}
-              className="w-20 h-20 object-cover rounded-xs border border-gray-200"
+              className="w-20 h-20 object-cover rounded-xl border border-gray-200"
             />
           ))}
         </div>
       )}
 
       {review.merchantReply && (
-        <div className="mt-3 bg-gray-50 rounded-xs p-3 border-l-4 border-purple-500">
+        <div className="mt-3 bg-gray-50/80 rounded-xl p-3.5 border-l-3 border-gray-900">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-purple-600">
+            <span className="text-xs font-semibold text-gray-900">
               {t("reviews.merchantReply")}
             </span>
             {review.merchantRepliedAt && (
@@ -316,3 +325,5 @@ function ReviewCard({
     </div>
   );
 }
+
+
