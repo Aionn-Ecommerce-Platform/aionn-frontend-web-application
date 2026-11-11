@@ -25,11 +25,14 @@ export interface PromotionCampaign {
   updatedAt: string;
 }
 
+export type VoucherType = "ORDER_DISCOUNT" | "FREE_SHIPPING";
+
 export interface Voucher {
   voucherCode: string;
   campaignId: string | null;
   scope: "PLATFORM" | "SHOP";
   merchantId: string | null;
+  type: VoucherType;
   discountAmount: number;
   currency: string;
   usageLimit: number;

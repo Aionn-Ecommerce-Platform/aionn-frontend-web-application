@@ -14,6 +14,11 @@ export interface ProductVariant {
   price: number;
   originalPrice?: number;
   currency: string;
+  /** Weight is required to publish. */
+  weightGram?: number | null;
+  lengthCm?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
 }
 
 interface FlashSaleSkuOffer {
@@ -57,6 +62,7 @@ export interface Product {
   productId: string;
   merchantId: string;
   name: string;
+  slug?: string | null;
   brandId: string | null;
   categoryIds: string[];
   imageList: string[];
@@ -110,6 +116,20 @@ export interface Merchant {
   stripePayoutsEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MerchantStorefrontStats {
+  reviewCount: number;
+  averageRating: number;
+  productCount: number;
+  followerCount: number;
+  joinedAt: string | null;
+  conversations: number;
+  respondedConversations: number;
+  medianFirstResponseSeconds: number | null;
+  responseRatePercent: number;
+  responseTimeBucket: "MINUTES" | "HOUR" | "HOURS" | "DAYS" | "WEEKS" | "UNKNOWN";
+  following: boolean;
 }
 
 export interface Brand {

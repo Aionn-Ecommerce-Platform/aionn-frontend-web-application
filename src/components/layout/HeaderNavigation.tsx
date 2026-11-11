@@ -21,6 +21,7 @@ export default function HeaderNavigation({
     { href: "/products", label: t("nav.allProducts") },
     { href: "/categories", label: t("nav.categories") },
     { href: "/promotions", label: t("nav.promotions") },
+    { href: "/flash-sales", label: t("nav.flashSales") },
     { href: "/merchants", label: t("nav.shops") },
   ];
   const mobileLinks = [

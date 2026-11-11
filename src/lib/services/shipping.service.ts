@@ -2,15 +2,19 @@ import api from "@/shared/api";
 import type {
   Shipment,
   ShipmentAddress,
-  ShipmentDimensions,
   ShippingQuote,
 } from "@/types";
+
+export interface ShippingQuoteItem {
+  skuId: string;
+  qty: number;
+}
 
 interface CreateShipmentInput {
   orderId: string;
   userId: string;
   address: ShipmentAddress;
-  dimensions: ShipmentDimensions;
+  items: ShippingQuoteItem[];
   codAmount: number;
   shippingFee: number;
   currency: string;
@@ -29,15 +33,18 @@ interface CarrierWebhookInput {
 }
 
 export const shippingService = {
+  /** Parcel dimensions are resolved server-side; the client sends only skuId+qty. */
   quote(
     address: ShipmentAddress,
-    dimensions: ShipmentDimensions,
+    items: ShippingQuoteItem[],
     currency?: string,
+    goodsSubtotal?: number,
   ) {
     return api.post<ShippingQuote>("/shipping/shipments/quote", {
       address,
-      dimensions,
+      items,
       currency,
+      goodsSubtotal,
     });
   },
 
@@ -85,21 +92,35 @@ export interface ShippingRate {
   baseFee: number;
   currency: string;
   condition: string | null;
+  baseWeightGram: number;
+  stepWeightGram: number;
+  stepFee: number;
+  maxFee: number | null;
+  freeShippingThreshold: number | null;
+  expressExtraFee: number;
+  expressEtaDays: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface ShippingRateInput {
+  baseFee: number;
+  condition?: string;
+  baseWeightGram?: number;
+  stepWeightGram?: number;
+  stepFee?: number;
+  maxFee?: number | null;
+  freeShippingThreshold?: number | null;
+  expressExtraFee?: number;
+  expressEtaDays?: number | null;
+}
+
 export const shippingRateService = {
-  configure(body: {
-    zoneCode: string;
-    baseFee: number;
-    currency: string;
-    condition?: string;
-  }) {
+  configure(body: ShippingRateInput & { zoneCode: string; currency: string }) {
     return api.post<ShippingRate>("/shipping/rates", body);
   },
 
-  update(rateId: string, body: { baseFee: number; condition?: string }) {
+  update(rateId: string, body: ShippingRateInput) {
     return api.put<ShippingRate>(`/shipping/rates/${rateId}`, body);
   },
 

@@ -71,7 +71,7 @@ export default function CatalogSidebar(props: Props) {
           onToggle={props.onBrand}
         />
 
-        <div className="relative z-10 border-t border-purple-800/50 pt-4">
+        <div className="relative z-10 border-t border-amber-400/40 pt-4">
           <h4 className="text-sm font-bold text-purple-100 mb-2">
             {t("products.location")}
           </h4>
@@ -96,7 +96,7 @@ export default function CatalogSidebar(props: Props) {
           </ul>
         </div>
 
-        <div className="relative z-10 border-t border-purple-800/50 pt-4">
+        <div className="relative z-10 border-t border-amber-400/40 pt-4">
           <h4 className="text-sm font-bold text-purple-100 mb-2">{t("products.rating")}</h4>
           {[5, 4, 3, 2, 1].map((stars) => (
             <button

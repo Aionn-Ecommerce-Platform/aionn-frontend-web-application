@@ -146,9 +146,8 @@ export function ChatInner({
     const container = messagesContainerRef.current;
     if (container) {
       if (conversationChanged) {
-        // Immediate scroll of the messages container without scrolling the whole page/window
         container.scrollTop = container.scrollHeight;
-        // Run on next animation frame in case DOM elements (like images/motion) adjust height
+        // Re-scroll next frame, after images/motion settle the DOM height.
         requestAnimationFrame(() => {
           if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop =

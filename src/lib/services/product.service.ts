@@ -3,7 +3,6 @@ import type {
   Product,
   ProductSearchParams,
   ProductSearchResult,
-  ProductStatus,
 } from "@/types";
 import { promotionService } from "./promotion.service";
 
@@ -11,10 +10,16 @@ interface CreateProductInput {
   name: string;
 }
 
-interface DefineVariantInput {
+export interface DefineVariantInput {
   attributeValues: Record<string, string>;
   price: number;
   currency: string;
+  /** Required before publish; carrier fees are quoted from real parcels. */
+  weightGram: number;
+  /** Optional parcel box (cm); supply all three together or omit. */
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
 }
 
 interface UpdateMediaInput {
@@ -30,69 +35,6 @@ interface BulkPriceUpdateResult {
   updated: number;
   skipped: number;
   failedSkus: string[];
-}
-
-
-async function attachFlashSalesToProducts(products: Product[]): Promise<Product[]> {
-  if (!products || products.length === 0) return products;
-  try {
-    const campaigns = await promotionService.getActiveFlashSales(100).catch(() => []);
-    if (!campaigns || campaigns.length === 0) return products;
-
-    const saleItems = campaigns.flatMap((campaign) =>
-      campaign.items.map((item) => ({ campaign, item })),
-    );
-    if (saleItems.length === 0) return products;
-
-    return products.map((product) => {
-      if (product.flashSale) return product;
-      const matches = saleItems.filter(
-        ({ item }) => item.productId === product.productId,
-      );
-      if (matches.length === 0) return product;
-
-      const cheapest = matches.reduce((best, current) =>
-        current.item.salePrice < best.item.salePrice ? current : best,
-      );
-      const skuOffersMap = new Map<
-        string,
-        {
-          skuId: string;
-          salePrice: number;
-          currency: string;
-          saleStock: number;
-          soldCount: number;
-        }
-      >();
-      for (const { item } of matches) {
-        const existing = skuOffersMap.get(item.skuId);
-        if (!existing || item.salePrice < existing.salePrice) {
-          skuOffersMap.set(item.skuId, {
-            skuId: item.skuId,
-            salePrice: item.salePrice,
-            currency: item.currency,
-            saleStock: item.saleStock,
-            soldCount: item.soldCount,
-          });
-        }
-      }
-
-      return {
-        ...product,
-        flashSale: {
-          campaignId: cheapest.campaign.campaignId,
-          endAt: cheapest.campaign.endDate,
-          salePrice: cheapest.item.salePrice,
-          currency: cheapest.item.currency,
-          saleStock: cheapest.item.saleStock,
-          soldCount: cheapest.item.soldCount,
-          skuOffers: Array.from(skuOffersMap.values()),
-        },
-      };
-    });
-  } catch {
-    return products;
-  }
 }
 
 export const productService = {
@@ -159,9 +101,9 @@ export const productService = {
     });
   },
   searchSuggestions(keyword: string, limit = 5) {
-    return api.get<Product[]>("/catalog/products/search", {
+    return api.get<ProductSearchResult>("/catalog/products/search/catalog", {
       anonymous: true,
-      query: { keyword, page: 0, size: limit },
+      query: { q: keyword, page: 0, size: limit },
     });
   },
   async listByMerchant(merchantId: string, page = 0, size = 20) {
@@ -171,7 +113,10 @@ export const productService = {
 
   async search(params: ProductSearchParams) {
     if (params.onSale) {
-      const campaigns = await promotionService.getActiveFlashSales(100);
+      const [campaigns, discounted] = await Promise.all([
+        promotionService.getActiveFlashSales(100),
+        this.searchCatalog({ ...params, onSale: true }).catch(() => null),
+      ]);
       const saleItems = campaigns.flatMap((campaign) =>
         campaign.items.map((item) => ({ campaign, item })),
       );
@@ -179,7 +124,7 @@ export const productService = {
       const resolvedProducts =
         skuIds.length > 0 ? await this.resolveBySkuIds(skuIds) : [];
 
-      const products = resolvedProducts.map((product) => {
+      const products: Product[] = resolvedProducts.map((product) => {
         const matches = saleItems.filter(
           ({ item }) => item.productId === product.productId,
         );
@@ -223,9 +168,27 @@ export const productService = {
         } satisfies Product;
       });
 
+      const byId = new Map<string, Product>(
+        products.map((p) => [p.productId, p]),
+      );
+      const flashSaleByProduct = new Map<string, Product["flashSale"]>(
+        products
+          .filter((p) => p.flashSale)
+          .map((p) => [p.productId, p.flashSale]),
+      );
+      for (const dp of discounted?.page.content ?? []) {
+        if (!byId.has(dp.productId)) {
+          const flash = flashSaleByProduct.get(dp.productId);
+          byId.set(dp.productId, flash ? { ...dp, flashSale: flash } : dp);
+        }
+      }
+      const merged = Array.from(byId.values());
+
       const normalizedQuery = params.q?.trim().toLocaleLowerCase();
-      const filtered = products.filter((product) => {
-        const salePrice = product.flashSale?.salePrice ?? 0;
+      const filtered = merged.filter((product) => {
+        const salePrice =
+          product.flashSale?.salePrice ??
+          Math.min(...(product.variants ?? []).map((v) => v.price), Infinity);
         return (
           (!normalizedQuery ||
             product.name.toLocaleLowerCase().includes(normalizedQuery)) &&
@@ -253,7 +216,6 @@ export const productService = {
               );
               if (requestedEntries.length === 0) return true;
 
-              // Check if any requested attribute is a product-level attribute
               const remainingForVariants: [string, string[]][] = [];
               for (const [attrKey, allowedValues] of requestedEntries) {
                 const productAttrValue = product.attributes?.[attrKey];
@@ -271,7 +233,6 @@ export const productService = {
 
               if (remainingForVariants.length === 0) return true;
 
-              // All remaining variant attributes must be satisfied by a single variant
               return (
                 product.variants?.some((variant) =>
                   remainingForVariants.every(([attrKey, allowedValues]) => {
@@ -288,16 +249,15 @@ export const productService = {
         );
       });
 
+      const effectivePrice = (p: Product) =>
+        p.flashSale?.salePrice ??
+        Math.min(...(p.variants ?? []).map((v) => v.price), Infinity);
       filtered.sort((left, right) => {
         if (params.sort === "PRICE_ASC") {
-          return (
-            (left.flashSale?.salePrice ?? 0) - (right.flashSale?.salePrice ?? 0)
-          );
+          return effectivePrice(left) - effectivePrice(right);
         }
         if (params.sort === "PRICE_DESC") {
-          return (
-            (right.flashSale?.salePrice ?? 0) - (left.flashSale?.salePrice ?? 0)
-          );
+          return effectivePrice(right) - effectivePrice(left);
         }
         if (params.sort === "BEST_SELLER") {
           return (right.soldCount ?? 0) - (left.soldCount ?? 0);
@@ -317,9 +277,10 @@ export const productService = {
           if (value) counts[value] = (counts[value] ?? 0) + 1;
           return counts;
         }, {});
-      const prices = filtered.map(
-        (product) => product.flashSale?.salePrice ?? 0,
-      );
+      const prices = filtered.map((product) => {
+        const v = effectivePrice(product);
+        return v === Infinity ? 0 : v;
+      });
 
       const attributeFacets: Record<string, Record<string, number>> = {};
       for (const product of filtered) {
@@ -371,6 +332,11 @@ export const productService = {
       } satisfies ProductSearchResult;
     }
 
+    return this.searchCatalog(params);
+  },
+
+  /** Separate from {@link search} so the onSale branch can query without recursing. */
+  async searchCatalog(params: ProductSearchParams) {
     const query: Record<string, string | number | boolean | undefined> = {
       q: params.q,
       merchantId: params.merchantId,
@@ -380,6 +346,7 @@ export const productService = {
       page: params.page ?? 0,
       size: params.size ?? 20,
       ratingMin: params.ratingMin,
+      onSale: params.onSale,
     };
     if (params.categoryIds && params.categoryIds.length > 0) {
       query.categoryIds = params.categoryIds.join(",");
@@ -400,12 +367,8 @@ export const productService = {
     });
   },
 
-  searchByMerchant(params: {
-    merchantId?: string;
-    status?: ProductStatus;
-    page?: number;
-    size?: number;
-  }) {
+  /** Backend exposes only PENDING_REVIEW products on this endpoint. */
+  listPendingReviews(params: { page?: number; size?: number } = {}) {
     return api.page<Product>("/catalog/products/admin/reviews", {
       query: { page: params.page ?? 0, size: params.size ?? 20 },
     });
@@ -492,6 +455,22 @@ export const productService = {
     return api.put<Product>(
       `/catalog/products/${productId}/variants/${skuId}/price`,
       { newPrice, currency },
+    );
+  },
+  /** Update the shipping parcel (weight required; box optional but complete). */
+  changeVariantParcel(
+    productId: string,
+    skuId: string,
+    parcel: {
+      weightGram: number;
+      lengthCm?: number;
+      widthCm?: number;
+      heightCm?: number;
+    },
+  ) {
+    return api.put<Product>(
+      `/catalog/products/${productId}/variants/${skuId}/parcel`,
+      parcel,
     );
   },
   updateAiMetadata(productId: string, body: UpdateAiMetadataInput) {

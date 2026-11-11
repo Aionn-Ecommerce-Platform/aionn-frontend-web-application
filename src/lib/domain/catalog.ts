@@ -91,11 +91,7 @@ export function buildCategoryFilterItems({
   const descendantsMap = extractCategoryDescendants(nodes);
   const candidateSet = new Set(candidateIds);
 
-  // Identify encompassing ancestor categories:
-  // An ancestor P is hidden if:
-  // 1. User has not explicitly selected P
-  // 2. P has at least one descendant in candidateSet
-  // 3. ALL other candidates in candidateSet are descendants of P
+  // Hide an ancestor unless explicitly selected, when every other candidate is its descendant.
   const hiddenAncestorIds = new Set<string>();
   for (const p of candidateIds) {
     if (selectedIds.includes(p)) continue;

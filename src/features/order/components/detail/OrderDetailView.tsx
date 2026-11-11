@@ -34,6 +34,7 @@ import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
 import { resolveProvinceName } from "@/shared/lib/address-utils";
+import { productPath } from "@/shared/lib/product-url";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -413,15 +414,17 @@ function OrderDetailInner({ id }: { id: string }) {
               const lookup = skuLookup.get(item.skuId);
               const product = lookup?.product;
               const variant = lookup?.variant;
-              const variantLabel = formatVariantLabel(variant?.attributeValues);
-              const image = product?.imageList?.[0];
+              const variantLabel =
+                item.variantLabel ?? formatVariantLabel(variant?.attributeValues);
+              const image = item.imageUrl ?? product?.imageList?.[0];
+              const displayName = item.productName ?? product?.name;
               return (
                 <div key={item.skuId} className="flex gap-3.5 py-2.5">
                   <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex-shrink-0 overflow-hidden relative p-1">
                     {image ? (
                       <Image
                         src={image}
-                        alt={product?.name ?? item.skuId}
+                        alt={displayName ?? item.skuId}
                         fill
                         sizes="64px"
                         className="object-contain p-1"
@@ -436,14 +439,14 @@ function OrderDetailInner({ id }: { id: string }) {
                   <div className="min-w-0 flex-1">
                     {product ? (
                       <Link
-                        href={`/products/${product.productId}`}
+                        href={productPath(product)}
                         className="text-sm font-semibold text-gray-900 hover:text-brand line-clamp-2 transition-colors"
                       >
-                        {product.name}
+                        {displayName}
                       </Link>
                     ) : (
                       <p className="text-sm font-semibold text-gray-900 truncate">
-                        SKU: {item.skuId}
+                        {displayName ?? `SKU: ${item.skuId}`}
                       </p>
                     )}
                     {variantLabel && (
@@ -541,6 +544,22 @@ function OrderDetailInner({ id }: { id: string }) {
                 </span>
               </div>
             )}
+            {order.note && (
+              <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-sm text-amber-900">
+                <span className="font-semibold">
+                  {t("orders.deliveryNote")}:
+                </span>{" "}
+                {order.note}
+              </div>
+            )}
+            {order.shippingService && (
+              <p className="mt-2 text-xs text-gray-500">
+                {t("orders.shippingService")}:{" "}
+                <span className="font-semibold text-gray-700">
+                  {order.shippingService}
+                </span>
+              </p>
+            )}
           </div>
           <div className="bg-white rounded-2xl border border-gray-200/90 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <h3 className="font-bold text-gray-950 mb-3 text-base">
@@ -599,6 +618,16 @@ function OrderDetailInner({ id }: { id: string }) {
               <p className="text-xs text-gray-400 mt-2 font-mono">
                 {t("orders.transactionId")}: {order.paymentId}
               </p>
+            )}
+            {payment?.invoiceUrl && (
+              <a
+                href={payment.invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-strong underline underline-offset-2"
+              >
+                {t("orders.downloadInvoice")}
+              </a>
             )}
           </div>
           <div className="flex gap-3">

@@ -18,8 +18,8 @@ import {
   uploadToCloudinary,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
-import { formatCurrency } from "@/shared/lib/utils";
 import { getErrorMessage, getFieldErrors } from "@/shared/lib/errors";
+import { formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 
 const MAX_REASON_LEN = 500;
@@ -35,6 +35,10 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [selectedItems, setSelectedItems] = useState<Record<
+    string,
+    number
+  > | null>(null);
 
   const { data: order, isLoading } = useQuery({
     queryKey: qk.order(orderId),
@@ -42,6 +46,40 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
   });
 
   const canReturn = order?.status === "COMPLETED";
+
+  const effectiveSelected =
+    selectedItems ??
+    (order
+      ? Object.fromEntries(order.items.map((item) => [item.skuId, item.qty]))
+      : {});
+  const selectedList = Object.entries(effectiveSelected)
+    .filter(([, qty]) => qty > 0)
+    .map(([skuId, qty]) => ({ skuId, qty }));
+  const estimatedRefund = (order?.items ?? []).reduce((sum, item) => {
+    const qty = effectiveSelected[item.skuId] ?? 0;
+    return qty ? sum + item.unitPrice * qty : sum;
+  }, 0);
+
+  function toggleItem(skuId: string, maxQty: number) {
+    setSelectedItems((current) => {
+      const base = current ?? effectiveSelected;
+      const next = { ...base };
+      if (next[skuId]) {
+        delete next[skuId];
+      } else {
+        next[skuId] = maxQty;
+      }
+      return next;
+    });
+  }
+
+  function changeQty(skuId: string, maxQty: number, qty: number) {
+    const clamped = Math.max(1, Math.min(maxQty, qty || 1));
+    setSelectedItems((current) => ({
+      ...(current ?? effectiveSelected),
+      [skuId]: clamped,
+    }));
+  }
 
   async function handlePickEvidence(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -83,6 +121,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
       const ret = await orderReturnService.request(orderId, {
         reason: trimmed,
         evidenceUrl,
+        items: selectedList.length ? selectedList : undefined,
       });
       toast.success(t("orders.returns.submitSuccessToast"));
       router.replace(`/orders/returns?highlight=${ret.returnId}`);
@@ -121,7 +160,9 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {t("orders.orderId")}{" "}
-          <span className="font-mono font-semibold text-gray-900 select-all">{orderId}</span>
+          <span className="font-mono font-semibold text-gray-900 select-all">
+            {orderId}
+          </span>
         </p>
       </div>
 
@@ -136,105 +177,155 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
         onSubmit={handleSubmit}
         className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-5"
       >
-          <div>
-            <label
-              htmlFor="reason"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              {t("orders.returns.reason")}
-            </label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) =>
-                setReason(e.target.value.slice(0, MAX_REASON_LEN))
-              }
-              rows={5}
-              disabled={!canReturn || submitting}
-              placeholder={t("orders.returns.reasonPlaceholder")}
-              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
-            />
-            <div className="mt-1 flex items-center justify-between text-xs">
-              <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
-              <span className="text-gray-400">
-                {reason.length}/{MAX_REASON_LEN}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <p className="block text-sm font-medium text-gray-700 mb-1.5">
-              {t("orders.returns.evidenceLabel")}
-            </p>
-            {evidenceUrl ? (
-              <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
-                <div className="relative">
-                  <AppImage
-                    src={evidenceUrl}
-                    alt="Evidence"
-                    className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("orders.returns.selectItems")}
+          </p>
+          <div className="space-y-2">
+            {order?.items.map((item) => {
+              const selectedQty = effectiveSelected[item.skuId] ?? 0;
+              return (
+                <div
+                  key={item.skuId}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3.5 py-3"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedQty > 0}
+                    disabled={!canReturn || submitting}
+                    onChange={() => toggleItem(item.skuId, item.qty)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setEvidenceUrl(null)}
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
-                    aria-label={t("common.deleteImage")}
-                  >
-                    <X size={14} />
-                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 line-clamp-2">
+                      {item.productName ?? item.skuId}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")} ×{" "}
+                      {item.qty}
+                      {item.variantLabel ? ` · ${item.variantLabel}` : ""}
+                    </p>
+                  </div>
+                  {selectedQty > 0 && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={item.qty}
+                      value={selectedQty}
+                      disabled={!canReturn || submitting}
+                      onChange={(e) =>
+                        changeQty(item.skuId, item.qty, Number(e.target.value))
+                      }
+                      className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-sm"
+                    />
+                  )}
                 </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={!canReturn || uploading || submitting}
-                className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {uploading ? (
-                  <Loader2 className="animate-spin text-blue-600" size={28} />
-                ) : (
-                  <>
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
-                      <ImagePlus size={24} />
-                    </div>
-                    <span className="text-sm font-semibold text-gray-700">
-                      {t("orders.returns.uploadImage")}
-                    </span>
-                    <span className="mt-1 text-xs text-gray-400">
-                      {t("orders.returns.uploadHint")}
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePickEvidence}
-              className="hidden"
-            />
+              );
+            })}
           </div>
+          <p className="mt-2 text-sm font-semibold text-gray-900">
+            {t("orders.returns.estimatedRefund")}:{" "}
+            {formatCurrency(estimatedRefund, order?.currency ?? "VND")}
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <Button
-              type="submit"
-              loading={submitting}
-              disabled={!canReturn || uploading || submitting}
-            >
-              {t("orders.returns.submit")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={submitting}
-              onClick={() => router.push(`/orders/${orderId}`)}
-            >
-              {t("common.cancel")}
-            </Button>
+        <div>
+          <label
+            htmlFor="reason"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            {t("orders.returns.reason")}
+          </label>
+          <textarea
+            id="reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value.slice(0, MAX_REASON_LEN))}
+            rows={5}
+            disabled={!canReturn || submitting}
+            placeholder={t("orders.returns.reasonPlaceholder")}
+            className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:bg-gray-50"
+          />
+          <div className="mt-1 flex items-center justify-between text-xs">
+            <span className="text-red-600">{fieldErrors.reason ?? ""}</span>
+            <span className="text-gray-400">
+              {reason.length}/{MAX_REASON_LEN}
+            </span>
           </div>
-        </form>
+        </div>
+
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("orders.returns.evidenceLabel")}
+          </p>
+          {evidenceUrl ? (
+            <div className="relative w-full rounded-2xl border border-gray-200 p-4 bg-gray-50/50 flex items-center justify-center">
+              <div className="relative">
+                <AppImage
+                  src={evidenceUrl}
+                  alt="Evidence"
+                  className="max-h-64 w-auto object-contain rounded-xl border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setEvidenceUrl(null)}
+                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50"
+                  aria-label={t("common.deleteImage")}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={!canReturn || uploading || submitting}
+              className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {uploading ? (
+                <Loader2 className="animate-spin text-blue-600" size={28} />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                    <ImagePlus size={24} />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {t("orders.returns.uploadImage")}
+                  </span>
+                  <span className="mt-1 text-xs text-gray-400">
+                    {t("orders.returns.uploadHint")}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePickEvidence}
+            className="hidden"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 pt-2">
+          <Button
+            type="submit"
+            loading={submitting}
+            disabled={!canReturn || uploading || submitting}
+          >
+            {t("orders.returns.submit")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={() => router.push(`/orders/${orderId}`)}
+          >
+            {t("common.cancel")}
+          </Button>
+        </div>
+      </form>
     </MemberPageLayout>
   );
 }

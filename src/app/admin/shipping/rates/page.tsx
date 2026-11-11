@@ -111,6 +111,26 @@ function AdminShippingRatesInner() {
                 value={rate.condition ?? "—"}
               />
               <Row
+                label={t("adminShippingRates.weightLadder")}
+                value={t("adminShippingRates.weightLadderValue", {
+                  base: rate.baseWeightGram,
+                  step: rate.stepWeightGram,
+                  fee: formatNumber(rate.stepFee, locale),
+                })}
+              />
+              <Row
+                label={t("adminShippingRates.maxFee")}
+                value={rate.maxFee == null ? "—" : formatNumber(rate.maxFee, locale)}
+              />
+              <Row
+                label={t("adminShippingRates.freeShippingThreshold")}
+                value={
+                  rate.freeShippingThreshold == null
+                    ? "—"
+                    : formatNumber(rate.freeShippingThreshold, locale)
+                }
+              />
+              <Row
                 label={t("adminShippingRates.createdAt")}
                 value={formatDateTime(rate.createdAt, locale)}
               />
@@ -175,6 +195,37 @@ function RateFormModal({
   const [baseFee, setBaseFee] = useState(String(rate?.baseFee ?? ""));
   const [currency, setCurrency] = useState(rate?.currency ?? "VND");
   const [condition, setCondition] = useState(rate?.condition ?? "");
+  const [baseWeightGram, setBaseWeightGram] = useState(
+    String(rate?.baseWeightGram ?? 1000),
+  );
+  const [stepWeightGram, setStepWeightGram] = useState(
+    String(rate?.stepWeightGram ?? 500),
+  );
+  const [stepFee, setStepFee] = useState(String(rate?.stepFee ?? 0));
+  const [maxFee, setMaxFee] = useState(
+    rate?.maxFee == null ? "" : String(rate.maxFee),
+  );
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(
+    rate?.freeShippingThreshold == null ? "" : String(rate.freeShippingThreshold),
+  );
+  const [expressExtraFee, setExpressExtraFee] = useState(
+    String(rate?.expressExtraFee ?? 0),
+  );
+  const [expressEtaDays, setExpressEtaDays] = useState(
+    rate?.expressEtaDays == null ? "" : String(rate.expressEtaDays),
+  );
+
+  const weightFields = () => ({
+    baseWeightGram: Number(baseWeightGram) || undefined,
+    stepWeightGram: Number(stepWeightGram) || undefined,
+    stepFee: Number(stepFee) || 0,
+    maxFee: maxFee.trim() === "" ? null : Number(maxFee),
+    freeShippingThreshold:
+      freeShippingThreshold.trim() === "" ? null : Number(freeShippingThreshold),
+    expressExtraFee: Number(expressExtraFee) || 0,
+    expressEtaDays:
+      expressEtaDays.trim() === "" ? null : Number(expressEtaDays),
+  });
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -183,6 +234,7 @@ function RateFormModal({
         baseFee: Number(baseFee),
         currency: currency.trim() || "VND",
         condition: condition.trim() || undefined,
+        ...weightFields(),
       }),
     onSuccess: (saved) => {
       toast.success(t("adminShippingRates.created"));
@@ -196,6 +248,7 @@ function RateFormModal({
       shippingRateService.update(rate!.rateId, {
         baseFee: Number(baseFee),
         condition: condition.trim() || undefined,
+        ...weightFields(),
       }),
     onSuccess: (saved) => {
       toast.success(t("adminShippingRates.updated"));
@@ -268,6 +321,97 @@ function RateFormModal({
               onChange={(e) => setCurrency(e.target.value.toUpperCase())}
               disabled={mode === "edit"}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase disabled:bg-gray-50"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.baseWeightGram")}
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={baseWeightGram}
+              onChange={(e) => setBaseWeightGram(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.stepWeightGram")}
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={stepWeightGram}
+              onChange={(e) => setStepWeightGram(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.stepFee")}
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={stepFee}
+              onChange={(e) => setStepFee(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.maxFee")}
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={maxFee}
+              onChange={(e) => setMaxFee(e.target.value)}
+              placeholder={t("adminShippingRates.unlimited")}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            {t("adminShippingRates.freeShippingThreshold")}
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={freeShippingThreshold}
+            onChange={(e) => setFreeShippingThreshold(e.target.value)}
+            placeholder={t("adminShippingRates.noFreeship")}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.expressExtraFee")}
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={expressExtraFee}
+              onChange={(e) => setExpressExtraFee(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("adminShippingRates.expressEtaDays")}
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={expressEtaDays}
+              onChange={(e) => setExpressEtaDays(e.target.value)}
+              placeholder="2"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
             />
           </div>
         </div>

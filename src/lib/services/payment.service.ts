@@ -1,12 +1,6 @@
 import api from "@/shared/api";
 import type { PaymentMethod, Payment } from "@/types";
 
-interface LinkPaymentMethodInput {
-  provider: string;
-  last4Digits?: string;
-  gatewayToken: string;
-}
-
 export interface StripeSetupIntent {
   setupIntentId: string;
   clientSecret: string;
@@ -33,10 +27,6 @@ export const paymentMethodService = {
     const method = methods.find((candidate) => candidate.methodId === methodId);
     if (!method) throw new Error(`Payment method ${methodId} was not found`);
     return method;
-  },
-
-  link(body: LinkPaymentMethodInput) {
-    return api.post<PaymentMethod>("/payments/methods", body);
   },
 
   createStripeSetupIntent() {

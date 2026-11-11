@@ -12,7 +12,14 @@ export const inventoryService = {
   },
 
   listBySku(skuId: string) {
-    return api.get<InventoryItem[]>("/inventory/items", {
+    return api.get<Pick<InventoryItem, "skuId" | "availableQty">[]>(
+      "/inventory/items",
+      { query: { skuId } },
+    );
+  },
+
+  adminListBySku(skuId: string) {
+    return api.get<InventoryItem[]>("/inventory/items/admin/by-sku", {
       query: { skuId },
     });
   },

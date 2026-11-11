@@ -25,14 +25,14 @@ function RegisterInner() {
             <h1 className="font-brand text-5xl lg:text-6xl font-bold text-brand tracking-wide select-none">
               Aionn
             </h1>
-            <p className="max-w-md text-xl font-semibold leading-relaxed text-gray-900">
+            <p className="max-w-md text-xl font-light leading-relaxed text-gray-700 tracking-wide">
               {t("auth.tagline")}
             </p>
           </div>
         </div>
 
         <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
-          <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.06),0_0_1px_rgba(0,0,0,0.2)] border border-gray-200/90 p-8 transition-shadow">
+          <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(76,29,149,0.18),0_4px_16px_rgba(0,0,0,0.06),0_0_1px_rgba(0,0,0,0.2)] border border-purple-200/70 p-8 transition-shadow">
             <h2 className="text-2xl font-bold text-gray-950 mb-6">
               {t("auth.registerTitle")}
             </h2>

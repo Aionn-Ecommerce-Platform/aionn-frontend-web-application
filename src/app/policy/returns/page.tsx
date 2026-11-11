@@ -13,9 +13,7 @@ import {
   MessageCircle,
   Phone,
   ChevronRight,
-  Package,
   CreditCard,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
@@ -172,8 +170,8 @@ export default function ReturnsPolicyPage() {
                 </h4>
                 <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
                   Truy cập vào <strong>Đơn mua</strong> &gt; Chọn đơn hàng &gt;
-                  Nhấn <strong>Yêu cầu Trả hàng / Hoàn tiền</strong>, chọn lý
-                  do và tải ảnh/video thực tế.
+                  Nhấn <strong>Yêu cầu Trả hàng / Hoàn tiền</strong>, chọn lý do
+                  và tải ảnh/video thực tế.
                 </p>
               </div>
             </div>
@@ -453,4 +451,3 @@ export default function ReturnsPolicyPage() {
     </div>
   );
 }
-

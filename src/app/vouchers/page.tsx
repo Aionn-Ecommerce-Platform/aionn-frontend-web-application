@@ -342,12 +342,10 @@ function VouchersInner() {
     });
 
     return [...list].sort((a, b) => {
-      // Prioritize available vouchers first (0), then used (1), then expired (2)
       const aRank = getVoucherRank(a);
       const bRank = getVoucherRank(b);
       if (aRank !== bRank) return aRank - bRank;
 
-      // Within same status, newest claimed first
       const aTime = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
       const bTime = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
       return bTime - aTime;

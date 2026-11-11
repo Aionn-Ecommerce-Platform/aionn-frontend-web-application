@@ -34,7 +34,6 @@ export function OrderDetailModal({
 
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
   const payment = payments && payments.length > 0 ? payments[0] : null;
-
   const createShipmentMutation = useMutation({
     mutationFn: () => {
       return shippingService.create({
@@ -53,12 +52,7 @@ export function OrderDetailModal({
           provinceCode: order.recipientProvinceCode ?? "",
           countryCode: order.recipientCountryCode ?? "VN",
         },
-        dimensions: {
-          weightGram: 500,
-          lengthCm: 15,
-          widthCm: 10,
-          heightCm: 5,
-        },
+        items: order.items.map((item) => ({ skuId: item.skuId, qty: item.qty })),
         codAmount: order.totalAmount,
         shippingFee: order.shippingFee,
         currency: order.currency,
@@ -163,6 +157,13 @@ export function OrderDetailModal({
             </p>
           </div>
         </div>
+
+        {order.note && (
+          <div className="mt-4 rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm text-amber-900">
+            <span className="font-semibold">{t("orders.deliveryNote")}:</span>{" "}
+            {order.note}
+          </div>
+        )}
 
         <div className="border-t border-gray-100 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">

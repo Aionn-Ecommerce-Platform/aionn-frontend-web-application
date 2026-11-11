@@ -108,6 +108,7 @@ function mergeServerCart(
     return {
       skuId: srv.skuId,
       productId: product?.productId ?? cached?.productId ?? srv.skuId,
+      slug: product?.slug ?? cached?.slug,
       productName: product?.name ?? cached?.productName ?? srv.skuId,
       imageUrl: product?.imageList[0] ?? cached?.imageUrl ?? "/images/logo.png",
       price: effectivePrice,
@@ -169,7 +170,20 @@ export const useCartStore = create<CartState>()(
           const server = await cartService.addItem(newItem.skuId, newItem.qty);
           set({ items: await hydrateCartItems(next, server) });
         } catch (err) {
-          set({ items: previous });
+          // Roll back only this item; in-flight changes to other items must survive.
+          set((state) => {
+            const cur = state.items;
+            const idx = cur.findIndex((i) => i.skuId === newItem.skuId);
+            if (idx === -1) return { items: cur };
+            const updatedQty = (cur[idx]?.qty ?? newItem.qty) - newItem.qty;
+            const items =
+              existing && updatedQty > 0
+                ? cur.map((i, j) =>
+                    j === idx ? { ...i, qty: updatedQty } : i,
+                  )
+                : cur.filter((_, j) => j !== idx);
+            return { items };
+          });
           toast.error(getErrorMessage(err, t("cart.addToCartError")));
           throw err;
         }
@@ -218,7 +232,9 @@ export const useCartStore = create<CartState>()(
         if (!opts?.authenticated) return;
         try {
           const server = await cartService.applyVoucher(code);
-          set({ voucherCode: server.voucherCode });
+          // Keep the optimistic code unless the server echoes a real one.
+          const confirmed = server?.voucherCode?.trim();
+          set({ voucherCode: confirmed || code });
         } catch (err) {
           set({ voucherCode: previous });
           toast.error(getErrorMessage(err, t("cart.applyVoucherError")));

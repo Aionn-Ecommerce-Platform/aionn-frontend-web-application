@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button, Modal } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
-import { formatCurrency } from "@/shared/lib/utils";
+import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import type { Address } from "@/types";
 import { AddressOption } from "./CheckoutOptions";
 type T = (key: string, values?: Record<string, string | number>) => string;
@@ -28,6 +28,16 @@ interface Props {
   currency?: string;
   onModal: (open: boolean) => void;
   onAddress: (id: string) => void;
+  note: string;
+  onNote: (value: string) => void;
+  shippingOptions: Array<{
+    code: string;
+    label: string;
+    fee: number;
+    estimatedDeliveryAt: string | null;
+  }>;
+  selectedService: string;
+  onSelectService: (code: string) => void;
   t: T;
 }
 export default function CheckoutDeliveryPanel(props: Props) {
@@ -44,6 +54,11 @@ export default function CheckoutDeliveryPanel(props: Props) {
     currency,
     onModal: setAddressModalOpen,
     onAddress: setSelectedAddressId,
+    note,
+    onNote: setNote,
+    shippingOptions,
+    selectedService,
+    onSelectService,
     t,
   } = props;
   return (
@@ -83,7 +98,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                   {activeAddress?.contactName}
                 </p>
                 {activeAddress?.isDefault && (
-                  <span className="border border-orange-200 px-1.5 py-0.5 text-xs font-medium text--commerce">
+                  <span className="border border-orange-200 px-1.5 py-0.5 text-xs font-medium text-commerce">
                     {t("addresses.defaultBadge")}
                   </span>
                 )}
@@ -165,6 +180,54 @@ export default function CheckoutDeliveryPanel(props: Props) {
               {t("checkout.calculatingShipping")}
             </span>
           </div>
+        ) : shippingOptions.length > 0 ? (
+          <div className="space-y-2">
+            {shippingOptions.map((option) => {
+              const selected = option.code === selectedService;
+              return (
+                <button
+                  key={option.code}
+                  type="button"
+                  onClick={() => onSelectService(option.code)}
+                  className={`w-full rounded-xl border p-4 text-left transition-colors cursor-pointer ${
+                    selected
+                      ? "border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 ring-1 ring-blue-100"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
+                          selected
+                            ? "bg-white text-blue-600 shadow-sm ring-1 ring-blue-100"
+                            : "bg-gray-50 text-gray-500"
+                        }`}
+                      >
+                        <Zap size={16} />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {option.label}
+                        </p>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-600">
+                          <Clock size={11} />
+                          {option.estimatedDeliveryAt
+                            ? formatDate(option.estimatedDeliveryAt, locale)
+                            : t("checkout.noEstimatedDelivery")}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-green-600">
+                      {option.fee === 0
+                        ? t("cart.free")
+                        : formatCurrency(option.fee, currency)}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         ) : (
           <div className="relative overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
             <div className="flex items-center justify-between gap-4">
@@ -194,6 +257,26 @@ export default function CheckoutDeliveryPanel(props: Props) {
             </div>
           </div>
         )}
+        <div className="mt-5 border-t border-gray-100 pt-4">
+          <label
+            htmlFor="checkout-note"
+            className="block text-sm font-semibold text-gray-900 mb-2"
+          >
+            {t("checkout.deliveryNote")}
+          </label>
+          <textarea
+            id="checkout-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={1000}
+            rows={2}
+            placeholder={t("checkout.deliveryNotePlaceholder")}
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            {t("checkout.deliveryNoteHint")}
+          </p>
+        </div>
       </div>
     </>
   );

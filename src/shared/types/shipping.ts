@@ -19,13 +19,6 @@ export interface ShipmentAddress {
   countryCode: string;
 }
 
-export interface ShipmentDimensions {
-  weightGram: number;
-  lengthCm: number;
-  widthCm: number;
-  heightCm: number;
-}
-
 export interface Shipment {
   shipmentId: string;
   orderId: string;
@@ -50,6 +43,13 @@ export interface Shipment {
   updatedAt: string;
 }
 
+export interface ShippingQuoteOption {
+  code: string;
+  label: string;
+  fee: number;
+  estimatedDeliveryAt: string | null;
+}
+
 export interface ShippingQuote {
   fee: number;
   currency: string;
@@ -58,4 +58,5 @@ export interface ShippingQuote {
   detail: string | null;
   estimatedDeliveryAt: string | null;
   carrierOrderDate: string | null;
+  options?: ShippingQuoteOption[];
 }

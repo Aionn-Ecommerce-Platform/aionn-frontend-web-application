@@ -183,7 +183,12 @@ export default function LoginForm({
           </Link>
         </div>
 
-        <Button type="submit" className="w-full" size="lg" loading={loading}>
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
+          size="lg"
+          loading={loading}
+        >
           {t("common.login")}
         </Button>
       </form>

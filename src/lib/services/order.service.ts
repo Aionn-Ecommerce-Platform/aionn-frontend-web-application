@@ -17,6 +17,8 @@ interface PlaceOrderInput {
   shippingAddress: ShippingAddressSnapshot;
   selectedSkuIds?: string[];
   gateway: "STRIPE" | "VNPAY" | "COD";
+  note?: string;
+  shippingService?: string;
 }
 
 export const orderService = {
@@ -94,9 +96,24 @@ export const orderService = {
 export const orderReturnService = {
   request(
     orderId: string,
-    body: { reason: string; evidenceUrl?: string | null },
+    body: {
+      reason: string;
+      evidenceUrl?: string | null;
+      items?: Array<{ skuId: string; qty: number }>;
+    },
   ) {
     return api.post<OrderReturn>(`/ordering/returns/orders/${orderId}`, body);
+  },
+
+  getItems(returnId: string) {
+    return api.get<
+      Array<{
+        skuId: string;
+        qty: number;
+        unitPrice: number;
+        refundAmount: number;
+      }>
+    >(`/ordering/returns/${returnId}/items`);
   },
 
   approve(

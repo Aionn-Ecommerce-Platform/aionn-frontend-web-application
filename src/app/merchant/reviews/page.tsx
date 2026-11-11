@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { MessageSquare, Star, Reply, Loader2 } from "lucide-react";
+import { MessageSquare, Star, Reply, Loader2, Flag } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Modal, Textarea, Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -36,6 +36,8 @@ function MerchantReviewsInner() {
   const refetch = () => qc.invalidateQueries({ queryKey: ["reviews"] });
   const [replyModal, setReplyModal] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [reportModal, setReportModal] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reviews = data?.content ?? [];
@@ -48,6 +50,21 @@ function MerchantReviewsInner() {
       toast.success(t("merchant.reviews.toastReplied"));
       setReplyModal(null);
       setReplyText("");
+      void refetch();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReport(reviewId: string) {
+    setSaving(true);
+    try {
+      await reviewService.report(reviewId, { reason: reportReason.trim() });
+      toast.success(t("merchant.reviews.toastReported"));
+      setReportModal(null);
+      setReportReason("");
       void refetch();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -203,6 +220,23 @@ function MerchantReviewsInner() {
                       {t("merchant.reviews.replyButton")}
                     </Button>
                   )}
+
+                  {review.status === "VISIBLE" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        setReportModal(review.reviewId);
+                        setReportReason("");
+                      }}
+                    >
+                      <Flag size={14} className="mr-2 text-red-600" />
+                      <span className="text-red-600">
+                        {t("merchant.reviews.reportButton")}
+                      </span>
+                    </Button>
+                  )}
                 </div>
               );
             })}
@@ -268,6 +302,34 @@ function MerchantReviewsInner() {
             disabled={!replyText.trim()}
           >
             {t("merchant.reviews.submitReply")}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={reportModal !== null}
+        onClose={() => setReportModal(null)}
+        title={t("merchant.reviews.reportTitle")}
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            {t("merchant.reviews.reportDescription")}
+          </p>
+          <Textarea
+            label={t("merchant.reviews.reportReasonLabel")}
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            placeholder={t("merchant.reviews.reportReasonPlaceholder")}
+            rows={4}
+          />
+          <Button
+            onClick={() => reportModal && handleReport(reportModal)}
+            className="w-full"
+            loading={saving}
+            disabled={!reportReason.trim()}
+          >
+            {t("merchant.reviews.submitReport")}
           </Button>
         </div>
       </Modal>

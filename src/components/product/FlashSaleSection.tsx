@@ -187,9 +187,8 @@ export default function FlashSaleSection() {
                 name={product.name}
                 price={regularPrice}
                 image={image}
-                merchant={product.merchantId}
-                rating={product.rating ?? 4.8}
-                reviewCount={product.reviewCount ?? 18}
+                rating={product.rating}
+                reviewCount={product.reviewCount}
                 sold={item?.soldCount ?? product.soldCount}
                 flashSale={flashSale}
               />

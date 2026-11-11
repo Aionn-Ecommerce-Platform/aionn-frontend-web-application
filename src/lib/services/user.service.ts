@@ -53,4 +53,13 @@ export const userService = {
       idempotent: true,
     });
   },
+
+  getDataExport(requestId: string) {
+    return api.get<{
+      requestId: string;
+      contentType: string;
+      payload: string;
+      completedAt: string;
+    }>(`/users/me/data-exports/${requestId}`);
+  },
 };

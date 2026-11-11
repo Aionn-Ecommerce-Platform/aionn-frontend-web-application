@@ -3,12 +3,13 @@
 import { AppImage } from "@/shared/ui";
 
 import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Input } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { productService } from "@/lib/services";
+import { collectionService, productService } from "@/lib/services";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { ProductVariant } from "@/types";
 
@@ -108,19 +109,34 @@ export function CollectionsCard({
   initialCollectionIds: string[];
 }) {
   const { t } = useTranslation();
-  const [input, setInput] = useState(initialCollectionIds.join(", "));
+  const [selected, setSelected] = useState<string[]>(initialCollectionIds);
   const [saving, setSaving] = useState(false);
+
+  const { data: collections = [], isLoading } = useQuery({
+    queryKey: ["collections", "active"],
+    queryFn: () => collectionService.list(true),
+    staleTime: 5 * 60_000,
+  });
+
+  function toggle(collectionId: string) {
+    setSelected((current) =>
+      current.includes(collectionId)
+        ? current.filter((id) => id !== collectionId)
+        : [...current, collectionId],
+    );
+  }
+
   async function handleSave() {
-    const ids = input
-      .split(/[\s,;\n]+/)
-      .map((value) => value.trim())
-      .filter(Boolean);
     setSaving(true);
     try {
-      await productService.assignCollections(productId, { collectionIds: ids });
+      await productService.assignCollections(productId, {
+        collectionIds: selected,
+      });
       toast.success(
-        ids.length
-          ? t("merchant.productEdit.collectionsAttached", { count: ids.length })
+        selected.length
+          ? t("merchant.productEdit.collectionsAttached", {
+              count: selected.length,
+            })
           : t("merchant.productEdit.collectionsCleared"),
       );
     } catch (error) {
@@ -131,6 +147,7 @@ export function CollectionsCard({
       setSaving(false);
     }
   }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
       <div className="flex items-center justify-between mb-4">
@@ -146,15 +163,54 @@ export function CollectionsCard({
           {t("merchant.productEdit.save")}
         </Button>
       </div>
-      <textarea
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-        rows={2}
-        placeholder="COL_xxx, COL_yyy ..."
-        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-mono focus:border-blue-500 focus:outline-none"
-      />
+
+      {isLoading ? (
+        <div className="flex justify-center py-4">
+          <Loader2 size={20} className="animate-spin text-brand" />
+        </div>
+      ) : collections.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          {t("merchant.productEdit.collectionsEmpty")}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {collections.map((collection) => (
+            <label
+              key={collection.collectionId}
+              className="flex items-start gap-3 rounded-xl border border-gray-200 px-3.5 py-3 cursor-pointer hover:bg-gray-50"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(collection.collectionId)}
+                onChange={() => toggle(collection.collectionId)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-gray-900">
+                  {collection.name}
+                </span>
+                {collection.description && (
+                  <span className="block text-xs text-gray-500 line-clamp-2">
+                    {collection.description}
+                  </span>
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+interface VariantDraft {
+  attribute: string;
+  value: string;
+  price: string;
+  weightGram: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
 }
 
 interface VariantsCardProps {
@@ -162,12 +218,16 @@ interface VariantsCardProps {
   prices: Record<string, string>;
   savingSku: string | null;
   removingSku: string | null;
-  draft: { attribute: string; value: string; price: string };
+  parcelWeights: Record<string, string>;
+  savingParcelSku: string | null;
+  draft: VariantDraft;
   adding: boolean;
   onPrice: (sku: string, value: string) => void;
   onSavePrice: (sku: string) => void;
+  onParcelWeight: (sku: string, value: string) => void;
+  onSaveParcel: (sku: string) => void;
   onRemove: (sku: string) => void;
-  onDraft: (draft: { attribute: string; value: string; price: string }) => void;
+  onDraft: (draft: VariantDraft) => void;
   onAdd: () => void;
 }
 
@@ -206,6 +266,11 @@ export function VariantsCard(props: VariantsCardProps) {
                       price: formatCurrency(variant.price, variant.currency),
                     })}
                   </p>
+                  {variant.weightGram == null && (
+                    <p className="text-xs text-amber-600">
+                      {t("merchant.productEdit.missingWeight")}
+                    </p>
+                  )}
                 </div>
                 <div className="w-32">
                   <Input
@@ -217,6 +282,29 @@ export function VariantsCard(props: VariantsCardProps) {
                     }
                   />
                 </div>
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder={t("merchant.productNew.weightGramLabel")}
+                    value={props.parcelWeights[variant.skuId] ?? ""}
+                    onChange={(event) =>
+                      props.onParcelWeight(variant.skuId, event.target.value)
+                    }
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={
+                    (props.parcelWeights[variant.skuId] ?? "") ===
+                    (variant.weightGram == null ? "" : String(variant.weightGram))
+                  }
+                  loading={props.savingParcelSku === variant.skuId}
+                  onClick={() => props.onSaveParcel(variant.skuId)}
+                >
+                  {t("merchant.productEdit.saveParcel")}
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -246,7 +334,7 @@ export function VariantsCard(props: VariantsCardProps) {
         <p className="text-xs font-medium text-gray-500 uppercase mb-3">
           {t("merchant.productEdit.addVariant")}
         </p>
-        <div className="flex items-end gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
           <select
             value={props.draft.attribute}
             onChange={(event) =>
@@ -279,6 +367,47 @@ export function VariantsCard(props: VariantsCardProps) {
               value={props.draft.price}
               onChange={(event) =>
                 props.onDraft({ ...props.draft, price: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-28">
+            <Input
+              label={t("merchant.productNew.weightGramLabel")}
+              type="number"
+              min={1}
+              value={props.draft.weightGram}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, weightGram: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.lengthCmLabel")}
+              type="number"
+              value={props.draft.lengthCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, lengthCm: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.widthCmLabel")}
+              type="number"
+              value={props.draft.widthCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, widthCm: event.target.value })
+              }
+            />
+          </div>
+          <div className="w-20">
+            <Input
+              label={t("merchant.productNew.heightCmLabel")}
+              type="number"
+              value={props.draft.heightCm}
+              onChange={(event) =>
+                props.onDraft({ ...props.draft, heightCm: event.target.value })
               }
             />
           </div>

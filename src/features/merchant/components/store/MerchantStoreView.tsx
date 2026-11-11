@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { use, useState, useMemo, useRef } from "react";
+import { use, useState, useMemo, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -12,7 +12,12 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
+  Star,
+  Package,
+  Clock3,
+  Users,
+  Heart,
+  ShoppingBag,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Badge, EmptyState } from "@/shared/ui";
@@ -36,6 +41,28 @@ import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import type { Product, UserVoucher } from "@/types";
 import MerchantVouchers from "./MerchantVouchers";
 
+function StatItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400">
+        <span className="text-gray-400">{icon}</span>
+        <span className="truncate">{label}</span>
+      </div>
+      <p className="mt-1 text-sm sm:text-[15px] font-bold text-gray-800 truncate">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 export default function MerchantStorePage({
   params,
 }: {
@@ -58,6 +85,37 @@ export default function MerchantStorePage({
     queryKey: ["merchant", id],
     queryFn: () => merchantService.get(id),
   });
+
+  const { data: storefrontStats } = useQuery({
+    queryKey: ["merchant-storefront-stats", id],
+    queryFn: () => merchantService.getStorefrontStats(id),
+  });
+
+  const followMutation = useMutation({
+    mutationFn: () =>
+      storefrontStats?.following
+        ? merchantService.unfollow(id)
+        : merchantService.follow(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-storefront-stats", id],
+      });
+      toast.success(
+        storefrontStats?.following
+          ? t("merchantStore.unfollowed")
+          : t("merchantStore.followed"),
+      );
+    },
+    onError: () => toast.error(t("merchantStore.followError")),
+  });
+
+  const handleFollow = () => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?redirect=/merchants/${id}`);
+      return;
+    }
+    followMutation.mutate();
+  };
 
   const scrollToProducts = () => {
     if (productsRef.current) {
@@ -215,6 +273,16 @@ export default function MerchantStorePage({
     ? formatMonthYear(merchant.createdAt, locale)
     : t("merchants.yearsAgo");
 
+  const compactNumber = (value: number) =>
+    new Intl.NumberFormat(locale === "en" ? "en-US" : "vi-VN", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+
+  const responseTimeLabel = t(
+    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "UNKNOWN"}`,
+  );
+
   const displayProvince = merchant.provinceCode
     ? provinceNameByCode.get(merchant.provinceCode)
     : merchant.provinceName
@@ -227,11 +295,10 @@ export default function MerchantStorePage({
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Modern Clean Store Header Card */}
+        {/* Store header card */}
         <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* Store Profile Info */}
-            <div className="flex items-center gap-5">
+          <div className="flex flex-col xl:flex-row xl:items-start gap-6">
+            <div className="flex items-start gap-5 xl:w-[360px] shrink-0">
               <div className="relative shrink-0">
                 {merchant.logoUrl ? (
                   <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-50">
@@ -257,7 +324,7 @@ export default function MerchantStorePage({
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
                     {merchant.name}
@@ -273,79 +340,92 @@ export default function MerchantStorePage({
                       : merchant.status}
                   </Badge>
                 </div>
-                {merchant.description && (
-                  <p className="text-sm text-gray-500 line-clamp-1 max-w-xl">
-                    {merchant.description}
-                  </p>
-                )}
-                <div className="pt-1">
+
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <MapPin size={13} className="shrink-0" />
+                  <span className="truncate">
+                    {displayProvince || t("merchantStore.notUpdated")}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 flex-wrap">
                   <button
                     onClick={handleStartChat}
                     disabled={chatLoading}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-950 hover:bg-black active:scale-98 text-white rounded-xl text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-rose-50 text-rose-600 border border-rose-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     {chatLoading ? (
-                      <Loader2 className="animate-spin text-white" size={14} />
+                      <Loader2 className="animate-spin" size={14} />
                     ) : (
                       <MessageCircle size={14} />
                     )}
                     <span>{t("merchantStore.chat")}</span>
                   </button>
+                  <button
+                    onClick={scrollToProducts}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                  >
+                    <ShoppingBag size={14} />
+                    <span>{t("merchantStore.viewShop")}</span>
+                  </button>
+                  <button
+                    onClick={handleFollow}
+                    disabled={followMutation.isPending}
+                    className={
+                      storefrontStats?.following
+                        ? "inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                        : "inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                    }
+                  >
+                    {followMutation.isPending ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <Heart
+                        size={14}
+                        className={storefrontStats?.following ? "fill-rose-500 text-rose-500" : "fill-white"}
+                      />
+                    )}
+                    <span>
+                      {storefrontStats?.following
+                        ? t("merchantStore.following")
+                        : t("merchantStore.follow")}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Store Quick Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 border-t lg:border-t-0 lg:border-l border-gray-200/80 pt-6 lg:pt-0 lg:pl-8">
-              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
-                <Store size={18} className="text-gray-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    {t("merchantStore.products")}
-                  </p>
-                  <p className="text-sm font-bold text-gray-950 mt-0.5">
-                    {totalElements}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
-                <MapPin size={18} className="text-gray-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    {t("merchantStore.location")}
-                  </p>
-                  <p className="text-sm font-bold text-gray-950 mt-0.5 truncate max-w-[120px]">
-                    {displayProvince || t("merchantStore.notUpdated")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
-                <Calendar size={18} className="text-gray-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    {t("merchantStore.joined")}
-                  </p>
-                  <p className="text-sm font-bold text-gray-950 mt-0.5">
-                    {formattedDate}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-gray-50/80 rounded-xl p-3 sm:p-3.5 border border-gray-200/80 flex items-center gap-3">
-                <ShieldCheck size={18} className="text-gray-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Status
-                  </p>
-                  <p className="text-sm font-bold text-emerald-600 mt-0.5">
-                    {merchant.status === "ACTIVE"
-                      ? t("merchantStore.active")
-                      : merchant.status}
-                  </p>
-                </div>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5 border-t xl:border-t-0 xl:border-l border-gray-200/80 pt-6 xl:pt-0 xl:pl-8 flex-1">
+              <StatItem
+                icon={<Star size={16} />}
+                label={t("merchantStore.reviews")}
+                value={compactNumber(storefrontStats?.reviewCount ?? 0)}
+              />
+              <StatItem
+                icon={<Package size={16} />}
+                label={t("merchantStore.products")}
+                value={compactNumber(storefrontStats?.productCount ?? totalElements)}
+              />
+              <StatItem
+                icon={<MessageCircle size={16} />}
+                label={t("merchantStore.responseRate")}
+                value={`${storefrontStats?.responseRatePercent ?? 0}%`}
+              />
+              <StatItem
+                icon={<Clock3 size={16} />}
+                label={t("merchantStore.responseTimeLabel")}
+                value={responseTimeLabel}
+              />
+              <StatItem
+                icon={<Calendar size={16} />}
+                label={t("merchantStore.joined")}
+                value={formattedDate}
+              />
+              <StatItem
+                icon={<Users size={16} />}
+                label={t("merchantStore.followers")}
+                value={compactNumber(storefrontStats?.followerCount ?? 0)}
+              />
             </div>
           </div>
         </div>
@@ -470,7 +550,6 @@ export default function MerchantStorePage({
                         price={price}
                         originalPrice={originalPrice}
                         image={image}
-                        merchant={product.merchantId}
                         rating={product.rating}
                         reviewCount={product.reviewCount}
                         sold={product.soldCount}

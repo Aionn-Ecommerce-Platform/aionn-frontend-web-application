@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Loader2, Store, Pause, Play, XCircle } from "lucide-react";
+import { Search, Loader2, Store, Pause, Play, XCircle, Percent } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   Button,
   Badge,
   EmptyState,
   Modal,
+  Input,
   DefinitionRow as Row,
 } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -36,6 +37,9 @@ function AdminMerchantsInner() {
   const [merchant, setMerchant] = useState<Merchant | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
   const [reason, setReason] = useState("");
+  const [commissionModal, setCommissionModal] = useState(false);
+  const [commissionInput, setCommissionInput] = useState("");
+  const [globalInput, setGlobalInput] = useState("");
 
   const lookupMutation = useMutation({
     mutationFn: (id: string) => merchantService.get(id.trim()),
@@ -83,6 +87,46 @@ function AdminMerchantsInner() {
   function closeAction() {
     setActionType(null);
     setReason("");
+  }
+
+  const commissionMutation = useMutation({
+    mutationFn: (rate: number) =>
+      merchantService.updateCommissionRate(merchant!.merchantId, rate),
+    onSuccess: (data) => {
+      setMerchant(data);
+      setCommissionModal(false);
+      setCommissionInput("");
+      toast.success(t("adminMerchants.commissionSuccess"));
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const globalCommissionMutation = useMutation({
+    mutationFn: (rate: number) =>
+      merchantService.updateGlobalCommissionRate(rate),
+    onSuccess: () => {
+      setGlobalInput("");
+      toast.success(t("adminMerchants.globalCommissionSuccess"));
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  function submitCommission() {
+    const rate = Number(commissionInput);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      toast.error(t("adminMerchants.commissionInvalid"));
+      return;
+    }
+    commissionMutation.mutate(rate / 100);
+  }
+
+  function submitGlobalCommission() {
+    const rate = Number(globalInput);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      toast.error(t("adminMerchants.commissionInvalid"));
+      return;
+    }
+    globalCommissionMutation.mutate(rate / 100);
   }
 
   function submitAction() {
@@ -149,6 +193,39 @@ function AdminMerchantsInner() {
           </div>
         </div>
 
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Percent size={16} className="text-blue-600" />
+            <h2 className="text-sm font-semibold text-gray-900">
+              {t("adminMerchants.globalCommissionTitle")}
+            </h2>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            {t("adminMerchants.globalCommissionDescription")}
+          </p>
+          <div className="flex gap-3 items-end">
+            <div className="w-40">
+              <Input
+                label={t("adminMerchants.commissionRateLabel")}
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                value={globalInput}
+                onChange={(e) => setGlobalInput(e.target.value)}
+                placeholder="5.00"
+              />
+            </div>
+            <Button
+              onClick={submitGlobalCommission}
+              loading={globalCommissionMutation.isPending}
+              disabled={!globalInput.trim()}
+            >
+              {t("common.save")}
+            </Button>
+          </div>
+        </div>
+
         {lookupMutation.isPending ? (
           <div className="py-20 flex justify-center">
             <Loader2 className="animate-spin text-blue-600" size={28} />
@@ -199,6 +276,14 @@ function AdminMerchantsInner() {
                 }
               />
               <Row
+                label={t("adminMerchants.commissionRateLabel")}
+                value={
+                  merchant.commissionRate != null
+                    ? `${(merchant.commissionRate * 100).toFixed(2)}%`
+                    : "—"
+                }
+              />
+              <Row
                 label={t("common.createdAt")}
                 value={formatDateTime(merchant.createdAt, locale)}
               />
@@ -209,6 +294,21 @@ function AdminMerchantsInner() {
             </dl>
 
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setCommissionInput(
+                    merchant.commissionRate != null
+                      ? (merchant.commissionRate * 100).toFixed(2)
+                      : "",
+                  );
+                  setCommissionModal(true);
+                }}
+              >
+                <Percent size={14} className="mr-1.5" />
+                {t("adminMerchants.changeCommission")}
+              </Button>
               {merchant.status === "ACTIVE" && (
                 <Button
                   variant="outline"
@@ -284,6 +384,44 @@ function AdminMerchantsInner() {
                 }
               >
                 {t("common.confirm")}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={commissionModal}
+          onClose={() => setCommissionModal(false)}
+          title={t("adminMerchants.commissionTitle")}
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {t("adminMerchants.commissionDescription")}
+            </p>
+            <Input
+              label={t("adminMerchants.commissionRateLabel")}
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              value={commissionInput}
+              onChange={(e) => setCommissionInput(e.target.value)}
+              placeholder="5.00"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCommissionModal(false)}
+                disabled={commissionMutation.isPending}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={submitCommission}
+                loading={commissionMutation.isPending}
+                disabled={!commissionInput.trim()}
+              >
+                {t("common.save")}
               </Button>
             </div>
           </div>

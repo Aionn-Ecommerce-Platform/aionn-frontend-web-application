@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { Button, EmptyState } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { useCartStore } from "@/stores/cart.store";
+import { productPath } from "@/shared/lib/product-url";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTranslation } from "@/hooks";
 import { formatCurrency } from "@/shared/lib/utils";
@@ -73,6 +74,8 @@ export default function CartPage() {
     (sum, item) => sum + item.price * item.qty,
     0,
   );
+  const cartCurrency =
+    selectedItems[0]?.currency ?? items[0]?.currency ?? "VND";
   const allSelected =
     items.length > 0 && selectedSkuIds.length === items.length;
   const selectedCheckoutPath = `/checkout?items=${encodeURIComponent(
@@ -206,7 +209,7 @@ export default function CartPage() {
 
                         <div className="flex min-w-0 items-center gap-3">
                           <Link
-                            href={`/products/${item.productId}`}
+                            href={productPath({ productId: item.productId, slug: item.slug })}
                             className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50 sm:h-24 sm:w-24"
                           >
                             <Image
@@ -219,7 +222,7 @@ export default function CartPage() {
                           </Link>
                           <div className="min-w-0 flex-1">
                             <Link
-                              href={`/products/${item.productId}`}
+                              href={productPath({ productId: item.productId, slug: item.slug })}
                               className="line-clamp-2 text-sm font-semibold leading-5 text-gray-900 hover:text-blue-600 sm:text-base"
                             >
                               {item.productName}
@@ -269,7 +272,7 @@ export default function CartPage() {
                           <p className="text-sm text-gray-500 md:hidden">
                             {t("cart.amount")}
                           </p>
-                          <p className="font-bold text--commerce">
+                          <p className="font-bold text-purple-700">
                             {formatCurrency(lineAmount, item.currency, locale)}
                           </p>
                         </div>
@@ -306,15 +309,15 @@ export default function CartPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">{t("cart.subtotal")}</span>
                   <span className="font-medium">
-                    {formatCurrency(selectedAmount, "VND", locale)}
+                    {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-gray-100 pt-3">
                   <span className="font-semibold text-gray-900">
                     {t("cart.total")}
                   </span>
-                  <span className="text-2xl font-bold text--commerce">
-                    {formatCurrency(selectedAmount, "VND", locale)}
+                  <span className="text-2xl font-bold text-purple-700">
+                    {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
               </div>

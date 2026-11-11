@@ -12,6 +12,8 @@ import {
   Loader2,
   AlertTriangle,
   MessageSquare,
+  Flag,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, Input, ConfirmDialog } from "@/shared/ui";
@@ -28,14 +30,35 @@ function AdminReviewsInner() {
   const [productInput, setProductInput] = useState("");
   const [productId, setProductId] = useState<string | null>(null);
   const [hideTarget, setHideTarget] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [tab, setTab] = useState<"PRODUCT" | "REPORTED">("PRODUCT");
 
-  const { data, isLoading, error } = useQuery({
+  const {
+    data: productData,
+    isLoading: productLoading,
+    error: productError,
+  } = useQuery({
     queryKey: ["admin-product-reviews", productId],
     queryFn: () =>
       productId ? reviewService.getAdminProductReviews(productId, 0, 50) : null,
     enabled: !!productId,
     retry: false,
   });
+
+  const {
+    data: reportedData,
+    isLoading: reportedLoading,
+    error: reportedError,
+  } = useQuery({
+    queryKey: ["admin-reported-reviews"],
+    queryFn: () => reviewService.listReported(0, 50),
+    enabled: tab === "REPORTED",
+    retry: false,
+  });
+
+  const data = tab === "REPORTED" ? reportedData : productData;
+  const isLoading = tab === "REPORTED" ? reportedLoading : productLoading;
+  const error = tab === "REPORTED" ? reportedError : productError;
 
   const hideMutation = useMutation({
     mutationFn: (reviewId: string) => reviewService.hide(reviewId),
@@ -52,6 +75,18 @@ function AdminReviewsInner() {
     onSuccess: () => {
       toast.success(t("adminReviews.restoredToast"));
       qc.invalidateQueries({ queryKey: ["admin-product-reviews"] });
+      qc.invalidateQueries({ queryKey: ["admin-reported-reviews"] });
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId: string) => reviewService.adminDelete(reviewId),
+    onSuccess: () => {
+      toast.success(t("adminReviews.deletedToast"));
+      setDeleteTarget(null);
+      qc.invalidateQueries({ queryKey: ["admin-product-reviews"] });
+      qc.invalidateQueries({ queryKey: ["admin-reported-reviews"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -79,24 +114,45 @@ function AdminReviewsInner() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-          <div className="flex items-end gap-3">
-            <Input
-              label="Product ID"
-              value={productInput}
-              onChange={(e) => setProductInput(e.target.value)}
-              placeholder="PR_..."
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleLookup();
-              }}
-            />
-            <Button onClick={handleLookup} disabled={!productInput.trim()}>
-              <Search size={14} className="mr-1" />
-              {t("adminReviews.lookup")}
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant={tab === "PRODUCT" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setTab("PRODUCT")}
+          >
+            <Search size={14} className="mr-1" />
+            {t("adminReviews.tabByProduct")}
+          </Button>
+          <Button
+            variant={tab === "REPORTED" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setTab("REPORTED")}
+          >
+            <Flag size={14} className="mr-1" />
+            {t("adminReviews.tabReported")}
+          </Button>
         </div>
+
+        {tab === "PRODUCT" && (
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
+            <div className="flex items-end gap-3">
+              <Input
+                label="Product ID"
+                value={productInput}
+                onChange={(e) => setProductInput(e.target.value)}
+                placeholder="PR_..."
+                className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleLookup();
+                }}
+              />
+              <Button onClick={handleLookup} disabled={!productInput.trim()}>
+                <Search size={14} className="mr-1" />
+                {t("adminReviews.lookup")}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {isLoading && (
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
@@ -104,7 +160,7 @@ function AdminReviewsInner() {
           </div>
         )}
 
-        {error && productId && !isLoading && (
+        {error && !isLoading && (tab === "REPORTED" || productId) && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3">
             <AlertTriangle size={18} className="text-red-600 mt-0.5" />
             <div>
@@ -118,11 +174,13 @@ function AdminReviewsInner() {
           </div>
         )}
 
-        {productId && !isLoading && !error && reviews.length === 0 && (
+        {!isLoading && !error && (tab === "REPORTED" || productId) && reviews.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
             <MessageSquare className="mx-auto text-gray-400 mb-4" size={40} />
             <p className="text-sm text-gray-500">
-              {t("adminReviews.empty", { id: productId })}
+              {tab === "REPORTED"
+                ? t("adminReviews.emptyReported")
+                : t("adminReviews.empty", { id: productId ?? "" })}
             </p>
           </div>
         )}
@@ -197,35 +255,56 @@ function AdminReviewsInner() {
                       order: review.orderId ?? "—",
                     })}
                   </p>
-                  {review.status === "VISIBLE" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setHideTarget(review.reviewId)}
-                    >
-                      <EyeOff size={14} className="mr-1 text-red-600" />
-                      <span className="text-red-600">
-                        {t("adminReviews.hide")}
-                      </span>
-                    </Button>
+                  {review.reportReason && (
+                    <p className="text-xs text-red-600">
+                      {t("adminReviews.reportReason", {
+                        reason: review.reportReason,
+                      })}
+                    </p>
                   )}
-                  {(review.status === "HIDDEN" ||
-                    review.status === "REPORTED") && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      loading={
-                        restoreMutation.isPending &&
-                        restoreMutation.variables === review.reviewId
-                      }
-                      onClick={() => restoreMutation.mutate(review.reviewId)}
-                    >
-                      <Eye size={14} className="mr-1 text-green-600" />
-                      <span className="text-green-600">
-                        {t("adminReviews.restore")}
-                      </span>
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {review.status === "VISIBLE" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setHideTarget(review.reviewId)}
+                      >
+                        <EyeOff size={14} className="mr-1 text-red-600" />
+                        <span className="text-red-600">
+                          {t("adminReviews.hide")}
+                        </span>
+                      </Button>
+                    )}
+                    {(review.status === "HIDDEN" ||
+                      review.status === "REPORTED") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        loading={
+                          restoreMutation.isPending &&
+                          restoreMutation.variables === review.reviewId
+                        }
+                        onClick={() => restoreMutation.mutate(review.reviewId)}
+                      >
+                        <Eye size={14} className="mr-1 text-green-600" />
+                        <span className="text-green-600">
+                          {t("adminReviews.restore")}
+                        </span>
+                      </Button>
+                    )}
+                    {review.status !== "DELETED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteTarget(review.reviewId)}
+                      >
+                        <Trash2 size={14} className="mr-1 text-red-600" />
+                        <span className="text-red-600">
+                          {t("adminReviews.delete")}
+                        </span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -241,6 +320,16 @@ function AdminReviewsInner() {
         message={t("adminReviews.hideMessage")}
         confirmLabel={t("adminReviews.confirmHide")}
         loading={hideMutation.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+        title={t("adminReviews.deleteTitle")}
+        message={t("adminReviews.deleteMessage")}
+        confirmLabel={t("adminReviews.confirmDelete")}
+        loading={deleteMutation.isPending}
       />
     </div>
   );

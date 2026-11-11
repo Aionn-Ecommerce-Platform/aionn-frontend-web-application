@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Loader2,
   Check,
+  Bell,
   Gift,
   Minus,
   Package,
@@ -17,7 +18,7 @@ import {
   Truck,
   Zap,
 } from "lucide-react";
-import { Badge, Button } from "@/shared/ui";
+import { Badge } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { Address, Product, ProductVariant } from "@/types";
@@ -39,6 +40,7 @@ interface Props {
   priceLabel: string;
   currentVariant?: ProductVariant;
   strikePrice?: number;
+  strikeLabel?: string | null;
   displayPrice: number;
   displayCurrency: string;
   discountPercent: number;
@@ -55,6 +57,9 @@ interface Props {
   adding: boolean;
   handleAddToCart: () => void;
   handleBuyNow: () => void;
+  onNotifyRestock?: () => void;
+  restockSubscribed?: boolean;
+  restockLoading?: boolean;
   t: T;
 }
 
@@ -76,7 +81,10 @@ function FlashSaleCountdown({ endAt }: { endAt: string }) {
 
   const totalSeconds = Math.floor(remainingMs / 1000);
   const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+    2,
+    "0",
+  );
   const seconds = String(totalSeconds % 60).padStart(2, "0");
 
   return (
@@ -111,6 +119,7 @@ export default function ProductMainCard(props: Props) {
     priceLabel,
     currentVariant,
     strikePrice,
+    strikeLabel,
     displayPrice,
     displayCurrency,
     discountPercent,
@@ -127,6 +136,9 @@ export default function ProductMainCard(props: Props) {
     adding,
     handleAddToCart,
     handleBuyNow,
+    onNotifyRestock,
+    restockSubscribed,
+    restockLoading,
     t,
   } = props;
   const [selectionState, setSelectionState] = useState<{
@@ -141,9 +153,9 @@ export default function ProductMainCard(props: Props) {
   useEffect(() => {
     const container = thumbnailContainerRef.current;
     if (!container) return;
-    const activeThumb = container.children[
-      selectedImage
-    ] as HTMLElement | undefined;
+    const activeThumb = container.children[selectedImage] as
+      | HTMLElement
+      | undefined;
     if (activeThumb) {
       const targetLeft =
         activeThumb.offsetLeft -
@@ -184,7 +196,6 @@ export default function ProductMainCard(props: Props) {
     const keyIndex = attributeKeys.indexOf(key);
     if (keyIndex === -1) return;
 
-    // 1. Toggle off if clicking the already selected value: unselect it and all child rows below
     if (selectedAttributes[key] === value) {
       const nextAttributes: Record<string, string> = {};
       for (let i = 0; i < keyIndex; i++) {
@@ -202,26 +213,21 @@ export default function ProductMainCard(props: Props) {
       return;
     }
 
-    // 2. Strict top-down cascade: keep all parent selections above keyIndex
     const nextAttributes: Record<string, string> = {};
     for (let i = 0; i < keyIndex; i++) {
-        const parentKey = attributeKeys[i];
-        if (parentKey && selectedAttributes[parentKey]) {
-          nextAttributes[parentKey] = selectedAttributes[parentKey];
-        }
+      const parentKey = attributeKeys[i];
+      if (parentKey && selectedAttributes[parentKey]) {
+        nextAttributes[parentKey] = selectedAttributes[parentKey];
       }
+    }
 
-    // 3. Set the current attribute choice
     nextAttributes[key] = value;
-
-    // Any child rows below keyIndex (i > keyIndex) are reset so the user selects them next in order!
 
     setSelectionState({
       productId: product.productId,
       values: nextAttributes,
     });
 
-    // 4. Variant is determined only when ALL attributes from top to bottom are chosen
     const allChosen = attributeKeys.every((k) => Boolean(nextAttributes[k]));
     if (allChosen) {
       const variantIdx = product.variants.findIndex((v) =>
@@ -238,12 +244,10 @@ export default function ProductMainCard(props: Props) {
     const keyIndex = attributeKeys.indexOf(key);
     if (keyIndex === -1) return false;
 
-    // Row 0 (top tier): always available if the option exists in any variant
     if (keyIndex === 0) {
       return product.variants.some((v) => v.attributeValues[key] === value);
     }
 
-    // Child rows (keyIndex > 0): user must select parent row first
     for (let i = 0; i < keyIndex; i++) {
       const parentKey = attributeKeys[i];
       if (!parentKey || !selectedAttributes[parentKey]) {
@@ -251,12 +255,14 @@ export default function ProductMainCard(props: Props) {
       }
     }
 
-    // Must be compatible with all parent choices above
     return product.variants.some((v) => {
       if (v.attributeValues[key] !== value) return false;
       for (let i = 0; i < keyIndex; i++) {
         const parentKey = attributeKeys[i];
-        if (parentKey && v.attributeValues[parentKey] !== selectedAttributes[parentKey]) {
+        if (
+          parentKey &&
+          v.attributeValues[parentKey] !== selectedAttributes[parentKey]
+        ) {
           return false;
         }
       }
@@ -267,7 +273,7 @@ export default function ProductMainCard(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
             <div className="aspect-square relative bg-gray-50/70 rounded-2xl overflow-hidden mb-4 border border-gray-200 shadow-xs group">
@@ -386,7 +392,10 @@ export default function ProductMainCard(props: Props) {
                   <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-white/10">
                     <div className="flex items-center gap-2">
                       <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-xs">
-                        <Zap size={13} className="fill-purple-200 text-purple-100 animate-pulse" />
+                        <Zap
+                          size={13}
+                          className="fill-purple-200 text-purple-100 animate-pulse"
+                        />
                         FLASH SALE
                       </span>
                       {discountPercent > 0 && (
@@ -397,7 +406,9 @@ export default function ProductMainCard(props: Props) {
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-purple-200">
-                      <span className="font-semibold text-white/90">KẾT THÚC TRONG</span>
+                      <span className="font-semibold text-white/90">
+                        KẾT THÚC TRONG
+                      </span>
                       <FlashSaleCountdown endAt={product.flashSale.endAt} />
                     </div>
                   </div>
@@ -406,11 +417,15 @@ export default function ProductMainCard(props: Props) {
                     <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
                       {priceLabel}
                     </span>
-                    {strikePrice && strikePrice > displayPrice && (
+                    {strikePrice && strikePrice > displayPrice ? (
                       <span className="text-base sm:text-lg text-white/50 line-through">
                         {formatCurrency(strikePrice, displayCurrency, locale)}
                       </span>
-                    )}
+                    ) : strikeLabel ? (
+                      <span className="text-base sm:text-lg text-white/50 line-through">
+                        {strikeLabel}
+                      </span>
+                    ) : null}
                   </div>
 
                   {product.flashSale.saleStock > 0 && (
@@ -424,7 +439,8 @@ export default function ProductMainCard(props: Props) {
                         />
                       </div>
                       <span className="text-[11px] text-white/80 font-medium whitespace-nowrap">
-                        Đã bán {product.flashSale.soldCount}/{product.flashSale.saleStock} suất
+                        Đã bán {product.flashSale.soldCount}/
+                        {product.flashSale.saleStock} suất
                       </span>
                     </div>
                   )}
@@ -435,18 +451,20 @@ export default function ProductMainCard(props: Props) {
                     <div className="flex items-baseline gap-3 flex-wrap">
                       <span
                         className={`text-3xl sm:text-4xl font-bold tracking-tight leading-tight ${
-                          discountPercent > 0
-                            ? "text-red-600"
-                            : "text-gray-950"
+                          discountPercent > 0 ? "text-red-600" : "text-gray-950"
                         }`}
                       >
                         {priceLabel}
                       </span>
-                      {strikePrice && strikePrice > displayPrice && (
+                      {strikePrice && strikePrice > displayPrice ? (
                         <span className="text-base sm:text-lg text-gray-400 line-through">
                           {formatCurrency(strikePrice, displayCurrency, locale)}
                         </span>
-                      )}
+                      ) : strikeLabel ? (
+                        <span className="text-base sm:text-lg text-gray-400 line-through">
+                          {strikeLabel}
+                        </span>
+                      ) : null}
                       {discountPercent > 0 && (
                         <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-full">
                           -{discountPercent}%
@@ -574,15 +592,17 @@ export default function ProductMainCard(props: Props) {
                             href="/policy/returns"
                             className="text-xs font-semibold text-red-500 hover:text-red-600 inline-flex items-center gap-0.5 cursor-pointer transition-colors"
                           >
-                            <span>{t("productDetail.learnMore") || "Tìm hiểu thêm"}</span>
+                            <span>
+                              {t("productDetail.learnMore") || "Tìm hiểu thêm"}
+                            </span>
                             <ChevronRight size={13} />
                           </Link>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
               </div>
-            </div>
 
               {attributeKeys.length > 0 && (
                 <div className="mt-8 space-y-4">
@@ -699,7 +719,10 @@ export default function ProductMainCard(props: Props) {
                 type="button"
                 className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-950 hover:text-white font-bold transition-colors duration-200 shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleAddToCart}
-                disabled={adding || (Boolean(currentVariant) && stock !== null && stock <= 0)}
+                disabled={
+                  adding ||
+                  (Boolean(currentVariant) && stock !== null && stock <= 0)
+                }
               >
                 {adding ? (
                   <span className="inline-flex items-center gap-2">
@@ -724,19 +747,46 @@ export default function ProductMainCard(props: Props) {
                 type="button"
                 className="h-12 flex-1 rounded-xl border border-gray-950 bg-gray-950 text-white hover:bg-neutral-800 hover:border-neutral-800 font-bold transition-colors duration-200 shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:hover:border-gray-200 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleBuyNow}
-                disabled={adding || (Boolean(currentVariant) && stock !== null && stock <= 0)}
+                disabled={
+                  adding ||
+                  (Boolean(currentVariant) && stock !== null && stock <= 0)
+                }
               >
-                <Zap size={17} className="mr-2 text-current fill-current shrink-0" />
+                <Zap
+                  size={17}
+                  className="mr-2 text-current fill-current shrink-0"
+                />
                 <span>
                   {Boolean(currentVariant) && stock !== null && stock <= 0
                     ? t("productDetail.outOfStock")
                     : t("products.buyNow")}
                 </span>
-              </button>            </div>
+              </button>{" "}
+            </div>
+            {Boolean(currentVariant) && stock !== null && stock <= 0 && (
+              <button
+                type="button"
+                onClick={onNotifyRestock}
+                disabled={restockLoading}
+                className={`mt-3 h-11 w-full rounded-xl border font-bold text-sm transition-colors cursor-pointer inline-flex items-center justify-center disabled:opacity-50 ${
+                  restockSubscribed
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                }`}
+              >
+                {restockLoading ? (
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                ) : (
+                  <Bell size={16} className="mr-2" />
+                )}
+                {restockSubscribed
+                  ? t("productDetail.stockAlertOn")
+                  : t("productDetail.stockAlert")}
+              </button>
+            )}
           </div>
         </div>
       </div>
-
     </>
   );
 }

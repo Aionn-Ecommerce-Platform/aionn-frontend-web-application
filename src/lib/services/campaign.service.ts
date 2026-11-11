@@ -1,5 +1,10 @@
 import api from "@/shared/api";
-import type { CampaignStatus, PromotionCampaign, Voucher } from "@/types";
+import type {
+  CampaignStatus,
+  PromotionCampaign,
+  Voucher,
+  VoucherType,
+} from "@/types";
 
 export const campaignService = {
   listByStatus(status: CampaignStatus = "RUNNING", limit = 50) {
@@ -72,6 +77,7 @@ export const campaignService = {
       usageLimit: number;
       validFrom: string;
       validUntil: string;
+      type?: VoucherType;
     },
   ) {
     return api.post<Voucher>(
@@ -88,6 +94,7 @@ export type IssueVoucherInput = {
   usageLimit: number;
   validFrom: string;
   validUntil: string;
+  type?: VoucherType;
 };
 
 export const shopVoucherService = {

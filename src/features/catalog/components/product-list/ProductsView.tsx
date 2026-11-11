@@ -45,9 +45,9 @@ function ProductsInner() {
   );
   const priceMin = searchParams.get("priceMin");
   const priceMax = searchParams.get("priceMax");
-  const sortParam = (searchParams.get("sort") ?? "NEWEST") as ProductSort;
+  const sortParam = (searchParams.get("sort") ?? "RELEVANCE") as ProductSort;
   const page = Number(searchParams.get("page") ?? 0) || 0;
-  const size = 50;
+  const size = 48;
 
   const ratingMin = searchParams.get("ratingMin")
     ? Number(searchParams.get("ratingMin"))
@@ -288,8 +288,8 @@ function ProductsInner() {
   return (
     <div className="bg-gray-50 min-h-screen relative">
       {isFetching && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-blue-100/30 z-[9999] overflow-hidden">
-          <div className="animate-top-loader rounded-r-full" />
+        <div className="fixed top-0 left-0 right-0 h-1 bg-black/10 z-[9999] overflow-hidden">
+          <div className="animate-top-loader rounded-r-full !bg-gray-950" />
         </div>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -368,7 +368,7 @@ function ProductsInner() {
             ))}
             <button
               onClick={clearAll}
-              className="text-xs text-brand hover:underline font-bold transition-colors ml-2 cursor-pointer"
+              className="text-xs text-white/90 hover:text-white hover:underline font-bold transition-colors ml-2 cursor-pointer"
             >
               {t("products.clearAll")}
             </button>
@@ -386,7 +386,7 @@ function ProductsInner() {
             priceMin={priceMin}
             priceMax={priceMax}
             priceBounds={facets?.priceRange ?? null}
-            attributes={facets?.attributes ?? {}}
+            attributes={{}}
             onSaleChange={toggleOnSale}
             onCategory={(id) => toggleMulti("categoryIds", id)}
             onBrand={(id) => toggleMulti("brandIds", id)}
@@ -395,7 +395,6 @@ function ProductsInner() {
             onPrice={setPriceRange}
           />
           <div className="flex-1 min-w-0">
-            {/* Sorting and view mode controls at the head of product grid */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <QuickSortTabs value={sortParam} onChange={setSort} t={t} />
               <div className="flex items-center h-8.5 border border-gray-950 rounded-full overflow-hidden bg-white shadow-xs p-0.5 shrink-0">

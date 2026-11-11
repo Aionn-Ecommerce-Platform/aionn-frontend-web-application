@@ -146,13 +146,17 @@ export interface UploadSignature {
   cloudName: string;
   uploadUrl: string;
   folder: string;
+  /**
+   * Cloudinary asset type the signature was computed for. Must be sent with the
+   * upload form or Cloudinary rejects the signature. KYC documents use "private".
+   */
+  type?: string;
 }
 
 export interface RegistrationSession {
   regId: string;
   resendAvailableAt: string;
   expiredAt: string;
-  otpCode?: string | null;
 }
 
 export interface VerifyOtpResult {

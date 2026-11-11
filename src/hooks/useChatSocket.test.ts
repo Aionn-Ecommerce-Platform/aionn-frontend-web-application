@@ -118,7 +118,6 @@ describe("useChatSocket", () => {
 
     expect(mockActivate).toHaveBeenCalled();
 
-    // Trigger onConnect callback
     act(() => {
       clientInstance.connected = true;
       const onConnect = capturedClientConfig.onConnect as () => void;
@@ -126,7 +125,6 @@ describe("useChatSocket", () => {
     });
 
     expect(result.current.isConnected).toBe(true);
-    // Subscribes to user queue and conversation topic
     expect(mockSubscribe).toHaveBeenCalledWith(
       "/user/queue/messages",
       expect.any(Function),
@@ -217,7 +215,6 @@ describe("useChatSocket", () => {
 
     expect(result.current.isPartnerTyping).toBe(false);
 
-    // Partner started typing
     act(() => {
       topicCallback?.({
         body: JSON.stringify({
@@ -231,7 +228,6 @@ describe("useChatSocket", () => {
 
     expect(result.current.isPartnerTyping).toBe(true);
 
-    // Partner stopped typing
     act(() => {
       topicCallback?.({
         body: JSON.stringify({

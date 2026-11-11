@@ -19,6 +19,7 @@ import {
   LogOut,
   Settings,
   Package,
+  Heart,
   Store,
   MessageSquare,
   Phone,
@@ -77,7 +78,6 @@ function SearchDropdown({
 
   const trimmedQuery = searchQuery.trim();
 
-  // Mode 1: Empty input (History + Trending, max 5 items in total)
   if (!trimmedQuery) {
     const historyItems = recentSearches.slice(0, 5);
     const recommendLimit = Math.max(0, 5 - historyItems.length);
@@ -131,7 +131,6 @@ function SearchDropdown({
     );
   }
 
-  // Mode 2: User is typing (Live autocomplete suggestions, max 5 items)
   return (
     <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
       {isSuggestionsLoading && (
@@ -198,13 +197,17 @@ export default function Header() {
   const debouncedSearchQuery = useDebounce(searchQuery.trim(), 250);
 
   const { data: trendingRecommendations = [] } = useQuery({
-    queryKey: ["search-trending-recommendations"],
+    // Key by user so another account on the same browser can't reuse this feed.
+    queryKey: [
+      "search-trending-recommendations",
+      user?.userId ?? "guest",
+    ],
     queryFn: () => recommendationService.getHomeFeed(5),
     enabled: searchOpen && !debouncedSearchQuery,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: liveSuggestions = [], isFetching: isSuggestionsFetching } =
+  const { data: liveSuggestionsResult, isFetching: isSuggestionsFetching } =
     useQuery({
       queryKey: ["search-live-suggestions", debouncedSearchQuery],
       queryFn: () => productService.searchSuggestions(debouncedSearchQuery, 5),
@@ -212,6 +215,7 @@ export default function Header() {
       placeholderData: keepPreviousData,
       staleTime: 30 * 1000,
     });
+  const liveSuggestions = liveSuggestionsResult?.page.content ?? [];
 
   const isSuggestionsLoading =
     (searchOpen &&
@@ -666,6 +670,13 @@ export default function Header() {
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <Package size={16} /> {t("common.orders")}
+                        </Link>
+                        <Link
+                          href="/account/wishlist"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Heart size={16} /> {t("memberSidebar.wishlist")}
                         </Link>
                         {hasMerchant && (
                           <Link

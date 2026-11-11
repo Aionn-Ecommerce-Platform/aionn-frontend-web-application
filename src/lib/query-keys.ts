@@ -1,5 +1,4 @@
 export const qk = {
-  // identity / account
   me: ["me"] as const,
   sessions: ["me", "sessions"] as const,
   auditLogs: ["me", "audit-logs"] as const,
@@ -12,29 +11,23 @@ export const qk = {
   myKyc: ["kyc", "mine"] as const,
   socialAccounts: ["me", "social-accounts"] as const,
 
-  // catalog
   product: (productId: string) => ["products", "detail", productId] as const,
   productRelated: (productId: string, limit: number) =>
     ["products", "related", productId, limit] as const,
   productSearch: (params: Record<string, unknown>) =>
     ["products", "search", params] as const,
-  productSearchByMerchant: (params: Record<string, unknown>) =>
-    ["products", "search-by-merchant", params] as const,
+  adminPendingReviews: (params: Record<string, unknown>) =>
+    ["products", "admin-pending-reviews", params] as const,
   productPopular: (limit: number) => ["products", "popular", limit] as const,
   productPersonalized: (params: Record<string, unknown>) =>
     ["products", "personalized", params] as const,
 
-  // recommendations
-  /** Query key for home page recommendation feed, scoped by account. */
   recommendationsHome: (limit: number, userId?: string | null) =>
     ["recommendations", "home", userId ?? "anonymous", limit] as const,
-  /** Query key for similar product recommendations. */
   recommendationsSimilar: (productId: string, limit: number) =>
     ["recommendations", "similar", productId, limit] as const,
-  /** Query key for products frequently bought together with the given product. */
   recommendationsAlsoBought: (productId: string, limit: number) =>
     ["recommendations", "also-bought", productId, limit] as const,
-  /** Query key for cart suggestions, scoped by account and sorted SKU list. */
   recommendationsCart: (
     skuIds: string[],
     limit: number,
@@ -65,7 +58,6 @@ export const qk = {
   attributeTemplate: (categoryId: string) =>
     ["attribute-templates", categoryId] as const,
 
-  // reviews
   productReviews: (productId: string, page: number) =>
     ["reviews", "by-product", productId, page] as const,
   productRatingSummary: (productId: string) =>
@@ -77,7 +69,6 @@ export const qk = {
   adminProductReviews: (productId: string) =>
     ["reviews", "admin", "by-product", productId] as const,
 
-  // merchants
   merchantMe: ["merchants", "me"] as const,
   merchant: (merchantId: string) =>
     ["merchants", "detail", merchantId] as const,
@@ -88,7 +79,6 @@ export const qk = {
   merchantFacets: (merchantId: string) =>
     ["merchants", "facets", merchantId] as const,
 
-  // cart / ordering
   cart: ["cart"] as const,
   orders: (params: Record<string, unknown> = {}) =>
     ["orders", "list", params] as const,
@@ -102,7 +92,6 @@ export const qk = {
   adminReturns: (params: Record<string, unknown> = {}) =>
     ["returns", "admin", params] as const,
 
-  // payment
   paymentMethods: ["payment-methods"] as const,
   paymentMethod: (methodId: string) =>
     ["payment-methods", "detail", methodId] as const,
@@ -116,7 +105,6 @@ export const qk = {
   adminPayouts: (params: Record<string, unknown> = {}) =>
     ["payouts", "admin", params] as const,
 
-  // shipping
   shipments: (orderId: string) => ["shipments", "by-order", orderId] as const,
   shipment: (shipmentId: string) =>
     ["shipments", "detail", shipmentId] as const,
@@ -125,7 +113,6 @@ export const qk = {
   shippingRates: (params: Record<string, unknown> = {}) =>
     ["shipments", "rates", params] as const,
 
-  // inventory
   warehouses: (params: Record<string, unknown> = {}) =>
     ["inventory", "warehouses", params] as const,
   warehouse: (warehouseId: string) =>
@@ -138,7 +125,6 @@ export const qk = {
   stockReservation: (reservationId: string) =>
     ["inventory", "reservations", reservationId] as const,
 
-  // promotion
   campaigns: (status?: string) =>
     ["promotions", "campaigns", status ?? "RUNNING"] as const,
   promotionBanners: ["promotions", "banners"] as const,
@@ -154,7 +140,6 @@ export const qk = {
   campaignVouchers: (campaignIds: string[]) =>
     ["vouchers", "by-campaigns", [...campaignIds].sort().join(",")] as const,
 
-  // chat
   conversations: (params: Record<string, unknown> = {}) =>
     ["chat", "conversations", params] as const,
   conversation: (conversationId: string) =>
@@ -166,13 +151,11 @@ export const qk = {
   chatAutoReply: (merchantId: string) =>
     ["chat", "auto-reply", merchantId] as const,
 
-  // notification
   notifications: (limit = 50) => ["notifications", "list", limit] as const,
   notificationTemplates: (limit: number) =>
     ["notifications", "templates", limit] as const,
   notificationProviders: ["notifications", "providers"] as const,
 
-  // geography
   provinces: (countryCode = "VN") =>
     ["geography", "provinces", countryCode] as const,
   districts: (provinceCode: string) =>
@@ -180,7 +163,6 @@ export const qk = {
   wards: (districtCode: string) =>
     ["geography", "wards", districtCode] as const,
 
-  // admin
   adminUsers: (params: Record<string, unknown> = {}) =>
     ["admin", "users", params] as const,
   adminUser: (userId: string) => ["admin", "users", "detail", userId] as const,
@@ -193,7 +175,6 @@ export const qk = {
   adminBanners: ["admin", "banners"] as const,
   adminDashboard: (section: string) => ["admin", "dashboard", section] as const,
 
-  // analytics
   platformOrderAnalytics: (params: Record<string, unknown> = {}) =>
     ["analytics", "platform", "orders", params] as const,
   returnAnalytics: (params: Record<string, unknown> = {}) =>

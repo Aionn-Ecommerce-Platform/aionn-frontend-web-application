@@ -27,6 +27,42 @@ export const notificationService = {
   }) {
     return api.post<void>("/notifications/dispatch", body);
   },
+
+  getPushPublicKey() {
+    return api.get<{ publicKey: string }>("/notifications/push/public-key");
+  },
+
+  listDeviceTokens() {
+    return api.get<
+      Array<{
+        tokenId: string;
+        userId: string;
+        deviceToken: string;
+        os: string | null;
+        active: boolean;
+        registeredAt: string;
+      }>
+    >("/notifications/subscriptions/me/device-tokens");
+  },
+
+  registerDeviceToken(deviceToken: string, os: string) {
+    return api.post<{
+      tokenId: string;
+      deviceToken: string;
+      os: string | null;
+      active: boolean;
+      registeredAt: string;
+    }>("/notifications/subscriptions/me/device-tokens", {
+      deviceToken,
+      os,
+    });
+  },
+
+  removeDeviceToken(tokenId: string) {
+    return api.delete<void>(
+      `/notifications/subscriptions/me/device-tokens/${tokenId}`,
+    );
+  },
 };
 
 export interface ProviderResult {

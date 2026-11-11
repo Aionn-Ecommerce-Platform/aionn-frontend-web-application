@@ -84,14 +84,14 @@ function ForgotPasswordInner() {
             <h1 className="font-brand text-5xl lg:text-6xl font-bold text-brand tracking-wide select-none">
               Aionn
             </h1>
-            <p className="max-w-md text-xl font-semibold leading-relaxed text-gray-900">
+            <p className="max-w-md text-xl font-light leading-relaxed text-gray-700 tracking-wide">
               {t("auth.tagline")}
             </p>
           </div>
         </div>
 
         <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
-          <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.06),0_0_1px_rgba(0,0,0,0.2)] border border-gray-200/90 p-8 transition-shadow">
+          <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(76,29,149,0.18),0_4px_16px_rgba(0,0,0,0.06),0_0_1px_rgba(0,0,0,0.2)] border border-purple-200/70 p-8 transition-shadow">
             <div className="mb-7">
               <h1 className="text-2xl font-bold text-gray-950">
                 {isResetMode
@@ -145,7 +145,7 @@ function ForgotPasswordInner() {
                   />
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
                     size="lg"
                     loading={loading}
                   >
@@ -168,7 +168,7 @@ function ForgotPasswordInner() {
                 />
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white font-bold hover:opacity-95 hover:shadow-lg hover:shadow-purple-500/30 focus:ring-purple-400 border-none"
                   size="lg"
                   loading={loading}
                 >
@@ -189,7 +189,7 @@ function ForgotPasswordInner() {
             <div className="mt-6 text-center">
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="inline-flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 font-medium"
               >
                 <ArrowLeft size={14} />
                 {t("auth.backToLogin")}

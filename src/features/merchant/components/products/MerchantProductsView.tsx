@@ -10,6 +10,7 @@ import { categoryService, productService } from "@/lib/services";
 import { useAuthStore } from "@/stores/auth.store";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { formatCurrency } from "@/shared/lib/utils";
+import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
 import type { ProductStatus } from "@/types";
 import {
@@ -208,7 +209,7 @@ function MerchantProductsInner() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-1">
-                            <Link href={`/products/${product.productId}`}>
+                            <Link href={productPath(product)}>
                               <button
                                 className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600"
                                 title={t("merchant.productList.viewAction")}

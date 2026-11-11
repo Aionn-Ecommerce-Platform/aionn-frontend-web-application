@@ -3,17 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ArrowRight,
-  Layers,
-  PackageSearch,
-} from "lucide-react";
+import { ArrowRight, Layers, PackageSearch } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { categoryService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
-import type { CategoryTreeNode } from "@/types";
 
 export default function CategoriesView() {
   const { t } = useTranslation();
@@ -31,7 +26,6 @@ export default function CategoriesView() {
 
   const rawTree = useMemo(() => tree ?? [], [tree]);
 
-  // Total departments and subcategories counts
   const stats = useMemo(() => {
     let subCount = 0;
     for (const root of rawTree) {
@@ -43,10 +37,12 @@ export default function CategoriesView() {
     };
   }, [rawTree]);
 
-  // Filtered tree based on department tab
   const filteredTree = useMemo(() => {
     return rawTree.filter((root) => {
-      if (selectedDeptId !== "all" && root.category.categoryId !== selectedDeptId) {
+      if (
+        selectedDeptId !== "all" &&
+        root.category.categoryId !== selectedDeptId
+      ) {
         return false;
       }
       return true;
@@ -101,13 +97,9 @@ export default function CategoriesView() {
 
         {/* Main Content Area */}
         {loading ? (
-          /* Modern Department Skeletons */
           <div className="space-y-10 sm:space-y-12">
             {Array.from({ length: 2 }).map((_, idx) => (
-              <div
-                key={`dept-skel-${idx}`}
-                className="animate-pulse"
-              >
+              <div key={`dept-skel-${idx}`} className="animate-pulse">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
                   {/* Parent Category Skeleton */}
                   <div className="col-span-2 sm:col-span-2 lg:col-span-2 rounded-2xl bg-gradient-to-br from-purple-950 via-indigo-950 to-purple-900 border border-purple-800/40 p-5 flex items-center justify-between min-h-[160px] sm:min-h-[175px]">
@@ -155,17 +147,13 @@ export default function CategoriesView() {
             description={t("categories.noCategoriesDesc")}
           />
         ) : (
-          /* Department Sections */
           <div className="space-y-10 sm:space-y-12">
             {filteredTree.map((root) => {
               const rootCat = root.category;
               const children = root.children;
 
               return (
-                <section
-                  key={rootCat.categoryId}
-                  className="transition-all"
-                >
+                <section key={rootCat.categoryId} className="transition-all">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
                     {/* Parent Category Banner Card: Purple gradient matching FlashSale on Home */}
                     <Link

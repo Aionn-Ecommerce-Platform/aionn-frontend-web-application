@@ -8,6 +8,7 @@ import {
   Boxes,
   CreditCard,
   Folder,
+  HelpCircle,
   Home,
   Image,
   ListChecks,
@@ -89,6 +90,11 @@ const merchantItems: ConsoleMenuItem[] = [
     icon: MessageSquare,
   },
   {
+    labelKey: "console.merchant.questions",
+    href: "/merchant/questions",
+    icon: HelpCircle,
+  },
+  {
     labelKey: "console.merchant.vouchers",
     href: "/merchant/promotions/vouchers",
     icon: Ticket,
@@ -156,6 +162,12 @@ const adminItems: ConsoleMenuItem[] = [
     href: "/admin/categories",
     icon: Folder,
     roles: ["SYSTEM_ADMIN", "CS_ADMIN"],
+  },
+  {
+    labelKey: "console.admin.collections",
+    href: "/admin/collections",
+    icon: Folder,
+    roles: ["SYSTEM_ADMIN"],
   },
   {
     labelKey: "console.admin.attributes",
