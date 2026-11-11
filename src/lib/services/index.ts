@@ -31,7 +31,6 @@ export { attributeTemplateService } from "./attribute-template.service";
 export { reviewService } from "./review.service";
 export type { Review, SubmitReviewRequest } from "./review.service";
 export { questionService } from "./question.service";
-export type { ProductQuestion } from "./question.service";
 
 export { warehouseService } from "./warehouse.service";
 export { inventoryService, stockTransferService } from "./inventory.service";

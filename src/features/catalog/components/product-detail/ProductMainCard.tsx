@@ -407,7 +407,7 @@ export default function ProductMainCard(props: Props) {
 
                     <div className="flex items-center gap-1.5 text-xs text-purple-200">
                       <span className="font-semibold text-white/90">
-                        KẾT THÚC TRONG
+                        {t("productDetail.flashSaleEndsIn")}
                       </span>
                       <FlashSaleCountdown endAt={product.flashSale.endAt} />
                     </div>
@@ -439,8 +439,10 @@ export default function ProductMainCard(props: Props) {
                         />
                       </div>
                       <span className="text-[11px] text-white/80 font-medium whitespace-nowrap">
-                        Đã bán {product.flashSale.soldCount}/
-                        {product.flashSale.saleStock} suất
+                        {t("productDetail.flashSaleSold", {
+                          sold: product.flashSale.soldCount,
+                          stock: product.flashSale.saleStock,
+                        })}
                       </span>
                     </div>
                   )}
@@ -593,7 +595,7 @@ export default function ProductMainCard(props: Props) {
                             className="text-xs font-semibold text-red-500 hover:text-red-600 inline-flex items-center gap-0.5 cursor-pointer transition-colors"
                           >
                             <span>
-                              {t("productDetail.learnMore") || "Tìm hiểu thêm"}
+                              {t("productDetail.learnMore")}
                             </span>
                             <ChevronRight size={13} />
                           </Link>

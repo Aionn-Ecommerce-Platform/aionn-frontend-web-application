@@ -21,6 +21,53 @@ import { useTranslation } from "@/hooks";
 export default function ReturnsPolicyPage() {
   const { t } = useTranslation();
 
+  const eligible = [
+    t("returnPolicyPage.eligible1"),
+    t("returnPolicyPage.eligible2"),
+    t("returnPolicyPage.eligible3"),
+    t("returnPolicyPage.eligible4"),
+  ];
+  const ineligible = [
+    t("returnPolicyPage.ineligible1"),
+    t("returnPolicyPage.ineligible2"),
+    t("returnPolicyPage.ineligible3"),
+    t("returnPolicyPage.ineligible4"),
+  ];
+  const refundMethods = [
+    {
+      title: t("returnPolicyPage.refundWalletTitle"),
+      time: t("returnPolicyPage.refundWalletTime"),
+      note: t("returnPolicyPage.refundWalletNote"),
+      accent: "text-emerald-600",
+    },
+    {
+      title: t("returnPolicyPage.refundAtmTitle"),
+      time: t("returnPolicyPage.refundAtmTime"),
+      note: t("returnPolicyPage.refundAtmNote"),
+      accent: "text-gray-900",
+    },
+    {
+      title: t("returnPolicyPage.refundCardTitle"),
+      time: t("returnPolicyPage.refundCardTime"),
+      note: t("returnPolicyPage.refundCardNote"),
+      accent: "text-gray-900",
+    },
+  ];
+  const faq = [
+    {
+      question: t("returnPolicyPage.faq1Question"),
+      answer: t("returnPolicyPage.faq1Answer"),
+    },
+    {
+      question: t("returnPolicyPage.faq2Question"),
+      answer: t("returnPolicyPage.faq2Answer"),
+    },
+    {
+      question: t("returnPolicyPage.faq3Question"),
+      answer: t("returnPolicyPage.faq3Answer"),
+    },
+  ];
+
   return (
     <div className="bg-gray-50/60 min-h-screen py-6 sm:py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -88,17 +135,15 @@ export default function ReturnsPolicyPage() {
                   <RotateCcw size={22} className="stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900">
-                  {t("productDetail.commitment1Title") ||
-                    "Đổi trả miễn phí 15 ngày"}
+                  {t("productDetail.commitment1Title")}
                 </h3>
                 <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                  {t("productDetail.commitment1Desc") ||
-                    "Áp dụng trong 15 ngày kể từ ngày giao hàng thành công. Bạn có thể gửi yêu cầu trực tiếp từ trang Quản lý đơn hàng."}
+                  {t("productDetail.commitment1Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-semibold text-red-600">
                 <CheckCircle2 size={15} />
-                <span>Thời hạn 15 ngày dài nhất thị trường</span>
+                <span>{t("returnPolicyPage.commitment1Footer")}</span>
               </div>
             </div>
 
@@ -109,17 +154,15 @@ export default function ReturnsPolicyPage() {
                   <Truck size={22} className="stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900">
-                  {t("productDetail.commitment2Title") ||
-                    "Miễn phí 100% cước trả hàng"}
+                  {t("productDetail.commitment2Title")}
                 </h3>
                 <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                  {t("productDetail.commitment2Desc") ||
-                    "Shipper đối tác vận chuyển Aionn sẽ liên hệ và tới tận địa chỉ của bạn để nhận hàng. Bạn không phải trả bất kỳ cước phí nào."}
+                  {t("productDetail.commitment2Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
                 <CheckCircle2 size={15} />
-                <span>Không mất phí vận chuyển hoàn về</span>
+                <span>{t("returnPolicyPage.commitment2Footer")}</span>
               </div>
             </div>
 
@@ -130,17 +173,15 @@ export default function ReturnsPolicyPage() {
                   <Eye size={22} className="stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900">
-                  {t("productDetail.commitment3Title") ||
-                    "Đồng kiểm khi nhận hàng"}
+                  {t("productDetail.commitment3Title")}
                 </h3>
                 <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                  {t("productDetail.commitment3Desc") ||
-                    "Được quyền mở hộp kiểm tra ngoại quan (số lượng, đúng màu sắc, tem niêm phong) cùng bưu tá trước khi nhận hàng."}
+                  {t("productDetail.commitment3Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-semibold text-blue-600">
                 <CheckCircle2 size={15} />
-                <span>Đồng kiểm minh bạch & an tâm</span>
+                <span>{t("returnPolicyPage.commitment3Footer")}</span>
               </div>
             </div>
           </div>
@@ -154,75 +195,46 @@ export default function ReturnsPolicyPage() {
               {t("returnPolicyPage.sectionProcessTitle")}
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Thực hiện đơn giản hoàn toàn trực tuyến trên website Aionn
+              {t("returnPolicyPage.processIntro")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Step 1 */}
-            <div className="relative p-5 rounded-2xl bg-gray-50/70 border border-gray-200/70 flex flex-col justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-3">
-                  Bước 1
-                </span>
-                <h4 className="text-sm font-bold text-gray-900">
-                  {t("productDetail.step1Title") || "Gửi yêu cầu đổi trả"}
-                </h4>
-                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                  Truy cập vào <strong>Đơn mua</strong> &gt; Chọn đơn hàng &gt;
-                  Nhấn <strong>Yêu cầu Trả hàng / Hoàn tiền</strong>, chọn lý do
-                  và tải ảnh/video thực tế.
-                </p>
+            {[
+              {
+                title: t("productDetail.step1Title"),
+                desc: t("returnPolicyPage.step1Desc"),
+              },
+              {
+                title: t("productDetail.step2Title"),
+                desc: t("returnPolicyPage.step2Desc"),
+              },
+              {
+                title: t("productDetail.step3Title"),
+                desc: t("returnPolicyPage.step3Desc"),
+              },
+              {
+                title: t("productDetail.step4Title"),
+                desc: t("returnPolicyPage.step4Desc"),
+              },
+            ].map((step, index) => (
+              <div
+                key={step.title}
+                className="relative p-5 rounded-2xl bg-gray-50/70 border border-gray-200/70 flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-3">
+                    {t("returnPolicyPage.stepLabel", { step: index + 1 })}
+                  </span>
+                  <h4 className="text-sm font-bold text-gray-900">
+                    {step.title}
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative p-5 rounded-2xl bg-gray-50/70 border border-gray-200/70 flex flex-col justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-3">
-                  Bước 2
-                </span>
-                <h4 className="text-sm font-bold text-gray-900">
-                  {t("productDetail.step2Title") || "Đóng gói hàng cẩn thận"}
-                </h4>
-                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                  Đóng gói sản phẩm cẩn thận vào kiện hàng kèm đầy đủ phụ kiện,
-                  quà tặng kèm và hóa đơn bảo hành (nếu có).
-                </p>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="relative p-5 rounded-2xl bg-gray-50/70 border border-gray-200/70 flex flex-col justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-3">
-                  Bước 3
-                </span>
-                <h4 className="text-sm font-bold text-gray-900">
-                  {t("productDetail.step3Title") || "Bàn giao cho Shipper"}
-                </h4>
-                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                  Shipper đối tác Aionn sẽ chủ động gọi điện và đến tận nhà bạn
-                  để lấy kiện hàng đổi trả hoàn toàn miễn phí.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="relative p-5 rounded-2xl bg-gray-50/70 border border-gray-200/70 flex flex-col justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-3">
-                  Bước 4
-                </span>
-                <h4 className="text-sm font-bold text-gray-900">
-                  {t("productDetail.step4Title") || "Nhận tiền hoàn 100%"}
-                </h4>
-                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                  Khi hàng được trả về kho và kiểm tra đạt điều kiện, hệ thống
-                  sẽ lập tức hoàn tiền 100% về phương thức thanh toán ban đầu.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -239,44 +251,15 @@ export default function ReturnsPolicyPage() {
               </h3>
             </div>
             <ul className="space-y-3 text-xs sm:text-sm text-gray-600">
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  size={16}
-                  className="text-emerald-500 shrink-0 mt-0.5"
-                />
-                <span>
-                  Sản phẩm bị lỗi kỹ thuật hoặc hư hại từ phía nhà sản xuất.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  size={16}
-                  className="text-emerald-500 shrink-0 mt-0.5"
-                />
-                <span>
-                  Sản phẩm bị vỡ, móp méo, trầy xước trong quá trình vận chuyển.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  size={16}
-                  className="text-emerald-500 shrink-0 mt-0.5"
-                />
-                <span>
-                  Giao sai sản phẩm, sai màu sắc, kích cỡ hoặc thiếu phụ
-                  kiện/quà tặng kèm theo đơn hàng.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  size={16}
-                  className="text-emerald-500 shrink-0 mt-0.5"
-                />
-                <span>
-                  Khách hàng đổi ý mua sắm (áp dụng cho các sản phẩm còn nguyên
-                  seal, tem mác, chưa qua sử dụng).
-                </span>
-              </li>
+              {eligible.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <CheckCircle2
+                    size={16}
+                    className="text-emerald-500 shrink-0 mt-0.5"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -291,33 +274,12 @@ export default function ReturnsPolicyPage() {
               </h3>
             </div>
             <ul className="space-y-3 text-xs sm:text-sm text-gray-600">
-              <li className="flex items-start gap-2">
-                <XCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <span>
-                  Quá 15 ngày kể từ thời điểm đơn hàng giao thành công.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <XCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <span>
-                  Sản phẩm hư hỏng do lỗi người dùng (vào nước, rơi vỡ, sử dụng
-                  sai hướng dẫn, tự ý tháo mở thiết bị).
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <XCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <span>
-                  Các mặt hàng vệ sinh cá nhân, đồ lót, đồ bơi, mỹ phẩm hoặc
-                  thực phẩm đã mở niêm phong/màng bọc.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <XCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <span>
-                  Mã thẻ cào, phần mềm kỹ thuật số, voucher điện tử đã được kích
-                  hoạt.
-                </span>
-              </li>
+              {ineligible.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <XCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -329,48 +291,28 @@ export default function ReturnsPolicyPage() {
               <CreditCard size={18} />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-gray-950">
-              Thời gian &amp; Phương thức hoàn tiền
+              {t("returnPolicyPage.refundTitle")}
             </h3>
           </div>
           <p className="text-xs text-gray-500">
-            Sau khi kiện hàng hoàn trả được nhận và duyệt thành công, tiền sẽ
-            được hoàn theo thời gian sau:
+            {t("returnPolicyPage.refundIntro")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <h4 className="text-xs font-bold text-gray-900">
-                Ví điện tử / Số dư Aionn
-              </h4>
-              <p className="text-lg font-black text-emerald-600 mt-1">
-                Ngay lập tức
-              </p>
-              <p className="text-[11px] text-gray-500 mt-1">
-                Tiền hoàn ghi nhận trong vòng 2 - 24 giờ.
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <h4 className="text-xs font-bold text-gray-900">
-                Thẻ ATM nội địa (Napas)
-              </h4>
-              <p className="text-lg font-black text-gray-900 mt-1">
-                3 - 5 ngày
-              </p>
-              <p className="text-[11px] text-gray-500 mt-1">
-                Tính theo ngày làm việc của ngân hàng.
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <h4 className="text-xs font-bold text-gray-900">
-                Thẻ Quốc tế (Visa, Mastercard)
-              </h4>
-              <p className="text-lg font-black text-gray-900 mt-1">
-                7 - 14 ngày
-              </p>
-              <p className="text-[11px] text-gray-500 mt-1">
-                Tùy thuộc vào kỳ sao kê ngân hàng phát hành.
-              </p>
-            </div>
+            {refundMethods.map((method) => (
+              <div
+                key={method.title}
+                className="p-4 rounded-xl bg-gray-50 border border-gray-100"
+              >
+                <h4 className="text-xs font-bold text-gray-900">
+                  {method.title}
+                </h4>
+                <p className={`text-lg font-black mt-1 ${method.accent}`}>
+                  {method.time}
+                </p>
+                <p className="text-[11px] text-gray-500 mt-1">{method.note}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -386,37 +328,16 @@ export default function ReturnsPolicyPage() {
           </div>
 
           <div className="divide-y divide-gray-100">
-            <div className="py-3.5 space-y-1">
-              <p className="text-xs sm:text-sm font-bold text-gray-900">
-                1. Tôi có phải thanh toán phí ship khi gửi trả hàng không?
-              </p>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Hoàn toàn không. Aionn miễn phí 100% cước thu hồi hàng. Shipper
-                sẽ đến lấy hàng tại địa chỉ của bạn mà không thu thêm bất kỳ chi
-                phí nào.
-              </p>
-            </div>
-
-            <div className="py-3.5 space-y-1">
-              <p className="text-xs sm:text-sm font-bold text-gray-900">
-                2. Tôi cần chuẩn bị những gì khi đóng gói hàng trả?
-              </p>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Quý khách vui lòng cho sản phẩm vào hộp ban đầu (nếu có), kèm
-                đầy đủ phụ kiện, quà tặng kèm theo và dán kín kiện hàng. Bưu tá
-                sẽ in mã vận đơn và dán lên kiện hàng khi nhận.
-              </p>
-            </div>
-
-            <div className="py-3.5 space-y-1">
-              <p className="text-xs sm:text-sm font-bold text-gray-900">
-                3. Đơn hàng giao trễ hơn ngày hẹn có được hỗ trợ gì không?
-              </p>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Có. Aionn tự động tặng ngay Voucher 15.000₫ vào ví voucher của
-                bạn nếu đơn hàng được giao trễ hơn ngày giao dự kiến cam kết.
-              </p>
-            </div>
+            {faq.map((item) => (
+              <div key={item.question} className="py-3.5 space-y-1">
+                <p className="text-xs sm:text-sm font-bold text-gray-900">
+                  {item.question}
+                </p>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  {item.answer}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 

@@ -637,7 +637,13 @@
     "step3Title": "Bàn giao Shipper",
     "step3Desc": "Shipper liên hệ lấy hàng hoàn trả tận nhà hoàn toàn miễn phí.",
     "step4Title": "Nhận tiền hoàn",
-    "step4Desc": "Tiền hoàn được chuyển về phương thức thanh toán ban đầu sau khi kiểm tra."
+    "step4Desc": "Tiền hoàn được chuyển về phương thức thanh toán ban đầu sau khi kiểm tra.",
+    "flashSaleEndsIn": "KẾT THÚC TRONG",
+    "flashSaleSold": "Đã bán {sold}/{stock} suất",
+    "yearsMonthsAgo": "{years} năm {months} tháng trước",
+    "yearsAgo": "{years} năm trước",
+    "monthsAgo": "{months} tháng trước",
+    "daysAgo": "{days} ngày trước"
   },
   "adminReturns": {
     "title": "Trả hàng (Admin)",
@@ -1015,7 +1021,9 @@
     "errorBoundaryDescription": "Chúng tôi không xử lý được yêu cầu này. Bạn có thể thử lại hoặc quay về trang chủ.",
     "errorCode": "Mã lỗi: {code}",
     "tryAgain": "Thử lại",
-    "featureUnavailable": "Tính năng này chưa khả dụng. Chúng tôi đang hoàn thiện."
+    "featureUnavailable": "Tính năng này chưa khả dụng. Chúng tôi đang hoàn thiện.",
+    "copy": "Sao chép",
+    "retry": "Thử lại"
   },
   "globalError": {
     "title": "Ứng dụng gặp sự cố",
@@ -1367,7 +1375,8 @@
     "starFilter": "{star} Sao ({count})",
     "withComment": "Có Bình Luận ({count})",
     "withMedia": "Có Hình Ảnh / Video ({count})",
-    "loginToReviewNotice": "Bạn cần đăng nhập tài khoản để có thể đánh giá sản phẩm."
+    "loginToReviewNotice": "Bạn cần đăng nhập tài khoản để có thể đánh giá sản phẩm.",
+    "customer": "Khách hàng"
   },
   "products": {
     "title": "Tất cả sản phẩm",
@@ -1985,7 +1994,13 @@
     "requestDeletionTitle": "Yêu cầu xóa tài khoản?",
     "requestDeletionMessage": "Tài khoản sẽ được xóa sau thời gian chờ. Bạn có thể hủy yêu cầu trước khi nó có hiệu lực.",
     "cancelDeletionTitle": "Hủy yêu cầu xóa tài khoản?",
-    "cancelDeletionMessage": "Tài khoản sẽ được giữ lại và bạn có thể tiếp tục sử dụng bình thường."
+    "cancelDeletionMessage": "Tài khoản sẽ được giữ lại và bạn có thể tiếp tục sử dụng bình thường.",
+    "passwordRequired": "Vui lòng nhập mật khẩu xác nhận",
+    "deleteAccountWarningTitle": "Lưu ý quan trọng:",
+    "confirmPasswordLabel": "Mật khẩu tài khoản",
+    "enterPasswordPlaceholder": "Nhập mật khẩu hiện tại",
+    "mfaCodeOptionalLabel": "Mã xác thực 2FA (nếu đã kích hoạt)",
+    "mfaCodeHint": "Nếu tài khoản của bạn đã bật xác thực 2 yếu tố, vui lòng nhập mã 6 số từ app Authenticator."
   },
   "promotions": {
     "title": "Khuyến mãi",
@@ -3024,6 +3039,40 @@
     "needHelpTitle": "Bạn cần hỗ trợ thêm?",
     "needHelpDesc": "Đội ngũ Chăm sóc khách hàng Aionn luôn sẵn sàng hỗ trợ bạn 24/7.",
     "chatNow": "Chat với hỗ trợ viên",
-    "contactUs": "Xem thông tin liên hệ"
+    "contactUs": "Xem thông tin liên hệ",
+    "commitment1Footer": "Thời hạn 15 ngày dài nhất thị trường",
+    "commitment2Footer": "Không mất phí vận chuyển hoàn về",
+    "commitment3Footer": "Đồng kiểm minh bạch & an tâm",
+    "processIntro": "Thực hiện đơn giản hoàn toàn trực tuyến trên website Aionn",
+    "stepLabel": "Bước {step}",
+    "step1Desc": "Truy cập vào Đơn mua > Chọn đơn hàng > Nhấn Yêu cầu Trả hàng / Hoàn tiền, chọn lý do và tải ảnh/video thực tế.",
+    "step2Desc": "Đóng gói sản phẩm cẩn thận vào kiện hàng kèm đầy đủ phụ kiện, quà tặng kèm và hóa đơn bảo hành (nếu có).",
+    "step3Desc": "Shipper đối tác Aionn sẽ chủ động gọi điện và đến tận nhà bạn để lấy kiện hàng đổi trả hoàn toàn miễn phí.",
+    "step4Desc": "Khi hàng được trả về kho và kiểm tra đạt điều kiện, hệ thống sẽ lập tức hoàn tiền 100% về phương thức thanh toán ban đầu.",
+    "eligible1": "Sản phẩm bị lỗi kỹ thuật hoặc hư hại từ phía nhà sản xuất.",
+    "eligible2": "Sản phẩm bị vỡ, móp méo, trầy xước trong quá trình vận chuyển.",
+    "eligible3": "Giao sai sản phẩm, sai màu sắc, kích cỡ hoặc thiếu phụ kiện/quà tặng kèm theo đơn hàng.",
+    "eligible4": "Khách hàng đổi ý mua sắm (áp dụng cho các sản phẩm còn nguyên seal, tem mác, chưa qua sử dụng).",
+    "ineligible1": "Quá 15 ngày kể từ thời điểm đơn hàng giao thành công.",
+    "ineligible2": "Sản phẩm hư hỏng do lỗi người dùng (vào nước, rơi vỡ, sử dụng sai hướng dẫn, tự ý tháo mở thiết bị).",
+    "ineligible3": "Các mặt hàng vệ sinh cá nhân, đồ lót, đồ bơi, mỹ phẩm hoặc thực phẩm đã mở niêm phong/màng bọc.",
+    "ineligible4": "Mã thẻ cào, phần mềm kỹ thuật số, voucher điện tử đã được kích hoạt.",
+    "refundTitle": "Thời gian & Phương thức hoàn tiền",
+    "refundIntro": "Sau khi kiện hàng hoàn trả được nhận và duyệt thành công, tiền sẽ được hoàn theo thời gian sau:",
+    "refundWalletTitle": "Ví điện tử / Số dư Aionn",
+    "refundWalletTime": "Ngay lập tức",
+    "refundWalletNote": "Tiền hoàn ghi nhận trong vòng 2 - 24 giờ.",
+    "refundAtmTitle": "Thẻ ATM nội địa (Napas)",
+    "refundAtmTime": "3 - 5 ngày",
+    "refundAtmNote": "Tính theo ngày làm việc của ngân hàng.",
+    "refundCardTitle": "Thẻ Quốc tế (Visa, Mastercard)",
+    "refundCardTime": "7 - 14 ngày",
+    "refundCardNote": "Tùy thuộc vào kỳ sao kê ngân hàng phát hành.",
+    "faq1Question": "Tôi có phải thanh toán phí ship khi gửi trả hàng không?",
+    "faq1Answer": "Hoàn toàn không. Aionn miễn phí 100% cước thu hồi hàng. Shipper sẽ đến lấy hàng tại địa chỉ của bạn mà không thu thêm bất kỳ chi phí nào.",
+    "faq2Question": "Tôi cần chuẩn bị những gì khi đóng gói hàng trả?",
+    "faq2Answer": "Quý khách vui lòng cho sản phẩm vào hộp ban đầu (nếu có), kèm đầy đủ phụ kiện, quà tặng kèm theo và dán kín kiện hàng. Bưu tá sẽ in mã vận đơn và dán lên kiện hàng khi nhận.",
+    "faq3Question": "Đơn hàng giao trễ hơn ngày hẹn có được hỗ trợ gì không?",
+    "faq3Answer": "Có. Aionn tự động tặng ngay Voucher 15.000₫ vào ví voucher của bạn nếu đơn hàng được giao trễ hơn ngày giao dự kiến cam kết."
   }
 }

@@ -637,7 +637,13 @@
     "step3Title": "Handover to Courier",
     "step3Desc": "Courier picks up the return package directly from your address for free.",
     "step4Title": "Get Refund",
-    "step4Desc": "Refund is credited back to your original payment method upon verification."
+    "step4Desc": "Refund is credited back to your original payment method upon verification.",
+    "flashSaleEndsIn": "ENDS IN",
+    "flashSaleSold": "Sold {sold}/{stock}",
+    "yearsMonthsAgo": "{years}y {months}m ago",
+    "yearsAgo": "{years}y ago",
+    "monthsAgo": "{months}m ago",
+    "daysAgo": "{days}d ago"
   },
   "adminReturns": {
     "title": "Returns (Admin)",
@@ -1015,7 +1021,9 @@
     "errorBoundaryDescription": "We could not process this request. You can try again or go back home.",
     "errorCode": "Error code: {code}",
     "tryAgain": "Try again",
-    "featureUnavailable": "This feature is not available yet."
+    "featureUnavailable": "This feature is not available yet.",
+    "copy": "Copy",
+    "retry": "Retry"
   },
   "globalError": {
     "title": "The application encountered an error",
@@ -1367,7 +1375,8 @@
     "starFilter": "{star} Stars ({count})",
     "withComment": "With Comments ({count})",
     "withMedia": "With Images / Video ({count})",
-    "loginToReviewNotice": "Please log in to review this product."
+    "loginToReviewNotice": "Please log in to review this product.",
+    "customer": "Customer"
   },
   "products": {
     "title": "All Products",
@@ -1985,7 +1994,13 @@
     "requestDeletionTitle": "Request account deletion?",
     "requestDeletionMessage": "Your account will be deleted after a waiting period. You can cancel the request before it takes effect.",
     "cancelDeletionTitle": "Cancel account deletion request?",
-    "cancelDeletionMessage": "Your account will be kept and you can continue using it normally."
+    "cancelDeletionMessage": "Your account will be kept and you can continue using it normally.",
+    "passwordRequired": "Please enter your password to confirm",
+    "deleteAccountWarningTitle": "Important:",
+    "confirmPasswordLabel": "Account password",
+    "enterPasswordPlaceholder": "Enter your current password",
+    "mfaCodeOptionalLabel": "2FA code (if enabled)",
+    "mfaCodeHint": "If two-factor authentication is enabled, enter the 6-digit code from your authenticator app."
   },
   "promotions": {
     "title": "Promotions",
@@ -3024,6 +3039,40 @@
     "needHelpTitle": "Need Further Assistance?",
     "needHelpDesc": "The Aionn Customer Support team is available 24/7 to assist you.",
     "chatNow": "Chat with Support",
-    "contactUs": "Contact Information"
+    "contactUs": "Contact Information",
+    "commitment1Footer": "The longest 15-day return window on the market",
+    "commitment2Footer": "No return shipping fee",
+    "commitment3Footer": "Transparent, worry-free inspection",
+    "processIntro": "Entirely online on the Aionn website",
+    "stepLabel": "Step {step}",
+    "step1Desc": "Open My Orders > select the order > choose Return / Refund, pick a reason and upload photos or video of the item.",
+    "step2Desc": "Pack the product securely with all accessories, gifts and the warranty card (if any).",
+    "step3Desc": "An Aionn courier will call and collect the return from your address free of charge.",
+    "step4Desc": "Once the item reaches the warehouse and passes inspection, 100% is refunded to the original payment method.",
+    "eligible1": "The product has a technical fault or manufacturing damage.",
+    "eligible2": "The product was broken, dented or scratched in transit.",
+    "eligible3": "Wrong item, colour or size was delivered, or accessories/gifts are missing.",
+    "eligible4": "Change of mind (only for items with intact seals and tags, unused).",
+    "ineligible1": "More than 15 days have passed since delivery.",
+    "ineligible2": "Damage caused by the user (water, drops, misuse, unauthorised disassembly).",
+    "ineligible3": "Personal hygiene items, underwear, swimwear, cosmetics or food with opened seals.",
+    "ineligible4": "Activated scratch cards, digital software or e-vouchers.",
+    "refundTitle": "Refund Timing & Methods",
+    "refundIntro": "Once the return is received and approved, refunds are issued as follows:",
+    "refundWalletTitle": "E-wallet / Aionn balance",
+    "refundWalletTime": "Instant",
+    "refundWalletNote": "Refund reflected within 2-24 hours.",
+    "refundAtmTitle": "Domestic ATM card (Napas)",
+    "refundAtmTime": "3-5 days",
+    "refundAtmNote": "Counted in bank business days.",
+    "refundCardTitle": "International card (Visa, Mastercard)",
+    "refundCardTime": "7-14 days",
+    "refundCardNote": "Depends on the card issuer's statement cycle.",
+    "faq1Question": "Do I pay shipping to return an item?",
+    "faq1Answer": "No. Aionn covers 100% of the return pickup cost; the courier collects the parcel at your address with no extra charge.",
+    "faq2Question": "What should I prepare when packing a return?",
+    "faq2Answer": "Place the item in its original box (if available) with all accessories and gifts, and seal the parcel. The courier prints the waybill and attaches it at pickup.",
+    "faq3Question": "Is there compensation for late delivery?",
+    "faq3Answer": "Yes. Aionn automatically credits a 15,000₫ voucher to your wallet when an order arrives later than the committed date."
   }
 }

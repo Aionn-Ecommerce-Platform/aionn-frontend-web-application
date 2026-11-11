@@ -11,6 +11,8 @@ import { ReviewList, SubmitReviewForm } from "@/components/review";
 import toast from "react-hot-toast";
 import type { Merchant, Product, RecommendationItem } from "@/types";
 import type { Locale } from "@/stores/locale.store";
+import { translate } from "@/i18n/translate";
+import { DESCRIPTION_HEADING_PATTERN } from "./product-detail-utils";
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
   product: Product;
@@ -312,22 +314,23 @@ function formatRelativeJoin(
     (now.getMonth() - joined.getMonth());
   if (months < 0) months = 0;
   const years = Math.floor(months / 12);
-  const vi = locale === "vi";
+  const resolved: Locale = locale === "en" ? "en" : "vi";
   if (years >= 1) {
     const rem = months % 12;
-    return vi
-      ? rem > 0
-        ? `${years} năm ${rem} tháng trước`
-        : `${years} năm trước`
-      : rem > 0
-        ? `${years}y ${rem}m ago`
-        : `${years}y ago`;
+    return rem > 0
+      ? translate(resolved, "productDetail.yearsMonthsAgo", {
+          years,
+          months: rem,
+        })
+      : translate(resolved, "productDetail.yearsAgo", { years });
   }
-  if (months >= 1) return vi ? `${months} tháng trước` : `${months}m ago`;
+  if (months >= 1) {
+    return translate(resolved, "productDetail.monthsAgo", { months });
+  }
   const days = Math.floor(
     (now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24),
   );
-  return vi ? `${days} ngày trước` : `${days}d ago`;
+  return translate(resolved, "productDetail.daysAgo", { days });
 }
 
 function ProductDescription({ text }: { text: string }) {
@@ -336,10 +339,7 @@ function ProductDescription({ text }: { text: string }) {
     .replace(/\n{2,}/g, "\n\n")
     .replace(/^[ \t]+|[ \t]+$/gm, "")
     .trim();
-  const body = normalized.replace(
-    /^(mô tả sản phẩm|description|product description)\s*\n+/i,
-    "",
-  );
+  const body = normalized.replace(DESCRIPTION_HEADING_PATTERN, "");
   const paragraphs = body.split(/\n{2,}/).filter(Boolean);
 
   return (

@@ -1,6 +1,6 @@
 import api from "@/shared/api";
 
-export interface ProductQuestion {
+interface ProductQuestion {
   questionId: string;
   productId: string;
   userId: string;

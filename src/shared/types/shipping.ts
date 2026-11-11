@@ -43,7 +43,7 @@ export interface Shipment {
   updatedAt: string;
 }
 
-export interface ShippingQuoteOption {
+interface ShippingQuoteOption {
   code: string;
   label: string;
   fee: number;

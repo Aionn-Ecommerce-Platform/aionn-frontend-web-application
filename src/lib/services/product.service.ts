@@ -10,7 +10,7 @@ interface CreateProductInput {
   name: string;
 }
 
-export interface DefineVariantInput {
+interface DefineVariantInput {
   attributeValues: Record<string, string>;
   price: number;
   currency: string;

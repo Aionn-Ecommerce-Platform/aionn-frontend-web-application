@@ -237,7 +237,7 @@ function ReviewCard({
     if (name && name.trim().length > 0) {
       return name.trim();
     }
-    return t("reviews.customer") || "Khách hàng";
+    return t("reviews.customer");
   })();
 
   const initial = (() => {

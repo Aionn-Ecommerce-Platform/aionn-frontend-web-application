@@ -83,7 +83,7 @@ export function MfaModal(props: MfaModalProps) {
 
   const handleCopy = () => {
     if (!props.secret) return;
-    navigator.clipboard.writeText(props.secret);
+    void navigator.clipboard.writeText(props.secret);
     toast.success(t("mfaSetup.copiedToast"));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -141,8 +141,8 @@ export function MfaModal(props: MfaModalProps) {
               <button
                 type="button"
                 onClick={handleCopy}
-                title={t("mfaSetup.copiedToast") || "Sao chép"}
-                aria-label="Sao chép"
+                title={t("mfaSetup.copiedToast")}
+                aria-label={t("common.copy")}
                 className="p-1.5 text-gray-500 hover:text-brand-600 hover:bg-white rounded-md transition-colors shrink-0 cursor-pointer"
               >
                 {copied ? (
@@ -176,7 +176,7 @@ export function MfaModal(props: MfaModalProps) {
   );
 }
 
-export interface DeleteAccountModalProps {
+interface DeleteAccountModalProps {
   open: boolean;
   loading: boolean;
   onClose: () => void;
@@ -198,7 +198,7 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
 
   const handleConfirm = () => {
     if (!password.trim()) {
-      setPasswordError(t("security.passwordRequired") || "Vui lòng nhập mật khẩu xác nhận");
+      setPasswordError(t("security.passwordRequired"));
       return;
     }
     setPasswordError("");
@@ -220,7 +220,7 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
           <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold text-red-900">
-              {t("security.deleteAccountWarningTitle") || "Lưu ý quan trọng:"}
+              {t("security.deleteAccountWarningTitle")}
             </p>
             <p className="text-red-700 leading-relaxed text-xs">
               {t("security.requestDeletionMessage")}
@@ -231,8 +231,8 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
         <div>
           <Input
             type="password"
-            label={t("security.confirmPasswordLabel") || "Mật khẩu tài khoản"}
-            placeholder={t("security.enterPasswordPlaceholder") || "Nhập mật khẩu hiện tại"}
+            label={t("security.confirmPasswordLabel")}
+            placeholder={t("security.enterPasswordPlaceholder")}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -247,7 +247,7 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
         <div>
           <Input
             type="text"
-            label={t("security.mfaCodeOptionalLabel") || "Mã xác thực 2FA (nếu đã kích hoạt)"}
+            label={t("security.mfaCodeOptionalLabel")}
             placeholder="000000"
             value={mfaCode}
             onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
@@ -256,7 +256,7 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
             autoComplete="off"
           />
           <p className="text-[11px] text-gray-500 mt-1">
-            {t("security.mfaCodeHint") || "Nếu tài khoản của bạn đã bật xác thực 2 yếu tố, vui lòng nhập mã 6 số từ app Authenticator."}
+            {t("security.mfaCodeHint")}
           </p>
         </div>
 
@@ -267,7 +267,7 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
             onClick={handleClose}
             disabled={props.loading}
           >
-            {t("common.cancel") || "Hủy bỏ"}
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"

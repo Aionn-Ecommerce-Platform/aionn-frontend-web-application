@@ -136,7 +136,7 @@ export default function CategoriesView() {
                 onClick={() => refetch()}
                 className="mt-4 rounded-xl cursor-pointer"
               >
-                {t("common.retry") || "Thử lại"}
+                {t("common.retry")}
               </Button>
             }
           />
@@ -194,7 +194,7 @@ export default function CategoriesView() {
                               )}
                             </div>
                             <span className="text-[10px] font-semibold tracking-wider uppercase text-purple-200/70">
-                              {t("categories.title") || "Ngành hàng"}
+                              {t("categories.title")}
                             </span>
                           </div>
 

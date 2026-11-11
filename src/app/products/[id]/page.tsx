@@ -37,7 +37,7 @@ export async function generateMetadata({
   const productId = productIdFromParam(decodeURIComponent(id));
   const product = await loadProduct(productId);
   if (!product) {
-    return { title: "Sản phẩm" };
+    return { title: "Aionn" };
   }
 
   const canonical = productPath(product);

@@ -323,10 +323,7 @@ function CheckoutInner() {
   const placeMutation = useMutation({
     mutationFn: async () => {
       if (!placeIdempotencyKeyRef.current) {
-        placeIdempotencyKeyRef.current =
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        placeIdempotencyKeyRef.current = crypto.randomUUID();
       }
       const idempotencyKey = placeIdempotencyKeyRef.current;
       if (checkoutItems.length === 0) {

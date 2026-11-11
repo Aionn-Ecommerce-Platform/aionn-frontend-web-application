@@ -4,18 +4,6 @@ import { Check, ChevronDown, X } from "lucide-react";
 import { useTranslation } from "@/hooks";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { ProductSort } from "@/types";
-interface SortOption {
-  value: ProductSort;
-  labelKey: string;
-}
-
-const SORT_OPTIONS = [
-  { value: "RELEVANCE", labelKey: "products.sortPopular" },
-  { value: "NEWEST", labelKey: "products.sortNewest" },
-  { value: "BEST_SELLER", labelKey: "products.sortBestSeller" },
-  { value: "PRICE_ASC", labelKey: "products.sortPriceAsc" },
-  { value: "PRICE_DESC", labelKey: "products.sortPriceDesc" },
-] as const satisfies readonly SortOption[];
 
 export function QuickSortTabs({
   value,
@@ -27,19 +15,19 @@ export function QuickSortTabs({
   t: (key: string) => string;
 }) {
   const tabs = [
-    { value: "RELEVANCE", label: t("products.sortPopular") || "Phổ Biến" },
-    { value: "NEWEST", label: t("products.sortNewest") || "Mới Nhất" },
-    { value: "BEST_SELLER", label: t("products.sortBestSeller") || "Bán Chạy" },
+    { value: "RELEVANCE", label: t("products.sortPopular") },
+    { value: "NEWEST", label: t("products.sortNewest") },
+    { value: "BEST_SELLER", label: t("products.sortBestSeller") },
   ] as const;
 
   const priceOptions = [
     {
       value: "PRICE_ASC" as const,
-      label: t("products.sortPriceAsc") || "Giá: Thấp đến Cao",
+      label: t("products.sortPriceAsc"),
     },
     {
       value: "PRICE_DESC" as const,
-      label: t("products.sortPriceDesc") || "Giá: Cao đến Thấp",
+      label: t("products.sortPriceDesc"),
     },
   ];
 
@@ -92,7 +80,7 @@ export function QuickSortTabs({
           aria-haspopup="listbox"
         >
           <span>
-            {activePrice ? activePrice.label : t("products.sortPrice") || "Giá"}
+            {activePrice ? activePrice.label : t("products.sortPrice")}
           </span>
           <ChevronDown
             size={14}
@@ -128,82 +116,6 @@ export function QuickSortTabs({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-export function SortDropdown({
-  value,
-  onChange,
-  t,
-}: {
-  value: ProductSort;
-  onChange: (val: ProductSort) => void;
-  t: (key: string) => string;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  const currentOption =
-    SORT_OPTIONS.find((o) => o.value === value) ?? SORT_OPTIONS[0];
-
-  return (
-    <div className="relative inline-block text-left" ref={ref}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm text-gray-800 bg-white border border-gray-950 hover:bg-gray-100 hover:text-black transition-all font-semibold shadow-xs focus:outline-none cursor-pointer whitespace-nowrap"
-        aria-label="Sort products"
-        aria-expanded={open}
-      >
-        <span>
-          {t("products.sortLabel")}:{" "}
-          <span className="font-bold text-gray-950">
-            {t(currentOption.labelKey)}
-          </span>
-        </span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform text-gray-700 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-950 shadow-xl py-1.5 z-50 overflow-hidden">
-          {SORT_OPTIONS.map((opt) => {
-            const active = opt.value === value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  onChange(opt.value);
-                  setOpen(false);
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs sm:text-sm transition-colors cursor-pointer ${
-                  active
-                    ? "bg-gray-950 text-white font-bold"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <span>{t(opt.labelKey)}</span>
-                {active && (
-                  <Check size={14} className="text-white shrink-0 ml-2" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

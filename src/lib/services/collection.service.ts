@@ -12,7 +12,7 @@ export interface Collection {
   updatedAt: string;
 }
 
-export interface SaveCollectionInput {
+interface SaveCollectionInput {
   slug?: string;
   name: string;
   description?: string;

@@ -36,7 +36,7 @@ export async function uploadToCloudinary(
   return asset.url;
 }
 
-export interface CloudinaryAsset {
+interface CloudinaryAsset {
   url: string;
   publicId: string;
 }

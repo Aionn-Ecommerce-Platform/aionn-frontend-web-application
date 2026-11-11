@@ -5,7 +5,7 @@ import type {
   ShippingQuote,
 } from "@/types";
 
-export interface ShippingQuoteItem {
+interface ShippingQuoteItem {
   skuId: string;
   qty: number;
 }
@@ -103,7 +103,7 @@ export interface ShippingRate {
   updatedAt: string;
 }
 
-export interface ShippingRateInput {
+interface ShippingRateInput {
   baseFee: number;
   condition?: string;
   baseWeightGram?: number;

@@ -23,7 +23,7 @@ export interface Review {
   userAvatarUrl?: string | null;
 }
 
-export interface RatingSummary {
+interface RatingSummary {
   productId?: string;
   average: number;
   total: number;

@@ -429,7 +429,7 @@ export default function ProductDetailPage({
   const handleAddToCart = async (): Promise<boolean> => {
     if (!currentVariant) {
       toast.error(
-        t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng",
+        t("products.selectVariantNotice"),
       );
       return false;
     }
@@ -477,7 +477,7 @@ export default function ProductDetailPage({
   const handleBuyNow = async () => {
     if (!currentVariant) {
       toast.error(
-        t("products.selectVariantNotice") || "Vui lòng chọn Phân loại hàng",
+        t("products.selectVariantNotice"),
       );
       return;
     }

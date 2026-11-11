@@ -201,7 +201,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
                       {item.productName ?? item.skuId}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")} ×{" "}
+                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")} &times;{" "}
                       {item.qty}
                       {item.variantLabel ? ` · ${item.variantLabel}` : ""}
                     </p>
