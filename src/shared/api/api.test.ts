@@ -184,6 +184,7 @@ describe("401 handling", () => {
   it("refreshes once and replays the original request", async () => {
     fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(jsonResponse(envelope({ token: "csrf-token" })))
       .mockResolvedValueOnce(
         jsonResponse(envelope({ accessToken: "fresh", ...TOKEN_FIELDS })),
       )
@@ -192,7 +193,7 @@ describe("401 handling", () => {
     await expect(request<{ id: string }>("/users/me")).resolves.toEqual({
       id: "u1",
     });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(tokenStore.getAccessToken()).toBe("fresh");
   });
 
@@ -206,6 +207,7 @@ describe("401 handling", () => {
 
     fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(jsonResponse(envelope({ token: "csrf-token" })))
       .mockResolvedValueOnce(new Response(null, { status: 401 }));
 
     const error = (await request("/users/me").catch(
