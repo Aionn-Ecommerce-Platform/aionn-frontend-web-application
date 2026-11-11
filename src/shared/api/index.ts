@@ -78,24 +78,28 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler;
 }
 
-function readCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const prefix = `${name}=`;
-  const match = document.cookie
-    .split("; ")
-    .find((entry) => entry.startsWith(prefix));
-  return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/csrf`, {
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const envelope = (await res.json()) as ApiEnvelope<{ token: string }>;
+    return envelope?.data?.token || null;
+  } catch {
+    return null;
+  }
 }
 
 async function performRefresh(): Promise<AuthTokens | null> {
   try {
-    const csrfToken = readCookie("XSRF-TOKEN");
+    const token = await fetchCsrfToken();
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        ...(token ? { "X-XSRF-TOKEN": token } : {}),
       },
       body: JSON.stringify({}),
     });
@@ -208,6 +212,7 @@ const AUTH_PATHS_WITHOUT_REFRESH = [
   "/auth/refresh",
   "/auth/login",
   "/auth/social-login",
+  "/auth/csrf",
 ];
 
 function shouldAttemptRefresh(path: string, opts: RequestOptions): boolean {
