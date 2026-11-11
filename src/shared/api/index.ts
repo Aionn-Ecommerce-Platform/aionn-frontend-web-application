@@ -78,12 +78,25 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler;
 }
 
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const prefix = `${name}=`;
+  const match = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(prefix));
+  return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+}
+
 async function performRefresh(): Promise<AuthTokens | null> {
   try {
+    const csrfToken = readCookie("XSRF-TOKEN");
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+      },
       body: JSON.stringify({}),
     });
     if (!res.ok) return null;
