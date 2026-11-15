@@ -49,9 +49,12 @@ export const useAuthStore = create<AuthState>()(
       loginSuccess: (tokens, user) => {
         tokenStore.setTokens(tokens);
         clearGuestRecommendation();
-        void import("@/lib/query-client").then(({ queryClient }) => {
-          queryClient.clear();
-        });
+        const shouldClearQueryCache = !get().isAuthenticated;
+        if (shouldClearQueryCache) {
+          void import("@/lib/query-client").then(({ queryClient }) => {
+            queryClient.clear();
+          });
+        }
         set({
           tokens,
           user: user ?? get().user,
@@ -75,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
             items: [],
             voucherCode: null,
             hydratedFromServer: false,
+            hydrationAttempts: 0,
           });
         } catch {}
         try {

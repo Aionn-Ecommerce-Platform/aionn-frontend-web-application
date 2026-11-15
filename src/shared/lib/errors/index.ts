@@ -26,7 +26,11 @@ export function getErrorMessage(err: unknown, fallback?: string): string {
   if (err instanceof ApiError) {
     const messageKey = getMessageKeyForErrorCode(err.errorCode);
     if (messageKey) return t(messageKey);
-    if (err.status === 403) return t("common.accessDenied");
+    if (err.status === 403) {
+      return err.errorCode
+        ? err.firstFieldError ?? err.message ?? t("common.accessDenied")
+        : t("common.accessDenied");
+    }
     return err.firstFieldError ?? err.message ?? defaultMessage;
   }
 

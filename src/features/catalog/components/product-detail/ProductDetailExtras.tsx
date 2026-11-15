@@ -60,11 +60,16 @@ export default function ProductDetailExtras(props: Props) {
         ? merchantService.unfollow(product.merchantId)
         : merchantService.follow(product.merchantId),
     onSuccess: async () => {
+      const wasFollowing = storefrontStats?.following;
+      qc.setQueryData<typeof storefrontStats>(
+        ["merchant-storefront-stats", product.merchantId],
+        (old) => (old ? { ...old, following: !wasFollowing } : old),
+      );
       await qc.invalidateQueries({
         queryKey: ["merchant-storefront-stats", product.merchantId],
       });
       toast.success(
-        storefrontStats?.following
+        wasFollowing
           ? t("merchantStore.unfollowed")
           : t("merchantStore.followed"),
       );
