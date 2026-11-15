@@ -22,6 +22,7 @@ import {
 } from "@/lib/services";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { useGuestRecommendationStore } from "@/stores/guest-recommendation.store";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { logger } from "@/shared/lib/logger";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -66,8 +67,17 @@ export default function ProductDetailPage({
     }
   }, [product, router]);
 
+  useEffect(() => {
+    if (!product || isAuthenticated) return;
+    useGuestRecommendationStore.getState().recordView({
+      productId: product.productId,
+      categoryIds: product.categoryIds,
+      brandId: product.brandId,
+    });
+  }, [product, isAuthenticated]);
+
   const { data: relatedProducts, isLoading: relatedLoading } = useQuery({
-    queryKey: qk.recommendationsSimilar(id, 6),
+    queryKey: qk.recommendationsSimilar(id, 10),
     queryFn: () => recommendationService.getSimilarProducts(id, 10),
   });
 
@@ -449,21 +459,18 @@ export default function ProductDetailPage({
         mappedAttributes[formatVariantKey(k, locale)] = formatVariantValue(v);
       });
 
-      await addItem(
-        {
-          skuId: currentVariant.skuId,
-          productId: product.productId,
-          slug: product.slug,
-          productName: product.name,
-          imageUrl: images[0] ?? "/images/logo.png",
-          price: displayPrice,
-          qty: quantity,
-          currency: currentVariant.currency,
-          variantAttributes: mappedAttributes,
-          merchantId: product.merchantId,
-        },
-        { authenticated: isAuthenticated },
-      );
+      await addItem({
+        skuId: currentVariant.skuId,
+        productId: product.productId,
+        slug: product.slug,
+        productName: product.name,
+        imageUrl: images[0] ?? "/images/logo.png",
+        price: displayPrice,
+        qty: quantity,
+        currency: currentVariant.currency,
+        variantAttributes: mappedAttributes,
+        merchantId: product.merchantId,
+      });
       toast.success(t("products.addedToCart"));
       return true;
     } catch (err) {

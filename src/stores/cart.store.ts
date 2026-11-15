@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import toast from "react-hot-toast";
 import type { CartItem, Product, ServerCart } from "@/types";
 import { cartService } from "@/lib/services/cart.service";
@@ -8,6 +7,10 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { t } from "@/i18n/translate";
 import { useLocaleStore } from "@/stores/locale.store";
 
+if (typeof window !== "undefined") {
+  window.localStorage.removeItem("aionn-cart");
+}
+
 interface CartState {
   items: CartItem[];
   voucherCode: string | null;
@@ -15,27 +18,13 @@ interface CartState {
   syncing: boolean;
   totalItems: () => number;
   totalAmount: () => number;
-  addItem: (
-    item: CartItem,
-    opts?: { authenticated?: boolean },
-  ) => Promise<void>;
-  removeItem: (
-    skuId: string,
-    opts?: { authenticated?: boolean },
-  ) => Promise<void>;
-  updateQuantity: (
-    skuId: string,
-    qty: number,
-    opts?: { authenticated?: boolean },
-  ) => Promise<void>;
-  applyVoucher: (
-    code: string,
-    opts?: { authenticated?: boolean },
-  ) => Promise<void>;
-  removeVoucher: (opts?: { authenticated?: boolean }) => Promise<void>;
-  clearCart: (opts?: { authenticated?: boolean }) => Promise<void>;
+  addItem: (item: CartItem) => Promise<void>;
+  removeItem: (skuId: string) => Promise<void>;
+  updateQuantity: (skuId: string, qty: number) => Promise<void>;
+  applyVoucher: (code: string) => Promise<void>;
+  removeVoucher: () => Promise<void>;
+  clearCart: () => Promise<void>;
   hydrateFromServer: () => Promise<void>;
-  pushPendingToServer: () => Promise<void>;
 }
 
 function formatVariantAttributes(
@@ -141,179 +130,144 @@ async function hydrateCartItems(
   }
 }
 
-export const useCartStore = create<CartState>()(
-  persist(
-    (set, get) => ({
-      items: [],
-      voucherCode: null,
-      hydratedFromServer: false,
-      syncing: false,
+export const useCartStore = create<CartState>()((set, get) => ({
+  items: [],
+  voucherCode: null,
+  hydratedFromServer: false,
+  syncing: false,
 
-      totalItems: () => get().items.reduce((sum, item) => sum + item.qty, 0),
-      totalAmount: () =>
-        get().items.reduce((sum, item) => sum + item.price * item.qty, 0),
+  totalItems: () => get().items.reduce((sum, item) => sum + item.qty, 0),
+  totalAmount: () =>
+    get().items.reduce((sum, item) => sum + item.price * item.qty, 0),
 
-      addItem: async (newItem, opts) => {
-        const previous = get().items;
-        const existing = previous.find((i) => i.skuId === newItem.skuId);
-        const next = existing
-          ? previous.map((i) =>
-              i.skuId === newItem.skuId
-                ? { ...i, qty: i.qty + newItem.qty }
-                : i,
-            )
-          : [...previous, newItem];
-        set({ items: next });
+  addItem: async (newItem) => {
+    const previous = get().items;
+    const existing = previous.find((i) => i.skuId === newItem.skuId);
+    const next = existing
+      ? previous.map((i) =>
+          i.skuId === newItem.skuId
+            ? { ...i, qty: i.qty + newItem.qty }
+            : i,
+        )
+      : [...previous, newItem];
+    set({ items: next });
 
-        if (!opts?.authenticated) return;
-        try {
-          const server = await cartService.addItem(newItem.skuId, newItem.qty);
-          set({ items: await hydrateCartItems(next, server) });
-        } catch (err) {
-          // Roll back only this item; in-flight changes to other items must survive.
-          set((state) => {
-            const cur = state.items;
-            const idx = cur.findIndex((i) => i.skuId === newItem.skuId);
-            if (idx === -1) return { items: cur };
-            const updatedQty = (cur[idx]?.qty ?? newItem.qty) - newItem.qty;
-            const items =
-              existing && updatedQty > 0
-                ? cur.map((i, j) =>
-                    j === idx ? { ...i, qty: updatedQty } : i,
-                  )
-                : cur.filter((_, j) => j !== idx);
-            return { items };
-          });
-          toast.error(getErrorMessage(err, t("cart.addToCartError")));
-          throw err;
-        }
-      },
+    try {
+      const server = await cartService.addItem(newItem.skuId, newItem.qty);
+      set({
+        items: await hydrateCartItems(next, server),
+        hydratedFromServer: true,
+      });
+    } catch (err) {
+      set((state) => {
+        const cur = state.items;
+        const idx = cur.findIndex((i) => i.skuId === newItem.skuId);
+        if (idx === -1) return { items: cur };
+        const updatedQty = (cur[idx]?.qty ?? newItem.qty) - newItem.qty;
+        const items =
+          existing && updatedQty > 0
+            ? cur.map((i, j) =>
+                j === idx ? { ...i, qty: updatedQty } : i,
+              )
+            : cur.filter((_, j) => j !== idx);
+        return { items };
+      });
+      toast.error(getErrorMessage(err, t("cart.addToCartError")));
+      throw err;
+    }
+  },
 
-      removeItem: async (skuId, opts) => {
-        const previous = get().items;
-        set({ items: previous.filter((i) => i.skuId !== skuId) });
+  removeItem: async (skuId) => {
+    const previous = get().items;
+    set({ items: previous.filter((i) => i.skuId !== skuId) });
 
-        if (!opts?.authenticated) return;
-        try {
-          const server = await cartService.removeItem(skuId);
-          set({ items: await hydrateCartItems(get().items, server) });
-        } catch (err) {
-          set({ items: previous });
-          toast.error(getErrorMessage(err));
-          throw err;
-        }
-      },
+    try {
+      const server = await cartService.removeItem(skuId);
+      set({
+        items: await hydrateCartItems(get().items, server),
+        hydratedFromServer: true,
+      });
+    } catch (err) {
+      set({ items: previous });
+      toast.error(getErrorMessage(err));
+      throw err;
+    }
+  },
 
-      updateQuantity: async (skuId, qty, opts) => {
-        const safeQty = Math.max(0, qty);
-        const previous = get().items;
-        const next =
-          safeQty === 0
-            ? previous.filter((i) => i.skuId !== skuId)
-            : previous.map((i) =>
-                i.skuId === skuId ? { ...i, qty: safeQty } : i,
-              );
-        set({ items: next });
+  updateQuantity: async (skuId, qty) => {
+    const safeQty = Math.max(0, qty);
+    const previous = get().items;
+    const next =
+      safeQty === 0
+        ? previous.filter((i) => i.skuId !== skuId)
+        : previous.map((i) =>
+            i.skuId === skuId ? { ...i, qty: safeQty } : i,
+          );
+    set({ items: next });
 
-        if (!opts?.authenticated) return;
-        try {
-          const server = await cartService.updateItem(skuId, safeQty);
-          set({ items: await hydrateCartItems(next, server) });
-        } catch (err) {
-          set({ items: previous });
-          toast.error(getErrorMessage(err));
-          throw err;
-        }
-      },
+    try {
+      const server = await cartService.updateItem(skuId, safeQty);
+      set({
+        items: await hydrateCartItems(next, server),
+        hydratedFromServer: true,
+      });
+    } catch (err) {
+      set({ items: previous });
+      toast.error(getErrorMessage(err));
+      throw err;
+    }
+  },
 
-      applyVoucher: async (code, opts) => {
-        const previous = get().voucherCode;
-        set({ voucherCode: code });
-        if (!opts?.authenticated) return;
-        try {
-          const server = await cartService.applyVoucher(code);
-          // Keep the optimistic code unless the server echoes a real one.
-          const confirmed = server?.voucherCode?.trim();
-          set({ voucherCode: confirmed || code });
-        } catch (err) {
-          set({ voucherCode: previous });
-          toast.error(getErrorMessage(err, t("cart.applyVoucherError")));
-          throw err;
-        }
-      },
+  applyVoucher: async (code) => {
+    const previous = get().voucherCode;
+    set({ voucherCode: code });
+    try {
+      const server = await cartService.applyVoucher(code);
+      const confirmed = server?.voucherCode?.trim();
+      set({ voucherCode: confirmed || code });
+    } catch (err) {
+      set({ voucherCode: previous });
+      toast.error(getErrorMessage(err, t("cart.applyVoucherError")));
+      throw err;
+    }
+  },
 
-      removeVoucher: async (opts) => {
-        const previous = get().voucherCode;
-        set({ voucherCode: null });
-        if (!opts?.authenticated) return;
-        try {
-          await cartService.removeVoucher();
-        } catch (err) {
-          set({ voucherCode: previous });
-          toast.error(getErrorMessage(err));
-          throw err;
-        }
-      },
+  removeVoucher: async () => {
+    const previous = get().voucherCode;
+    set({ voucherCode: null });
+    try {
+      await cartService.removeVoucher();
+    } catch (err) {
+      set({ voucherCode: previous });
+      toast.error(getErrorMessage(err));
+      throw err;
+    }
+  },
 
-      clearCart: async (opts) => {
-        const previous = { items: get().items, voucherCode: get().voucherCode };
-        set({ items: [], voucherCode: null });
-        if (!opts?.authenticated) return;
-        try {
-          await cartService.clear();
-        } catch (err) {
-          set(previous);
-          toast.error(getErrorMessage(err));
-          throw err;
-        }
-      },
+  clearCart: async () => {
+    const previous = { items: get().items, voucherCode: get().voucherCode };
+    set({ items: [], voucherCode: null });
+    try {
+      await cartService.clear();
+    } catch (err) {
+      set(previous);
+      toast.error(getErrorMessage(err));
+      throw err;
+    }
+  },
 
-      hydrateFromServer: async () => {
-        set({ syncing: true });
-        try {
-          const server = await cartService.getMyCart();
-          set({
-            items: await hydrateCartItems(get().items, server),
-            voucherCode: server.voucherCode,
-            hydratedFromServer: true,
-          });
-        } catch {
-        } finally {
-          set({ syncing: false });
-        }
-      },
-
-      pushPendingToServer: async () => {
-        const pending = get().items;
-        if (pending.length === 0) return;
-        try {
-          for (const item of pending) {
-            await cartService.addItem(item.skuId, item.qty);
-          }
-
-          const server = await cartService.getMyCart();
-          set({
-            items: await hydrateCartItems(pending, server),
-            voucherCode: server.voucherCode,
-            hydratedFromServer: true,
-          });
-        } catch {}
-      },
-    }),
-    {
-      name: "aionn-cart",
-
-      partialize: (state) => ({
-        items: state.items,
-        voucherCode: state.voucherCode,
-      }),
-
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.hydratedFromServer = false;
-          state.syncing = false;
-        }
-      },
-    },
-  ),
-);
+  hydrateFromServer: async () => {
+    set({ syncing: true });
+    try {
+      const server = await cartService.getMyCart();
+      set({
+        items: await hydrateCartItems(get().items, server),
+        voucherCode: server.voucherCode,
+        hydratedFromServer: true,
+      });
+    } catch {
+    } finally {
+      set({ syncing: false });
+    }
+  },
+}));

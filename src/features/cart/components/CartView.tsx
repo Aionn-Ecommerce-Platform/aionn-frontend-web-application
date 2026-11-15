@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +27,7 @@ import { qk } from "@/lib/query-keys";
 
 export default function CartPage() {
   const { t, locale } = useTranslation();
+  const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.user?.userId);
   const isAuthInitializing = useAuthStore((s) => s.isInitializing);
@@ -40,6 +42,11 @@ export default function CartPage() {
   const allCartSkuIds = useMemo(() => items.map((item) => item.skuId), [items]);
   const shouldFetchCartSuggestions =
     isAuthenticated && allCartSkuIds.length > 0;
+
+  useEffect(() => {
+    if (isAuthInitializing || isAuthenticated) return;
+    router.replace(`/auth/login?redirect=${encodeURIComponent("/cart")}`);
+  }, [isAuthInitializing, isAuthenticated, router]);
 
   const { data: recommendedProducts = [] } = useQuery({
     queryKey: shouldFetchCartSuggestions
@@ -101,7 +108,7 @@ export default function CartPage() {
     if (newQty < 1) return;
     setPendingSku(skuId);
     try {
-      await updateQuantity(skuId, newQty, { authenticated: isAuthenticated });
+      await updateQuantity(skuId, newQty);
     } catch {
     } finally {
       setPendingSku(null);
@@ -112,7 +119,7 @@ export default function CartPage() {
     setPendingSku(skuId);
     setSelectedSkuIds((previous) => previous.filter((id) => id !== skuId));
     try {
-      await removeItem(skuId, { authenticated: isAuthenticated });
+      await removeItem(skuId);
       toast.success(t("cart.remove"));
     } catch {
     } finally {

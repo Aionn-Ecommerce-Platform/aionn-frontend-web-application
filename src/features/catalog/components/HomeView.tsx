@@ -27,6 +27,11 @@ import type {
 import ProductCard from "@/components/product/ProductCard";
 import FlashSaleSection from "@/components/product/FlashSaleSection";
 import { useAuthStore } from "@/stores/auth.store";
+import { useGuestRecommendationStore } from "@/stores/guest-recommendation.store";
+import { guestRecommendationConfig } from "@/features/catalog/guest-recommendation/config";
+import { rankGuestRecommendations } from "@/features/catalog/guest-recommendation/ranking";
+
+const PAGE_LOADED_AT = Date.now();
 
 const stagger = {
   hidden: {},
@@ -52,6 +57,14 @@ export default function HomePage() {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.user?.userId);
+  const guestViewed = useGuestRecommendationStore((s) => s.viewed);
+  const guestSeed = useGuestRecommendationStore((s) => s.seed);
+  const [pageNonce] = useState(() =>
+    typeof window === "undefined" ? "server" : crypto.randomUUID(),
+  );
+  const homeFeedLimit = isAuthenticated
+    ? 30
+    : guestRecommendationConfig.candidateLimit;
   const merchantRegisterHref = isAuthenticated
     ? "/merchant/register"
     : "/auth/login?redirect=/merchant/register";
@@ -92,9 +105,32 @@ export default function HomePage() {
 
   const { data: homeRecommendations = [], isLoading: recommendationLoading } =
     useQuery({
-      queryKey: qk.recommendationsHome(30, userId),
-      queryFn: () => recommendationService.getHomeFeed(30),
+      queryKey: qk.recommendationsHome(homeFeedLimit, userId),
+      queryFn: () => recommendationService.getHomeFeed(homeFeedLimit),
     });
+
+  const rankedRecommendations = useMemo(() => {
+    if (isAuthenticated) return homeRecommendations;
+    return rankGuestRecommendations({
+      items: homeRecommendations,
+      viewed: guestViewed,
+      seed: guestSeed,
+      pageNonce,
+      now: PAGE_LOADED_AT,
+      config: guestRecommendationConfig,
+    });
+  }, [
+    homeRecommendations,
+    isAuthenticated,
+    guestViewed,
+    guestSeed,
+    pageNonce,
+  ]);
+
+  useEffect(() => {
+    if (isAuthenticated) return;
+    useGuestRecommendationStore.getState().ensureSession();
+  }, [isAuthenticated]);
 
   const recommendedProducts = useMemo(() => {
     const out: Array<{
@@ -113,7 +149,7 @@ export default function HomePage() {
       currency?: string;
     }> = [];
 
-    for (const r of homeRecommendations) {
+    for (const r of rankedRecommendations) {
       const fsInfo = flashSaleMap.get(r.productId) ?? null;
       const regularPrice = r.priceFrom;
       const originalPrice = fsInfo
@@ -138,7 +174,7 @@ export default function HomePage() {
     }
 
     return out.slice(0, 30);
-  }, [homeRecommendations, flashSaleMap]);
+  }, [rankedRecommendations, flashSaleMap]);
 
   const recommendedLoading = recommendationLoading;
 
@@ -446,8 +482,6 @@ export default function HomePage() {
 
             <div className="mt-10 flex justify-center">
               <div className="relative h-56 w-56 flex items-center justify-center">
-                {/* Subtle backglow around logo */}
-                <div className="absolute inset-4 bg-purple-400/20 rounded-full blur-2xl animate-pulse" />
                 <Image
                   src="/images/logo_without_text.png"
                   alt="Aionn"

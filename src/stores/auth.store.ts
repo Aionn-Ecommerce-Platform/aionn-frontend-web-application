@@ -4,6 +4,14 @@ import type { AuthTokens, UserProfile } from "@/types";
 import { tokenStore, setUnauthorizedHandler } from "@/shared/api";
 import { authService, userService } from "@/lib/services";
 
+function clearGuestRecommendation() {
+  void import("@/stores/guest-recommendation.store")
+    .then(({ useGuestRecommendationStore }) =>
+      useGuestRecommendationStore.getState().reset(),
+    )
+    .catch(() => {});
+}
+
 interface AuthState {
   user: UserProfile | null;
   tokens: AuthTokens | null;
@@ -40,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
 
       loginSuccess: (tokens, user) => {
         tokenStore.setTokens(tokens);
+        clearGuestRecommendation();
         set({
           tokens,
           user: user ?? get().user,
@@ -54,6 +63,8 @@ export const useAuthStore = create<AuthState>()(
           } catch {}
         }
         tokenStore.setTokens(null);
+
+        clearGuestRecommendation();
 
         try {
           const { useCartStore } = await import("@/stores/cart.store");
@@ -89,6 +100,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isInitializing: false,
           });
+          clearGuestRecommendation();
         } catch {
           tokenStore.setTokens(null);
           set({
