@@ -8,13 +8,16 @@ import { t } from "@/i18n/translate";
 import { useLocaleStore } from "@/stores/locale.store";
 
 if (typeof window !== "undefined") {
-  window.localStorage.removeItem("aionn-cart");
+  try {
+    window.localStorage.removeItem("aionn-cart");
+  } catch {}
 }
 
 interface CartState {
   items: CartItem[];
   voucherCode: string | null;
   hydratedFromServer: boolean;
+  hydrationAttempts: number;
   syncing: boolean;
   totalItems: () => number;
   totalAmount: () => number;
@@ -134,6 +137,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
   items: [],
   voucherCode: null,
   hydratedFromServer: false,
+  hydrationAttempts: 0,
   syncing: false,
 
   totalItems: () => get().items.reduce((sum, item) => sum + item.qty, 0),
@@ -257,13 +261,17 @@ export const useCartStore = create<CartState>()((set, get) => ({
   },
 
   hydrateFromServer: async () => {
-    set({ syncing: true });
+    set((state) => ({
+      syncing: true,
+      hydrationAttempts: state.hydrationAttempts + 1,
+    }));
     try {
       const server = await cartService.getMyCart();
       set({
         items: await hydrateCartItems(get().items, server),
         voucherCode: server.voucherCode,
         hydratedFromServer: true,
+        hydrationAttempts: 0,
       });
     } catch {
     } finally {

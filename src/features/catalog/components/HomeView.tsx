@@ -28,10 +28,8 @@ import ProductCard from "@/components/product/ProductCard";
 import FlashSaleSection from "@/components/product/FlashSaleSection";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGuestRecommendationStore } from "@/stores/guest-recommendation.store";
-import { guestRecommendationConfig } from "@/features/catalog/guest-recommendation/config";
-import { rankGuestRecommendations } from "@/features/catalog/guest-recommendation/ranking";
-
-const PAGE_LOADED_AT = Date.now();
+import { guestRecommendationConfig } from "@/shared/lib/guest-recommendation/config";
+import { rankGuestRecommendations } from "@/shared/lib/guest-recommendation/ranking";
 
 const stagger = {
   hidden: {},
@@ -62,6 +60,7 @@ export default function HomePage() {
   const [pageNonce] = useState(() =>
     typeof window === "undefined" ? "server" : crypto.randomUUID(),
   );
+  const [pageLoadedAt] = useState(() => Date.now());
   const homeFeedLimit = isAuthenticated
     ? 30
     : guestRecommendationConfig.candidateLimit;
@@ -116,7 +115,7 @@ export default function HomePage() {
       viewed: guestViewed,
       seed: guestSeed,
       pageNonce,
-      now: PAGE_LOADED_AT,
+      now: pageLoadedAt,
       config: guestRecommendationConfig,
     });
   }, [
@@ -125,6 +124,7 @@ export default function HomePage() {
     guestViewed,
     guestSeed,
     pageNonce,
+    pageLoadedAt,
   ]);
 
   useEffect(() => {

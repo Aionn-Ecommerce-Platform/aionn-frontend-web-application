@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
-import { guestRecommendationConfig } from "@/features/catalog/guest-recommendation/config";
-import type { GuestViewedProduct } from "@/features/catalog/guest-recommendation/ranking";
+import { guestRecommendationConfig } from "@/shared/lib/guest-recommendation/config";
+import type { GuestViewedProduct } from "@/shared/lib/guest-recommendation/ranking";
 
 interface GuestRecommendationState {
   seed: string;
@@ -24,12 +24,35 @@ const noopStorage: StateStorage = {
 
 const STORAGE_KEY = "aionn-guest-recommendation";
 
+const safeSessionStorage: StateStorage = {
+  getItem: (name) => {
+    try {
+      return window.sessionStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name, value) => {
+    try {
+      window.sessionStorage.setItem(name, value);
+    } catch {
+      return;
+    }
+  },
+  removeItem: (name) => {
+    try {
+      window.sessionStorage.removeItem(name);
+    } catch {
+      return;
+    }
+  },
+};
 
 function createSeed(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
   }
-  return Math.random().toString(36).slice(2);
+  return `${Date.now().toString(36)}-${performance.now().toString(36)}`;
 }
 
 function isExpired(lastActiveAt: number, now: number): boolean {
@@ -78,7 +101,7 @@ export const useGuestRecommendationStore = create<GuestRecommendationState>()(
     {
       name: STORAGE_KEY,
       storage: createJSONStorage(() =>
-        typeof window === "undefined" ? noopStorage : window.sessionStorage,
+        typeof window === "undefined" ? noopStorage : safeSessionStorage,
       ),
       partialize: (state) => ({
         seed: state.seed,

@@ -47,7 +47,7 @@ export default function ProductDetailExtras(props: Props) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const qc = useQueryClient();
 
-  const { data: storefrontStats } = useQuery({
+  const { data: storefrontStats, isLoading: storefrontStatsLoading } = useQuery({
     queryKey: ["merchant-storefront-stats", product.merchantId],
     queryFn: () => merchantService.getStorefrontStats(product.merchantId),
     enabled: Boolean(product.merchantId),
@@ -59,8 +59,8 @@ export default function ProductDetailExtras(props: Props) {
       storefrontStats?.following
         ? merchantService.unfollow(product.merchantId)
         : merchantService.follow(product.merchantId),
-    onSuccess: () => {
-      qc.invalidateQueries({
+    onSuccess: async () => {
+      await qc.invalidateQueries({
         queryKey: ["merchant-storefront-stats", product.merchantId],
       });
       toast.success(
@@ -201,7 +201,7 @@ export default function ProductDetailExtras(props: Props) {
               <button
                 type="button"
                 onClick={handleFollow}
-                disabled={followMutation.isPending}
+                disabled={followMutation.isPending || storefrontStatsLoading || !storefrontStats}
                 className={`h-9 px-4 text-xs font-semibold border transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none disabled:opacity-50 ${
                   storefrontStats?.following
                     ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"

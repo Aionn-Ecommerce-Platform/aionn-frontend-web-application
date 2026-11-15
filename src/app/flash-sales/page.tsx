@@ -8,7 +8,7 @@ import { productService, promotionService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import ProductCard from "@/components/product/ProductCard";
 
-function CountdownBox({ value }: { value: string | number }) {
+function CountdownBox({ value }: Readonly<{ value: string | number }>) {
   return (
     <span className="rounded-lg bg-purple-950/80 border border-yellow-300/70 px-2.5 py-1 min-w-[2.5rem] text-center font-mono font-extrabold text-white shadow-sm">
       {value}
@@ -16,7 +16,7 @@ function CountdownBox({ value }: { value: string | number }) {
   );
 }
 
-function CampaignCountdown({ endAt }: { endAt: string }) {
+function CampaignCountdown({ endAt }: Readonly<{ endAt: string }>) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {

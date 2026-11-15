@@ -49,6 +49,9 @@ export const useAuthStore = create<AuthState>()(
       loginSuccess: (tokens, user) => {
         tokenStore.setTokens(tokens);
         clearGuestRecommendation();
+        void import("@/lib/query-client").then(({ queryClient }) => {
+          queryClient.clear();
+        });
         set({
           tokens,
           user: user ?? get().user,
