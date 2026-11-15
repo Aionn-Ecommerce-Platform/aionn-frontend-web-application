@@ -390,7 +390,7 @@ export default function RegisterForm({
           <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer">
             <input
               type="checkbox"
-              className="mt-0.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              className="mt-0.5 rounded border-gray-400 text-purple-600 focus:ring-purple-500"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
               required

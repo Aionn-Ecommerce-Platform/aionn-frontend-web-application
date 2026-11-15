@@ -253,7 +253,7 @@ function AdminFlashSalesInner() {
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder={t("adminFlashSales.reasonPlaceholder")}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
           />
           <div className="flex justify-end gap-2">
             <Button

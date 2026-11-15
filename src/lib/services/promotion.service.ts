@@ -9,10 +9,10 @@ export const promotionService = {
   getBanners() {
     return api.get<PromotionBanner[]>("/promotions/banners");
   },
-  getActiveFlashSales(limit = 5) {
+  getActiveFlashSales(limit = 5, page?: number, size?: number) {
     return api.get<ActiveFlashSale[]>("/promotions/flash-sales/active", {
       anonymous: true,
-      query: { limit },
+      query: { limit, page, size },
     });
   },
 };

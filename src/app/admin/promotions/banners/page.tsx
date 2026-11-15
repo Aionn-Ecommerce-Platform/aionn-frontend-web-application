@@ -306,7 +306,7 @@ function AdminBannersInner() {
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
             />
           </div>
 
@@ -314,7 +314,7 @@ function AdminBannersInner() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("adminBanners.image")}
             </label>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 p-3">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-400 p-3">
               <p className="text-xs text-gray-500">
                 {t("adminBanners.imageHelp")}
               </p>
@@ -359,7 +359,7 @@ function AdminBannersInner() {
               value={form.linkUrl}
               onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
               placeholder={t("adminBanners.linkPlaceholder")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
             />
             <p className="mt-1 text-xs text-gray-500">
               {t("adminBanners.linkHelp")}

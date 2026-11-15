@@ -90,7 +90,7 @@ export default function MerchantsPage() {
               return (
                 <div
                   key={merchant.merchantId}
-                  className="bg-white rounded-2xl border border-gray-300 hover:border-gray-950 shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                  className="bg-white rounded-2xl border border-gray-400 hover:border-gray-950 shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
                 >
                   <div className="p-6">
                     <div className="flex items-center gap-4">
@@ -127,15 +127,16 @@ export default function MerchantsPage() {
                     </p>
                   </div>
 
-                  <div className="px-6 py-4 bg-gray-50/60 border-t border-gray-300 flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <Calendar size={13} className="text-gray-400" />
+                  <div className="relative overflow-hidden px-6 py-4 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 border-t border-purple-800/40 flex items-center justify-between text-xs text-purple-200">
+                    <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-fuchsia-600/20 blur-2xl pointer-events-none" />
+                    <span className="relative z-10 flex items-center gap-1.5 font-medium">
+                      <Calendar size={13} className="text-purple-300" />
                       {t("merchants.activeSince")} {formattedDate}
                     </span>
-                    <Link href={`/merchants/${merchant.merchantId}`}>
+                    <Link href={`/merchants/${merchant.merchantId}`} className="relative z-10">
                       <button
                         type="button"
-                        className="px-4 py-1.5 text-xs font-semibold rounded-full border border-gray-950 bg-white text-gray-900 hover:bg-gray-950 hover:text-white transition-all shadow-xs cursor-pointer"
+                        className="px-4 py-1.5 text-xs font-semibold rounded-full border border-white/20 bg-white/10 text-white hover:bg-white hover:text-purple-950 transition-all shadow-xs cursor-pointer"
                       >
                         {t("merchants.visit")}
                       </button>

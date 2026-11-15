@@ -24,7 +24,7 @@ export default function StatCard({
   color = "blue",
 }: StatCardProps) {
   return (
-    <div className="bg-white rounded-md border border-gray-300 p-5">
+    <div className="bg-white rounded-md border border-gray-400 p-5">
       <div
         className={`inline-flex p-2.5 rounded-md mb-3 ${COLOR_CLASS[color]}`}
       >

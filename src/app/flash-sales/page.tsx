@@ -1,22 +1,62 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Loader2, Zap } from "lucide-react";
-import { EmptyState } from "@/shared/ui";
+import { Loader2, Zap } from "lucide-react";
+import { EmptyState, Pagination } from "@/shared/ui";
 import { productService, promotionService } from "@/lib/services";
-import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
-import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
+import ProductCard from "@/components/product/ProductCard";
+
+function CountdownBox({ value }: Readonly<{ value: string | number }>) {
+  return (
+    <span className="rounded-lg bg-purple-950/80 border border-yellow-300/70 px-2.5 py-1 min-w-[2.5rem] text-center font-mono font-extrabold text-white shadow-sm">
+      {value}
+    </span>
+  );
+}
+
+function CampaignCountdown({ endAt }: Readonly<{ endAt: string }>) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const remainingMs = Math.max(0, new Date(endAt).getTime() - now);
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (value: number) => value.toString().padStart(2, "0");
+
+  return (
+    <div className="flex items-center gap-1.5 text-sm">
+      {days > 0 && (
+        <>
+          <CountdownBox value={`${days}d`} />
+          <span className="text-white/50 font-bold">:</span>
+        </>
+      )}
+      <CountdownBox value={pad(hours)} />
+      <span className="text-white/50 font-bold">:</span>
+      <CountdownBox value={pad(minutes)} />
+      <span className="text-white/50 font-bold">:</span>
+      <CountdownBox value={pad(seconds)} />
+    </div>
+  );
+}
 
 export default function FlashSalesPage() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
+  const pageSize = 48;
+  const [page, setPage] = useState(0);
 
   const { data: sales, isLoading } = useQuery({
-    queryKey: ["active-flash-sales", 20],
-    queryFn: () => promotionService.getActiveFlashSales(20),
+    queryKey: ["active-flash-sales", 20, page, pageSize],
+    queryFn: () => promotionService.getActiveFlashSales(20, page, pageSize),
   });
 
   const skuIds = useMemo(
@@ -33,7 +73,16 @@ export default function FlashSalesPage() {
   const productBySku = useMemo(() => {
     const map = new Map<
       string,
-      { productId: string; name: string; slug?: string | null; image?: string; variantPrice?: number; currency?: string }
+      {
+        productId: string;
+        name: string;
+        slug?: string | null;
+        image?: string;
+        variantPrice?: number;
+        currency?: string;
+        rating?: number;
+        reviewCount?: number;
+      }
     >();
     for (const product of products ?? []) {
       for (const variant of product.variants ?? []) {
@@ -44,23 +93,23 @@ export default function FlashSalesPage() {
           image: product.imageList?.[0],
           variantPrice: variant.price,
           currency: variant.currency,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
         });
       }
     }
     return map;
   }, [products]);
 
+  const maxTotalItems = Math.max(
+    0,
+    ...(sales ?? []).map((sale) => sale.totalItems),
+  );
+  const totalPages = Math.max(1, Math.ceil(maxTotalItems / pageSize));
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight flex items-center gap-2">
-            <Flame className="text-rose-500" size={26} />
-            {t("flashSales.title")}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">{t("flashSales.subtitle")}</p>
-        </div>
-
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-brand" size={28} />
@@ -72,110 +121,111 @@ export default function FlashSalesPage() {
             description={t("flashSales.emptyDescription")}
           />
         ) : (
-          <div className="space-y-8">
-            {sales.map((sale) => (
-              <section
-                key={sale.campaignId}
-                className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 sm:p-6 shadow-sm"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                  <h2 className="text-lg font-extrabold text-gray-950 flex items-center gap-2">
-                    <Zap size={18} className="fill-rose-500 text-rose-500" />
-                    {sale.name}
-                  </h2>
-                  <p className="text-xs font-semibold text-rose-600">
-                    {t("flashSales.endsAt", {
-                      date: formatDateTime(sale.endDate, locale),
-                    })}
-                  </p>
-                </div>
+          <>
+            <div className="space-y-8">
+              {sales.map((sale) => {
+              const items = sale.items.map((item) => {
+                const info = productBySku.get(item.skuId);
+                const original = info?.variantPrice ?? item.salePrice;
+                const percent =
+                  original > item.salePrice
+                    ? Math.round((1 - item.salePrice / original) * 100)
+                    : 0;
+                return { item, info, percent };
+              });
+              const maxDiscount =
+                items.length > 0
+                  ? Math.max(...items.map(({ percent }) => percent))
+                  : 0;
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                  {sale.items.map((item) => {
-                    const info = productBySku.get(item.skuId);
-                    const original = info?.variantPrice;
-                    const percent =
-                      original && original > item.salePrice
-                        ? Math.round((1 - item.salePrice / original) * 100)
-                        : 0;
-                    return (
-                      <Link
+              return (
+                <section
+                  key={sale.campaignId}
+                  className="space-y-4"
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
+                    <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
+                    <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
+                    <div
+                      className="absolute inset-0 opacity-[0.12] pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
+                        backgroundSize: "28px 28px",
+                      }}
+                    />
+
+                    <div className="relative z-10">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-lg shadow-purple-600/30 border border-purple-400/30">
+                            <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
+                            <Zap
+                              size={14}
+                              className="fill-purple-100 text-purple-50 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                            />
+                            {t("home.flashSale")}
+                          </span>
+                          {maxDiscount > 0 && (
+                            <span className="rounded-full border border-yellow-300/40 bg-white/10 px-2.5 py-1 text-xs font-bold text-yellow-300">
+                              -{maxDiscount}%
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2.5 text-xs">
+                          <span className="font-semibold text-purple-200 whitespace-nowrap">
+                            {t("flashSales.endsIn")}
+                          </span>
+                          <CampaignCountdown endAt={sale.endDate} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {items.map(({ item, info }) => (
+                      <ProductCard
                         key={item.registrationId}
-                        href={productPath({ productId: item.productId, slug: info?.slug })}
-                        className="group rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-md transition-shadow"
-                      >
-                        <div className="relative aspect-square bg-gray-50">
-                          {info?.image ? (
-                            <Image
-                              src={info.image}
-                              alt={info.name ?? item.skuId}
-                              fill
-                              sizes="200px"
-                              className="object-cover group-hover:scale-[1.02] transition-transform"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-gray-300">
-                              <Zap size={28} />
-                            </div>
-                          )}
-                          {percent > 0 && (
-                            <span className="absolute top-2 left-2 rounded-full bg-rose-600 px-2 py-0.5 text-[11px] font-black text-white">
-                              -{percent}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <p className="text-sm font-semibold text-gray-900 line-clamp-2 min-h-10">
-                            {info?.name ?? item.skuId}
-                          </p>
-                          <div className="mt-1.5 flex items-baseline gap-1.5">
-                            <span className="text-sm font-extrabold text-rose-600">
-                              {formatCurrency(
-                                item.salePrice,
-                                item.currency,
-                                locale,
-                              )}
-                            </span>
-                            {original && original > item.salePrice && (
-                              <span className="text-xs text-gray-400 line-through">
-                                {formatCurrency(
-                                  original,
-                                  info?.currency ?? item.currency,
-                                  locale,
-                                )}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                            <div
-                              className="h-full rounded-full bg-rose-500"
-                              style={{
-                                width: `${Math.min(
-                                  100,
-                                  Math.round(
-                                    (item.soldCount /
-                                      Math.max(1, item.saleStock)) *
-                                      100,
-                                  ),
-                                )}%`,
-                              }}
-                            />
-                          </div>
-                          <p className="mt-1 text-[11px] text-gray-500">
-                            {t("flashSales.soldOf", {
-                              sold: item.soldCount,
-                              total: item.saleStock,
-                            })}
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
+                        id={item.productId}
+                        slug={info?.slug}
+                        name={info?.name ?? item.skuId}
+                        price={info?.variantPrice ?? item.salePrice}
+                        image={info?.image ?? "/images/logo.png"}
+                        rating={info?.rating}
+                        reviewCount={info?.reviewCount}
+                        sold={item.soldCount}
+                        currency={info?.currency ?? item.currency}
+                        flashSale={{
+                          campaignId: sale.campaignId,
+                          endAt: sale.endDate,
+                          salePrice: item.salePrice,
+                          currency: item.currency,
+                          saleStock: item.saleStock,
+                          soldCount: item.soldCount,
+                          skuOffers: [
+                            {
+                              skuId: item.skuId,
+                              salePrice: item.salePrice,
+                              currency: item.currency,
+                              saleStock: item.saleStock,
+                              soldCount: item.soldCount,
+                            },
+                          ],
+                        }}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+            </div>
+            <Pagination
+              currentPage={page + 1}
+              totalPages={totalPages}
+              onPageChange={(next) => setPage(next - 1)}
+            />
+          </>
         )}
       </div>
     </div>

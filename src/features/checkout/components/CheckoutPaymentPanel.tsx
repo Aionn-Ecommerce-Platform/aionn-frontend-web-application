@@ -166,7 +166,7 @@ export default function CheckoutPaymentPanel(props: Props) {
             </button>
           ))}
           {usablePaymentMethods.length === 0 && (
-            <div className="flex items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-gray-600">
+            <div className="flex items-center gap-3 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-4 py-4 text-gray-600">
               <CreditCard size={20} className="text-blue-600" />
               <span className="text-sm">
                 {locale === "vi"

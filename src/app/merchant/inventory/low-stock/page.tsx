@@ -44,7 +44,7 @@ function LowStockInner() {
         </div>
 
         {alerts.length === 0 ? (
-          <div className="bg-white rounded-md border border-gray-300 py-16 px-4 text-center">
+          <div className="bg-white rounded-md border border-gray-400 py-16 px-4 text-center">
             <Package className="mx-auto text-gray-400 mb-3" size={40} />
             <p className="text-gray-700 font-medium">
               {t("merchant.lowStock.noAlerts")}
@@ -54,7 +54,7 @@ function LowStockInner() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-md border border-gray-300 overflow-hidden">
+          <div className="bg-white rounded-md border border-gray-400 overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>

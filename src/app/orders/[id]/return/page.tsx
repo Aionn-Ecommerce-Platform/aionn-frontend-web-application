@@ -194,7 +194,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
                     checked={selectedQty > 0}
                     disabled={!canReturn || submitting}
                     onChange={() => toggleItem(item.skuId, item.qty)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-gray-900 line-clamp-2">
@@ -280,7 +280,7 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={!canReturn || uploading || submitting}
-              className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex flex-col items-center justify-center w-full py-8 px-4 rounded-xl border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/20 transition-all disabled:opacity-50 cursor-pointer"
             >
               {uploading ? (
                 <Loader2 className="animate-spin text-blue-600" size={28} />

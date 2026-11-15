@@ -14,6 +14,8 @@ export interface RecommendationItem {
   currency: string;
   score: number;
   reason: RecommendationReason;
+  categoryIds?: string[];
+  brandId?: string | null;
   rating?: number | null;
   reviewCount?: number | null;
   soldCount?: number | null;

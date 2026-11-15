@@ -529,6 +529,7 @@
     "followers": "Followers",
     "follow": "Follow",
     "following": "Following",
+    "loginRequiredToFollow": "Log in to follow this shop",
     "viewShop": "View shop",
     "followed": "Shop followed",
     "unfollowed": "Shop unfollowed",
@@ -903,6 +904,8 @@
     "empty": "No flash sales right now",
     "emptyDescription": "Check back later so you do not miss the next drop.",
     "endsAt": "Ends: {date}",
+    "endsIn": "ENDS IN",
+    "sold": "{sold}/{stock} sold",
     "soldOf": "{sold}/{total} sold"
   },
   "productQa": {

@@ -529,6 +529,7 @@
     "followers": "Người theo dõi",
     "follow": "Theo dõi",
     "following": "Đang theo dõi",
+    "loginRequiredToFollow": "Đăng nhập để theo dõi cửa hàng",
     "viewShop": "Xem Shop",
     "followed": "Đã theo dõi cửa hàng",
     "unfollowed": "Đã bỏ theo dõi cửa hàng",
@@ -903,6 +904,8 @@
     "empty": "Chưa có flash sale nào",
     "emptyDescription": "Quay lại sau để không bỏ lỡ ưu đãi tiếp theo.",
     "endsAt": "Kết thúc: {date}",
+    "endsIn": "KẾT THÚC TRONG",
+    "sold": "Đã bán {sold}/{stock} suất",
     "soldOf": "Đã bán {sold}/{total}"
   },
   "productQa": {
@@ -1370,7 +1373,7 @@
     "ratingPoor": "Không tốt",
     "ratingTerrible": "Tệ",
     "writeYourReview": "Viết đánh giá của bạn",
-    "outOfFive": "trên 5",
+    "outOfFive": "/ 5",
     "allFilter": "Tất Cả",
     "starFilter": "{star} Sao ({count})",
     "withComment": "Có Bình Luận ({count})",

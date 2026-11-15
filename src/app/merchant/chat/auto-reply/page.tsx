@@ -242,7 +242,7 @@ function MerchantAutoReplyInner() {
                       className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                         active
                           ? "bg-blue-50 border-blue-200 text-blue-700"
-                          : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                          : "bg-white border-gray-200 text-gray-500 hover:border-gray-400"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {dayShortLabels[key]}

@@ -44,7 +44,7 @@ export default function ProductQA({
   return (
     <div
       id="product-questions"
-      className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6"
+      className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6"
     >
       <div className="flex items-center justify-between gap-4 mb-5">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -64,7 +64,7 @@ export default function ProductQA({
             rows={2}
             maxLength={2000}
             placeholder={t("productQa.placeholder")}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+            className="w-full rounded-xl border border-gray-400 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
           />
           <div className="mt-2 flex justify-end">
             <Button
@@ -99,7 +99,7 @@ export default function ProductQA({
           {questions.map((item) => (
             <div
               key={item.questionId}
-              className="rounded-xl border border-gray-100 bg-gray-50/60 p-4"
+              className="rounded-xl border border-gray-400 bg-gray-50/60 p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -114,7 +114,7 @@ export default function ProductQA({
                 </div>
               </div>
               {item.answer ? (
-                <div className="mt-3 rounded-lg border-l-2 border-brand bg-white p-3">
+                <div className="mt-3 rounded-lg border-l-2 border-brand bg-gray-200/70 p-3">
                   <p className="text-xs font-semibold text-brand mb-1">
                     {t("productQa.sellerAnswer")}
                   </p>

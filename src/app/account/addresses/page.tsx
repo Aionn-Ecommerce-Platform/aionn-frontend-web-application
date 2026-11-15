@@ -447,7 +447,7 @@ function AddressesInner() {
                   className={`px-4 py-2 rounded-xs text-sm border transition-all ${
                     form.type === tItem.value
                       ? "border-blue-500 bg-blue-50 text-blue-700 font-bold"
-                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                      : "border-gray-200 text-gray-700 hover:border-gray-400"
                   }`}
                 >
                   {tItem.label}

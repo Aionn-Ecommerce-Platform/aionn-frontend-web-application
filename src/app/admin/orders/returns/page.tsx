@@ -356,7 +356,7 @@ function AdminOrderReturnsInner() {
                       )
                     }
                     min={0}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
@@ -366,7 +366,7 @@ function AdminOrderReturnsInner() {
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+                    className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm bg-white"
                   >
                     <option value="VND">VND</option>
                     <option value="USD">USD</option>
@@ -381,7 +381,7 @@ function AdminOrderReturnsInner() {
                   type="text"
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
                 />
               </div>
             </>
@@ -396,7 +396,7 @@ function AdminOrderReturnsInner() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={4}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -411,7 +411,7 @@ function AdminOrderReturnsInner() {
                 onChange={(e) => setItemCondition(e.target.value)}
                 rows={3}
                 placeholder={t("adminReturns.conditionPlaceholder")}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
               />
             </div>
           )}

@@ -269,7 +269,7 @@ function AdminKycInner() {
                 ? t("adminKyc.rejectPlaceholder")
                 : t("adminKyc.notePlaceholder")
             }
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
           <div className="flex justify-end gap-2">
             <Button

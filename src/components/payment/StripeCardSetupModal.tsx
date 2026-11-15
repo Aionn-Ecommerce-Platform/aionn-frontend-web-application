@@ -206,7 +206,7 @@ function StripeCardSetupForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("stripeSetup.cardNumber")}
             </label>
-            <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+            <div className="rounded-lg border border-gray-400 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
               <CardNumberElement
                 options={{
                   showIcon: true,
@@ -222,7 +222,7 @@ function StripeCardSetupForm({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t("stripeSetup.expiryDate")}
               </label>
-              <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+              <div className="rounded-lg border border-gray-400 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <CardExpiryElement options={stripeElementStyle} />
               </div>
             </div>
@@ -231,7 +231,7 @@ function StripeCardSetupForm({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t("stripeSetup.securityCode")}
               </label>
-              <div className="rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+              <div className="rounded-lg border border-gray-400 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <CardCvcElement options={stripeElementStyle} />
               </div>
             </div>

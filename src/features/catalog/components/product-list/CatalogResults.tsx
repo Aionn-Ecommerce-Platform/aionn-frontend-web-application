@@ -140,7 +140,7 @@ export default function CatalogResults(props: Props) {
               className={`group relative flex rounded-2xl overflow-hidden transition-all duration-300 ${
                 product.flashSale
                   ? "bg-white border-2 border-purple-400 shadow-md shadow-purple-500/10 hover:border-purple-600 hover:shadow-xl hover:shadow-purple-500/20"
-                  : "bg-white border border-gray-300 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5"
+                  : "bg-white border border-gray-400 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5"
               }`}
             >
               {/* Image - same cover treatment + badges as the grid card */}
@@ -217,7 +217,7 @@ export default function CatalogResults(props: Props) {
                   </div>
                 </div>
 
-                <div className="mt-3 pt-2.5 flex items-end justify-between border-t border-gray-200/80">
+                <div className="mt-3 pt-2.5 flex items-end justify-between border-t border-gray-400">
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span
                       className={`text-[18px] font-extrabold tracking-tight ${
@@ -268,7 +268,7 @@ export default function CatalogResults(props: Props) {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Previous page"
-            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronLeft size={16} />
           </button>
@@ -304,7 +304,7 @@ export default function CatalogResults(props: Props) {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Next page"
-            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronRight size={16} />
           </button>

@@ -155,7 +155,7 @@ export function FacetSection({
 
   const visible = expanded ? items : items.slice(0, 6);
   return (
-    <div className="relative z-10 border-t border-amber-400/40 pt-4">
+    <div className="relative z-10 border-t border-amber-400/70 pt-4">
       <h4 className="text-sm font-bold text-purple-100 mb-2">{title}</h4>
       {items.length === 0 ? (
         <p className="text-xs text-purple-300/60">{emptyHint}</p>
@@ -223,7 +223,7 @@ export function PriceFilter({
       : t("products.priceNoLimit");
 
   return (
-    <div className="relative z-10 border-t border-amber-400/40 pt-4">
+    <div className="relative z-10 border-t border-amber-400/70 pt-4">
       <h4 className="text-sm font-bold text-purple-100 mb-2">
         {t("products.priceRange")}
       </h4>
@@ -233,14 +233,14 @@ export function PriceFilter({
           value={minInput}
           onChange={(e) => setMinInput(e.target.value)}
           placeholder={`${t("products.priceFrom")} ${placeholderMin}`}
-          className="w-full px-3 py-2 text-xs border border-purple-500/40 bg-purple-950/40 text-white placeholder:text-purple-300/50 rounded-xl focus:border-purple-300 focus:outline-none transition-colors"
+          className="w-full px-3 py-2 text-xs border border-purple-400/70 bg-purple-950/60 text-white placeholder:text-purple-200/70 rounded-xl focus:border-purple-300 focus:outline-none transition-colors"
         />
         <input
           type="number"
           value={maxInput}
           onChange={(e) => setMaxInput(e.target.value)}
           placeholder={`${t("products.priceTo")} ${placeholderMax}`}
-          className="w-full px-3 py-2 text-xs border border-purple-500/40 bg-purple-950/40 text-white placeholder:text-purple-300/50 rounded-xl focus:border-purple-300 focus:outline-none transition-colors"
+          className="w-full px-3 py-2 text-xs border border-purple-400/70 bg-purple-950/60 text-white placeholder:text-purple-200/70 rounded-xl focus:border-purple-300 focus:outline-none transition-colors"
         />
         <button
           type="button"

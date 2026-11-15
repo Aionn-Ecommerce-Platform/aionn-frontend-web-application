@@ -254,7 +254,7 @@ function CheckoutInner() {
   const handleApplyVoucher = async (code: string) => {
     setApplyingVoucher(true);
     try {
-      await applyVoucher(code, { authenticated: isAuthenticated });
+      await applyVoucher(code);
       setVoucherModalOpen(false);
       toast.success(t("checkout.voucherApplied"));
     } catch (error) {
@@ -268,7 +268,7 @@ function CheckoutInner() {
   const handleRemoveVoucher = async () => {
     setApplyingVoucher(true);
     try {
-      await removeVoucher({ authenticated: isAuthenticated });
+      await removeVoucher();
     } finally {
       setApplyingVoucher(false);
     }

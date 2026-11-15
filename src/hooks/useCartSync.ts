@@ -8,26 +8,23 @@ export function useCartSync() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitializing = useAuthStore((s) => s.isInitializing);
   const hydrateFromServer = useCartStore((s) => s.hydrateFromServer);
-  const pushPendingToServer = useCartStore((s) => s.pushPendingToServer);
   const hydratedFromServer = useCartStore((s) => s.hydratedFromServer);
+  const hydrationAttempts = useCartStore((s) => s.hydrationAttempts);
+  const syncing = useCartStore((s) => s.syncing);
 
   useEffect(() => {
     if (isInitializing) return;
     if (!isAuthenticated) return;
     if (hydratedFromServer) return;
-    void (async () => {
-      const localItems = useCartStore.getState().items;
-      if (localItems.length > 0) {
-        await pushPendingToServer();
-      } else {
-        await hydrateFromServer();
-      }
-    })();
+    if (syncing) return;
+    if (hydrationAttempts >= 3) return;
+    void hydrateFromServer();
   }, [
     isAuthenticated,
     isInitializing,
     hydratedFromServer,
-    pushPendingToServer,
+    hydrationAttempts,
+    syncing,
     hydrateFromServer,
   ]);
 }
