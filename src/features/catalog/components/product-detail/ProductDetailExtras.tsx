@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { productService, wishlistService } from "@/lib/services";
+import { merchantService } from "@/lib/services";
 import Link from "next/link";
 import { Heart, Loader2, MessageCircle, Star, Store } from "lucide-react";
 import { AppImage, Modal } from "@/shared/ui";
@@ -47,45 +47,86 @@ export default function ProductDetailExtras(props: Props) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const qc = useQueryClient();
 
-  const { data: wishlistStatus } = useQuery({
-    queryKey: ["wishlist-status", id],
-    queryFn: () => wishlistService.status(id),
-    enabled: isAuthenticated,
-  });
-
-  const wishlistMutation = useMutation({
-    mutationFn: () =>
-      wishlistStatus?.wishlisted
-        ? wishlistService.remove(id)
-        : wishlistService.add(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["wishlist-status", id] });
-      qc.invalidateQueries({ queryKey: ["wishlist"] });
-      toast.success(
-        wishlistStatus?.wishlisted
-          ? t("wishlist.removed")
-          : t("wishlist.added"),
-      );
-    },
-    onError: () => toast.error(t("wishlist.updateFailed")),
-  });
-
-  const handleWishlist = () => {
-    if (!isAuthenticated) {
-      toast.error(t("wishlist.loginRequired"));
-      return;
-    }
-    wishlistMutation.mutate();
-  };
-
-  const { data: merchantProductPage } = useQuery({
-    queryKey: ["merchant", "product-count", product.merchantId],
-    queryFn: () =>
-      productService.searchCatalog({ merchantId: product.merchantId, size: 1 }),
+  const { data: storefrontStats } = useQuery({
+    queryKey: ["merchant-storefront-stats", product.merchantId],
+    queryFn: () => merchantService.getStorefrontStats(product.merchantId),
     enabled: Boolean(product.merchantId),
     staleTime: 5 * 60_000,
   });
-  const merchantProductCount = merchantProductPage?.page.totalElements;
+
+  const followMutation = useMutation({
+    mutationFn: () =>
+      storefrontStats?.following
+        ? merchantService.unfollow(product.merchantId)
+        : merchantService.follow(product.merchantId),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: ["merchant-storefront-stats", product.merchantId],
+      });
+      toast.success(
+        storefrontStats?.following
+          ? t("merchantStore.unfollowed")
+          : t("merchantStore.followed"),
+      );
+    },
+    onError: () => toast.error(t("merchantStore.followError")),
+  });
+
+  const handleFollow = () => {
+    if (!isAuthenticated) {
+      toast.error(t("merchantStore.loginRequiredToFollow"));
+      return;
+    }
+    followMutation.mutate();
+  };
+
+  const compactNumber = (value: number) =>
+    new Intl.NumberFormat(_locale === "en" ? "en-US" : "vi-VN", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+
+  const responseTimeLabel = t(
+    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "UNKNOWN"}`,
+  );
+
+  const storeMetrics = [
+    {
+      label: t("merchantStore.reviews"),
+      value:
+        (storefrontStats?.reviewCount ?? 0) > 0
+          ? `${(storefrontStats?.averageRating ?? 0).toFixed(1)} (${compactNumber(
+              storefrontStats?.reviewCount ?? 0,
+            )})`
+          : "—",
+    },
+    {
+      label: t("merchantStore.products"),
+      value: compactNumber(storefrontStats?.productCount ?? 0),
+    },
+    {
+      label: t("merchantStore.responseRate"),
+      value:
+        (storefrontStats?.conversations ?? 0) > 0
+          ? `${storefrontStats?.responseRatePercent ?? 0}%`
+          : "—",
+    },
+    {
+      label: t("merchantStore.responseTimeLabel"),
+      value: responseTimeLabel,
+    },
+    {
+      label: t("merchantStore.followers"),
+      value: compactNumber(storefrontStats?.followerCount ?? 0),
+    },
+    {
+      label: t("merchantStore.joined"),
+      value: formatRelativeJoin(
+        storefrontStats?.joinedAt ?? merchant?.createdAt,
+        _locale,
+      ),
+    },
+  ];
 
   const handleReviewButtonClick = () => {
     if (!isAuthenticated) {
@@ -109,10 +150,10 @@ export default function ProductDetailExtras(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-center gap-4">
           {merchant?.logoUrl ? (
-            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-200/90 shadow-xs bg-gray-50 shrink-0">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-400 shadow-xs bg-gray-50 shrink-0">
               <AppImage
                 src={merchant.logoUrl}
                 alt={merchant.name || t("products.storeLabel")}
@@ -151,7 +192,7 @@ export default function ProductDetailExtras(props: Props) {
               <Link href={`/merchants/${product.merchantId}`}>
                 <button
                   type="button"
-                  className="h-9 px-4 text-xs font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none"
+                  className="h-9 px-4 text-xs font-semibold border border-gray-950 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-950 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none"
                 >
                   <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
                   <span>{t("products.viewStore")}</span>
@@ -159,65 +200,58 @@ export default function ProductDetailExtras(props: Props) {
               </Link>
               <button
                 type="button"
-                onClick={handleWishlist}
-                disabled={wishlistMutation.isPending}
+                onClick={handleFollow}
+                disabled={followMutation.isPending}
                 className={`h-9 px-4 text-xs font-semibold border transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none disabled:opacity-50 ${
-                  wishlistStatus?.wishlisted
+                  storefrontStats?.following
                     ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-300"
+                    : "border-gray-950 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-950"
                 }`}
               >
-                {wishlistMutation.isPending ? (
+                {followMutation.isPending ? (
                   <Loader2 size={14} className="mr-1.5 shrink-0 animate-spin" />
                 ) : (
                   <Heart
                     size={14}
                     className={`mr-1.5 shrink-0 ${
-                      wishlistStatus?.wishlisted
+                      storefrontStats?.following
                         ? "fill-rose-500 text-rose-500"
                         : "text-gray-500"
                     }`}
                   />
                 )}
                 <span>
-                  {wishlistStatus?.wishlisted
-                    ? t("wishlist.saved")
-                    : t("wishlist.save")}
+                  {storefrontStats?.following
+                    ? t("merchantStore.following")
+                    : t("merchantStore.follow")}
                 </span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-8 text-sm text-gray-600 border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-6">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              {t("common.allProducts")}
-            </p>
-            <p className="text-base font-bold text-gray-900 mt-1">
-              {merchantProductCount ?? "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
-              {t("merchants.joined")}
-            </p>
-            <p className="text-base font-bold text-gray-900 mt-1">
-              {formatRelativeJoin(merchant?.createdAt, _locale)}
-            </p>
-          </div>
+        <div className="w-full md:flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5 border-t md:border-t-0 md:border-l border-gray-400 pt-6 md:pt-0 md:pl-6">
+          {storeMetrics.map((metric) => (
+            <div key={metric.label}>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">
+                {metric.label}
+              </p>
+              <p className="text-sm font-bold text-gray-900 mt-1">
+                {metric.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
       {product.aiDescription && (
-        <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
           <ProductDescription text={product.aiDescription} />
         </div>
       )}
-      <ProductQA productId={id} authenticated={isAuthenticated} />
-      <div className="bg-white rounded-2xl border border-gray-300 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             {t("products.ratingLabel")}
@@ -247,6 +281,7 @@ export default function ProductDetailExtras(props: Props) {
 
         <ReviewList productId={id} />
       </div>
+      <ProductQA productId={id} authenticated={isAuthenticated} />
       {!relatedLoading && relatedProducts && relatedProducts.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">

@@ -172,7 +172,7 @@ function MerchantBulkPriceInner() {
                   className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
                     changeType === c.key
                       ? "border-blue-500 bg-blue-50 text-blue-900"
-                      : "border-gray-200 hover:border-gray-300"
+                      : "border-gray-200 hover:border-gray-400"
                   }`}
                 >
                   <p className="font-medium">{t(c.labelKey)}</p>

@@ -179,7 +179,7 @@ export default function CartPage() {
                     type="checkbox"
                     checked={allSelected}
                     onChange={toggleAll}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500"
                     aria-label={t("cart.selectAll")}
                   />
                   <span>{t("cart.product")}</span>
@@ -208,7 +208,7 @@ export default function CartPage() {
                           type="checkbox"
                           checked={selected}
                           onChange={() => toggleSku(item.skuId)}
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500"
                           aria-label={t("cart.selectProduct", {
                             product: item.productName,
                           })}
@@ -259,7 +259,7 @@ export default function CartPage() {
                               pendingSku === item.skuId || item.qty <= 1
                             }
                             onClick={() => handleQty(item.skuId, item.qty - 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-400 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Minus size={12} />
                           </button>
@@ -269,7 +269,7 @@ export default function CartPage() {
                           <button
                             disabled={pendingSku === item.skuId}
                             onClick={() => handleQty(item.skuId, item.qty + 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-400 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Plus size={12} />
                           </button>

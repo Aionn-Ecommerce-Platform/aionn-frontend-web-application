@@ -69,7 +69,7 @@ function VoucherAnalyticsInner() {
           />
         </div>
 
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("merchant.promotionAnalytics.topByRedeemed")}
           </h3>

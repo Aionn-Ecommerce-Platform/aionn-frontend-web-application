@@ -7,8 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { reviewService, type Review } from "@/lib/services";
 import { useTranslation } from "@/hooks";
-import { formatDistanceToNow, type Locale } from "date-fns";
-import { vi, enUS } from "date-fns/locale";
+import { formatDate } from "@/shared/lib/utils";
 
 interface ReviewListProps {
   productId: string;
@@ -16,7 +15,7 @@ interface ReviewListProps {
 }
 
 export function ReviewList({ productId, headerSlot }: ReviewListProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const pageSize = 10;
 
@@ -59,7 +58,6 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
   const distribution =
     summary?.distribution ?? summary?.ratingDistribution ?? {};
 
-  const dateLocale = locale === "vi" ? vi : enUS;
 
   const commentCount = reviews.filter(
     (r) => r.content && r.content.trim().length > 0,
@@ -81,10 +79,10 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
   return (
     <div className="space-y-6">
       {summary && totalReviews > 0 && (
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 sm:gap-8 pb-2">
-          <div className="flex flex-col items-center justify-center min-w-[140px] text-center">
+        <div className="flex flex-col gap-5 pb-2">
+          <div className="flex flex-col items-start text-left">
             <div className="text-xl sm:text-2xl font-medium text-gray-950">
-              <span className="text-3xl sm:text-4xl font-bold">
+              <span className="text-6xl sm:text-7xl font-bold">
                 {averageRating.toFixed(1)}
               </span>{" "}
               <span className="text-base sm:text-lg text-gray-500">
@@ -104,13 +102,11 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               ))}
             </div>
           </div>
-
-          {/* Filter pills match the catalog sort pills (rounded-full, dark active) */}
-          <div className="flex-1 flex flex-wrap gap-2">
+          <div className="w-full flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setActiveFilter("all")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "all" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
+              className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "all" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.allFilter")}
             </button>
@@ -121,7 +117,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
                   key={star}
                   type="button"
                   onClick={() => setActiveFilter(star as 5 | 4 | 3 | 2 | 1)}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === star ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
+                  className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === star ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
                 >
                   {t("reviews.starFilter", { star, count })}
                 </button>
@@ -130,14 +126,14 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             <button
               type="button"
               onClick={() => setActiveFilter("with_comment")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_comment" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
+              className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_comment" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withComment", { count: commentCount })}
             </button>
             <button
               type="button"
               onClick={() => setActiveFilter("with_media")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_media" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
+              className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all cursor-pointer ${activeFilter === "with_media" ? "border-gray-950 text-white bg-gray-950 shadow-xs" : "border-gray-950 text-gray-800 bg-white hover:bg-gray-100 hover:text-black"}`}
             >
               {t("reviews.withMedia", { count: mediaCount })}
             </button>
@@ -158,7 +154,6 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             <ReviewCard
               key={review.reviewId}
               review={review}
-              dateLocale={dateLocale}
             />
           ))
         )}
@@ -171,7 +166,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
             aria-label={t("common.previous")}
-            className="h-8.5 px-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            className="h-8.5 px-2.5 border border-gray-400 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronLeft size={16} />
           </button>
@@ -183,7 +178,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               className={`min-w-8.5 h-8.5 px-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                 page === i
                   ? "bg-gray-950 text-white shadow-xs font-semibold"
-                  : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  : "border border-gray-400 text-gray-700 hover:bg-gray-50"
               }`}
             >
               {i + 1}
@@ -196,7 +191,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             }
             disabled={page >= Math.max(1, totalPages) - 1}
             aria-label={t("common.next")}
-            className="h-8.5 px-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            className="h-8.5 px-2.5 border border-gray-400 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronRight size={16} />
           </button>
@@ -208,12 +203,10 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
 
 function ReviewCard({
   review,
-  dateLocale,
 }: {
   review: Review;
-  dateLocale: Locale;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const renderStars = (rating: number) => {
     return (
@@ -249,11 +242,11 @@ function ReviewCard({
   })();
 
   return (
-    <div className="border border-gray-200/90 rounded-2xl p-5 hover:border-gray-300 transition-colors bg-white shadow-xs">
+    <div className="border border-gray-400 rounded-2xl p-5 hover:border-gray-400 transition-colors bg-white shadow-xs">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
           {review.userAvatarUrl ? (
-            <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-50 relative">
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-400 shrink-0 bg-gray-50 relative">
               <AppImage
                 src={review.userAvatarUrl}
                 alt={buyerName}
@@ -261,7 +254,7 @@ function ReviewCard({
               />
             </div>
           ) : (
-            <div className="w-9 h-9 rounded-full bg-linear-to-tr from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-700">
+            <div className="w-9 h-9 rounded-full bg-linear-to-tr from-gray-100 to-gray-200 border border-gray-400 flex items-center justify-center shrink-0 text-xs font-bold text-gray-700">
               {initial}
             </div>
           )}
@@ -270,10 +263,7 @@ function ReviewCard({
               {buyerName}
             </div>
             <div className="text-xs text-gray-500">
-              {formatDistanceToNow(new Date(review.createdAt), {
-                addSuffix: true,
-                locale: dateLocale,
-              })}
+              {formatDate(review.createdAt, locale)}
             </div>
           </div>
         </div>
@@ -297,14 +287,14 @@ function ReviewCard({
               key={idx}
               src={url}
               alt={`Review image ${idx + 1}`}
-              className="w-20 h-20 object-cover rounded-xl border border-gray-200"
+              className="w-20 h-20 object-cover rounded-xl border border-gray-400"
             />
           ))}
         </div>
       )}
 
       {review.merchantReply && (
-        <div className="mt-3 bg-gray-50/80 rounded-xl p-3.5 border-l-3 border-gray-900">
+        <div className="mt-3 bg-gray-200/70 rounded-xl p-3.5 border-l-3 border-gray-900">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-semibold text-gray-900">
               {t("reviews.merchantReply")}
@@ -312,10 +302,7 @@ function ReviewCard({
             {review.merchantRepliedAt && (
               <span className="text-xs text-gray-500">
                 •{" "}
-                {formatDistanceToNow(new Date(review.merchantRepliedAt), {
-                  addSuffix: true,
-                  locale: dateLocale,
-                })}
+                {formatDate(review.merchantRepliedAt, locale)}
               </span>
             )}
           </div>

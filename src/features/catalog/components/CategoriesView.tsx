@@ -242,7 +242,7 @@ export default function CategoriesView() {
                         <Link
                           key={childCat.categoryId}
                           href={`/products?categoryIds=${childCat.categoryId}`}
-                          className="group relative bg-white hover:bg-white rounded-2xl border border-gray-300 hover:border-gray-950 p-4 sm:p-5 flex flex-col items-center justify-center text-center shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer min-h-[160px] sm:min-h-[175px]"
+                          className="group relative bg-white hover:bg-white rounded-2xl border border-gray-400 hover:border-gray-950 p-4 sm:p-5 flex flex-col items-center justify-center text-center shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer min-h-[160px] sm:min-h-[175px]"
                         >
                           <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/70 p-3 mb-3 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ease-out border border-gray-100">
                             {childCat.iconUrl ? (

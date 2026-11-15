@@ -133,7 +133,7 @@ export function EditProfileModal({
         {/* Avatar Section */}
         <div className="flex flex-col items-center justify-center">
           <div className="relative group">
-            <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 shadow-md bg-gray-50 flex items-center justify-center">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-400 shadow-md bg-gray-50 flex items-center justify-center">
               <Image
                 src={displayImage}
                 alt="Avatar"
@@ -212,7 +212,7 @@ export function EditProfileModal({
             id="modalUsername"
             value={user?.username ?? ""}
             disabled
-            className="w-full text-sm font-medium text-gray-900 bg-gray-50 border-gray-300"
+            className="w-full text-sm font-medium text-gray-900 bg-gray-50 border-gray-400"
           />
         </div>
 
@@ -230,7 +230,7 @@ export function EditProfileModal({
             onChange={(e) => setDisplayName(e.target.value)}
             disabled={loading}
             placeholder={t("account.enterName")}
-            className="w-full text-sm font-medium text-gray-900 border-gray-300"
+            className="w-full text-sm font-medium text-gray-900 border-gray-400"
           />
         </div>
 
@@ -248,7 +248,7 @@ export function EditProfileModal({
               value={user?.email ?? t("account.notSet")}
               disabled
               icon={<Mail size={16} className="text-gray-500" />}
-              className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-300"
+              className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-400"
             />
             <Button
               type="button"
@@ -277,7 +277,7 @@ export function EditProfileModal({
               value={user?.phone ?? t("account.notSet")}
               disabled
               icon={<Phone size={16} className="text-gray-500" />}
-              className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-300"
+              className="flex-1 text-sm font-medium text-gray-900 bg-gray-50 border-gray-400"
             />
             <Button
               type="button"

@@ -72,7 +72,7 @@ export function ProductImagesCard({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="aspect-square rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center transition-colors disabled:opacity-50"
+          className="aspect-square rounded-lg border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="animate-spin" size={20} />
@@ -183,7 +183,7 @@ export function CollectionsCard({
                 type="checkbox"
                 checked={selected.includes(collection.collectionId)}
                 onChange={() => toggle(collection.collectionId)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                className="mt-0.5 h-4 w-4 rounded border-gray-400 text-brand focus:ring-brand"
               />
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-gray-900">
@@ -340,7 +340,7 @@ export function VariantsCard(props: VariantsCardProps) {
             onChange={(event) =>
               props.onDraft({ ...props.draft, attribute: event.target.value })
             }
-            className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="w-32 rounded-lg border border-gray-400 px-3 py-2 text-sm"
           >
             <option value="color">{t("merchant.productEdit.attrColor")}</option>
             <option value="size">{t("merchant.productEdit.attrSize")}</option>

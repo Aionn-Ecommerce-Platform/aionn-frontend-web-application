@@ -25,7 +25,7 @@ export default function AuthLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <div className="border-b-2 border-gray-300 bg-white shadow-xs">
+      <div className="border-b-2 border-gray-400 bg-white shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[72px]">
             <div className="flex items-center gap-4">

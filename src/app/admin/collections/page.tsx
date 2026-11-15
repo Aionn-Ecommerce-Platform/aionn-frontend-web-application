@@ -246,7 +246,7 @@ function AdminCollectionsInner() {
                 onChange={(e) =>
                   setForm({ ...form, active: e.target.checked })
                 }
-                className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                className="h-4 w-4 rounded border-gray-400 text-brand focus:ring-brand"
               />
               {t("adminCollections.active")}
             </label>

@@ -363,7 +363,7 @@ export default function MerchantStorePage({
                   </button>
                   <button
                     onClick={scrollToProducts}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-400 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
                   >
                     <ShoppingBag size={14} />
                     <span>{t("merchantStore.viewShop")}</span>
@@ -373,7 +373,7 @@ export default function MerchantStorePage({
                     disabled={followMutation.isPending}
                     className={
                       storefrontStats?.following
-                        ? "inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                        ? "inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-400 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                         : "inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                     }
                   >
@@ -568,7 +568,7 @@ export default function MerchantStorePage({
                         setPage(Math.max(0, page - 1));
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Previous page"
                     >
                       <ChevronLeft size={16} />
@@ -599,7 +599,7 @@ export default function MerchantStorePage({
                           className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                             isCurrent
                               ? "bg-gray-950 text-white shadow-xs border border-gray-950"
-                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 shadow-xs"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 shadow-xs"
                           }`}
                         >
                           {pageNum}
@@ -613,7 +613,7 @@ export default function MerchantStorePage({
                         setPage(page + 1);
                         scrollToProducts();
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:text-gray-900 transition-colors shadow-xs cursor-pointer"
                       aria-label="Next page"
                     >
                       <ChevronRight size={16} />

@@ -219,7 +219,7 @@ function AdminUserDetailInner() {
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleRole(role)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-400"
                   />
                   <span className="text-sm">{role}</span>
                 </label>
@@ -289,7 +289,7 @@ function AdminUserDetailInner() {
             value={statusReason}
             onChange={(e) => setStatusReason(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
           />
           <div className="flex justify-end gap-2">
             <Button

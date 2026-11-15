@@ -116,7 +116,7 @@ export default function ProductCard({
         "group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300",
         isFlashSale
           ? "bg-white border-2 border-purple-400 shadow-md shadow-purple-500/10 hover:border-purple-600 hover:shadow-xl hover:shadow-purple-500/20"
-          : "bg-white border border-gray-300 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5",
+          : "bg-white border border-gray-400 shadow-xs hover:border-gray-950 hover:shadow-xl hover:shadow-black/5",
         className,
       )}
     >
@@ -198,7 +198,7 @@ export default function ProductCard({
         <div
           className={cn(
             "mt-3 pt-2 flex items-center justify-between text-[11px] text-gray-400 border-t",
-            isFlashSale ? "border-purple-200/80" : "border-gray-200/80",
+            isFlashSale ? "border-purple-300" : "border-gray-400",
           )}
         >
           {hasReviews && currentRating > 0 ? (

@@ -141,7 +141,7 @@ function VoucherCard({
   const available = voucher.status === "CLAIMED" || voucher.status === "RELEASED";
 
   const upperCode = voucher.voucherCode.toUpperCase();
-  const isFreeship = upperCode.includes("SHIP") || upperCode.includes("FREE");
+  const isFreeship = voucher.voucherType === "FREE_SHIPPING";
   const isShop = voucher.voucherScope === "SHOP" || upperCode.includes("SHOP");
 
   const discount =
@@ -164,13 +164,13 @@ function VoucherCard({
 
   return (
     <div
-      className={`relative bg-white rounded-2xl border border-gray-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-gray-300 transition-all overflow-hidden flex flex-col sm:flex-row items-stretch group ${
+      className={`relative bg-white rounded-2xl border border-gray-400 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-gray-950 transition-all overflow-hidden flex flex-col sm:flex-row items-stretch group ${
         used || expired ? "opacity-75" : ""
       }`}
     >
       {/* Perforated ticket cutouts */}
-      <div className="hidden sm:block absolute top-0 left-36 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border-b border-gray-300/80 z-10" />
-      <div className="hidden sm:block absolute bottom-0 left-36 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border-t border-gray-300/80 z-10" />
+      <div className="hidden sm:block absolute top-0 left-36 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border-b border-gray-400/80 z-10" />
+      <div className="hidden sm:block absolute bottom-0 left-36 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border-t border-gray-400/80 z-10" />
 
       {/* Left Ticket Stub */}
       <div

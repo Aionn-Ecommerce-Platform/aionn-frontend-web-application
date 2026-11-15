@@ -171,7 +171,7 @@ export default function LoginForm({
           <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
             <input
               type="checkbox"
-              className="rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+              className="rounded border-gray-400 text-gray-900 focus:ring-gray-400"
             />
             {t("auth.rememberMe")}
           </label>
@@ -214,7 +214,7 @@ export default function LoginForm({
             />
             {socialLoading === "google" && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="inline-block h-5 w-5 rounded-full border-2 border-gray-300 border-t-gray-900 animate-spin" />
+                <span className="inline-block h-5 w-5 rounded-full border-2 border-gray-400 border-t-gray-900 animate-spin" />
               </div>
             )}
           </div>

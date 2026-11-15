@@ -107,7 +107,7 @@ export default function CheckoutVoucherPanel(props: Props) {
           <button
             type="button"
             onClick={() => setVoucherModalOpen(true)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-commerce"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-400 bg-gray-50 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-commerce"
           >
             <Ticket size={16} />
             {locale === "vi"
@@ -144,9 +144,7 @@ export default function CheckoutVoucherPanel(props: Props) {
               )
               .map((voucher) => {
                 const discountAmount = voucher.voucherDiscountAmount ?? 0;
-                const isFreeship = voucher.voucherCode
-                  .toLowerCase()
-                  .includes("freeship");
+                const isFreeship = voucher.voucherType === "FREE_SHIPPING";
                 const isShop = voucher.voucherScope === "SHOP";
                 const minimumOrder = voucher.minOrderValue ?? 0;
                 const validUntil = voucher.voucherValidUntil;
@@ -173,12 +171,12 @@ export default function CheckoutVoucherPanel(props: Props) {
                       isSelected
                         ? "border-commerce shadow-md ring-2 ring-commerce/30"
                         : meetsMinimum
-                          ? "border-gray-300 hover:shadow-lg hover:border-commerce"
+                          ? "border-gray-400 hover:shadow-lg hover:border-commerce"
                           : "border-gray-200 opacity-60"
                     }`}
                   >
-                    <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-300 z-10" />
-                    <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-300 z-10" />
+                    <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-400 z-10" />
+                    <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-400 z-10" />
 
                     <div
                       className={`w-28 flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative rounded-l-xl ${leftBgColor}`}
@@ -197,7 +195,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                         {leftTagText}
                       </span>
                     </div>
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-4 border-l border-dashed border-gray-300 px-5 py-4">
+                    <div className="flex min-w-0 flex-1 items-center justify-between gap-4 border-l border-dashed border-gray-400 px-5 py-4">
                       <div className="min-w-0 flex-1">
                         <p className="text-base font-extrabold text-gray-900">
                           {t("common.discount")}{" "}
@@ -281,7 +279,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                           <button
                             type="button"
                             disabled
-                            className="bg-gray-100 border border-gray-300 text-gray-400 font-extrabold px-5 py-2 text-sm rounded-xl min-w-[96px] cursor-not-allowed"
+                            className="bg-gray-100 border border-gray-400 text-gray-400 font-extrabold px-5 py-2 text-sm rounded-xl min-w-[96px] cursor-not-allowed"
                           >
                             {t("checkout.locked")}
                           </button>

@@ -19,7 +19,7 @@ export function AddressOption({
       className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
         selected
           ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 hover:border-gray-300"
+          : "border-gray-200 hover:border-gray-400"
       }`}
     >
       <input

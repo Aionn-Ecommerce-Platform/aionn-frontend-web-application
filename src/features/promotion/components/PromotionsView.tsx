@@ -20,13 +20,14 @@ import { logger } from "@/shared/lib/logger";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks";
-import type { UserVoucher } from "@/types";
+import type { UserVoucher, VoucherType } from "@/types";
 
 interface ExtendedVoucher {
   voucherCode: string;
   campaignId: string | null;
   scope: "PLATFORM" | "SHOP";
   merchantId: string | null;
+  type: VoucherType;
   discountAmount: number;
   currency: string;
   usageLimit: number;
@@ -206,6 +207,7 @@ export default function PromotionsPage() {
         campaignId: null,
         scope: "PLATFORM" as const,
         merchantId: null,
+        type: mv.voucherType ?? "ORDER_DISCOUNT",
         discountAmount: mv.appliedAmount ?? 0,
         currency: mv.currency ?? "VND",
         usageLimit: 1,
@@ -255,16 +257,10 @@ export default function PromotionsPage() {
               id: "MINE",
               label: `${t("promotions.tabMine")} (${isAuthenticated ? mineCount : 0})`,
             },
-          ].map((tab) => (
+          ].filter((tab) => tab.id !== "MINE" || isAuthenticated).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => {
-                if (tab.id === "MINE" && !isAuthenticated) {
-                  router.push("/auth/login?redirect=/promotions");
-                  return;
-                }
-                setActiveTab(tab.id as typeof activeTab);
-              }}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
@@ -327,9 +323,7 @@ export default function PromotionsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedVouchers.map((v) => {
               const isClaimed = claimedCodes.has(v.voucherCode);
-              const isFreeship = v.voucherCode
-                .toLowerCase()
-                .includes("freeship");
+              const isFreeship = v.type === "FREE_SHIPPING";
               const isShop = v.scope === "SHOP";
 
               let leftBgColor =
@@ -368,10 +362,10 @@ export default function PromotionsPage() {
               return (
                 <div
                   key={v.voucherCode}
-                  className="relative flex bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all group min-h-[128px] overflow-hidden"
+                  className="relative flex bg-white border border-gray-400 rounded-xl hover:border-gray-950 hover:shadow-lg transition-all group min-h-[128px] overflow-hidden"
                 >
-                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
-                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200 z-10" />
+                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
+                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
 
                   <div
                     className={`w-28 rounded-l-xl flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
@@ -404,7 +398,7 @@ export default function PromotionsPage() {
                     </span>
                   </div>
 
-                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-200 relative">
+                  <div className="flex-1 flex items-center justify-between py-5 px-5 pl-6 border-l border-dashed border-gray-400 relative">
                     <div className="flex-1 pr-3">
                       <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2">
                         {t("promotions.discountAmount", {
@@ -460,7 +454,7 @@ export default function PromotionsPage() {
                       {isSoldOut ? (
                         <button
                           disabled
-                          className="bg-gray-100 border border-gray-300 text-gray-400 font-extrabold px-6 py-2.5 text-sm rounded-xl min-w-[100px] cursor-not-allowed"
+                          className="bg-gray-100 border border-gray-400 text-gray-400 font-extrabold px-6 py-2.5 text-sm rounded-xl min-w-[100px] cursor-not-allowed"
                         >
                           {t("promotions.fullyClaimed")}
                         </button>

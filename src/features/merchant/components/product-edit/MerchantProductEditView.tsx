@@ -442,7 +442,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                   value={aiDescription}
                   onChange={(e) => setAiDescription(e.target.value)}
                   maxLength={1000}

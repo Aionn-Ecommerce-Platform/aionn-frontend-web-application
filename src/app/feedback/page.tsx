@@ -157,7 +157,7 @@ export default function FeedbackPage() {
                           className={`flex items-center gap-3 p-3 rounded-xl border text-left text-sm font-semibold transition-all duration-200 cursor-pointer ${
                             isSelected
                               ? "border-brand bg-brand/5 text-brand shadow-xs ring-1 ring-brand/30"
-                              : "border-gray-200 bg-gray-50/60 text-gray-700 hover:border-gray-300 hover:bg-gray-100/80"
+                              : "border-gray-200 bg-gray-50/60 text-gray-700 hover:border-gray-400 hover:bg-gray-100/80"
                           }`}
                         >
                           <div

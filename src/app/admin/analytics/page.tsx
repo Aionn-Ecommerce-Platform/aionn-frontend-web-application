@@ -44,7 +44,7 @@ function PeriodTabs({
     { key: "90d", labelKey: "adminAnalytics.days90" },
   ];
   return (
-    <div className="inline-flex rounded-md border border-gray-300 bg-white p-0.5">
+    <div className="inline-flex rounded-md border border-gray-400 bg-white p-0.5">
       {items.map((it) => (
         <button
           key={it.key}
@@ -147,7 +147,7 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("adminAnalytics.platformRevenue")}
           </h3>
@@ -159,7 +159,7 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
             yFormatter={(v) => formatCurrency(v, currency, locale)}
           />
         </div>
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("adminAnalytics.newUsersTitle")}
           </h3>
@@ -173,7 +173,7 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             Top merchant theo doanh thu
           </h3>
@@ -191,7 +191,7 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
             />
           )}
         </div>
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("adminAnalytics.orderStatusBreakdown")}
           </h3>
@@ -308,7 +308,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("adminAnalytics.returnReasons")}
           </h3>
@@ -326,7 +326,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             />
           )}
         </div>
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {t("adminAnalytics.dailyPayoutVolume")}
           </h3>
@@ -341,7 +341,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <p className="text-sm text-gray-600 mb-1">
             {t("adminAnalytics.kycApproved")}
           </p>
@@ -354,7 +354,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             })}
           </p>
         </div>
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <p className="text-sm text-gray-600 mb-1">
             {t("adminAnalytics.kycRejected")}
           </p>
@@ -362,7 +362,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             {kyc?.rejected ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-md border border-gray-300 p-5">
+        <div className="bg-white rounded-md border border-gray-400 p-5">
           <p className="text-sm text-gray-600 mb-1">
             {t("adminAnalytics.feedbackResolved")}
           </p>

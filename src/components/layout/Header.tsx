@@ -364,7 +364,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-950 shadow-xs">
-      <div className="bg-gray-50 border-b border-gray-300 text-xs">
+      <div className="bg-gray-50 border-b border-gray-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-end gap-5 h-8 text-gray-600">
             <Link
@@ -469,7 +469,7 @@ export default function Header() {
                                 <div
                                   className={`h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border ${
                                     isUnread
-                                      ? "bg-white border-gray-300"
+                                      ? "bg-white border-gray-400"
                                       : "bg-gray-100 border-gray-200 opacity-60"
                                   }`}
                                 >
@@ -734,7 +734,7 @@ export default function Header() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-300 bg-white text-gray-800 hover:bg-gray-100 hover:text-black shadow-xs"
+                    className="border-gray-950 bg-white text-gray-800 hover:bg-gray-100 hover:text-black shadow-xs"
                   >
                     {t("common.register")}
                   </Button>

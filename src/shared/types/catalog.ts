@@ -56,6 +56,13 @@ export interface ActiveFlashSale {
   startDate: string;
   endDate: string;
   items: ActiveFlashSaleItem[];
+  page: number;
+  size: number;
+  totalItems: number;
+  totalSold: number;
+  totalStock: number;
+  minSalePrice: number;
+  maxSalePrice: number;
 }
 
 export interface Product {

@@ -846,7 +846,7 @@ export function ChatInner({
                   className={`flex items-start gap-3 p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition-all ${
                     reportReasonKey === item.key
                       ? "border-gray-950 bg-gray-50/80 font-medium text-gray-950"
-                      : "border-gray-200 hover:border-gray-300 text-gray-700"
+                      : "border-gray-200 hover:border-gray-400 text-gray-700"
                   }`}
                 >
                   <input
