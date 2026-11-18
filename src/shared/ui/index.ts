@@ -16,3 +16,5 @@ export { default as FormField } from "./FormField";
 export { default as StatCard } from "./StatCard";
 export { default as AppImage } from "./AppImage";
 export { default as Pagination } from "./Pagination";
+export { default as RatingStars } from "./RatingStars";
+export { default as ImageLightbox } from "./ImageLightbox";

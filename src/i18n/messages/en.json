@@ -1359,6 +1359,7 @@
     "contentPlaceholder": "Share details about the product...",
     "contentRequired": "Please enter review content",
     "images": "Images",
+    "imageAlt": "Review image {index}",
     "imageUrlPlaceholder": "Enter image URL",
     "addImage": "Add image",
     "imageHint": "Maximum 5 images. Enter URL from Unsplash, Imgur or other source.",

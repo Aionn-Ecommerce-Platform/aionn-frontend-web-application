@@ -95,7 +95,7 @@ export default function MerchantsPage() {
                   <div className="p-6">
                     <div className="flex items-center gap-4">
                       {merchant.logoUrl ? (
-                        <div className="w-14 h-14 relative rounded-2xl overflow-hidden border border-gray-200 shadow-2xs shrink-0">
+                        <div className="w-14 h-14 relative rounded-full overflow-hidden border border-gray-200 shadow-2xs shrink-0">
                           <Image
                             src={merchant.logoUrl}
                             alt={merchant.name}
@@ -105,7 +105,7 @@ export default function MerchantsPage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-14 h-14 rounded-2xl bg-gray-950 flex items-center justify-center text-white text-xl font-bold shadow-2xs shrink-0">
+                        <div className="w-14 h-14 rounded-full bg-gray-950 flex items-center justify-center text-white text-xl font-bold shadow-2xs shrink-0">
                           {initial}
                         </div>
                       )}

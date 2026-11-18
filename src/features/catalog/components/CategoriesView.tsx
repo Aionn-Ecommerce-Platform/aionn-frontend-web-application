@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Layers, PackageSearch } from "lucide-react";
+import { Layers, PackageSearch } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
@@ -61,7 +61,7 @@ export default function CategoriesView() {
 
         {/* Department Quick Filter Tabs (Voucher style) */}
         {!loading && !error && rawTree.length > 0 && (
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar pt-1">
+          <div className="flex flex-wrap items-center gap-2.5 pb-2 pt-1">
             <button
               type="button"
               onClick={() => setSelectedDeptId("all")}
@@ -154,85 +154,16 @@ export default function CategoriesView() {
 
               return (
                 <section key={rootCat.categoryId} className="transition-all">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
-                    {/* Parent Category Banner Card: Purple gradient matching FlashSale on Home */}
+                  <div className="mb-4">
                     <Link
                       href={`/products?categoryIds=${rootCat.categoryId}`}
-                      className="col-span-2 sm:col-span-2 lg:col-span-2 group relative bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 rounded-2xl border border-purple-800/50 hover:border-purple-400 p-4 sm:p-5 flex items-center justify-between text-white shadow-md shadow-purple-950/20 hover:shadow-2xl hover:shadow-purple-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden min-h-[160px] sm:min-h-[175px]"
+                      className="inline-flex items-center gap-2 text-lg sm:text-xl font-extrabold text-gray-950 tracking-tight hover:text-brand transition-colors"
                     >
-                      {/* Ambient background glowing orbs */}
-                      <div className="absolute -top-10 -left-10 w-36 h-36 bg-purple-600/30 rounded-full blur-2xl pointer-events-none" />
-                      <div className="absolute -bottom-8 -right-8 w-36 h-36 bg-fuchsia-600/25 rounded-full blur-2xl pointer-events-none" />
-
-                      {/* Cyber geometric micro dot texture */}
-                      <div
-                        className="absolute inset-0 opacity-[0.14] pointer-events-none"
-                        style={{
-                          backgroundImage:
-                            "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
-                          backgroundSize: "20px 20px",
-                        }}
-                      />
-
-                      {/* Left: Info & Button */}
-                      <div className="relative z-10 flex flex-col justify-between h-full pr-3 max-w-[62%]">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-1 shadow-inner shrink-0">
-                              {rootCat.iconUrl ? (
-                                <div className="relative w-full h-full">
-                                  <Image
-                                    src={rootCat.iconUrl}
-                                    alt={rootCat.name}
-                                    fill
-                                    sizes="28px"
-                                    className="object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <Layers size={14} className="text-purple-200" />
-                              )}
-                            </div>
-                            <span className="text-[10px] font-semibold tracking-wider uppercase text-purple-200/70">
-                              {t("categories.title")}
-                            </span>
-                          </div>
-
-                          <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight leading-snug line-clamp-2">
-                            {rootCat.name}
-                          </h2>
-                        </div>
-
-                        <div className="pt-2">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-950 bg-white hover:bg-purple-50 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors">
-                            <span>{t("categories.viewAllProducts")}</span>
-                            <ArrowRight
-                              size={13}
-                              className="transition-transform duration-200 group-hover:translate-x-0.5"
-                            />
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right: Floating Product Image */}
-                      <div className="relative z-10 shrink-0 w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
-                        {rootCat.iconUrl ? (
-                          <div className="relative w-full h-full group-hover:scale-105 transition-transform duration-300 ease-out drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]">
-                            <Image
-                              src={rootCat.iconUrl}
-                              alt={rootCat.name}
-                              fill
-                              sizes="(max-width: 640px) 96px, 112px"
-                              className="object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-purple-200/60">
-                            <Layers size={32} strokeWidth={1.5} />
-                          </div>
-                        )}
-                      </div>
+                      {rootCat.name}
                     </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
 
                     {/* Subcategories Cards: Same height on the same row */}
                     {children.map((child) => {

@@ -301,7 +301,7 @@ export default function MerchantStorePage({
             <div className="flex items-start gap-5 xl:w-[360px] shrink-0">
               <div className="relative shrink-0">
                 {merchant.logoUrl ? (
-                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-50">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 relative rounded-full overflow-hidden border border-gray-200 shadow-xs bg-gray-50">
                     <Image
                       src={merchant.logoUrl}
                       alt={merchant.name}
@@ -310,7 +310,7 @@ export default function MerchantStorePage({
                     />
                   </div>
                 ) : (
-                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-2xl font-bold shadow-xs">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-2xl font-bold shadow-xs">
                     {initial}
                   </div>
                 )}

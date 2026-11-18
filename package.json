@@ -8,6 +8,7 @@
   "description": "Aionn - AI-powered e-commerce platform frontend",
   "scripts": {
     "dev": "next dev",
+    "dev:lowmem": "node --max-old-space-size=1024 node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

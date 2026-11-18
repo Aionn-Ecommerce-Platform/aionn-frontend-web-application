@@ -14,11 +14,10 @@ import {
   Plus,
   ShieldCheck,
   ShoppingCart,
-  Star,
   Truck,
   Zap,
 } from "lucide-react";
-import { Badge } from "@/shared/ui";
+import { Badge, RatingStars } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { Address, Product, ProductVariant } from "@/types";
@@ -35,7 +34,6 @@ interface Props {
   goToNextImage: () => void;
   reviewCount: number;
   currentRating: number;
-  roundedRating: number;
   soldCount: number;
   priceLabel: string;
   currentVariant?: ProductVariant;
@@ -114,7 +112,6 @@ export default function ProductMainCard(props: Props) {
     goToNextImage,
     reviewCount,
     currentRating,
-    roundedRating,
     soldCount,
     priceLabel,
     currentVariant,
@@ -353,20 +350,11 @@ export default function ProductMainCard(props: Props) {
                       <span className="font-medium text-gray-900">
                         {currentRating.toFixed(1)}
                       </span>
-                      <div className="flex text-amber-400">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <Star
-                            key={index}
-                            size={14}
-                            fill="currentColor"
-                            className={
-                              index < roundedRating
-                                ? "text-amber-400"
-                                : "text-gray-200"
-                            }
-                          />
-                        ))}
-                      </div>
+                      <RatingStars
+                        rating={currentRating}
+                        size={14}
+                        className="gap-0.5"
+                      />
                     </div>
                     <span className="h-5 w-px bg-gray-200" />
                     <span>

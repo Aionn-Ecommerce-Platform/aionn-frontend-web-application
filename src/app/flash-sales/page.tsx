@@ -51,7 +51,9 @@ function CampaignCountdown({ endAt }: Readonly<{ endAt: string }>) {
 
 export default function FlashSalesPage() {
   const { t } = useTranslation();
-  const pageSize = 48;
+  // Keep page size a multiple of the grid column counts (2/3/4/5) so the
+  // last row is never left with empty cells.
+  const pageSize = 60;
   const [page, setPage] = useState(0);
 
   const { data: sales, isLoading } = useQuery({

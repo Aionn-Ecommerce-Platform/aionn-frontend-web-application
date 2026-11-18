@@ -20,7 +20,6 @@ import {
   recommendationService,
 } from "@/lib/services";
 import type {
-  CategoryTreeNode,
   FlashSaleInfo,
   RecommendationReason,
 } from "@/types";
@@ -183,21 +182,9 @@ export default function HomePage() {
     queryFn: () => categoryService.tree(),
   });
 
-  const flatCategories = useMemo(() => {
-    const list: CategoryTreeNode[] = [];
-    function traverse(node: CategoryTreeNode) {
-      list.push(node);
-      if (node.children.length > 0) {
-        node.children.forEach(traverse);
-      }
-    }
-    (categoriesTree ?? []).forEach(traverse);
-    return list;
-  }, [categoriesTree]);
-
   const displayedCategories = useMemo(() => {
-    return flatCategories.slice(0, 16);
-  }, [flatCategories]);
+    return (categoriesTree ?? []).slice(0, 8);
+  }, [categoriesTree]);
 
   const { data: bannerData } = useQuery({
     queryKey: qk.promotionBanners,
@@ -340,7 +327,7 @@ export default function HomePage() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, amount: 0.15 }}
-              className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-y-7 gap-x-2 select-none"
+              className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 gap-y-7 gap-x-2 select-none"
             >
               {displayedCategories.map((node) => {
                 const cat = node.category;
