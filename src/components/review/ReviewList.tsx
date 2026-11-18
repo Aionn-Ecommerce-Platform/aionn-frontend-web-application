@@ -267,11 +267,11 @@ function ReviewCard({
               type="button"
               onClick={() => setPreviewImage(url)}
               className="cursor-zoom-in overflow-hidden rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950"
-              aria-label={`Ảnh đánh giá ${idx + 1}`}
+              aria-label={t("reviews.imageAlt", { index: idx + 1 })}
             >
               <AppImage
                 src={url}
-                alt={`Ảnh đánh giá ${idx + 1}`}
+                alt={t("reviews.imageAlt", { index: idx + 1 })}
                 className="w-20 h-20 object-cover transition-transform hover:scale-105"
               />
             </button>

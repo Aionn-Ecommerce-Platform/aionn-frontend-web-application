@@ -1359,6 +1359,7 @@
     "contentPlaceholder": "Chia sẻ chi tiết về sản phẩm...",
     "contentRequired": "Vui lòng nhập nội dung đánh giá",
     "images": "Hình ảnh",
+    "imageAlt": "Ảnh đánh giá {index}",
     "imageUrlPlaceholder": "Nhập URL hình ảnh",
     "addImage": "Thêm ảnh",
     "imageHint": "Tối đa 5 hình ảnh. Nhập URL hình ảnh từ Unsplash, Imgur hoặc nguồn khác.",

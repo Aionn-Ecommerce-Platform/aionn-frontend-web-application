@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid3X3, List } from "lucide-react";
 import { useTranslation } from "@/hooks";
+import PageLoading from "@/shared/ui/PageLoading";
 import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
@@ -443,5 +444,9 @@ function ProductsInner() {
 }
 
 export default function ProductsPage() {
-  return <ProductsInner />;
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ProductsInner />
+    </Suspense>
+  );
 }

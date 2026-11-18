@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-export interface RatingStarsProps {
+interface RatingStarsProps {
   rating: number;
   size?: number;
   className?: string;
@@ -21,6 +21,7 @@ export default function RatingStars({
 
   return (
     <div
+      role="img"
       className={cn("flex items-center", className)}
       aria-label={`${value.toFixed(1)} / 5`}
     >
