@@ -196,7 +196,7 @@ export default function FlashSaleSection() {
           })}
         </div>
         <div className="mt-8 flex justify-center">
-          <Link href={`/products?onSale=true`}>
+          <Link href="/flash-sales">
             <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white text-white hover:text-gray-950 font-semibold backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
               {t("home.viewAllFlashSale")}
               <ArrowRight size={18} />
