@@ -905,6 +905,9 @@
     "emptyDescription": "Check back later so you do not miss the next drop.",
     "endsAt": "Ends: {date}",
     "endsIn": "ENDS IN",
+    "startsIn": "STARTS IN",
+    "live": "Live",
+    "upcoming": "Upcoming",
     "sold": "{sold}/{stock} sold",
     "soldOf": "{sold}/{total} sold"
   },

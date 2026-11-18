@@ -3,10 +3,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Zap } from "lucide-react";
-import { EmptyState, Pagination } from "@/shared/ui";
+import { EmptyState } from "@/shared/ui";
 import { productService, promotionService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import ProductCard from "@/components/product/ProductCard";
+import type { ActiveFlashSale } from "@/types";
+
+const SLOT_TIME_FORMAT = new Intl.DateTimeFormat("vi-VN", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Asia/Ho_Chi_Minh",
+});
+
+function slotRange(slot: ActiveFlashSale): string {
+  return `${SLOT_TIME_FORMAT.format(new Date(slot.startDate))} - ${SLOT_TIME_FORMAT.format(new Date(slot.endDate))}`;
+}
 
 function CountdownBox({ value }: Readonly<{ value: string | number }>) {
   return (
@@ -16,22 +27,23 @@ function CountdownBox({ value }: Readonly<{ value: string | number }>) {
   );
 }
 
-function CampaignCountdown({ endAt }: Readonly<{ endAt: string }>) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const remainingMs = Math.max(0, new Date(endAt).getTime() - now);
-  const totalSeconds = Math.floor(remainingMs / 1000);
+function getCountdownParts(remainingMs: number) {
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
   const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   const pad = (value: number) => value.toString().padStart(2, "0");
+  return {
+    days,
+    hours: pad(hours),
+    minutes: pad(minutes),
+    seconds: pad(seconds),
+  };
+}
 
+function Countdown({ remainingMs }: Readonly<{ remainingMs: number }>) {
+  const { days, hours, minutes, seconds } = getCountdownParts(remainingMs);
   return (
     <div className="flex items-center gap-1.5 text-sm">
       {days > 0 && (
@@ -40,34 +52,59 @@ function CampaignCountdown({ endAt }: Readonly<{ endAt: string }>) {
           <span className="text-white/50 font-bold">:</span>
         </>
       )}
-      <CountdownBox value={pad(hours)} />
+      <CountdownBox value={hours} />
       <span className="text-white/50 font-bold">:</span>
-      <CountdownBox value={pad(minutes)} />
+      <CountdownBox value={minutes} />
       <span className="text-white/50 font-bold">:</span>
-      <CountdownBox value={pad(seconds)} />
+      <CountdownBox value={seconds} />
     </div>
   );
 }
 
 export default function FlashSalesPage() {
   const { t } = useTranslation();
-  // Keep page size a multiple of the grid column counts (2/3/4/5) so the
-  // last row is never left with empty cells.
-  const pageSize = 60;
-  const [page, setPage] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
+    null,
+  );
 
-  const { data: sales, isLoading } = useQuery({
-    queryKey: ["active-flash-sales", 20, page, pageSize],
-    queryFn: () => promotionService.getActiveFlashSales(20, page, pageSize),
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const { data: slots = [], isLoading } = useQuery({
+    queryKey: ["flash-sale-slots"],
+    queryFn: () => promotionService.getFlashSaleSlots(10),
   });
 
+  const selected = useMemo(() => {
+    if (selectedCampaignId) {
+      const picked = slots.find(
+        (slot) => slot.campaignId === selectedCampaignId,
+      );
+      if (picked) return picked;
+    }
+    const running = slots.find((slot) => {
+      const start = new Date(slot.startDate).getTime();
+      const end = new Date(slot.endDate).getTime();
+      return now >= start && now < end;
+    });
+    return running ?? slots[0] ?? null;
+  }, [slots, selectedCampaignId, now]);
+
   const skuIds = useMemo(
-    () => Array.from(new Set((sales ?? []).flatMap((s) => s.items.map((i) => i.skuId)))),
-    [sales],
+    () =>
+      Array.from(new Set((selected?.items ?? []).map((item) => item.skuId))),
+    [selected],
   );
 
   const { data: products } = useQuery({
-    queryKey: ["flash-sale-products", skuIds.join(",")],
+    queryKey: [
+      "flash-sale-products",
+      selected?.campaignId ?? "",
+      skuIds.join(","),
+    ],
     queryFn: () => productService.resolveBySkuIds(skuIds),
     enabled: skuIds.length > 0,
   });
@@ -103,11 +140,18 @@ export default function FlashSalesPage() {
     return map;
   }, [products]);
 
-  const maxTotalItems = Math.max(
-    0,
-    ...(sales ?? []).map((sale) => sale.totalItems),
+  const items = useMemo(
+    () =>
+      [...(selected?.items ?? [])].sort(
+        (a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0),
+      ),
+    [selected],
   );
-  const totalPages = Math.max(1, Math.ceil(maxTotalItems / pageSize));
+
+  const startMs = selected ? new Date(selected.startDate).getTime() : 0;
+  const endMs = selected ? new Date(selected.endDate).getTime() : 0;
+  const isUpcoming = now < startMs;
+  const remaining = isUpcoming ? startMs - now : endMs - now;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -116,7 +160,7 @@ export default function FlashSalesPage() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-brand" size={28} />
           </div>
-        ) : !sales?.length ? (
+        ) : slots.length === 0 ? (
           <EmptyState
             icon={Zap}
             title={t("flashSales.empty")}
@@ -124,69 +168,95 @@ export default function FlashSalesPage() {
           />
         ) : (
           <>
-            <div className="space-y-8">
-              {sales.map((sale) => {
-              const items = sale.items.map((item) => {
-                const info = productBySku.get(item.skuId);
-                const original = info?.variantPrice ?? item.salePrice;
-                const percent =
-                  original > item.salePrice
-                    ? Math.round((1 - item.salePrice / original) * 100)
-                    : 0;
-                return { item, info, percent };
-              });
-              const maxDiscount =
-                items.length > 0
-                  ? Math.max(...items.map(({ percent }) => percent))
-                  : 0;
+            {slots.length > 1 && (
+              <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+                {slots.map((slot) => {
+                  const slotStart = new Date(slot.startDate).getTime();
+                  const slotEnd = new Date(slot.endDate).getTime();
+                  const slotIsLive = now >= slotStart && now < slotEnd;
+                  const isActive = selected?.campaignId === slot.campaignId;
+                  return (
+                    <button
+                      key={slot.campaignId}
+                      type="button"
+                      onClick={() => setSelectedCampaignId(slot.campaignId)}
+                      className={`flex shrink-0 cursor-pointer flex-col items-start gap-0.5 rounded-xl border px-4 py-2.5 text-left transition-colors ${
+                        isActive
+                          ? "border-purple-700 bg-purple-700 text-white shadow-md"
+                          : "border-gray-400 bg-white text-gray-800 hover:border-purple-400"
+                      }`}
+                    >
+                      <span className="text-sm font-bold">
+                        {slotRange(slot)}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold uppercase tracking-wide ${
+                          isActive
+                            ? "text-purple-100"
+                            : slotIsLive
+                              ? "text-purple-700"
+                              : "text-gray-500"
+                        }`}
+                      >
+                        {slotIsLive
+                          ? t("flashSales.live")
+                          : t("flashSales.upcoming")}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-              return (
-                <section
-                  key={sale.campaignId}
-                  className="space-y-4"
-                >
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
-                    <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
-                    <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
-                    <div
-                      className="absolute inset-0 opacity-[0.12] pointer-events-none"
-                      style={{
-                        backgroundImage:
-                          "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
-                        backgroundSize: "28px 28px",
-                      }}
-                    />
+            {selected && (
+              <section key={selected.campaignId} className="space-y-4">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
+                  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
+                  <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
+                  <div
+                    className="absolute inset-0 opacity-[0.12] pointer-events-none"
+                    style={{
+                      backgroundImage:
+                        "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
+                      backgroundSize: "28px 28px",
+                    }}
+                  />
 
-                    <div className="relative z-10">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-lg shadow-purple-600/30 border border-purple-400/30">
-                            <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
-                            <Zap
-                              size={14}
-                              className="fill-purple-100 text-purple-50 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
-                            />
-                            {t("home.flashSale")}
-                          </span>
-                          {maxDiscount > 0 && (
-                            <span className="rounded-full border border-yellow-300/40 bg-white/10 px-2.5 py-1 text-xs font-bold text-yellow-300">
-                              -{maxDiscount}%
-                            </span>
-                          )}
-                        </div>
+                  <div className="relative z-10">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-lg shadow-purple-600/30 border border-purple-400/30">
+                          <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
+                          <Zap
+                            size={14}
+                            className="fill-purple-100 text-purple-50 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                          />
+                          {t("home.flashSale")}
+                        </span>
+                        <span className="text-sm font-semibold text-purple-100">
+                          {selected.name}
+                        </span>
+                        <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-purple-100">
+                          {slotRange(selected)}
+                        </span>
+                      </div>
 
-                        <div className="flex items-center gap-2.5 text-xs">
-                          <span className="font-semibold text-purple-200 whitespace-nowrap">
-                            {t("flashSales.endsIn")}
-                          </span>
-                          <CampaignCountdown endAt={sale.endDate} />
-                        </div>
+                      <div className="flex items-center gap-2.5 text-xs">
+                        <span className="font-semibold text-purple-200 whitespace-nowrap">
+                          {isUpcoming
+                            ? t("flashSales.startsIn")
+                            : t("flashSales.endsIn")}
+                        </span>
+                        <Countdown remainingMs={remaining} />
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                    {items.map(({ item, info }) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {items.map((item) => {
+                    const info = productBySku.get(item.skuId);
+                    return (
                       <ProductCard
                         key={item.registrationId}
                         id={item.productId}
@@ -199,8 +269,8 @@ export default function FlashSalesPage() {
                         sold={item.soldCount}
                         currency={info?.currency ?? item.currency}
                         flashSale={{
-                          campaignId: sale.campaignId,
-                          endAt: sale.endDate,
+                          campaignId: selected.campaignId,
+                          endAt: selected.endDate,
                           salePrice: item.salePrice,
                           currency: item.currency,
                           saleStock: item.saleStock,
@@ -216,17 +286,11 @@ export default function FlashSalesPage() {
                           ],
                         }}
                       />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-            </div>
-            <Pagination
-              currentPage={page + 1}
-              totalPages={totalPages}
-              onPageChange={(next) => setPage(next - 1)}
-            />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </>
         )}
       </div>

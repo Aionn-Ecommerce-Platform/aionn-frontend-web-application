@@ -15,6 +15,12 @@ export const promotionService = {
       query: { limit, page, size },
     });
   },
+  getFlashSaleSlots(limit = 10) {
+    return api.get<ActiveFlashSale[]>("/promotions/flash-sales/slots", {
+      anonymous: true,
+      query: { limit },
+    });
+  },
 };
 
 export interface PromotionBannerAdmin extends PromotionBanner {

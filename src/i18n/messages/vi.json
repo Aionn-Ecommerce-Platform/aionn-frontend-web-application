@@ -905,6 +905,9 @@
     "emptyDescription": "Quay lại sau để không bỏ lỡ ưu đãi tiếp theo.",
     "endsAt": "Kết thúc: {date}",
     "endsIn": "KẾT THÚC TRONG",
+    "startsIn": "BẮT ĐẦU SAU",
+    "live": "Đang diễn ra",
+    "upcoming": "Sắp diễn ra",
     "sold": "Đã bán {sold}/{stock} suất",
     "soldOf": "Đã bán {sold}/{total}"
   },
