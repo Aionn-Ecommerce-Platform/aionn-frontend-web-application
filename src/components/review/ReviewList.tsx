@@ -1,10 +1,10 @@
 "use client";
 
-import { AppImage } from "@/shared/ui";
+import { AppImage, ImageLightbox, RatingStars } from "@/shared/ui";
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Star, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { reviewService, type Review } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import { formatDate } from "@/shared/lib/utils";
@@ -90,16 +90,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               </span>
             </div>
             <div className="mt-2 flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-5 h-5 ${
-                    star <= Math.round(averageRating)
-                      ? "fill-amber-400 text-amber-400"
-                      : "text-gray-200 fill-gray-100"
-                  }`}
-                />
-              ))}
+              <RatingStars rating={averageRating} size={20} className="gap-0.5" />
             </div>
           </div>
           <div className="w-full flex flex-wrap gap-2">
@@ -160,7 +151,7 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
       </div>
 
       {filteredReviews.length > 0 && (
-        <div className="flex items-center justify-center sm:justify-end gap-1.5 pt-6">
+        <div className="flex items-center justify-center gap-1.5 pt-6">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -207,22 +198,10 @@ function ReviewCard({
   review: Review;
 }) {
   const { t, locale } = useTranslation();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`w-4 h-4 ${
-              star <= rating
-                ? "fill-amber-400 text-amber-400"
-                : "text-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    );
+    return <RatingStars rating={rating} size={16} className="gap-0.5" />;
   };
 
   const buyerName = (() => {
@@ -283,12 +262,19 @@ function ReviewCard({
       {review.imageUrls && review.imageUrls.length > 0 && (
         <div className="flex gap-2 mb-3 flex-wrap">
           {review.imageUrls.map((url, idx) => (
-            <AppImage
+            <button
               key={idx}
-              src={url}
-              alt={`Review image ${idx + 1}`}
-              className="w-20 h-20 object-cover rounded-xl border border-gray-400"
-            />
+              type="button"
+              onClick={() => setPreviewImage(url)}
+              className="cursor-zoom-in overflow-hidden rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950"
+              aria-label={`Ảnh đánh giá ${idx + 1}`}
+            >
+              <AppImage
+                src={url}
+                alt={`Ảnh đánh giá ${idx + 1}`}
+                className="w-20 h-20 object-cover transition-transform hover:scale-105"
+              />
+            </button>
           ))}
         </div>
       )}
@@ -309,6 +295,12 @@ function ReviewCard({
           <p className="text-sm text-gray-700">{review.merchantReply}</p>
         </div>
       )}
+
+      <ImageLightbox
+        src={previewImage}
+        alt={t("reviews.images")}
+        onClose={() => setPreviewImage(null)}
+      />
     </div>
   );
 }

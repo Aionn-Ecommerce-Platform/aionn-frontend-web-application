@@ -22,7 +22,13 @@ export function formatVariantLabel(
 ) {
   if (!attributeValues) return "";
 
+  const keyOrder = ["color", "size", "storage", "ram", "cpu", "type", "option"];
   return Object.entries(attributeValues)
+    .sort(([a], [b]) => {
+      const ai = keyOrder.indexOf(a.trim().toLowerCase());
+      const bi = keyOrder.indexOf(b.trim().toLowerCase());
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    })
     .filter(([key, value]) => {
       const normalizedKey = key.trim().toLowerCase();
       const normalizedValue = value.trim().toLowerCase();

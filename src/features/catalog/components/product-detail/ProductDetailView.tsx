@@ -414,10 +414,9 @@ export default function ProductDetailPage({
   const rangeDiscountPercent =
     !currentVariant &&
     minOriginal != null &&
-    maxOriginal != null &&
-    maxOriginal > minDisplayPrice &&
+    minOriginal > minDisplayPrice &&
     minDisplayPrice > 0
-      ? Math.round((1 - minDisplayPrice / maxOriginal) * 100)
+      ? Math.round((1 - minDisplayPrice / minOriginal) * 100)
       : 0;
   const discountPercent = currentVariant
     ? variantDiscountPercent
@@ -430,7 +429,6 @@ export default function ProductDetailPage({
           ? product.rating
           : 0))
       : 0;
-  const roundedRating = Math.round(currentRating);
   const soldCount = product.soldCount ?? 0;
   const deliveryDateLabel = estimatedDeliveryAt
     ? `${t("orders.estimatedDelivery")}: ${formatDate(estimatedDeliveryAt, locale)}`
@@ -555,7 +553,6 @@ export default function ProductDetailPage({
           goToNextImage={goToNextImage}
           reviewCount={reviewCount}
           currentRating={currentRating}
-          roundedRating={roundedRating}
           soldCount={soldCount}
           priceLabel={priceLabel}
           currentVariant={currentVariant}

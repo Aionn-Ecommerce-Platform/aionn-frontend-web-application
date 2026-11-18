@@ -5,11 +5,10 @@ import {
   ChevronLeft,
   ChevronRight,
   PackageSearch,
-  Star,
   Zap,
 } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
-import { Button, EmptyState, ProductCardSkeleton } from "@/shared/ui";
+import { Button, EmptyState, ProductCardSkeleton, RatingStars } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
 import { getPaginationRange } from "@/shared/lib/pagination";
@@ -197,17 +196,13 @@ export default function CatalogResults(props: Props) {
                   </h3>
                   <div className="flex items-center gap-2 mt-1.5">
                     <div className="flex text-amber-400">
-                      {Array.from({ length: 5 }, (_, index) => (
-                        <Star
-                          key={index}
-                          size={12}
-                          className={
-                            index < (product.rating ?? 5)
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-gray-200 fill-gray-200"
-                          }
-                        />
-                      ))}
+                      <RatingStars
+                        rating={product.rating ?? 0}
+                        size={12}
+                        className="gap-0.5"
+                        filledClassName="fill-amber-400 text-amber-400"
+                        emptyClassName="fill-gray-200 text-gray-200"
+                      />
                     </div>
                     {product.reviewCount !== undefined && product.reviewCount > 0 && (
                       <span className="text-[11px] text-gray-400">

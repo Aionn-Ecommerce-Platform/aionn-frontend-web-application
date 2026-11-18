@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Grid3X3, List, Loader2 } from "lucide-react";
+import { Grid3X3, List } from "lucide-react";
 import { useTranslation } from "@/hooks";
 import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -443,15 +443,5 @@ function ProductsInner() {
 }
 
 export default function ProductsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-brand" size={32} />
-        </div>
-      }
-    >
-      <ProductsInner />
-    </Suspense>
-  );
+  return <ProductsInner />;
 }

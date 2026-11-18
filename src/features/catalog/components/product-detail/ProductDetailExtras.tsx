@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { merchantService } from "@/lib/services";
 import Link from "next/link";
 import { Heart, Loader2, MessageCircle, Star, Store } from "lucide-react";
-import { AppImage, Modal } from "@/shared/ui";
+import { AppImage, ImageLightbox, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import ProductQA from "@/components/product/ProductQA";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
@@ -45,6 +45,7 @@ export default function ProductDetailExtras(props: Props) {
   } = props;
 
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [previewLogo, setPreviewLogo] = useState(false);
   const qc = useQueryClient();
 
   const { data: storefrontStats, isLoading: storefrontStatsLoading } = useQuery({
@@ -156,21 +157,26 @@ export default function ProductDetailExtras(props: Props) {
     <>
       {" "}
       <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
-        <div className="flex items-center gap-4">
+        <div className="flex items-stretch gap-4">
           {merchant?.logoUrl ? (
-            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-400 shadow-xs bg-gray-50 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPreviewLogo(true)}
+              className="w-[72px] h-[72px] self-start rounded-full overflow-hidden border border-gray-400 shadow-xs bg-gray-50 shrink-0 cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-gray-950"
+              aria-label={merchant.name || t("products.storeLabel")}
+            >
               <AppImage
                 src={merchant.logoUrl}
                 alt={merchant.name || t("products.storeLabel")}
                 className="w-full h-full object-cover"
               />
-            </div>
+            </button>
           ) : (
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0">
+            <div className="w-[72px] h-[72px] self-start rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0">
               {merchant?.name?.charAt(0).toUpperCase() ?? "M"}
             </div>
           )}
-          <div>
+          <div className="flex flex-col justify-between">
             <h3 className="text-base font-bold text-gray-900">
               {merchant?.name ?? t("products.storeLabel")}
             </h3>
@@ -337,6 +343,12 @@ export default function ProductDetailExtras(props: Props) {
           </div>
         </section>
       )}
+
+      <ImageLightbox
+        src={previewLogo ? (merchant?.logoUrl ?? null) : null}
+        alt={merchant?.name ?? t("products.storeLabel")}
+        onClose={() => setPreviewLogo(false)}
+      />
     </>
   );
 }

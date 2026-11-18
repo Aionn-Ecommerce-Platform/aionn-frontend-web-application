@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Flame, Sparkles, Star, Zap } from "lucide-react";
+import { Flame, Sparkles, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
+import { RatingStars } from "@/shared/ui";
 import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
 import type { FlashSaleInfo, RecommendationReason } from "@/types";
@@ -203,23 +204,13 @@ export default function ProductCard({
         >
           {hasReviews && currentRating > 0 ? (
             <div className="flex items-center gap-1">
-              <div className="flex items-center text-amber-400">
-                {[...Array(5)].map((_, i) => {
-                  const starValue = i + 1;
-                  return (
-                    <Star
-                      key={i}
-                      size={11}
-                      className={cn(
-                        "shrink-0",
-                        starValue <= currentRating
-                          ? "fill-amber-400 text-amber-400"
-                          : "text-gray-200 fill-gray-200",
-                      )}
-                    />
-                  );
-                })}
-              </div>
+              <RatingStars
+                rating={currentRating}
+                size={11}
+                className="gap-0.5"
+                filledClassName="fill-amber-400 text-amber-400"
+                emptyClassName="fill-gray-200 text-gray-200"
+              />
               <span className="text-[10px] text-gray-500">({reviewCount})</span>
             </div>
           ) : (
