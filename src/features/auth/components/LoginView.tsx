@@ -8,7 +8,7 @@ import { useTranslation } from "@/hooks";
 function LoginInner() {
   const { t } = useTranslation();
   return (
-    <div className="flex-1 bg-gradient-to-br from-purple-50/70 via-gray-50/80 to-purple-50/50 flex items-center justify-center py-12 lg:py-20 px-4">
+    <div className="flex-1 bg-transparent flex items-center justify-center py-12 lg:py-20 px-4">
       <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-8 items-center">
         <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-6">
           <div className="relative h-56 w-56 flex items-center justify-center">
@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 bg-gradient-to-br from-purple-50 via-gray-50 to-purple-50 flex items-center justify-center">
+        <div className="flex-1 bg-transparent flex items-center justify-center">
           <div className="text-gray-900 text-lg font-medium">
             {t("common.loading")}
           </div>
