@@ -146,6 +146,8 @@ export default function HomePage() {
       isBestSeller?: boolean;
       recommendationReason?: RecommendationReason;
       currency?: string;
+      provinceName?: string | null;
+      provinceCode?: string | null;
     }> = [];
 
     for (const r of rankedRecommendations) {
@@ -169,6 +171,8 @@ export default function HomePage() {
         flashSale: fsInfo,
         recommendationReason: r.reason,
         currency: r.currency,
+        provinceName: r.provinceName,
+        provinceCode: r.provinceCode,
       });
     }
 
@@ -230,8 +234,8 @@ export default function HomePage() {
   const currentBanner = activeBanners[safeIndex];
 
   return (
-    <div className="bg-white min-h-screen">
-      <section className="bg-white">
+    <div className="bg-transparent min-h-screen">
+      <section className="bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[220px] sm:h-[320px] md:h-[400px] relative w-full overflow-hidden bg-gray-100 group shadow-sm rounded-b-sm">
             {activeBanners.length > 0 && (
@@ -309,7 +313,7 @@ export default function HomePage() {
       </section>
 
       {/* Categories Shelf (Apple Store Style - borderless, no arrows, responsive auto-wrap across screen sizes) */}
-      <section className="pt-8 pb-4 sm:pt-10 sm:pb-6 bg-white">
+      <section className="pt-8 pb-4 sm:pt-10 sm:pb-6 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {catLoading && (
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-y-6 gap-x-2">
@@ -409,6 +413,8 @@ export default function HomePage() {
                     flashSale={product.flashSale}
                     isBestSeller={product.isBestSeller}
                     recommendationReason={product.recommendationReason}
+                    provinceName={product.provinceName}
+                    provinceCode={product.provinceCode}
                     currency={product.currency}
                   />
                 </motion.div>
@@ -435,23 +441,8 @@ export default function HomePage() {
       </section>
 
 
-      {/* For Merchants Section (Seamless soft gradient fade to pure white, no harsh dividing border line) */}
-      <section className="py-24 bg-gradient-to-b from-white via-purple-50/40 to-indigo-50/50 relative overflow-hidden">
-        {/* Ambient background soft light spheres */}
-        <div className="absolute top-12 -right-24 w-96 h-96 bg-purple-300/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-20 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-fuchsia-200/25 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Delicate geometric background dots with top gradient fade-out so dots dissolve into white seamlessly */}
-        <div
-          className="absolute inset-0 opacity-[0.22] pointer-events-none [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, #974de7 1px, transparent 0)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-
+      {/* For Merchants Section */}
+      <section className="relative py-24">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

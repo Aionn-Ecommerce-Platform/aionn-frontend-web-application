@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   ChevronLeft,
   ChevronRight,
+  MapPin,
   PackageSearch,
   Zap,
 } from "lucide-react";
@@ -22,6 +23,7 @@ interface Props {
   filtered: boolean;
   mode: "grid" | "list";
   provinces: Map<string, string>;
+  merchantProvinces: Map<string, string>;
   page: number;
   pages: number;
   onPage: (page: number) => void;
@@ -95,7 +97,7 @@ export default function CatalogResults(props: Props) {
             ? props.provinces.get(product.provinceCode)
             : product.provinceName
               ? cleanProvinceName(product.provinceName)
-              : undefined;
+              : props.merchantProvinces.get(product.merchantId);
 
           if (props.mode === "grid")
             return (
@@ -158,12 +160,12 @@ export default function CatalogResults(props: Props) {
                         FLASH SALE
                       </span>
                     ) : isSale ? (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                        <Zap size={10} className="fill-red-200 text-red-100" />
+                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                        <Zap size={10} className="fill-pink-200 text-pink-100" />
                         SALE
                       </span>
                     ) : product.isBestSeller ? (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
                         {t("products.bestSeller")}
                       </span>
                     ) : null}
@@ -172,8 +174,8 @@ export default function CatalogResults(props: Props) {
                     <span
                       className={`font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-md ml-auto ${
                         product.flashSale
-                          ? "bg-gradient-to-r from-purple-700 to-indigo-600 text-white"
-                          : "bg-red-500 text-white"
+                          ? "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white"
+                          : "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white"
                       }`}
                     >
                       -{discount}%
@@ -210,6 +212,12 @@ export default function CatalogResults(props: Props) {
                       </span>
                     )}
                   </div>
+                  {province && (
+                    <div className="mt-1 flex min-w-0 items-center gap-1 text-[10px] font-medium text-gray-500">
+                      <MapPin size={10} className="shrink-0 text-red-500" />
+                      <span className="truncate">{province}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-3 pt-2.5 flex items-end justify-between border-t border-gray-400">
@@ -219,7 +227,7 @@ export default function CatalogResults(props: Props) {
                         product.flashSale
                           ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
                           : discount > 0
-                            ? "text-red-600"
+                            ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
                             : "text-gray-900"
                       }`}
                     >
@@ -234,11 +242,6 @@ export default function CatalogResults(props: Props) {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-gray-400">
-                    {province && (
-                      <span className="text-gray-400 text-[10px] font-medium whitespace-nowrap truncate max-w-[70px]">
-                        {province}
-                      </span>
-                    )}
                     {product.soldCount !== undefined && product.soldCount > 0 && (
                       <span className="whitespace-nowrap">
                         {t("home.soldCount").replace(
@@ -257,13 +260,13 @@ export default function CatalogResults(props: Props) {
       {props.pages > 1 && (
         <div className="mt-12 flex justify-center items-center gap-2">
           <button
-            disabled={!props.page}
             onClick={() => {
+              if (props.page <= 0) return;
               props.onPage(props.page - 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Previous page"
-            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
           >
             <ChevronLeft size={16} />
           </button>
@@ -284,8 +287,8 @@ export default function CatalogResults(props: Props) {
                 }}
                 className={
                   Number(item) - 1 === props.page
-                    ? "h-9 min-w-9 px-2 text-xs font-bold rounded-full bg-gray-950 text-white border-2 border-gray-950 shadow-xs cursor-pointer"
-                    : "h-9 min-w-9 px-2 text-xs font-bold rounded-full border-2 border-gray-900 bg-white text-gray-800 transition-colors hover:bg-gray-100 cursor-pointer"
+                    ? "h-9 min-w-9 px-2 text-xs font-bold rounded-full bg-gray-950 text-white border border-gray-950 shadow-xs cursor-pointer"
+                    : "h-9 min-w-9 px-2 text-xs font-bold rounded-full border border-gray-400 bg-white text-gray-800 transition-colors hover:border-gray-950 hover:bg-gray-100 cursor-pointer"
                 }
               >
                 {item}
@@ -293,13 +296,13 @@ export default function CatalogResults(props: Props) {
             ),
           )}
           <button
-            disabled={props.page + 1 >= props.pages}
             onClick={() => {
+              if (props.page + 1 >= props.pages) return;
               props.onPage(props.page + 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Next page"
-            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
           >
             <ChevronRight size={16} />
           </button>

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Flame, Sparkles, Zap } from "lucide-react";
+import { Flame, MapPin, Sparkles, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/shared/lib/utils";
 import { RatingStars } from "@/shared/ui";
 import { productPath } from "@/shared/lib/product-url";
-import { useTranslation } from "@/hooks";
+import { useProvinceDisplayName, useTranslation } from "@/hooks";
 import type { FlashSaleInfo, RecommendationReason } from "@/types";
 
 interface ProductCardProps {
@@ -22,6 +22,7 @@ interface ProductCardProps {
   isBestSeller?: boolean;
   flashSale?: FlashSaleInfo | null;
   provinceName?: string | null;
+  provinceCode?: string | null;
   className?: string;
   recommendationReason?: RecommendationReason;
   currency?: string;
@@ -41,10 +42,12 @@ export default function ProductCard({
   flashSale,
   className,
   provinceName,
+  provinceCode,
   recommendationReason,
   currency = "VND",
 }: ProductCardProps) {
   const { t, locale } = useTranslation();
+  const displayProvince = useProvinceDisplayName(provinceName, provinceCode);
   const isFlashSale = !!flashSale;
   const isSale = !isFlashSale && !!originalPrice && originalPrice > price;
   const displayPrice = isFlashSale ? flashSale.salePrice : price;
@@ -82,8 +85,8 @@ export default function ProductCard({
     );
   } else if (isSale) {
     leadingBadge = (
-      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-red-500/20 z-10 select-none">
-        <Zap size={11} className="fill-red-200 text-red-100" />
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-fuchsia-500/20 z-10 select-none">
+        <Zap size={11} className="fill-pink-200 text-pink-100" />
         SALE
       </span>
     );
@@ -96,14 +99,14 @@ export default function ProductCard({
     );
   } else if (isBestSeller) {
     leadingBadge = (
-      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-orange-500/20 z-10 select-none">
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-fuchsia-500/20 z-10 select-none">
         <Flame size={11} className="fill-white" />
         {t("home.bestSeller")}
       </span>
     );
   } else if (recommendationReason === "NEW_ARRIVAL") {
     leadingBadge = (
-      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-emerald-500/20 z-10 select-none">
+      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md shadow-fuchsia-500/20 z-10 select-none">
         <Sparkles size={11} className="fill-white" />
         {t("recommendation.reasons.NEW_ARRIVAL")}
       </span>
@@ -139,8 +142,8 @@ export default function ProductCard({
               className={cn(
                 "font-extrabold text-[11px] px-2 py-0.5 rounded-full shadow-md backdrop-blur-sm ml-auto",
                 isFlashSale
-                  ? "bg-gradient-to-r from-purple-700 to-indigo-600 text-white animate-pulse"
-                  : "bg-red-500 text-white",
+                  ? "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white animate-pulse"
+                  : "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white",
               )}
             >
               -{discount}%
@@ -148,10 +151,8 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Subtle overlay gradient on flashsale */}
-        {isFlashSale && (
-          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-purple-500/10 to-transparent pointer-events-none" />
-        )}
+        {/* Soft purple fade between the image and card content */}
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-purple-500/10 to-transparent pointer-events-none" />
       </div>
 
       {/* Product Content Details */}
@@ -160,7 +161,7 @@ export default function ProductCard({
           "p-3 flex flex-col flex-1 justify-between transition-colors",
           isFlashSale
             ? "bg-gradient-to-b from-purple-50/40 via-white to-white group-hover:from-purple-50/70"
-            : "bg-white group-hover:bg-gray-50/40",
+            : "bg-gradient-to-b from-purple-50/40 via-white to-white group-hover:from-purple-50/60",
         )}
       >
         <div className="flex flex-col flex-1">
@@ -182,7 +183,7 @@ export default function ProductCard({
                 isFlashSale
                   ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent drop-shadow-xs text-lg"
                   : discount > 0
-                    ? "text-red-600"
+                    ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
                     : "text-gray-900",
               )}
             >
@@ -198,37 +199,41 @@ export default function ProductCard({
 
         <div
           className={cn(
-            "mt-3 pt-2 flex items-center justify-between text-[11px] text-gray-400 border-t",
+            "mt-3 pt-2 text-[11px] text-gray-400 border-t",
             isFlashSale ? "border-purple-300" : "border-gray-400",
           )}
         >
-          {hasReviews && currentRating > 0 ? (
-            <div className="flex items-center gap-1">
-              <RatingStars
-                rating={currentRating}
-                size={11}
-                className="gap-0.5"
-                filledClassName="fill-amber-400 text-amber-400"
-                emptyClassName="fill-gray-200 text-gray-200"
-              />
-              <span className="text-[10px] text-gray-500">({reviewCount})</span>
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {provinceName && (
-              <span className="text-gray-400 text-[10px] font-medium whitespace-nowrap truncate max-w-[70px]">
-                {provinceName}
-              </span>
+          <div className="flex items-center justify-between">
+            {hasReviews && currentRating > 0 ? (
+              <div className="flex items-center gap-1">
+                <RatingStars
+                  rating={currentRating}
+                  size={11}
+                  className="gap-0.5"
+                  filledClassName="fill-amber-400 text-amber-400"
+                  emptyClassName="fill-gray-200 text-gray-200"
+                />
+                <span className="text-[10px] text-gray-500">
+                  ({reviewCount})
+                </span>
+              </div>
+            ) : (
+              <div />
             )}
+
             {showSold && (
-              <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
+              <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-gray-400">
                 {t("home.soldCount").replace("{count}", displayedSold)}
               </span>
             )}
           </div>
+
+          {displayProvince && (
+            <div className="mt-1 flex min-w-0 items-center gap-1 text-[10px] font-medium text-gray-500">
+              <MapPin size={10} className="shrink-0 text-red-500" />
+              <span className="truncate">{displayProvince}</span>
+            </div>
+          )}
         </div>
       </div>
     </Link>

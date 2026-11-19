@@ -386,6 +386,8 @@ export default function CartPage() {
                   price={product.priceFrom}
                   image={product.imageUrl || "/images/logo.png"}
                   recommendationReason={product.reason}
+                  provinceName={product.provinceName}
+                  provinceCode={product.provinceCode}
                   currency={product.currency}
                 />
               ))}

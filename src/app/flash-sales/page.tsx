@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, Zap } from "lucide-react";
 import { EmptyState } from "@/shared/ui";
 import { productService, promotionService } from "@/lib/services";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import ProductCard from "@/components/product/ProductCard";
 import type { ActiveFlashSale } from "@/types";
 
@@ -63,6 +63,7 @@ function Countdown({ remainingMs }: Readonly<{ remainingMs: number }>) {
 
 export default function FlashSalesPage() {
   const { t } = useTranslation();
+  const merchantProvinceById = useMerchantProvinceMap();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -113,6 +114,7 @@ export default function FlashSalesPage() {
       string,
       {
         productId: string;
+        merchantId?: string;
         name: string;
         slug?: string | null;
         image?: string;
@@ -126,6 +128,7 @@ export default function FlashSalesPage() {
       for (const variant of product.variants ?? []) {
         map.set(variant.skuId, {
           productId: product.productId,
+          merchantId: product.merchantId,
           name: product.name,
           slug: product.slug,
           image: product.imageList?.[0],
@@ -153,7 +156,7 @@ export default function FlashSalesPage() {
   const remaining = isUpcoming ? startMs - now : endMs - now;
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
           <div className="flex justify-center py-20">
@@ -224,6 +227,11 @@ export default function FlashSalesPage() {
                         reviewCount={info?.reviewCount}
                         sold={item.soldCount}
                         currency={info?.currency ?? item.currency}
+                        provinceName={
+                          info?.merchantId
+                            ? merchantProvinceById.get(info.merchantId)
+                            : undefined
+                        }
                         flashSale={{
                           campaignId: selected.campaignId,
                           endAt: selected.endDate,

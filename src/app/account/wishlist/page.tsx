@@ -9,12 +9,13 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import ProductCard from "@/components/product/ProductCard";
 import { Button, EmptyState } from "@/shared/ui";
 import { wishlistService } from "@/lib/services";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
 
 function WishlistInner() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const merchantProvinceById = useMerchantProvinceMap();
 
   const { data, isLoading } = useQuery({
     queryKey: ["wishlist"],
@@ -81,6 +82,7 @@ function WishlistInner() {
                   reviewCount={product.reviewCount}
                   sold={product.soldCount}
                   isBestSeller={product.isBestSeller}
+                  provinceName={merchantProvinceById.get(product.merchantId)}
                   currency={lowest?.currency ?? "VND"}
                 />
                 <button

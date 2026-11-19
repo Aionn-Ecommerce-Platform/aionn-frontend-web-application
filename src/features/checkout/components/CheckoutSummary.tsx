@@ -130,9 +130,7 @@ export function CheckoutRecommendations({
           const reviewCount = product.reviewCount ?? undefined;
           const sold = product.soldCount ?? undefined;
           const flashSale = isRec ? undefined : product.flashSale;
-          const provinceName = isRec
-            ? undefined
-            : (product.provinceName ?? undefined);
+          const provinceName = product.provinceName ?? undefined;
           const currency = isRec ? product.currency : undefined;
 
           return (
@@ -148,6 +146,7 @@ export function CheckoutRecommendations({
               sold={sold}
               flashSale={flashSale}
               provinceName={provinceName}
+              provinceCode={product.provinceCode}
               recommendationReason={reason}
               currency={currency}
             />

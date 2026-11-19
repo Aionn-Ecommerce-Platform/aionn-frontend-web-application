@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid3X3, List } from "lucide-react";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import PageLoading from "@/shared/ui/PageLoading";
 import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -243,6 +243,8 @@ function ProductsInner() {
     return m;
   }, [provinces, locale]);
 
+  const merchantProvinceById = useMerchantProvinceMap();
+
   const brandNameById = useMemo(() => {
     const m = new Map<string, string>();
     (brandPage?.content ?? []).forEach((b) => m.set(b.brandId, b.name));
@@ -287,7 +289,7 @@ function ProductsInner() {
   ]);
 
   return (
-    <div className="bg-gray-50 min-h-screen relative">
+    <div className="bg-transparent min-h-screen relative">
       {isFetching && (
         <div className="fixed top-0 left-0 right-0 h-1 bg-black/10 z-[9999] overflow-hidden">
           <div className="animate-top-loader rounded-r-full !bg-gray-950" />
@@ -431,6 +433,7 @@ function ProductsInner() {
               filtered={hasActiveFilter}
               mode={viewMode}
               provinces={provinceNameByCode}
+              merchantProvinces={merchantProvinceById}
               page={page}
               pages={totalPages}
               onPage={setPage}

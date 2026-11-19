@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Zap } from "lucide-react";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { promotionService, productService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import ProductCard from "@/components/product/ProductCard";
@@ -71,6 +71,7 @@ function getCountdownParts(ms: number): {
 
 export default function FlashSaleSection() {
   const { t } = useTranslation();
+  const merchantProvinceById = useMerchantProvinceMap();
   const { data: activeSales, isLoading: loading } = useQuery({
     queryKey: qk.activeFlashSales(1),
     queryFn: () => promotionService.getActiveFlashSales(1),
@@ -191,6 +192,7 @@ export default function FlashSaleSection() {
                 reviewCount={product.reviewCount}
                 sold={item?.soldCount ?? product.soldCount}
                 flashSale={flashSale}
+                provinceName={merchantProvinceById.get(product.merchantId)}
               />
             );
           })}
