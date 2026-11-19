@@ -48,10 +48,11 @@ export default function Pagination({
     >
       <div className="flex items-center gap-2">
         <button
-          onClick={() => handleSelect(Math.max(1, safeCurrentPage - 1))}
-          disabled={safeCurrentPage <= 1}
+          onClick={() => {
+            if (safeCurrentPage > 1) handleSelect(safeCurrentPage - 1);
+          }}
           aria-label={resolvedPrevLabel}
-          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
         >
           <ChevronLeft size={16} />
         </button>
@@ -68,8 +69,8 @@ export default function Pagination({
                   aria-current={isSelected ? "page" : undefined}
                   className={`h-9 min-w-9 px-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                      : "bg-white text-gray-800 border-2 border-gray-900 hover:bg-gray-100"
+                      ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                      : "bg-white text-gray-800 border border-gray-400 hover:border-gray-950 hover:bg-gray-100"
                   }`}
                 >
                   {pageNum}
@@ -80,10 +81,11 @@ export default function Pagination({
         </div>
 
         <button
-          onClick={() => handleSelect(Math.min(totalPages, safeCurrentPage + 1))}
-          disabled={safeCurrentPage >= totalPages}
+          onClick={() => {
+            if (safeCurrentPage < totalPages) handleSelect(safeCurrentPage + 1);
+          }}
           aria-label={resolvedNextLabel}
-          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-900 bg-white text-gray-900 transition-colors hover:bg-gray-100 disabled:opacity-30 disabled:border-gray-400 disabled:text-gray-400 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
         >
           <ChevronRight size={16} />
         </button>
