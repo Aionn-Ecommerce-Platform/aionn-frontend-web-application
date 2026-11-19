@@ -137,8 +137,7 @@ export default function ProductQA({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
+            onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
           >
             {t("common.previous")}
           </Button>
@@ -148,8 +147,10 @@ export default function ProductQA({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
+            onClick={() =>
+              page < totalPages - 1 &&
+              setPage((p) => Math.min(totalPages - 1, p + 1))
+            }
           >
             {t("common.next")}
           </Button>

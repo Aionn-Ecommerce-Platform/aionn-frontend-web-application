@@ -246,8 +246,7 @@ function MerchantReviewsInner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 0}
+                  onClick={() => page > 0 && setPage(page - 1)}
                 >
                   {t("merchant.reviews.prevPage")}
                 </Button>
@@ -260,8 +259,9 @@ function MerchantReviewsInner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= data.totalPages - 1}
+                  onClick={() =>
+                    page < data.totalPages - 1 && setPage(page + 1)
+                  }
                 >
                   {t("merchant.reviews.nextPage")}
                 </Button>

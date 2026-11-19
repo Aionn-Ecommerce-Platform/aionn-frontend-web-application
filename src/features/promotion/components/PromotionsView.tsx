@@ -263,7 +263,7 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-16">
+    <div className="bg-transparent min-h-screen pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Page Header */}
         <div>

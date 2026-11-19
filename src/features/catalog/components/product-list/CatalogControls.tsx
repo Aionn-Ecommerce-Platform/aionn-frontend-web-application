@@ -67,14 +67,13 @@ export function QuickSortTabs({
         );
       })}
 
-      {/* Price sort dropdown - matches the header LanguageSwitcher for a
-          consistent dropdown look across the app */}
+      {/* Price sort dropdown - matches the merchant province dropdown style */}
       <div className="relative" ref={priceRef}>
         <button
           type="button"
           onClick={() => setPriceOpen((v) => !v)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-            activePrice ? "text-gray-950" : "text-gray-700 hover:text-gray-900"
+          className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-gray-950 bg-white px-3.5 py-1.5 text-xs font-semibold transition-colors hover:bg-gray-50 sm:text-sm ${
+            activePrice ? "text-gray-950" : "text-gray-800"
           }`}
           aria-expanded={priceOpen}
           aria-haspopup="listbox"
@@ -84,12 +83,12 @@ export function QuickSortTabs({
           </span>
           <ChevronDown
             size={14}
-            className={`text-gray-500 transition-transform ${priceOpen ? "rotate-180" : ""}`}
+            className={`text-gray-700 transition-transform ${priceOpen ? "rotate-180" : ""}`}
           />
         </button>
 
         {priceOpen && (
-          <div className="absolute left-0 mt-2 w-44 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+          <div className="absolute left-0 z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl">
             {priceOptions.map((opt) => {
               const active = value === opt.value;
               return (
@@ -100,15 +99,15 @@ export function QuickSortTabs({
                     onChange(opt.value);
                     setPriceOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm transition-colors cursor-pointer ${
+                  className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:text-sm ${
                     active
-                      ? "bg-gray-100 text-gray-950 font-semibold"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? "bg-gray-950 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <span className="flex-1 text-left">{opt.label}</span>
                   {active && (
-                    <Check size={14} className="text-gray-950 shrink-0" />
+                    <Check size={14} className="shrink-0 text-white" />
                   )}
                 </button>
               );

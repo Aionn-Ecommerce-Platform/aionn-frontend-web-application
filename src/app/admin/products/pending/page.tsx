@@ -276,8 +276,7 @@ function AdminProductApprovalInner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 0}
+                  onClick={() => page > 0 && setPage(page - 1)}
                 >
                   {t("common.previous")}
                 </Button>
@@ -287,8 +286,7 @@ function AdminProductApprovalInner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages - 1}
+                  onClick={() => page < totalPages - 1 && setPage(page + 1)}
                 >
                   {t("common.next")}
                 </Button>

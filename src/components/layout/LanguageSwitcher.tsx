@@ -53,22 +53,23 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors"
+        className="flex items-center gap-2 rounded-full px-2 py-1.5 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-100"
         aria-label="Switch language"
         aria-expanded={open}
+        aria-haspopup="listbox"
       >
         <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
           <CurrentFlag className="w-full h-full scale-150" />
         </div>
-        <span className="font-semibold capitalize">{t(current.labelKey)}</span>
+        <span className="capitalize">{t(current.labelKey)}</span>
         <ChevronDown
           size={14}
-          className={`text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`text-gray-700 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+        <div className="absolute right-0 z-50 mt-2 w-44 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl">
           {ordered.map((lang) => {
             const Flag = lang.Flag;
             const active = lang.code === current.code;
@@ -109,10 +110,10 @@ export default function LanguageSwitcher() {
                   }
                   setOpen(false);
                 }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                   active
-                    ? "bg-gray-100 text-gray-950 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-gray-950 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
@@ -121,7 +122,9 @@ export default function LanguageSwitcher() {
                 <span className="flex-1 text-left capitalize">
                   {t(lang.labelKey)}
                 </span>
-                {active && <Check size={14} className="text-gray-950" />}
+                {active && (
+                  <Check size={14} className="shrink-0 text-white" />
+                )}
               </button>
             );
           })}

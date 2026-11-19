@@ -211,16 +211,14 @@ export function InventoryTable({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === 0}
-                onClick={() => onPageChange(Math.max(0, page - 1))}
+                onClick={() => page > 0 && onPageChange(Math.max(0, page - 1))}
               >
                 {t("common.previous")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={!hasMore}
-                onClick={() => onPageChange(page + 1)}
+                onClick={() => hasMore && onPageChange(page + 1)}
               >
                 {t("common.next")}
               </Button>

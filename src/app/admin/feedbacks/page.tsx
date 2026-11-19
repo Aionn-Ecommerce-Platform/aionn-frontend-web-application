@@ -278,16 +278,16 @@ function AdminFeedbacksInner() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
               >
                 {t("common.previous")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page + 1 >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() =>
+                  page + 1 < totalPages && setPage((p) => p + 1)
+                }
               >
                 {t("common.next")}
               </Button>
