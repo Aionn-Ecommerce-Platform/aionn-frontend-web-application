@@ -354,11 +354,12 @@ export default function MerchantStorePage({
     merchantFacetsResult?.page.totalElements ?? totalElements;
   const totalPages = Math.max(1, Math.ceil(totalElements / 48));
   const merchantOnline = presence?.online === true;
-  const merchantPresenceText = presence
-    ? presenceLabel(presence.online, presence.lastSeenAt, t)
-    : merchant.status === "ACTIVE"
-      ? t("merchantStore.active")
-      : merchant.status;
+  let merchantPresenceText: string = merchant.status;
+  if (presence) {
+    merchantPresenceText = presenceLabel(presence.online, presence.lastSeenAt, t);
+  } else if (merchant.status === "ACTIVE") {
+    merchantPresenceText = t("merchantStore.active");
+  }
 
   return (
     <div className="bg-transparent min-h-screen">

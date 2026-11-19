@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Loader2, PackageX } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -48,6 +48,54 @@ function MerchantReturnsInner() {
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["merchant-returns"] });
 
+  let content: ReactNode;
+  if (isError) {
+    content = (
+      <EmptyState
+        icon={AlertCircle}
+        title={t("common.error")}
+        description={t("common.tryAgain")}
+        action={
+          <Button variant="outline" onClick={() => refetch()}>
+            {t("common.retry")}
+          </Button>
+        }
+      />
+    );
+  } else if (isLoading) {
+    content = (
+      <div className="py-20 flex justify-center">
+        <Loader2 className="animate-spin text-blue-600" size={28} />
+      </div>
+    );
+  } else if (filtered.length === 0) {
+    content = (
+      <EmptyState
+        icon={PackageX}
+        title={t("merchant.returns.emptyTitle")}
+        description={t(
+          tab === "REQUESTED"
+            ? "merchant.returns.emptyDescRequested"
+            : "merchant.returns.emptyDescOther",
+        )}
+      />
+    );
+  } else {
+    content = (
+      <div className="space-y-3">
+        {filtered.map((item) => (
+          <ReturnCard
+            key={item.returnId}
+            rtn={item}
+            onApprove={() => setApproving(item)}
+            onReject={() => setRejecting(item)}
+            onReceive={() => setReceiving(item)}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,44 +129,7 @@ function MerchantReturnsInner() {
             })}
           </div>
         )}
-        {isError ? (
-          <EmptyState
-            icon={AlertCircle}
-            title={t("common.error")}
-            description={t("common.tryAgain")}
-            action={
-              <Button variant="outline" onClick={() => refetch()}>
-                {t("common.retry")}
-              </Button>
-            }
-          />
-        ) : isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            icon={PackageX}
-            title={t("merchant.returns.emptyTitle")}
-            description={t(
-              tab === "REQUESTED"
-                ? "merchant.returns.emptyDescRequested"
-                : "merchant.returns.emptyDescOther",
-            )}
-          />
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((item) => (
-              <ReturnCard
-                key={item.returnId}
-                rtn={item}
-                onApprove={() => setApproving(item)}
-                onReject={() => setRejecting(item)}
-                onReceive={() => setReceiving(item)}
-              />
-            ))}
-          </div>
-        )}
+        {content}
       </div>
       {approving && (
         <ApproveModal

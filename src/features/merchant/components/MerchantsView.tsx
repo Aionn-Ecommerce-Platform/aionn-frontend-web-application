@@ -31,7 +31,10 @@ function normalizeForSearch(value: string) {
     .trim();
 }
 
-function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
+function CountUp({
+  value,
+  suffix = "",
+}: Readonly<{ value: number; suffix?: string }>) {
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {

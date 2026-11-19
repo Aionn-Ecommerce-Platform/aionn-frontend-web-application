@@ -147,6 +147,16 @@ export default function ProductMainCard(props: Props) {
   const [isProtectionExpanded, setIsProtectionExpanded] = useState(false);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
+  let flashSaleStrike: string | null = strikeLabel ?? null;
+  let regularStrike: string | null = null;
+  if (strikePrice && strikePrice > displayPrice) {
+    const formatted = formatCurrency(strikePrice, displayCurrency, locale);
+    flashSaleStrike = formatted;
+    regularStrike = formatted;
+  } else if (discountPercent > 0) {
+    regularStrike = strikeLabel ?? null;
+  }
+
   useEffect(() => {
     const container = thumbnailContainerRef.current;
     if (!container) return;
@@ -378,15 +388,11 @@ export default function ProductMainCard(props: Props) {
                     <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
                       {priceLabel}
                     </span>
-                    {strikePrice && strikePrice > displayPrice ? (
+                    {flashSaleStrike && (
                       <span className="text-base sm:text-lg text-white/50 line-through">
-                        {formatCurrency(strikePrice, displayCurrency, locale)}
+                        {flashSaleStrike}
                       </span>
-                    ) : strikeLabel ? (
-                      <span className="text-base sm:text-lg text-white/50 line-through">
-                        {strikeLabel}
-                      </span>
-                    ) : null}
+                    )}
                     {discountPercent > 0 && (
                       <span className="text-xs font-bold text-white bg-fuchsia-500/25 border border-fuchsia-300/40 px-2 py-0.5 rounded-full">
                         -{discountPercent}%
@@ -426,15 +432,11 @@ export default function ProductMainCard(props: Props) {
                       >
                         {priceLabel}
                       </span>
-                      {strikePrice && strikePrice > displayPrice ? (
+                      {regularStrike && (
                         <span className="text-base sm:text-lg text-gray-400 line-through">
-                          {formatCurrency(strikePrice, displayCurrency, locale)}
+                          {regularStrike}
                         </span>
-                      ) : strikeLabel && discountPercent > 0 ? (
-                        <span className="text-base sm:text-lg text-gray-400 line-through">
-                          {strikeLabel}
-                        </span>
-                      ) : null}
+                      )}
                       {discountPercent > 0 && (
                         <span className="text-xs font-bold text-brand bg-brand/5 border border-brand/20 px-2 py-0.5 rounded-full">
                           -{discountPercent}%

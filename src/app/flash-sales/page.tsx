@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Zap } from "lucide-react";
 import { EmptyState } from "@/shared/ui";
@@ -159,23 +159,24 @@ export default function FlashSalesPage() {
   const isUpcoming = now < startMs;
   const remaining = isUpcoming ? startMs - now : endMs - now;
 
-  return (
-    <div className="bg-transparent min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-brand" size={28} />
-          </div>
-        ) : !selected ? (
-          <EmptyState
-            icon={Zap}
-            title={t("flashSales.empty")}
-            description={t("flashSales.emptyDescription")}
-          />
-        ) : (
-          <>
-            {selected && (
-              <section key={selected.campaignId} className="space-y-4">
+  let content: ReactNode;
+  if (isLoading) {
+    content = (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-brand" size={28} />
+      </div>
+    );
+  } else if (!selected) {
+    content = (
+      <EmptyState
+        icon={Zap}
+        title={t("flashSales.empty")}
+        description={t("flashSales.emptyDescription")}
+      />
+    );
+  } else {
+    content = (
+      <section key={selected.campaignId} className="space-y-4">
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
                   <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
                   <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
@@ -260,9 +261,13 @@ export default function FlashSalesPage() {
                   })}
                 </div>
               </section>
-            )}
-          </>
-        )}
+    );
+  }
+
+  return (
+    <div className="bg-transparent min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {content}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, Loader2, Store, Ticket, Zap } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "@/hooks";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import type { Voucher } from "@/types";
@@ -43,6 +44,41 @@ export default function MerchantVouchers({
         const stubGradient = isFreeship
           ? "bg-gradient-to-br from-emerald-500 to-teal-600"
           : "bg-gradient-to-br from-indigo-500 to-purple-600";
+
+        let action: ReactNode;
+        if (claimed) {
+          action = (
+            <button
+              type="button"
+              onClick={onUse}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-xs font-bold text-gray-950 transition-all hover:border-gray-950 sm:w-auto"
+            >
+              <Ticket size={14} />
+              {t("myVouchers.useNow")}
+            </button>
+          );
+        } else if (remaining <= 0) {
+          action = (
+            <span className="inline-flex w-full items-center justify-center rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-400 sm:w-auto">
+              {t("promotions.fullyClaimed")}
+            </span>
+          );
+        } else {
+          action = (
+            <button
+              type="button"
+              disabled={claimingCode === voucher.voucherCode}
+              onClick={() => onClaim(voucher.voucherCode)}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-black active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            >
+              {claimingCode === voucher.voucherCode ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                t("promotions.save")
+              )}
+            </button>
+          );
+        }
 
         return (
           <div
@@ -129,33 +165,7 @@ export default function MerchantVouchers({
               </div>
 
               <div className="shrink-0 border-t border-gray-100 pt-2 sm:border-t-0 sm:pt-0">
-                {claimed ? (
-                  <button
-                    type="button"
-                    onClick={onUse}
-                    className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-xs font-bold text-gray-950 transition-all hover:border-gray-950 sm:w-auto"
-                  >
-                    <Ticket size={14} />
-                    {t("myVouchers.useNow")}
-                  </button>
-                ) : remaining <= 0 ? (
-                  <span className="inline-flex w-full items-center justify-center rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-400 sm:w-auto">
-                    {t("promotions.fullyClaimed")}
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={claimingCode === voucher.voucherCode}
-                    onClick={() => onClaim(voucher.voucherCode)}
-                    className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-black active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                  >
-                    {claimingCode === voucher.voucherCode ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      t("promotions.save")
-                    )}
-                  </button>
-                )}
+                {action}
               </div>
             </div>
           </div>

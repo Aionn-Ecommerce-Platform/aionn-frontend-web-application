@@ -90,12 +90,12 @@ export default function PromotionsPage() {
     activeTab === "SHOP" ||
     activeTab === "SHIPPING" ||
     activeTab === "MINE";
-  const typeFilter: VoucherType | undefined =
-    activeTab === "SHIPPING"
-      ? "FREE_SHIPPING"
-      : activeTab === "PLATFORM" || activeTab === "SHOP"
-        ? "ORDER_DISCOUNT"
-        : undefined;
+  let typeFilter: VoucherType | undefined;
+  if (activeTab === "SHIPPING") {
+    typeFilter = "FREE_SHIPPING";
+  } else if (activeTab === "PLATFORM" || activeTab === "SHOP") {
+    typeFilter = "ORDER_DISCOUNT";
+  }
 
   const {
     data: allVouchers,
