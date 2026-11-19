@@ -189,7 +189,7 @@ export default function MerchantsPage() {
     : `${t("merchants.allProvinces")} (${merchants?.length ?? 0})`;
 
   return (
-    <div className="relative bg-[#F1F4F9] min-h-screen pb-16 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-32 after:bg-[#F1F4F9] after:content-['']">
+    <div className="relative bg-transparent min-h-screen pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
