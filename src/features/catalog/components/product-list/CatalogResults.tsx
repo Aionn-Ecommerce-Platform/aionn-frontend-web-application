@@ -93,11 +93,14 @@ export default function CatalogResults(props: Props) {
             : 0);
           const originalPrice = lowestVariant?.originalPrice;
           const image = product.imageList[0] ?? "/images/logo.png";
-          const province = product.provinceCode
-            ? props.provinces.get(product.provinceCode)
-            : product.provinceName
+          const province =
+            (product.provinceCode
+              ? props.provinces.get(product.provinceCode)
+              : undefined) ??
+            (product.provinceName
               ? cleanProvinceName(product.provinceName)
-              : props.merchantProvinces.get(product.merchantId);
+              : undefined) ??
+            props.merchantProvinces.get(product.merchantId);
 
           if (props.mode === "grid")
             return (
@@ -171,13 +174,7 @@ export default function CatalogResults(props: Props) {
                     ) : null}
                   </div>
                   {discount > 0 && (
-                    <span
-                      className={`font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-md ml-auto ${
-                        product.flashSale
-                          ? "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white"
-                          : "bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white"
-                      }`}
-                    >
+                    <span className="ml-auto rounded-full bg-gradient-to-r from-fuchsia-600 to-purple-700 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-md">
                       -{discount}%
                     </span>
                   )}
@@ -266,7 +263,12 @@ export default function CatalogResults(props: Props) {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Previous page"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
+            aria-disabled={props.page <= 0 || undefined}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+              props.page <= 0
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+            }`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -302,7 +304,12 @@ export default function CatalogResults(props: Props) {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             aria-label="Next page"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
+            aria-disabled={props.page + 1 >= props.pages || undefined}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+              props.page + 1 >= props.pages
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+            }`}
           >
             <ChevronRight size={16} />
           </button>
