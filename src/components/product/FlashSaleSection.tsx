@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Zap } from "lucide-react";
-import { useTranslation } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { promotionService, productService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import ProductCard from "@/components/product/ProductCard";
@@ -71,6 +71,7 @@ function getCountdownParts(ms: number): {
 
 export default function FlashSaleSection() {
   const { t } = useTranslation();
+  const merchantProvinceById = useMerchantProvinceMap();
   const { data: activeSales, isLoading: loading } = useQuery({
     queryKey: qk.activeFlashSales(1),
     queryFn: () => promotionService.getActiveFlashSales(1),
@@ -191,12 +192,17 @@ export default function FlashSaleSection() {
                 reviewCount={product.reviewCount}
                 sold={item?.soldCount ?? product.soldCount}
                 flashSale={flashSale}
+                provinceName={
+                  product.provinceName ??
+                  merchantProvinceById.get(product.merchantId)
+                }
+                provinceCode={product.provinceCode}
               />
             );
           })}
         </div>
         <div className="mt-8 flex justify-center">
-          <Link href={`/products?onSale=true`}>
+          <Link href="/flash-sales">
             <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white text-white hover:text-gray-950 font-semibold backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
               {t("home.viewAllFlashSale")}
               <ArrowRight size={18} />

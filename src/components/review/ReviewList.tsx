@@ -154,10 +154,14 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
         <div className="flex items-center justify-center gap-1.5 pt-6">
           <button
             type="button"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
+            onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
             aria-label={t("common.previous")}
-            className="h-8.5 px-2.5 border border-gray-400 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            aria-disabled={page <= 0 || undefined}
+            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+              page <= 0
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+            }`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -168,8 +172,8 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               onClick={() => setPage(i)}
               className={`min-w-8.5 h-8.5 px-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                 page === i
-                  ? "bg-gray-950 text-white shadow-xs font-semibold"
-                  : "border border-gray-400 text-gray-700 hover:bg-gray-50"
+                  ? "bg-gray-950 text-white shadow-xs font-semibold border border-gray-950"
+                  : "border border-gray-400 text-gray-700 hover:bg-gray-50 hover:border-gray-950"
               }`}
             >
               {i + 1}
@@ -178,11 +182,16 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
           <button
             type="button"
             onClick={() =>
+              page < Math.max(1, totalPages) - 1 &&
               setPage((p) => Math.min(Math.max(1, totalPages) - 1, p + 1))
             }
-            disabled={page >= Math.max(1, totalPages) - 1}
             aria-label={t("common.next")}
-            className="h-8.5 px-2.5 border border-gray-400 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors cursor-pointer"
+            aria-disabled={page >= Math.max(1, totalPages) - 1 || undefined}
+            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+              page >= Math.max(1, totalPages) - 1
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+            }`}
           >
             <ChevronRight size={16} />
           </button>

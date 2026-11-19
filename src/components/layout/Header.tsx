@@ -551,7 +551,7 @@ export default function Header() {
             >
               <Search
                 size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-950 pointer-events-none z-10"
               />
               <input
                 ref={searchInputRef}
@@ -560,7 +560,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-11 pr-22 py-2.5 rounded-full bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-xs"
+                className="w-full pl-11 pr-22 py-2.5 rounded-full bg-white text-sm text-gray-900 placeholder:text-gray-400 placeholder:font-thin border border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button

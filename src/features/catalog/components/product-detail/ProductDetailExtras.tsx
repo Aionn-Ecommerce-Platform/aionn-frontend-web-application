@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { merchantService } from "@/lib/services";
 import Link from "next/link";
-import { Heart, Loader2, MessageCircle, Star, Store } from "lucide-react";
-import { AppImage, ImageLightbox, Modal } from "@/shared/ui";
+import { Heart, Loader2, Star, Store } from "lucide-react";
+import { AppImage, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import ProductQA from "@/components/product/ProductQA";
 import { ReviewList, SubmitReviewForm } from "@/components/review";
@@ -22,10 +22,8 @@ interface Props {
   locale: Locale;
   eligibility?: { canReview: boolean; reason?: string | null };
   reviewOpen?: boolean;
-  chatLoading: boolean;
   relatedLoading: boolean;
   related?: Array<RecommendationItem | Product>;
-  onChat: () => void;
   onReviewOpen?: (open: boolean) => void;
   t: T;
 }
@@ -37,15 +35,12 @@ export default function ProductDetailExtras(props: Props) {
     authenticated: isAuthenticated,
     locale: _locale,
     eligibility,
-    chatLoading,
     relatedLoading,
     related: relatedProducts,
-    onChat: handleStartChat,
     t,
   } = props;
 
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [previewLogo, setPreviewLogo] = useState(false);
   const qc = useQueryClient();
 
   const { data: storefrontStats, isLoading: storefrontStatsLoading } = useQuery({
@@ -159,10 +154,9 @@ export default function ProductDetailExtras(props: Props) {
       <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-7 mt-6 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
         <div className="flex items-stretch gap-4">
           {merchant?.logoUrl ? (
-            <button
-              type="button"
-              onClick={() => setPreviewLogo(true)}
-              className="w-[72px] h-[72px] self-start rounded-full overflow-hidden border border-gray-400 shadow-xs bg-gray-50 shrink-0 cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-gray-950"
+            <Link
+              href={`/merchants/${product.merchantId}`}
+              className="w-[72px] h-[72px] self-start rounded-full overflow-hidden border border-gray-400 shadow-xs bg-gray-50 shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-950"
               aria-label={merchant.name || t("products.storeLabel")}
             >
               <AppImage
@@ -170,43 +164,28 @@ export default function ProductDetailExtras(props: Props) {
                 alt={merchant.name || t("products.storeLabel")}
                 className="w-full h-full object-cover"
               />
-            </button>
+            </Link>
           ) : (
-            <div className="w-[72px] h-[72px] self-start rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0">
+            <Link
+              href={`/merchants/${product.merchantId}`}
+              aria-label={merchant?.name || t("products.storeLabel")}
+              className="w-[72px] h-[72px] self-start rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 flex items-center justify-center text-white text-xl font-bold shadow-xs shrink-0 cursor-pointer"
+            >
               {merchant?.name?.charAt(0).toUpperCase() ?? "M"}
-            </div>
+            </Link>
           )}
           <div className="flex flex-col justify-between">
             <h3 className="text-base font-bold text-gray-900">
               {merchant?.name ?? t("products.storeLabel")}
             </h3>
             <div className="mt-3 flex items-center gap-2.5 flex-wrap">
-              <button
-                type="button"
-                className="h-9 px-4 text-xs font-semibold bg-gray-950 text-white hover:bg-black active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center disabled:opacity-50 select-none"
-                onClick={handleStartChat}
-                disabled={chatLoading}
-              >
-                {chatLoading ? (
-                  <Loader2
-                    size={14}
-                    className="mr-1.5 shrink-0 animate-spin text-white"
-                  />
-                ) : (
-                  <MessageCircle
-                    size={14}
-                    className="mr-1.5 shrink-0 text-white"
-                  />
-                )}
-                <span>{t("productDetail.chatNow")}</span>
-              </button>
               <Link href={`/merchants/${product.merchantId}`}>
                 <button
                   type="button"
-                  className="h-9 px-4 text-xs font-semibold border border-gray-950 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-950 active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none"
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-gray-950 bg-gray-950 px-4 text-xs font-semibold text-white shadow-xs transition-all hover:border-neutral-800 hover:bg-neutral-800 active:scale-95 cursor-pointer select-none"
                 >
-                  <Store size={14} className="mr-1.5 shrink-0 text-gray-500" />
-                  <span>{t("products.viewStore")}</span>
+                  <Store size={14} className="shrink-0" />
+                  <span>{t("merchantStore.viewShop")}</span>
                 </button>
               </Link>
               <button
@@ -215,8 +194,8 @@ export default function ProductDetailExtras(props: Props) {
                 disabled={followMutation.isPending || storefrontStatsLoading || !storefrontStats}
                 className={`h-9 px-4 text-xs font-semibold border transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none disabled:opacity-50 ${
                   storefrontStats?.following
-                    ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                    : "border-gray-950 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-950 hover:border-gray-950"
+                    ? "border-brand/30 bg-brand/10 text-brand hover:bg-brand/15"
+                    : "border-brand bg-brand text-white hover:bg-brand-strong hover:border-brand-strong"
                 }`}
               >
                 {followMutation.isPending ? (
@@ -226,8 +205,8 @@ export default function ProductDetailExtras(props: Props) {
                     size={14}
                     className={`mr-1.5 shrink-0 ${
                       storefrontStats?.following
-                        ? "fill-rose-500 text-rose-500"
-                        : "text-gray-500"
+                        ? "fill-brand text-brand"
+                        : "fill-white text-white"
                     }`}
                   />
                 )}
@@ -336,6 +315,8 @@ export default function ProductDetailExtras(props: Props) {
                   sold={sold}
                   flashSale={flashSale}
                   recommendationReason={recommendationReason}
+                  provinceName={p.provinceName}
+                  provinceCode={p.provinceCode}
                   currency={currency}
                 />
               );
@@ -343,12 +324,6 @@ export default function ProductDetailExtras(props: Props) {
           </div>
         </section>
       )}
-
-      <ImageLightbox
-        src={previewLogo ? (merchant?.logoUrl ?? null) : null}
-        alt={merchant?.name ?? t("products.storeLabel")}
-        onClose={() => setPreviewLogo(false)}
-      />
     </>
   );
 }

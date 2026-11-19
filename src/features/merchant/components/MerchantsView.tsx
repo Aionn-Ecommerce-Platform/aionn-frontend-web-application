@@ -2,17 +2,112 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Store, MapPin, Loader2, Calendar } from "lucide-react";
+import {
+  Store,
+  MapPin,
+  Loader2,
+  Calendar,
+  ChevronDown,
+  Search,
+  X,
+} from "lucide-react";
 import { useTranslation } from "@/hooks";
 import { formatMonthYear } from "@/shared/lib/utils";
 import { merchantService, geographyService } from "@/lib/services";
-import { EmptyState } from "@/shared/ui";
+import { EmptyState, Pagination } from "@/shared/ui";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
+
+const MERCHANT_PAGE_SIZE = 12;
+
+function normalizeForSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
+function CountUp({
+  value,
+  suffix = "",
+}: Readonly<{ value: number; suffix?: string }>) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = reducedMotion ? 0 : 900;
+
+    let frame = 0;
+    const startedAt = performance.now();
+
+    const tick = (now: number) => {
+      const progress =
+        duration <= 0 ? 1 : Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    // Background tabs pause requestAnimationFrame; make sure the final value
+    // still lands even if the counter never paints a frame.
+    const settle = window.setTimeout(
+      () => setDisplay(value),
+      duration + 120,
+    );
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+    };
+  }, [value]);
+
+  return (
+    <span>
+      {display}
+      {suffix}
+    </span>
+  );
+}
 
 export default function MerchantsPage() {
   const { t, locale } = useTranslation();
+  const [selectedProvince, setSelectedProvince] = useState("all");
+  const [provinceOpen, setProvinceOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const deferredSearch = useDeferredValue(searchTerm);
+  const provinceDropdownRef = useRef<HTMLDivElement>(null);
+  const provinceTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!provinceOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!provinceDropdownRef.current?.contains(event.target as Node)) {
+        setProvinceOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProvinceOpen(false);
+        provinceTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [provinceOpen]);
 
   const {
     data: merchants,
@@ -21,34 +116,268 @@ export default function MerchantsPage() {
   } = useQuery({
     queryKey: ["merchants", "list"],
     queryFn: async () => {
-      const res = await merchantService.list(0, 50);
+      const res = await merchantService.list(0, 100);
       return res ?? [];
     },
   });
 
   const { data: provinces } = useQuery({
-    queryKey: ["geography", "provinces", "VN"],
+    queryKey: ["geography", "provinces", "VN", "v2"],
     queryFn: () => geographyService.listProvinces("VN"),
     staleTime: 60 * 60_000,
   });
 
+  const activeProvinces = useMemo(
+    () => (provinces ?? []).filter((p) => !p.code.startsWith("VN-")),
+    [provinces],
+  );
+
   const provinceNameByCode = useMemo(() => {
     const m = new Map<string, string>();
-    (provinces ?? []).forEach((p) => {
+    activeProvinces.forEach((p) => {
       const name = locale === "en" && p.nameEn ? p.nameEn : p.name;
       m.set(p.code, cleanProvinceName(name));
     });
     return m;
-  }, [provinces, locale]);
+  }, [activeProvinces, locale]);
+
+  const provinceOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const merchant of merchants ?? []) {
+      const key =
+        merchant.provinceCode ||
+        cleanProvinceName(merchant.provinceName ?? "") ||
+        "unknown";
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([key, count]) => ({
+        key,
+        count,
+        label:
+          key === "unknown"
+            ? t("merchants.otherProvince")
+            : provinceNameByCode.get(key) ?? cleanProvinceName(key),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, locale));
+  }, [merchants, provinceNameByCode, t, locale]);
+
+  const filteredMerchants = useMemo(() => {
+    const query = normalizeForSearch(deferredSearch);
+    return (merchants ?? []).filter((merchant) => {
+      if (selectedProvince !== "all") {
+        const key =
+          merchant.provinceCode ||
+          cleanProvinceName(merchant.provinceName ?? "") ||
+          "unknown";
+        if (key !== selectedProvince) return false;
+      }
+      if (!query) return true;
+      const haystack = normalizeForSearch(
+        `${merchant.name ?? ""} ${merchant.description ?? ""}`,
+      );
+      return haystack.includes(query);
+    });
+  }, [merchants, selectedProvince, deferredSearch]);
+
+  const totalPages = Math.ceil(filteredMerchants.length / MERCHANT_PAGE_SIZE);
+  const safePage = Math.min(Math.max(currentPage, 1), Math.max(totalPages, 1));
+  const pageStart = (safePage - 1) * MERCHANT_PAGE_SIZE;
+  const visibleMerchants = filteredMerchants.slice(
+    pageStart,
+    pageStart + MERCHANT_PAGE_SIZE,
+  );
+
+  const selectedProvinceOption = provinceOptions.find(
+    (option) => option.key === selectedProvince,
+  );
+  const provinceButtonLabel = selectedProvinceOption
+    ? `${selectedProvinceOption.label} (${selectedProvinceOption.count})`
+    : `${t("merchants.allProvinces")} (${merchants?.length ?? 0})`;
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="relative bg-transparent min-h-screen pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("merchants.title")}
           </h1>
         </div>
+
+        <section className="relative">
+          <div className="grid items-center gap-4 md:grid-cols-[1.15fr_0.85fr]">
+            <div className="relative h-[340px] w-full sm:h-[460px] md:h-[620px]">
+              <Image
+                src="/images/provinceovervn.png"
+                alt={t("merchants.heroImageAlt")}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 60vw"
+                className="scale-[1.08] object-contain"
+                style={{
+                  maskImage:
+                    "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 6%, #000 14%, #000 86%, rgba(0,0,0,0.5) 94%, transparent 100%), linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 4%, #000 8%, #000 92%, rgba(0,0,0,0.5) 96%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 6%, #000 14%, #000 86%, rgba(0,0,0,0.5) 94%, transparent 100%), linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 4%, #000 8%, #000 92%, rgba(0,0,0,0.5) 96%, transparent 100%)",
+                  maskComposite: "intersect",
+                  WebkitMaskComposite: "source-in",
+                  mixBlendMode: "darken",
+                }}
+              />
+            </div>
+            <div className="flex flex-col justify-center p-2 sm:p-6 md:p-8">
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-950 sm:text-3xl">
+                {t("merchants.heroTitle")}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600 sm:text-base">
+                {t("merchants.heroDesc")}
+              </p>
+              <div className="mt-8 flex w-full items-center justify-center gap-12">
+                <div className="text-center">
+                  <div className="text-4xl font-black text-brand sm:text-5xl">
+                    <CountUp value={merchants?.length ?? 0} suffix="+" />
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-gray-500">
+                    {t("merchants.heroMerchants")}
+                  </div>
+                </div>
+                <div className="h-12 w-px bg-gray-300" />
+                <div className="text-center">
+                  <div className="text-4xl font-black text-brand sm:text-5xl">
+                    <CountUp value={activeProvinces.length} />
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-gray-500">
+                    {t("merchants.heroProvinces")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {!isLoading && !error && (merchants?.length ?? 0) > 0 && (
+          <div
+            id="merchant-list"
+            className="flex flex-col gap-3 scroll-mt-24 sm:flex-row sm:items-center"
+          >
+            <div
+              ref={provinceDropdownRef}
+              className="relative w-full shrink-0 sm:w-64 lg:w-72"
+            >
+              <button
+                ref={provinceTriggerRef}
+                type="button"
+                onClick={() => setProvinceOpen((open) => !open)}
+                aria-haspopup="listbox"
+                aria-expanded={provinceOpen}
+                className="flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-full border border-gray-950 bg-white px-4 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/20"
+              >
+                <span className="truncate">{provinceButtonLabel}</span>
+                <ChevronDown
+                  size={16}
+                  className={`shrink-0 transition-transform duration-200 ${
+                    provinceOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {provinceOpen && (
+                <ul
+                  role="listbox"
+                  aria-label={t("merchants.allProvinces")}
+                  className="absolute left-0 z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"
+                >
+                  <li>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={selectedProvince === "all"}
+                      onClick={() => {
+                        setSelectedProvince("all");
+                        setCurrentPage(1);
+                        setProvinceOpen(false);
+                        provinceTriggerRef.current?.focus();
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:text-sm ${
+                        selectedProvince === "all"
+                          ? "bg-gray-950 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <span>{t("merchants.allProvinces")}</span>
+                      <span className="text-[11px] opacity-60">
+                        {merchants?.length ?? 0}
+                      </span>
+                    </button>
+                  </li>
+                  {provinceOptions.map((option) => {
+                    const active = option.key === selectedProvince;
+                    return (
+                      <li key={option.key}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={active}
+                          onClick={() => {
+                            setSelectedProvince(option.key);
+                            setCurrentPage(1);
+                            setProvinceOpen(false);
+                            provinceTriggerRef.current?.focus();
+                          }}
+                          className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:text-sm ${
+                            active
+                              ? "bg-gray-950 text-white"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          <span className="truncate">{option.label}</span>
+                          <span
+                            className={`ml-2 shrink-0 text-[11px] ${
+                              active ? "text-white/70" : "text-gray-400"
+                            }`}
+                          >
+                            {option.count}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="relative w-full sm:flex-1">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-950"
+              />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder={t("merchants.searchPlaceholder")}
+                aria-label={t("merchants.searchPlaceholder")}
+                className="h-10 w-full rounded-full border border-gray-950 bg-white pl-10 pr-10 text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-thin transition-colors focus:outline-none focus:ring-2 focus:ring-brand/20"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCurrentPage(1);
+                  }}
+                  aria-label={t("merchants.clearSearch")}
+                  className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {isLoading && (
           <div className="min-h-[40vh] flex items-center justify-center">
@@ -72,9 +401,24 @@ export default function MerchantsPage() {
           />
         )}
 
-        {!isLoading && !error && merchants && merchants.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {merchants.map((merchant) => {
+        {!isLoading &&
+          !error &&
+          (merchants?.length ?? 0) > 0 &&
+          filteredMerchants.length === 0 && (
+            <EmptyState
+              icon={Search}
+              title={t("merchants.noResultsTitle")}
+              description={t("merchants.noResultsDesc")}
+              iconWrapperClassName="bg-transparent"
+              iconClassName="text-gray-950"
+              iconSize={40}
+            />
+          )}
+
+        {!isLoading && !error && filteredMerchants.length > 0 && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {visibleMerchants.map((merchant) => {
               const initial = merchant.name?.charAt(0).toUpperCase() ?? "M";
 
               const formattedDate = merchant.createdAt
@@ -88,64 +432,67 @@ export default function MerchantsPage() {
                   : undefined;
 
               return (
-                <div
+                <Link
                   key={merchant.merchantId}
-                  className="bg-white rounded-2xl border border-gray-400 hover:border-gray-950 shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                  href={`/merchants/${merchant.merchantId}`}
+                  className="group flex cursor-pointer flex-col justify-between rounded-lg border border-gray-400 bg-white p-4 transition-colors hover:border-gray-950"
                 >
-                  <div className="p-6">
-                    <div className="flex items-center gap-4">
+                  <div>
+                    <div className="flex items-start gap-3">
                       {merchant.logoUrl ? (
-                        <div className="w-14 h-14 relative rounded-full overflow-hidden border border-gray-200 shadow-2xs shrink-0">
+                        <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-gray-200">
                           <Image
                             src={merchant.logoUrl}
                             alt={merchant.name}
                             fill
-                            sizes="56px"
+                            sizes="60px"
                             className="object-cover"
                           />
                         </div>
                       ) : (
-                        <div className="w-14 h-14 rounded-full bg-gray-950 flex items-center justify-center text-white text-xl font-bold shadow-2xs shrink-0">
+                        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-gray-950 text-lg font-bold text-white">
                           {initial}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h2 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors truncate">
+                        <h2 className="truncate text-base font-bold text-gray-900 transition-colors group-hover:text-black">
                           {merchant.name}
                         </h2>
                         {displayProvince && (
-                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 font-medium">
-                            <MapPin size={12} className="text-gray-400 shrink-0" />
+                          <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
+                            <MapPin size={11} className="shrink-0 text-red-500" />
                             <span className="truncate">{displayProvince}</span>
                           </p>
                         )}
+                        <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
+                          <Calendar size={11} className="shrink-0 text-amber-500" />
+                          {formattedDate}
+                        </p>
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-600 mt-4 line-clamp-3 min-h-[3.75rem] leading-relaxed">
+                    <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-gray-600">
                       {merchant.description || t("merchants.noDescription")}
                     </p>
                   </div>
-
-                  <div className="relative overflow-hidden px-6 py-4 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 border-t border-purple-800/40 flex items-center justify-between text-xs text-purple-200">
-                    <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-fuchsia-600/20 blur-2xl pointer-events-none" />
-                    <span className="relative z-10 flex items-center gap-1.5 font-medium">
-                      <Calendar size={13} className="text-purple-300" />
-                      {t("merchants.activeSince")} {formattedDate}
-                    </span>
-                    <Link href={`/merchants/${merchant.merchantId}`} className="relative z-10">
-                      <button
-                        type="button"
-                        className="px-4 py-1.5 text-xs font-semibold rounded-full border border-white/20 bg-white/10 text-white hover:bg-white hover:text-purple-950 transition-all shadow-xs cursor-pointer"
-                      >
-                        {t("merchants.visit")}
-                      </button>
-                    </Link>
-                  </div>
-                </div>
+                </Link>
               );
             })}
-          </div>
+            </div>
+
+            <Pagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                document
+                  .getElementById("merchant-list")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              scrollToTop={false}
+              ariaLabel={t("common.pagination")}
+            />
+          </>
         )}
       </div>
     </div>

@@ -109,7 +109,7 @@ function ReturnsInner() {
                             {t("orders.returns.createdAt").replace(
                               "{date}",
                               formatDateTime(
-                                r.createdAt,
+                                r.requestedAt,
                                 locale === "vi" ? "vi-VN" : "en-US",
                               ),
                             )}
@@ -143,10 +143,10 @@ function ReturnsInner() {
                         </p>
                       )}
 
-                      {r.status === "REJECTED" && r.rejectReason && (
+                      {r.status === "REJECTED" && r.rejectionReason && (
                         <p className="mt-2 text-sm text-red-600">
                           {t("orders.returns.rejectReasonLabel")}:{" "}
-                          {r.rejectReason}
+                          {r.rejectionReason}
                         </p>
                       )}
                     </div>

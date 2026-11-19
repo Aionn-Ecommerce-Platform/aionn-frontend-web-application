@@ -25,6 +25,7 @@ export { categoryService } from "./category.service";
 export { collectionService } from "./collection.service";
 export type { Collection } from "./collection.service";
 export { merchantService } from "./merchant.service";
+export { presenceService } from "./presence.service";
 export { brandService } from "./brand.service";
 export { attributeTemplateService } from "./attribute-template.service";
 

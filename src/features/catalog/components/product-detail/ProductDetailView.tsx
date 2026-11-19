@@ -12,7 +12,6 @@ import { qk } from "@/lib/query-keys";
 import {
   productService,
   recommendationService,
-  conversationService,
   addressService,
   shippingService,
   inventoryService,
@@ -141,7 +140,6 @@ export default function ProductDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [adding, setAdding] = useState(false);
-  const [chatLoading, setChatLoading] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const { data: eligibility } = useQuery({
@@ -335,7 +333,7 @@ export default function ProductDetailPage({
 
   if (error || !product) {
     return (
-      <div className="bg-gray-50 min-h-screen py-12">
+      <div className="bg-transparent min-h-screen py-12">
         <EmptyState
           icon={PackageX}
           title={t("products.notFound")}
@@ -406,7 +404,10 @@ export default function ProductDetailPage({
     ? Math.max(...variantOriginals)
     : undefined;
   const strikeRangeLabel =
-    !currentVariant && minOriginal != null && maxOriginal != null
+    !currentVariant &&
+    minOriginal != null &&
+    maxOriginal != null &&
+    minOriginal > minDisplayPrice
       ? minOriginal !== maxOriginal
         ? `${formatCurrency(minOriginal, displayCurrency)} - ${formatCurrency(maxOriginal, displayCurrency)}`
         : formatCurrency(minOriginal, displayCurrency)
@@ -435,19 +436,18 @@ export default function ProductDetailPage({
     : null;
 
   const handleAddToCart = async (): Promise<boolean> => {
+    if (!isAuthenticated) {
+      router.push(
+        `/auth/login?redirect=${encodeURIComponent(
+          product ? productPath(product) : `/products/${id}`,
+        )}`,
+      );
+      return false;
+    }
     if (!currentVariant) {
       toast.error(
         t("products.selectVariantNotice"),
       );
-      return false;
-    }
-    if (!isAuthenticated) {
-      toast.error(t("products.loginRequiredToAddCart"));
-      router.push(
-      `/auth/login?redirect=${encodeURIComponent(
-        product ? productPath(product) : `/products/${id}`,
-      )}`,
-    );
       return false;
     }
     setAdding(true);
@@ -480,41 +480,23 @@ export default function ProductDetailPage({
   };
 
   const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      router.push(
+        `/auth/login?redirect=${encodeURIComponent(
+          product ? productPath(product) : `/products/${id}`,
+        )}`,
+      );
+      return;
+    }
     if (!currentVariant) {
       toast.error(
         t("products.selectVariantNotice"),
       );
       return;
     }
-    if (!isAuthenticated) {
-      router.push(
-      `/auth/login?redirect=${encodeURIComponent(
-        product ? productPath(product) : `/products/${id}`,
-      )}`,
-    );
-      return;
-    }
     const added = await handleAddToCart();
     if (added) {
       router.push("/cart");
-    }
-  };
-
-  const handleStartChat = async () => {
-    if (!isAuthenticated) {
-      router.push("/auth/login?redirect=/chat");
-      return;
-    }
-    setChatLoading(true);
-    try {
-      const conv = await conversationService.start({
-        merchantId: product.merchantId,
-      });
-      router.push(`/chat?conversationId=${conv.conversationId}`);
-    } catch {
-      toast.error(t("products.cannotStartChat"));
-    } finally {
-      setChatLoading(false);
     }
   };
 
@@ -529,7 +511,7 @@ export default function ProductDetailPage({
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link href="/" className="hover:text-blue-600">
@@ -587,10 +569,8 @@ export default function ProductDetailPage({
           locale={locale}
           eligibility={eligibility}
           reviewOpen={showReviewForm}
-          chatLoading={chatLoading}
           relatedLoading={relatedLoading}
           related={relatedProducts}
-          onChat={handleStartChat}
           onReviewOpen={setShowReviewForm}
           t={t}
         />{" "}

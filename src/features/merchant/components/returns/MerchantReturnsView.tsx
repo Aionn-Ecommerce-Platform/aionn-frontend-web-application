@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, PackageX } from "lucide-react";
+import { AlertCircle, Loader2, PackageX } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { EmptyState } from "@/shared/ui";
+import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { orderReturnService } from "@/lib/services";
 import type { OrderReturn } from "@/types";
@@ -37,15 +37,64 @@ function MerchantReturnsInner() {
   const [approving, setApproving] = useState<OrderReturn | null>(null);
   const [rejecting, setRejecting] = useState<OrderReturn | null>(null);
   const [receiving, setReceiving] = useState<OrderReturn | null>(null);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["merchant-returns"],
     queryFn: () => orderReturnService.listForMerchant(100),
+    retry: false,
   });
   const returns = data ?? [];
   const filtered =
     tab === "all" ? returns : returns.filter((item) => item.status === tab);
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["merchant-returns"] });
+
+  let content: ReactNode;
+  if (isError) {
+    content = (
+      <EmptyState
+        icon={AlertCircle}
+        title={t("common.error")}
+        description={t("common.tryAgain")}
+        action={
+          <Button variant="outline" onClick={() => refetch()}>
+            {t("common.retry")}
+          </Button>
+        }
+      />
+    );
+  } else if (isLoading) {
+    content = (
+      <div className="py-20 flex justify-center">
+        <Loader2 className="animate-spin text-blue-600" size={28} />
+      </div>
+    );
+  } else if (filtered.length === 0) {
+    content = (
+      <EmptyState
+        icon={PackageX}
+        title={t("merchant.returns.emptyTitle")}
+        description={t(
+          tab === "REQUESTED"
+            ? "merchant.returns.emptyDescRequested"
+            : "merchant.returns.emptyDescOther",
+        )}
+      />
+    );
+  } else {
+    content = (
+      <div className="space-y-3">
+        {filtered.map((item) => (
+          <ReturnCard
+            key={item.returnId}
+            rtn={item}
+            onApprove={() => setApproving(item)}
+            onReject={() => setRejecting(item)}
+            onReceive={() => setReceiving(item)}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -56,55 +105,31 @@ function MerchantReturnsInner() {
         <p className="text-gray-500 text-sm mb-6">
           {t("merchant.returns.subtitle")}
         </p>
-        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
-          {TAB_KEYS.map((key) => {
-            const count =
-              key === "all"
-                ? returns.length
-                : returns.filter((item) => item.status === key).length;
-            return (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${tab === key ? "text-blue-600 border-blue-600" : "text-gray-500 border-transparent hover:text-gray-700"}`}
-              >
-                {t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`)}
-                {count > 0 && (
-                  <span className="ml-1.5 text-xs text-gray-400">
-                    ({count})
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            icon={PackageX}
-            title={t("merchant.returns.emptyTitle")}
-            description={t(
-              tab === "REQUESTED"
-                ? "merchant.returns.emptyDescRequested"
-                : "merchant.returns.emptyDescOther",
-            )}
-          />
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((item) => (
-              <ReturnCard
-                key={item.returnId}
-                rtn={item}
-                onApprove={() => setApproving(item)}
-                onReject={() => setRejecting(item)}
-                onReceive={() => setReceiving(item)}
-              />
-            ))}
+        {!isError && (
+          <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
+            {TAB_KEYS.map((key) => {
+              const count =
+                key === "all"
+                  ? returns.length
+                  : returns.filter((item) => item.status === key).length;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${tab === key ? "text-blue-600 border-blue-600" : "text-gray-500 border-transparent hover:text-gray-700"}`}
+                >
+                  {t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`)}
+                  {count > 0 && (
+                    <span className="ml-1.5 text-xs text-gray-400">
+                      ({count})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
+        {content}
       </div>
       {approving && (
         <ApproveModal

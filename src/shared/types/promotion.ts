@@ -35,6 +35,7 @@ export interface Voucher {
   type: VoucherType;
   discountAmount: number;
   currency: string;
+  minOrderValue?: number | null;
   usageLimit: number;
   usedCount: number;
   reservedCount: number;

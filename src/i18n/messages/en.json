@@ -514,12 +514,21 @@
     "location": "Location",
     "notUpdated": "Not updated",
     "active": "Active",
+    "onlineNow": "Online now",
+    "lastSeenJustNow": "Active just now",
+    "lastSeenMinutes": "Active {count} minutes ago",
+    "lastSeenHours": "Active {count} hours ago",
+    "lastSeenDays": "Active {count} days ago",
+    "offline": "No activity yet",
     "discount": "Save {amount}",
     "code": "Code:",
     "codeValue": "Code: {code}",
     "categories": "Store categories",
     "allProducts": "All products",
     "allStoreProducts": "All store products",
+    "searchProducts": "Search this store...",
+    "productsTab": "Products",
+    "vouchersTab": "Store vouchers",
     "categoryEmpty": "No products in this category",
     "categoryEmptyDescription": "Choose another category or check back later.",
     "joined": "Joined",
@@ -529,10 +538,10 @@
     "followers": "Followers",
     "follow": "Follow",
     "following": "Following",
-    "loginRequiredToFollow": "Log in to follow this shop",
-    "viewShop": "View shop",
-    "followed": "Shop followed",
-    "unfollowed": "Shop unfollowed",
+    "loginRequiredToFollow": "Log in to follow this store",
+    "viewShop": "View store",
+    "followed": "Store followed",
+    "unfollowed": "Store unfollowed",
     "followError": "Could not update follow state",
     "responseTime": {
       "MINUTES": "within minutes",
@@ -604,7 +613,7 @@
     "buyerProtection": "Buyer protection",
     "freeReturns15Days": "Free 15-day returns",
     "lateDeliveryVoucher": "Get a 15,000₫ voucher if delivery is late",
-    "buyerProtectionTitle": "Shop with peace of mind on Aionn",
+    "buyerProtectionTitle": "Buy with peace of mind on Aionn",
     "freeReturnsDescription": "Free 15-day returns for all products purchased on Aionn. In addition, inspection upon delivery is fully supported.",
     "stockAvailable": "{count} products available",
     "outOfStock": "Out of stock",
@@ -677,6 +686,8 @@
   "myVouchers": {
     "title": "My Voucher Wallet",
     "subtitle": "Manage and apply discount vouchers and shipping discounts to your orders.",
+    "dailyClaimLimitReached": "You have reached today's voucher claim limit. Please come back tomorrow.",
+    "walletLimitReached": "Your voucher wallet is full. Use or remove some vouchers before claiming more.",
     "emptyTitle": "No vouchers in this category",
     "emptyDescription": "You don't have any vouchers in this tab yet. Explore promotions to claim vouchers now!",
     "discountApplied": "Discount applied: {amount}",
@@ -700,7 +711,7 @@
     "noMinOrder": "No minimum order",
     "validUntil": "Exp: {date}",
     "platformScope": "Platform",
-    "shopScope": "Shop",
+    "shopScope": "Store",
     "freeshipScope": "Free Shipping",
     "exploreMore": "Explore deals",
     "claimSuccess": "Voucher saved to your wallet successfully!"
@@ -905,6 +916,7 @@
     "emptyDescription": "Check back later so you do not miss the next drop.",
     "endsAt": "Ends: {date}",
     "endsIn": "ENDS IN",
+    "startsIn": "STARTS IN",
     "sold": "{sold}/{stock} sold",
     "soldOf": "{sold}/{total} sold"
   },
@@ -945,7 +957,7 @@
     "categories": "Categories",
     "promotions": "Promotions",
     "flashSales": "Flash sale",
-    "shops": "Shops",
+    "shops": "Stores",
     "continue": "Continue",
     "cancel": "Cancel",
     "save": "Save",
@@ -1299,7 +1311,7 @@
     "aiPowered": "AI-Powered",
     "aiPoweredDesc": "Smart recommendations",
     "startSelling": "Start selling on Aionn",
-    "startSellingDesc": "Reach millions of active buyers, and optimize sales with our smart AI assistant.",
+    "startSellingDesc": "Reach millions of active buyers, manage orders easily and grow your business on Aionn.",
     "registerFree": "Register for free",
     "personalizedRecommendations": "Personalized Recommendations",
     "noCategories": "No categories available",
@@ -1328,7 +1340,7 @@
     "categories": "Categories",
     "promotions": "Deals",
     "flashSales": "Flash sale",
-    "shops": "Shops"
+    "shops": "Stores"
   },
   "notifications": {
     "title": "Inbox",
@@ -1374,7 +1386,7 @@
     "ratingPoor": "Poor",
     "ratingTerrible": "Terrible",
     "writeYourReview": "Write your review",
-    "outOfFive": "out of 5",
+    "outOfFive": "/ 5",
     "allFilter": "All",
     "starFilter": "{star} Stars ({count})",
     "withComment": "With Comments ({count})",
@@ -1523,7 +1535,7 @@
     "noAvailableVouchers": "You have no available vouchers",
     "platform": "Platform",
     "freeShippingShort": "Free shipping",
-    "shop": "Shop",
+    "shop": "Store",
     "minimumOrder": "Minimum order {amount}",
     "noMinimumOrder": "No minimum order",
     "code": "Code: {code}",
@@ -2013,7 +2025,7 @@
     "noCampaigns": "No active campaigns",
     "noCampaignsDesc": "Check back later for active promotions.",
     "collectVouchers": "Collect Vouchers",
-    "collectVouchersDesc": "Enter a voucher code from a shop or promotion to add it to your wallet.",
+    "collectVouchersDesc": "Enter a voucher code from a store or promotion to add it to your wallet.",
     "placeholder": "e.g., FLASH50K",
     "collect": "Collect",
     "alreadyClaimed": "Voucher already claimed",
@@ -2033,7 +2045,8 @@
     "loadFailedDesc": "Failed to load promotions. Please try again.",
     "voucherCodeLabel": "Voucher Code",
     "tabAll": "All Vouchers",
-    "tabShop": "Shop Vouchers",
+    "tabShop": "Store vouchers",
+    "tabShipping": "Shipping Vouchers",
     "tabMine": "My Vouchers",
     "useNow": "Use Now",
     "fullyClaimed": "Fully Claimed",
@@ -2051,6 +2064,7 @@
     "mgmtFieldCode": "Voucher code",
     "mgmtFieldDiscount": "Discount amount (VND)",
     "mgmtFieldUsageLimit": "Total usage limit",
+    "mgmtFieldMinOrder": "Minimum order (VND)",
     "mgmtFieldType": "Voucher type",
     "mgmtTypeOrder": "Goods discount",
     "mgmtTypeFreeship": "Free shipping",
@@ -2059,7 +2073,7 @@
     "mgmtCreateSuccess": "Voucher created",
     "mgmtEmptyTitle": "No vouchers yet",
     "mgmtEmptyDesc": "Create the first voucher so customers can save the code.",
-    "mgmtScopeShop": "Shop",
+    "mgmtScopeShop": "Store",
     "mgmtScopePlatform": "Platform"
   },
   "merchants": {
@@ -2080,14 +2094,25 @@
     "joined": "Joined",
     "responseWithinHours": "within a few hours",
     "yearsAgo": "2 years ago",
-    "shopCategories": "Shop Categories",
+    "shopCategories": "Store categories",
     "allProducts": "All Products",
-    "allShopProducts": "All products of this shop"
+    "allShopProducts": "All products in this store",
+    "heroTitle": "Aionn stores across Vietnam",
+    "heroDesc": "Thousands of verified stores across the country deliver nationwide with safe payments and clear return policies.",
+    "heroImageAlt": "Map of Vietnam showing nationwide Aionn coverage",
+    "heroMerchants": "Stores",
+    "heroProvinces": "Provinces",
+    "allProvinces": "All provinces",
+    "otherProvince": "Other",
+    "searchPlaceholder": "Search stores...",
+    "clearSearch": "Clear search",
+    "noResultsTitle": "No stores found",
+    "noResultsDesc": "Try a different keyword or province."
   },
   "merchant": {
     "dashboard": {
       "title": "Dashboard",
-      "yourShop": "Your shop",
+      "yourShop": "Your store",
       "statRevenue": "Completed revenue",
       "statAvgPerDay": "Avg / day",
       "statProducts": "Products",
@@ -2184,12 +2209,12 @@
     "register": {
       "title": "Start Selling on Aionn",
       "subtitle": "Open your online store for free, reach millions of active buyers, and optimize sales effectively.",
-      "shopName": "Shop Name",
+      "shopName": "Store name",
       "shopNamePlaceholder": "e.g., TechStore Official",
-      "shopNameRequired": "Shop name cannot be empty",
-      "submit": "Register Shop",
+      "shopNameRequired": "Store name cannot be empty",
+      "submit": "Register store",
       "successTitle": "Registration Successful!",
-      "successDesc": "Your shop {name} has been created. You can now start adding products and configuring your store profile.",
+      "successDesc": "Your store {name} has been created. You can now start adding products and configuring your store profile.",
       "successButton": "Go to Dashboard",
       "noteTitle": "Important Notes:",
       "noteKyc": "After creation, you need to update your logo, description, and complete KYC identity verification to enable all features.",
@@ -2207,8 +2232,8 @@
       "benefitChatTitle": "Smart Auto-Chat System",
       "benefitChatDesc": "Respond to customers 24/7 automatically, raising customer satisfaction and conversions.",
       "benefitAnalyticsTitle": "Deep Analytics Reports",
-      "benefitAnalyticsDesc": "Track sales, shopper behaviors, and access detailed market trend reports.",
-      "benefitMarketingTitle": "Powerful Shop Marketing",
+      "benefitAnalyticsDesc": "Track sales, buyer behaviors, and access detailed market trend reports.",
+      "benefitMarketingTitle": "Powerful store marketing",
       "benefitMarketingDesc": "Create your own custom vouchers and participate in platform-wide campaigns."
     },
     "orders": {
@@ -2551,7 +2576,7 @@
       "cloneSuccess": "Product cloned — switched to the new product",
       "cloneFailed": "Failed to clone product",
       "status": "Status",
-      "statusHint": "Deactivate to remove the product from the shop. Restore to sell again.",
+      "statusHint": "Deactivate to remove the product from the store. Restore to sell again.",
       "deactivate": "Deactivate",
       "restore": "Restore",
       "productImages": "Product images",
@@ -2612,7 +2637,7 @@
     "bulkPrice": {
       "backToList": "← Back to list",
       "title": "Bulk price update",
-      "subtitle": "Apply a new pricing formula to multiple SKUs at once. Only applies to SKUs from your shop.",
+      "subtitle": "Apply a new pricing formula to multiple SKUs at once. Only applies to SKUs from your store.",
       "skuListLabel": "SKU list",
       "skuPlaceholder": "Paste SKUs separated by comma / newline / space...",
       "skuCount": "{count} SKU selected",
@@ -2641,8 +2666,8 @@
       "typeDecPercentHint": "Subtract a percentage from the current price."
     },
     "vouchers": {
-      "title": "Shop vouchers",
-      "description": "Vouchers only apply to products in your shop. The merchant ID is auto-detected from your account."
+      "title": "Store vouchers",
+      "description": "Vouchers only apply to products in your store. The merchant ID is auto-detected from your account."
     },
     "flashSales": {
       "title": "Flash Sale registrations",
@@ -2720,12 +2745,12 @@
       "greeting": {
         "label": "Greeting",
         "hint": "Sent the first time a customer opens a chat.",
-        "placeholder": "Hi there, the shop will reply as soon as possible!"
+        "placeholder": "Hi there, the store will reply as soon as possible!"
       },
       "away": {
         "label": "Away message",
         "hint": "Sent when customers chat outside working hours.",
-        "placeholder": "The shop is currently closed. We'll reply during opening hours."
+        "placeholder": "The store is currently closed. We'll reply during opening hours."
       },
       "workingDays": {
         "label": "Working days",
@@ -2833,7 +2858,7 @@
       "submitReport": "Submit report",
       "toastReported": "Review reported",
       "unavailableTitle": "Reviews are not available",
-      "unavailableDescription": "The server does not expose a shop-scoped review list yet. This screen will work once it does."
+      "unavailableDescription": "The server does not expose a store-scoped review list yet. This screen will work once it does."
     },
     "promotionAnalytics": {
       "title": "Voucher analytics",

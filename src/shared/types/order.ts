@@ -101,7 +101,8 @@ export interface OrderReturn {
   itemCondition: string | null;
   returnWarehouseId: string | null;
   status: ReturnStatus;
-  rejectReason: string | null;
-  createdAt: string;
-  updatedAt: string;
+  rejectionReason: string | null;
+  requestedAt: string;
+  decidedAt: string | null;
+  receivedAt: string | null;
 }

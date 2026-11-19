@@ -19,4 +19,6 @@ export interface RecommendationItem {
   rating?: number | null;
   reviewCount?: number | null;
   soldCount?: number | null;
+  provinceCode?: string | null;
+  provinceName?: string | null;
 }

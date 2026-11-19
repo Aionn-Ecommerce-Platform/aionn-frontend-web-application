@@ -250,10 +250,10 @@ function AdminOrderReturnsInner() {
                           <span className="font-medium">{r.itemCondition}</span>
                         </p>
                       )}
-                      {r.rejectReason && (
+                      {r.rejectionReason && (
                         <p className="text-sm text-red-600 mt-1">
                           {t("adminReturns.rejectReason", {
-                            reason: r.rejectReason,
+                            reason: r.rejectionReason,
                           })}
                         </p>
                       )}
@@ -270,7 +270,7 @@ function AdminOrderReturnsInner() {
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         {t("adminReturns.createdAt", {
-                          date: formatDateTime(r.createdAt, locale),
+                          date: formatDateTime(r.requestedAt, locale),
                         })}
                       </p>
                     </div>

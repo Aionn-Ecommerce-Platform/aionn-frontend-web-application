@@ -1,4 +1,5 @@
 import api from "@/shared/api";
+import { merchantService } from "@/lib/services/merchant.service";
 import type {
   MerchantOrderAnalytics,
   Order,
@@ -152,9 +153,11 @@ export const orderReturnService = {
     });
   },
 
-  listForMerchant(limit = 20) {
+  async listForMerchant(limit = 20) {
+    const merchant = await merchantService.getMine();
     return api.get<OrderReturn[]>("/ordering/returns/merchant", {
       query: { limit },
+      headers: { "X-Merchant-Id": merchant.merchantId },
     });
   },
 };
