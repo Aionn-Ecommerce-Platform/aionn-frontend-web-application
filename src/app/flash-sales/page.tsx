@@ -122,6 +122,8 @@ export default function FlashSalesPage() {
         currency?: string;
         rating?: number;
         reviewCount?: number;
+        provinceCode?: string | null;
+        provinceName?: string | null;
       }
     >();
     for (const product of products ?? []) {
@@ -136,6 +138,8 @@ export default function FlashSalesPage() {
           currency: variant.currency,
           rating: product.rating,
           reviewCount: product.reviewCount,
+          provinceCode: product.provinceCode,
+          provinceName: product.provinceName,
         });
       }
     }
@@ -162,7 +166,7 @@ export default function FlashSalesPage() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-brand" size={28} />
           </div>
-        ) : slots.length === 0 ? (
+        ) : !selected ? (
           <EmptyState
             icon={Zap}
             title={t("flashSales.empty")}
@@ -228,10 +232,12 @@ export default function FlashSalesPage() {
                         sold={item.soldCount}
                         currency={info?.currency ?? item.currency}
                         provinceName={
-                          info?.merchantId
+                          info?.provinceName ??
+                          (info?.merchantId
                             ? merchantProvinceById.get(info.merchantId)
-                            : undefined
+                            : undefined)
                         }
+                        provinceCode={info?.provinceCode}
                         flashSale={{
                           campaignId: selected.campaignId,
                           endAt: selected.endDate,

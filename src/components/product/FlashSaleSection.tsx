@@ -192,7 +192,11 @@ export default function FlashSaleSection() {
                 reviewCount={product.reviewCount}
                 sold={item?.soldCount ?? product.soldCount}
                 flashSale={flashSale}
-                provinceName={merchantProvinceById.get(product.merchantId)}
+                provinceName={
+                  product.provinceName ??
+                  merchantProvinceById.get(product.merchantId)
+                }
+                provinceCode={product.provinceCode}
               />
             );
           })}

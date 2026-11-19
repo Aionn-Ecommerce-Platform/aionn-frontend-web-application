@@ -82,7 +82,11 @@ function WishlistInner() {
                   reviewCount={product.reviewCount}
                   sold={product.soldCount}
                   isBestSeller={product.isBestSeller}
-                  provinceName={merchantProvinceById.get(product.merchantId)}
+                  provinceName={
+                    product.provinceName ??
+                    merchantProvinceById.get(product.merchantId)
+                  }
+                  provinceCode={product.provinceCode}
                   currency={lowest?.currency ?? "VND"}
                 />
                 <button
