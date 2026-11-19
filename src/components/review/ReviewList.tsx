@@ -156,7 +156,12 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
             type="button"
             onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
             aria-label={t("common.previous")}
-            className="flex h-8.5 cursor-pointer items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-950 hover:bg-gray-50"
+            aria-disabled={page <= 0 || undefined}
+            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+              page <= 0
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+            }`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -181,7 +186,12 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               setPage((p) => Math.min(Math.max(1, totalPages) - 1, p + 1))
             }
             aria-label={t("common.next")}
-            className="flex h-8.5 cursor-pointer items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-950 hover:bg-gray-50"
+            aria-disabled={page >= Math.max(1, totalPages) - 1 || undefined}
+            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+              page >= Math.max(1, totalPages) - 1
+                ? "cursor-default"
+                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+            }`}
           >
             <ChevronRight size={16} />
           </button>

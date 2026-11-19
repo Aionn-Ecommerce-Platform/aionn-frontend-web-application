@@ -52,7 +52,12 @@ export default function Pagination({
             if (safeCurrentPage > 1) handleSelect(safeCurrentPage - 1);
           }}
           aria-label={resolvedPrevLabel}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
+          aria-disabled={safeCurrentPage <= 1 || undefined}
+          className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+            safeCurrentPage <= 1
+              ? "cursor-default"
+              : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+          }`}
         >
           <ChevronLeft size={16} />
         </button>
@@ -85,7 +90,12 @@ export default function Pagination({
             if (safeCurrentPage < totalPages) handleSelect(safeCurrentPage + 1);
           }}
           aria-label={resolvedNextLabel}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
+          aria-disabled={safeCurrentPage >= totalPages || undefined}
+          className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+            safeCurrentPage >= totalPages
+              ? "cursor-default"
+              : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+          }`}
         >
           <ChevronRight size={16} />
         </button>

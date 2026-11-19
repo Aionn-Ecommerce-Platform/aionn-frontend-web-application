@@ -211,6 +211,8 @@ export function InventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                aria-disabled={page <= 0 || undefined}
+                className={page <= 0 ? "cursor-default hover:bg-transparent" : undefined}
                 onClick={() => page > 0 && onPageChange(Math.max(0, page - 1))}
               >
                 {t("common.previous")}
@@ -218,6 +220,8 @@ export function InventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                aria-disabled={!hasMore || undefined}
+                className={!hasMore ? "cursor-default hover:bg-transparent" : undefined}
                 onClick={() => hasMore && onPageChange(page + 1)}
               >
                 {t("common.next")}
