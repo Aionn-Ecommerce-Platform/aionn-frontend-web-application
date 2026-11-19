@@ -905,6 +905,7 @@
     "emptyDescription": "Check back later so you do not miss the next drop.",
     "endsAt": "Ends: {date}",
     "endsIn": "ENDS IN",
+    "startsIn": "STARTS IN",
     "sold": "{sold}/{stock} sold",
     "soldOf": "{sold}/{total} sold"
   },
@@ -2034,6 +2035,7 @@
     "voucherCodeLabel": "Voucher Code",
     "tabAll": "All Vouchers",
     "tabShop": "Shop Vouchers",
+    "tabShipping": "Shipping Vouchers",
     "tabMine": "My Vouchers",
     "useNow": "Use Now",
     "fullyClaimed": "Fully Claimed",
@@ -2082,7 +2084,18 @@
     "yearsAgo": "2 years ago",
     "shopCategories": "Shop Categories",
     "allProducts": "All Products",
-    "allShopProducts": "All products of this shop"
+    "allShopProducts": "All products of this shop",
+    "heroTitle": "Aionn stores across Vietnam",
+    "heroDesc": "Thousands of verified stores across the country deliver nationwide with safe payments and clear return policies.",
+    "heroImageAlt": "Map of Vietnam showing nationwide Aionn coverage",
+    "heroMerchants": "Stores",
+    "heroProvinces": "Provinces",
+    "allProvinces": "All provinces",
+    "otherProvince": "Other",
+    "searchPlaceholder": "Search stores...",
+    "clearSearch": "Clear search",
+    "noResultsTitle": "No stores found",
+    "noResultsDesc": "Try a different keyword or province."
   },
   "merchant": {
     "dashboard": {

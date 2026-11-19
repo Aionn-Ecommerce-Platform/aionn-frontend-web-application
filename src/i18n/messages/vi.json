@@ -905,6 +905,7 @@
     "emptyDescription": "Quay lại sau để không bỏ lỡ ưu đãi tiếp theo.",
     "endsAt": "Kết thúc: {date}",
     "endsIn": "KẾT THÚC TRONG",
+    "startsIn": "BẮT ĐẦU SAU",
     "sold": "Đã bán {sold}/{stock} suất",
     "soldOf": "Đã bán {sold}/{total}"
   },
@@ -2034,6 +2035,7 @@
     "voucherCodeLabel": "Mã Voucher",
     "tabAll": "Tất cả voucher",
     "tabShop": "Cửa hàng",
+    "tabShipping": "Vận chuyển",
     "tabMine": "Voucher của tôi",
     "useNow": "Dùng ngay",
     "fullyClaimed": "Hết lượt",
@@ -2082,7 +2084,18 @@
     "yearsAgo": "2 năm trước",
     "shopCategories": "Danh mục Shop",
     "allProducts": "Tất cả sản phẩm",
-    "allShopProducts": "Tất cả sản phẩm của shop"
+    "allShopProducts": "Tất cả sản phẩm của shop",
+    "heroTitle": "Gian hàng Aionn phủ khắp Việt Nam",
+    "heroDesc": "Hàng nghìn gian hàng đã xác thực trên khắp cả nước, giao hàng toàn quốc, thanh toán an toàn và chính sách đổi trả rõ ràng.",
+    "heroImageAlt": "Bản đồ Việt Nam thể hiện độ phủ toàn quốc của Aionn",
+    "heroMerchants": "Gian hàng",
+    "heroProvinces": "Tỉnh thành",
+    "allProvinces": "Tất cả tỉnh thành",
+    "otherProvince": "Khác",
+    "searchPlaceholder": "Tìm gian hàng...",
+    "clearSearch": "Xóa tìm kiếm",
+    "noResultsTitle": "Không tìm thấy gian hàng",
+    "noResultsDesc": "Thử từ khóa khác hoặc chọn tỉnh thành khác."
   },
   "merchant": {
     "dashboard": {

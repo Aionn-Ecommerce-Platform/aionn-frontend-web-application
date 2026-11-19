@@ -50,7 +50,7 @@ export default function CategoriesView() {
   }, [rawTree, selectedDeptId]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Page Header */}
         <div>
@@ -100,24 +100,15 @@ export default function CategoriesView() {
           <div className="space-y-10 sm:space-y-12">
             {Array.from({ length: 2 }).map((_, idx) => (
               <div key={`dept-skel-${idx}`} className="animate-pulse">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
-                  {/* Parent Category Skeleton */}
-                  <div className="col-span-2 sm:col-span-2 lg:col-span-2 rounded-2xl bg-gradient-to-br from-purple-950 via-indigo-950 to-purple-900 border border-purple-800/40 p-5 flex items-center justify-between min-h-[160px] sm:min-h-[175px]">
-                    <div className="space-y-3">
-                      <div className="h-3 w-16 bg-purple-900/60 rounded-md" />
-                      <div className="h-6 w-32 bg-purple-900/60 rounded-md" />
-                      <div className="h-8 w-28 bg-purple-900/60 rounded-xl" />
-                    </div>
-                    <div className="w-24 h-24 bg-purple-900/60 rounded-2xl" />
-                  </div>
-                  {/* Child Categories Skeletons */}
-                  {Array.from({ length: 3 }).map((__, cIdx) => (
+                <div className="mb-4 h-4 w-32 rounded-md bg-gray-100" />
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-y-8 gap-x-2">
+                  {Array.from({ length: 7 }).map((__, cIdx) => (
                     <div
                       key={`card-skel-${cIdx}`}
-                      className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col items-center justify-center gap-3 min-h-[160px] sm:min-h-[175px]"
+                      className="flex flex-col items-center gap-2.5"
                     >
-                      <div className="w-18 h-18 rounded-2xl bg-gray-100" />
-                      <div className="h-3.5 w-24 bg-gray-100 rounded-md" />
+                      <div className="h-14 w-14 rounded-full bg-gray-100 sm:h-16 sm:w-16 md:h-20 md:w-20" />
+                      <div className="h-3 w-14 rounded-full bg-gray-100" />
                     </div>
                   ))}
                 </div>
@@ -163,41 +154,44 @@ export default function CategoriesView() {
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-y-8 gap-x-2 select-none">
 
-                    {/* Subcategories Cards: Same height on the same row */}
+                    {/* Subcategories: borderless icon shelf, matching the home page */}
                     {children.map((child) => {
                       const childCat = child.category;
 
                       return (
-                        <Link
+                        <div
                           key={childCat.categoryId}
-                          href={`/products?categoryIds=${childCat.categoryId}`}
-                          className="group relative bg-white hover:bg-white rounded-2xl border border-gray-400 hover:border-gray-950 p-4 sm:p-5 flex flex-col items-center justify-center text-center shadow-xs hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer min-h-[160px] sm:min-h-[175px]"
+                          className="flex justify-center"
                         >
-                          <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/70 p-3 mb-3 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ease-out border border-gray-100">
-                            {childCat.iconUrl ? (
-                              <div className="relative w-full h-full">
-                                <Image
-                                  src={childCat.iconUrl}
-                                  alt={childCat.name}
-                                  fill
-                                  sizes="(max-width: 640px) 72px, 80px"
-                                  className="object-contain drop-shadow-sm"
-                                />
-                              </div>
-                            ) : (
-                              <Layers
-                                size={26}
-                                className="text-gray-400 group-hover:text-brand transition-colors"
-                              />
-                            )}
-                          </div>
+                          <Link
+                            href={`/products?categoryIds=${childCat.categoryId}`}
+                            className="group flex w-full max-w-[110px] flex-col items-center text-center transition-transform duration-200"
+                          >
+                            <div className="relative mb-2.5 flex h-14 w-14 items-center justify-center transition-transform duration-300 ease-out group-hover:scale-105 sm:h-16 sm:w-16 md:h-20 md:w-20">
+                              {childCat.iconUrl ? (
+                                <div className="relative h-full w-full">
+                                  <Image
+                                    src={childCat.iconUrl}
+                                    alt={childCat.name}
+                                    fill
+                                    sizes="(max-width: 640px) 56px, (max-width: 768px) 64px, 80px"
+                                    className="object-contain"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex h-13 w-13 items-center justify-center rounded-full bg-gray-50 text-gray-600 transition-colors group-hover:bg-gray-100 sm:h-15 sm:w-15">
+                                  <Layers size={24} strokeWidth={1.75} />
+                                </div>
+                              )}
+                            </div>
 
-                          <h3 className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-black line-clamp-2 transition-colors px-1 leading-snug">
-                            {childCat.name}
-                          </h3>
-                        </Link>
+                            <span className="line-clamp-2 px-1 text-xs font-semibold leading-snug tracking-tight text-gray-900 transition-colors group-hover:text-black sm:text-[13px] md:text-sm">
+                              {childCat.name}
+                            </span>
+                          </Link>
+                        </div>
                       );
                     })}
                   </div>
