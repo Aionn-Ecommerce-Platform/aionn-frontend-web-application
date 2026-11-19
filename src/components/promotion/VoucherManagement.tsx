@@ -22,6 +22,7 @@ type Props = {
 const initialForm = {
   voucherCode: "",
   discountAmount: "",
+  minOrderValue: "",
   usageLimit: "",
   validFrom: "",
   validUntil: "",
@@ -58,6 +59,9 @@ export default function VoucherManagement({
       voucherCode: form.voucherCode.trim().toUpperCase(),
       discountAmount: Number(form.discountAmount),
       currency: "VND",
+      minOrderValue: form.minOrderValue
+        ? Number(form.minOrderValue)
+        : undefined,
       usageLimit: Number(form.usageLimit),
       validFrom: new Date(form.validFrom).toISOString(),
       validUntil: new Date(form.validUntil).toISOString(),
@@ -105,6 +109,19 @@ export default function VoucherManagement({
                   setForm({ ...form, discountAmount: e.target.value })
                 }
                 className="field"
+              />
+            </Field>
+            <Field label={t("promotions.mgmtFieldMinOrder")}>
+              <input
+                required={form.type === "ORDER_DISCOUNT"}
+                type="number"
+                min={form.type === "ORDER_DISCOUNT" ? "1" : "0"}
+                value={form.minOrderValue}
+                onChange={(e) =>
+                  setForm({ ...form, minOrderValue: e.target.value })
+                }
+                className="field"
+                placeholder="199000"
               />
             </Field>
             <Field label={t("promotions.mgmtFieldUsageLimit")}>
@@ -240,6 +257,17 @@ export default function VoucherManagement({
                       <div className="mt-1.5 space-y-1 text-xs text-gray-500">
                         <p className="font-semibold text-gray-800 font-mono">
                           {v.voucherCode}
+                        </p>
+                        <p>
+                          {v.minOrderValue && v.minOrderValue > 0
+                            ? t("myVouchers.minOrder", {
+                                amount: formatCurrency(
+                                  v.minOrderValue,
+                                  v.currency,
+                                  locale,
+                                ),
+                              })
+                            : t("myVouchers.noMinOrder")}
                         </p>
                         <div className="flex items-center gap-1 text-[11px] text-gray-400">
                           <Clock size={11} />

@@ -115,19 +115,24 @@ export default function MerchantsPage() {
   });
 
   const { data: provinces } = useQuery({
-    queryKey: ["geography", "provinces", "VN"],
+    queryKey: ["geography", "provinces", "VN", "v2"],
     queryFn: () => geographyService.listProvinces("VN"),
     staleTime: 60 * 60_000,
   });
 
+  const activeProvinces = useMemo(
+    () => (provinces ?? []).filter((p) => !p.code.startsWith("VN-")),
+    [provinces],
+  );
+
   const provinceNameByCode = useMemo(() => {
     const m = new Map<string, string>();
-    (provinces ?? []).forEach((p) => {
+    activeProvinces.forEach((p) => {
       const name = locale === "en" && p.nameEn ? p.nameEn : p.name;
       m.set(p.code, cleanProvinceName(name));
     });
     return m;
-  }, [provinces, locale]);
+  }, [activeProvinces, locale]);
 
   const provinceOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -232,7 +237,7 @@ export default function MerchantsPage() {
                 <div className="h-12 w-px bg-gray-300" />
                 <div className="text-center">
                   <div className="text-4xl font-black text-brand sm:text-5xl">
-                    <CountUp value={provinces?.length ?? 0} />
+                    <CountUp value={activeProvinces.length} />
                   </div>
                   <div className="mt-1 text-sm font-medium text-gray-500">
                     {t("merchants.heroProvinces")}

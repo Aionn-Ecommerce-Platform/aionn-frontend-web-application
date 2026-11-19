@@ -14,6 +14,8 @@ const ERROR_CODE_MESSAGE_KEYS: Record<string, string> = {
   IDENTITY_217: "auth.emailVerificationNotFound",
   IDENTITY_218: "auth.emailChangeNotFound",
   IDENTITY_219: "auth.phoneChangeNotFound",
+  PRM_206: "myVouchers.dailyClaimLimitReached",
+  PRM_207: "myVouchers.walletLimitReached",
 };
 
 export function getMessageKeyForErrorCode(

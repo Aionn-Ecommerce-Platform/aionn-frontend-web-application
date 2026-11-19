@@ -96,6 +96,7 @@ export type IssueVoucherInput = {
   voucherCode: string;
   discountAmount: number;
   currency: string;
+  minOrderValue?: number;
   usageLimit: number;
   validFrom: string;
   validUntil: string;
