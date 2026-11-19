@@ -55,9 +55,10 @@ function normalizePermissions(
   if (!value) return [];
   if (Array.isArray(value)) return value.map(String);
   if (typeof value === "object") {
-    return Object.entries(value).map(([key, enabled]) =>
-      typeof enabled === "boolean" ? `${key}:${enabled}` : `${key}:${String(enabled)}`,
-    );
+    return Object.entries(value).flatMap(([key, enabled]) => {
+      if (typeof enabled === "boolean") return enabled ? [key] : [];
+      return [`${key}:${String(enabled)}`];
+    });
   }
   try {
     return normalizePermissions(JSON.parse(value) as RawAgentIdentity["permissions"]);

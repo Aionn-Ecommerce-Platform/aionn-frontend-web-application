@@ -76,7 +76,7 @@ function AdminNotificationTemplatesInner() {
   const qc = useQueryClient();
   const { data: list, isLoading: loading } = useQuery({
     queryKey: qk.notificationTemplates(200),
-    queryFn: () => notificationTemplateService.list(100),
+    queryFn: () => notificationTemplateService.list(200),
   });
   const refetch = () =>
     qc.invalidateQueries({ queryKey: qk.notificationTemplates(200) });

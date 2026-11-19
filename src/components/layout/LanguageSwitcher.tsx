@@ -56,7 +56,6 @@ export default function LanguageSwitcher() {
         className="flex items-center gap-2 rounded-full px-2 py-1.5 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-100"
         aria-label="Switch language"
         aria-expanded={open}
-        aria-haspopup="listbox"
       >
         <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shadow-xs ring-1 ring-gray-200 shrink-0">
           <CurrentFlag className="w-full h-full scale-150" />

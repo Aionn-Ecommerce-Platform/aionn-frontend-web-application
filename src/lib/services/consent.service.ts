@@ -37,20 +37,26 @@ export const consentService = {
     return (rows ?? []).map(normalizeConsent);
   },
   async agreeTerms(version: string) {
-    return normalizeConsent(
-      await api.post<RawConsentResponse>("/consents/terms", { version }),
+    const raw = await api.post<RawConsentResponse | undefined>(
+      "/consents/terms",
+      { version },
     );
+    return raw ? normalizeConsent(raw) : undefined;
   },
   async agreePrivacy(version: string) {
-    return normalizeConsent(
-      await api.post<RawConsentResponse>("/consents/privacy", { version }),
+    const raw = await api.post<RawConsentResponse | undefined>(
+      "/consents/privacy",
+      { version },
     );
+    return raw ? normalizeConsent(raw) : undefined;
   },
   async updateMarketing(agreed: boolean) {
-    return normalizeConsent(
-      await api.patch<RawConsentResponse>("/consents/marketing", {
+    const raw = await api.patch<RawConsentResponse | undefined>(
+      "/consents/marketing",
+      {
         subscribed: agreed,
-      }),
+      },
     );
+    return raw ? normalizeConsent(raw) : undefined;
   },
 };

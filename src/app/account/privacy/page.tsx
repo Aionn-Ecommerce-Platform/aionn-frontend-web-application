@@ -166,14 +166,16 @@ function PrivacyInner() {
                               })}
                             </p>
                           )}
-                          <p>
-                            {t("privacy.agreedAt", {
-                              date: formatDateTime(
-                                termsConsent.agreedAt,
-                                locale,
-                              ),
-                            })}
-                          </p>
+                          {termsConsent.agreedAt && (
+                            <p>
+                              {t("privacy.agreedAt", {
+                                date: formatDateTime(
+                                  termsConsent.agreedAt,
+                                  locale,
+                                ),
+                              })}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -214,14 +216,16 @@ function PrivacyInner() {
                               })}
                             </p>
                           )}
-                          <p>
-                            {t("privacy.agreedAt", {
-                              date: formatDateTime(
-                                privacyConsent.agreedAt,
-                                locale,
-                              ),
-                            })}
-                          </p>
+                          {privacyConsent.agreedAt && (
+                            <p>
+                              {t("privacy.agreedAt", {
+                                date: formatDateTime(
+                                  privacyConsent.agreedAt,
+                                  locale,
+                                ),
+                              })}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -249,7 +253,7 @@ function PrivacyInner() {
                           disabled={updating}
                         />
                       </div>
-                      {marketingConsent && (
+                      {marketingConsent?.agreedAt && (
                         <div className="text-xs text-gray-400 mt-3">
                           <p>
                             {t("privacy.updatedAt", {
