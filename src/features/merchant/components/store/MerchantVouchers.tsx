@@ -129,11 +129,7 @@ export default function MerchantVouchers({
               </div>
 
               <div className="shrink-0 border-t border-gray-100 pt-2 sm:border-t-0 sm:pt-0">
-                {remaining <= 0 ? (
-                  <span className="inline-flex w-full items-center justify-center rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-400 sm:w-auto">
-                    {t("promotions.fullyClaimed")}
-                  </span>
-                ) : claimed ? (
+                {claimed ? (
                   <button
                     type="button"
                     onClick={onUse}
@@ -142,6 +138,10 @@ export default function MerchantVouchers({
                     <Ticket size={14} />
                     {t("myVouchers.useNow")}
                   </button>
+                ) : remaining <= 0 ? (
+                  <span className="inline-flex w-full items-center justify-center rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-400 sm:w-auto">
+                    {t("promotions.fullyClaimed")}
+                  </span>
                 ) : (
                   <button
                     type="button"

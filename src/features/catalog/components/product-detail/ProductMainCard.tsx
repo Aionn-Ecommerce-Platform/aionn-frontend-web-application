@@ -592,14 +592,14 @@ export default function ProductMainCard(props: Props) {
                             <button
                               key={value}
                               type="button"
-                              disabled={!available}
+                              aria-disabled={!available || undefined}
                               onClick={() => selectAttribute(key, value)}
-                              className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all select-none ${
+                              className={`relative min-h-9 min-w-16 rounded-xl px-3.5 py-1.5 border text-sm transition-all select-none cursor-pointer ${
                                 selected
-                                  ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold cursor-pointer"
+                                  ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold"
                                   : available
-                                    ? "border-gray-400 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 cursor-pointer"
-                                    : "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    ? "border-gray-400 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950"
+                                    : "border-gray-300 bg-gray-100 text-gray-500 hover:border-gray-400 hover:text-gray-700"
                               }`}
                             >
                               <span className="inline-flex items-center justify-center gap-1.5">

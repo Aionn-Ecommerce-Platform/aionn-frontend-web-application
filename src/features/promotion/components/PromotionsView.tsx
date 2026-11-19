@@ -124,7 +124,7 @@ export default function PromotionsPage() {
                 ...v,
                 campaignName: camp.name,
                 campaignType: camp.type,
-                minOrderValue: camp.minOrderValue ?? 0,
+                minOrderValue: v.minOrderValue ?? camp.minOrderValue ?? 0,
               }));
             } catch (err) {
               logger.error(
@@ -154,7 +154,7 @@ export default function PromotionsPage() {
                   merchantName: merchant.name,
                   merchantLogo: merchant.logoUrl || undefined,
                   campaignName: merchant.name,
-                  minOrderValue: 0,
+                  minOrderValue: v.minOrderValue ?? 0,
                 }));
               } catch (err) {
                 logger.error(

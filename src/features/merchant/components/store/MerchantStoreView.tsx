@@ -101,10 +101,15 @@ export default function MerchantStorePage({
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [chatLoading, setChatLoading] = useState(false);
-  const [page, setPage] = useState(0);
+  const [pageState, setPageState] = useState({ search: "", page: 0 });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery.trim(), 350);
+  // A new debounced query implicitly starts at page zero, so a page chosen
+  // during the debounce window cannot leak into the next search request.
+  const page = pageState.search === debouncedSearch ? pageState.page : 0;
+  const setPage = (next: number) =>
+    setPageState({ search: debouncedSearch, page: next });
   const [activeTab, setActiveTab] = useState<"products" | "vouchers">(
     "products",
   );

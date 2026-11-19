@@ -83,6 +83,7 @@ export default function MerchantsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const deferredSearch = useDeferredValue(searchTerm);
   const provinceDropdownRef = useRef<HTMLDivElement>(null);
+  const provinceTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!provinceOpen) return;
@@ -92,7 +93,10 @@ export default function MerchantsPage() {
       }
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setProvinceOpen(false);
+      if (event.key === "Escape") {
+        setProvinceOpen(false);
+        provinceTriggerRef.current?.focus();
+      }
     };
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -258,6 +262,7 @@ export default function MerchantsPage() {
               className="relative w-full shrink-0 sm:w-64 lg:w-72"
             >
               <button
+                ref={provinceTriggerRef}
                 type="button"
                 onClick={() => setProvinceOpen((open) => !open)}
                 aria-haspopup="listbox"
@@ -288,6 +293,7 @@ export default function MerchantsPage() {
                         setSelectedProvince("all");
                         setCurrentPage(1);
                         setProvinceOpen(false);
+                        provinceTriggerRef.current?.focus();
                       }}
                       className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:text-sm ${
                         selectedProvince === "all"
@@ -313,6 +319,7 @@ export default function MerchantsPage() {
                             setSelectedProvince(option.key);
                             setCurrentPage(1);
                             setProvinceOpen(false);
+                            provinceTriggerRef.current?.focus();
                           }}
                           className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:text-sm ${
                             active
