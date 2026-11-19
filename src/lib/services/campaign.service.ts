@@ -17,9 +17,14 @@ export const campaignService = {
     return api.get<PromotionCampaign>(`/promotions/campaigns/${campaignId}`);
   },
 
-  listVouchers(campaignId: string, limit = 50) {
+  listVouchers(
+    campaignId: string,
+    limit = 50,
+    type?: VoucherType,
+    available = false,
+  ) {
     return api.get<Voucher[]>(`/promotions/campaigns/${campaignId}/vouchers`, {
-      query: { limit },
+      query: { limit, type, available },
     });
   },
 
@@ -103,10 +108,15 @@ export const shopVoucherService = {
       query: { limit },
     });
   },
-  listByMerchant(merchantId: string, limit = 20) {
+  listByMerchant(
+    merchantId: string,
+    limit = 20,
+    type?: VoucherType,
+    available = false,
+  ) {
     return api.get<Voucher[]>(
       `/promotions/shop-vouchers/merchant/${encodeURIComponent(merchantId)}`,
-      { query: { limit } },
+      { query: { limit, type, available } },
     );
   },
   issue(body: IssueVoucherInput) {

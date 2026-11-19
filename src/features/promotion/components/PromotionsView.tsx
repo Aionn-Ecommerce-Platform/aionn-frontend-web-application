@@ -51,7 +51,7 @@ export default function PromotionsPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<
-    "ALL" | "PLATFORM" | "SHOP" | "MINE"
+    "ALL" | "PLATFORM" | "SHOP" | "SHIPPING" | "MINE"
   >("ALL");
   const [claimingVoucherCode, setClaimingVoucherCode] = useState<string | null>(
     null,
@@ -74,6 +74,29 @@ export default function PromotionsPage() {
     enabled: isAuthenticated,
   });
 
+  const { data: voucherSummary } = useQuery({
+    queryKey: ["voucher-summary"],
+    queryFn: () => voucherService.getAvailableSummary(),
+    staleTime: 30000,
+  });
+
+  const includePlatform =
+    activeTab === "ALL" ||
+    activeTab === "PLATFORM" ||
+    activeTab === "SHIPPING" ||
+    activeTab === "MINE";
+  const includeShop =
+    activeTab === "ALL" ||
+    activeTab === "SHOP" ||
+    activeTab === "SHIPPING" ||
+    activeTab === "MINE";
+  const typeFilter: VoucherType | undefined =
+    activeTab === "SHIPPING"
+      ? "FREE_SHIPPING"
+      : activeTab === "PLATFORM" || activeTab === "SHOP"
+        ? "ORDER_DISCOUNT"
+        : undefined;
+
   const {
     data: allVouchers,
     isLoading: loadingVouchers,
@@ -81,63 +104,72 @@ export default function PromotionsPage() {
     refetch: refetchVouchers,
   } = useQuery({
     queryKey: [
-      "all-available-vouchers",
+      "available-vouchers",
+      activeTab,
       campaigns?.map((c) => c.campaignId).join(","),
     ],
     queryFn: async (): Promise<ExtendedVoucher[]> => {
       if (!campaigns) return [];
 
-      const platformPromises = campaigns.map(async (camp) => {
-        try {
-          const vouchers = await campaignService.listVouchers(
-            camp.campaignId,
-            50,
-          );
-          return vouchers.map((v) => ({
-            ...v,
-            campaignName: camp.name,
-            campaignType: camp.type,
-            minOrderValue: camp.minOrderValue ?? 0,
-          }));
-        } catch (err) {
-          logger.error(
-            `Failed to load vouchers for campaign ${camp.campaignId}`,
-            err,
-          );
-          return [];
-        }
-      });
-
-      let shopVouchers: ExtendedVoucher[] = [];
-      try {
-        const merchants = await merchantService.list(0, 50);
-        if (merchants && merchants.length > 0) {
-          const merchantPromises = merchants.map(async (merchant) => {
+      const platformPromises = includePlatform
+        ? campaigns.map(async (camp) => {
             try {
-              const vouchers = await shopVoucherService.listByMerchant(
-                merchant.merchantId,
+              const vouchers = await campaignService.listVouchers(
+                camp.campaignId,
                 50,
+                typeFilter,
+                true,
               );
               return vouchers.map((v) => ({
                 ...v,
-                merchantName: merchant.name,
-                merchantLogo: merchant.logoUrl || undefined,
-                campaignName: merchant.name,
-                minOrderValue: 0,
+                campaignName: camp.name,
+                campaignType: camp.type,
+                minOrderValue: camp.minOrderValue ?? 0,
               }));
             } catch (err) {
               logger.error(
-                `Failed to load vouchers for merchant ${merchant.merchantId}`,
+                `Failed to load vouchers for campaign ${camp.campaignId}`,
                 err,
               );
               return [];
             }
-          });
-          const merchantVoucherLists = await Promise.all(merchantPromises);
-          shopVouchers = merchantVoucherLists.flat();
+          })
+        : [];
+
+      let shopVouchers: ExtendedVoucher[] = [];
+      if (includeShop) {
+        try {
+          const merchants = await merchantService.list(0, 50);
+          if (merchants && merchants.length > 0) {
+            const merchantPromises = merchants.map(async (merchant) => {
+              try {
+                const vouchers = await shopVoucherService.listByMerchant(
+                  merchant.merchantId,
+                  50,
+                  typeFilter,
+                  true,
+                );
+                return vouchers.map((v) => ({
+                  ...v,
+                  merchantName: merchant.name,
+                  merchantLogo: merchant.logoUrl || undefined,
+                  campaignName: merchant.name,
+                  minOrderValue: 0,
+                }));
+              } catch (err) {
+                logger.error(
+                  `Failed to load vouchers for merchant ${merchant.merchantId}`,
+                  err,
+                );
+                return [];
+              }
+            });
+            const merchantVoucherLists = await Promise.all(merchantPromises);
+            shopVouchers = merchantVoucherLists.flat();
+          }
+        } catch (err) {
+          logger.error("Failed to load merchants list", err);
         }
-      } catch (err) {
-        logger.error("Failed to load merchants list", err);
       }
 
       const platformVouchers = (await Promise.all(platformPromises)).flat();
@@ -154,7 +186,7 @@ export default function PromotionsPage() {
     },
     onSuccess: (claimedVoucher, code) => {
       qc.setQueriesData<ExtendedVoucher[]>(
-        { queryKey: ["all-available-vouchers"] },
+        { queryKey: ["available-vouchers"] },
         (old) =>
           old?.map((voucher) =>
             voucher.voucherCode === code
@@ -184,15 +216,9 @@ export default function PromotionsPage() {
   const claimedCodes = new Set(myVouchers?.map((v) => v.voucherCode) ?? []);
 
   let displayedVouchers: ExtendedVoucher[] = [];
-  if (activeTab === "ALL") {
+  if (activeTab !== "MINE") {
     displayedVouchers = allVouchers ?? [];
-  } else if (activeTab === "PLATFORM") {
-    displayedVouchers = (allVouchers ?? []).filter(
-      (v) => v.scope === "PLATFORM",
-    );
-  } else if (activeTab === "SHOP") {
-    displayedVouchers = (allVouchers ?? []).filter((v) => v.scope === "SHOP");
-  } else if (activeTab === "MINE") {
+  } else {
     const activeVouchersMap = new Map(
       (allVouchers ?? []).map((v) => [v.voucherCode, v]),
     );
@@ -225,10 +251,10 @@ export default function PromotionsPage() {
     });
   }
 
-  const allCount = allVouchers?.length ?? 0;
-  const platformCount =
-    allVouchers?.filter((v) => v.scope === "PLATFORM").length ?? 0;
-  const shopCount = allVouchers?.filter((v) => v.scope === "SHOP").length ?? 0;
+  const allCount = voucherSummary?.all ?? 0;
+  const platformCount = voucherSummary?.platform ?? 0;
+  const shopCount = voucherSummary?.shop ?? 0;
+  const shippingCount = voucherSummary?.shipping ?? 0;
   const mineCount = myVouchers?.length ?? 0;
 
   const handleRetryAll = () => {
@@ -237,7 +263,7 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Page Header */}
         <div>
@@ -253,6 +279,10 @@ export default function PromotionsPage() {
               label: `${t("promotions.platformLabel")} (${platformCount})`,
             },
             { id: "SHOP", label: `${t("promotions.tabShop")} (${shopCount})` },
+            {
+              id: "SHIPPING",
+              label: `${t("promotions.tabShipping")} (${shippingCount})`,
+            },
             {
               id: "MINE",
               label: `${t("promotions.tabMine")} (${isAuthenticated ? mineCount : 0})`,
@@ -364,8 +394,8 @@ export default function PromotionsPage() {
                   key={v.voucherCode}
                   className="relative flex bg-white border border-gray-400 rounded-xl hover:border-gray-950 hover:shadow-lg transition-all group min-h-[128px] overflow-hidden"
                 >
-                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
-                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-400 z-10" />
+                  <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-400 z-10" />
+                  <div className="absolute bottom-0 left-28 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-400 z-10" />
 
                   <div
                     className={`w-28 rounded-l-xl flex flex-col items-center justify-center text-white px-2 text-center select-none shrink-0 relative ${leftBgColor}`}
@@ -390,7 +420,7 @@ export default function PromotionsPage() {
                         )}
                       </div>
                     )}
-                    <span className="text-xs font-black tracking-wide uppercase truncate max-w-full drop-shadow">
+                    <span className="max-w-full break-words px-1 text-center text-xs font-black uppercase leading-tight tracking-wide drop-shadow">
                       {isShop ? v.merchantName || leftTagText : leftTagText}
                     </span>
                     <span className="text-[9px] opacity-80 font-mono mt-0.5">

@@ -191,7 +191,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                           <Ticket size={20} className="text-white" />
                         )}
                       </div>
-                      <span className="text-[10px] font-black tracking-wide uppercase truncate max-w-full drop-shadow leading-tight">
+                      <span className="max-w-full break-words px-1 text-center text-[10px] font-black uppercase leading-tight tracking-wide drop-shadow">
                         {leftTagText}
                       </span>
                     </div>

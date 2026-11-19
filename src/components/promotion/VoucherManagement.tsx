@@ -222,7 +222,7 @@ export default function VoucherManagement({
                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-1">
                       <Ticket size={20} className="text-white" />
                     </div>
-                    <span className="text-xs font-black tracking-wide uppercase truncate max-w-full drop-shadow">
+                    <span className="max-w-full break-words px-1 text-center text-xs font-black uppercase leading-tight tracking-wide drop-shadow">
                       {leftTagText}
                     </span>
                     <span className="text-[9px] opacity-80 font-mono mt-0.5">

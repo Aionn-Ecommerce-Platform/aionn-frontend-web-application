@@ -1,7 +1,20 @@
 import api from "@/shared/api";
 import type { UserVoucher } from "@/types";
 
+export interface VoucherSummary {
+  all: number;
+  platform: number;
+  shop: number;
+  shipping: number;
+}
+
 export const voucherService = {
+  getAvailableSummary() {
+    return api.get<VoucherSummary>("/promotions/vouchers/summary", {
+      anonymous: true,
+    });
+  },
+
   claim(voucherCode: string) {
     return api.post<UserVoucher>(
       `/promotions/vouchers/${encodeURIComponent(voucherCode)}/claim`,

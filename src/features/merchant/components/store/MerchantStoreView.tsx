@@ -186,7 +186,7 @@ export default function MerchantStorePage({
 
   const { data: shopVouchers } = useQuery({
     queryKey: ["shop-vouchers", id],
-    queryFn: () => shopVoucherService.listByMerchant(id, 20),
+    queryFn: () => shopVoucherService.listByMerchant(id, 20, undefined, true),
   });
 
   const { data: myVouchers } = useQuery({
