@@ -86,16 +86,16 @@ function FlashSaleCountdown({ endAt }: { endAt: string }) {
   const seconds = String(totalSeconds % 60).padStart(2, "0");
 
   return (
-    <div className="flex items-center gap-1 font-mono font-bold text-xs select-none">
-      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+    <div className="flex items-center gap-1 font-mono font-bold text-xs select-none text-amber-300">
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-amber-300 min-w-[1.6rem] text-center">
         {hours}
       </span>
       <span>:</span>
-      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-amber-300 min-w-[1.6rem] text-center">
         {minutes}
       </span>
       <span>:</span>
-      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-white min-w-[1.6rem] text-center">
+      <span className="bg-white/20 backdrop-blur-xs px-1.5 py-0.5 rounded text-amber-300 min-w-[1.6rem] text-center">
         {seconds}
       </span>
     </div>
@@ -194,13 +194,8 @@ export default function ProductMainCard(props: Props) {
     if (keyIndex === -1) return;
 
     if (selectedAttributes[key] === value) {
-      const nextAttributes: Record<string, string> = {};
-      for (let i = 0; i < keyIndex; i++) {
-        const parentKey = attributeKeys[i];
-        if (parentKey && selectedAttributes[parentKey]) {
-          nextAttributes[parentKey] = selectedAttributes[parentKey];
-        }
-      }
+      const nextAttributes = { ...selectedAttributes };
+      delete nextAttributes[key];
       setSelectionState({
         productId: product.productId,
         values: nextAttributes,
@@ -210,15 +205,15 @@ export default function ProductMainCard(props: Props) {
       return;
     }
 
-    const nextAttributes: Record<string, string> = {};
-    for (let i = 0; i < keyIndex; i++) {
-      const parentKey = attributeKeys[i];
-      if (parentKey && selectedAttributes[parentKey]) {
-        nextAttributes[parentKey] = selectedAttributes[parentKey];
-      }
-    }
-
-    nextAttributes[key] = value;
+    const candidate = { ...selectedAttributes, [key]: value };
+    const compatible =
+      product.variants.length === 0 ||
+      product.variants.some((v) =>
+        attributeKeys.every(
+          (k) => !candidate[k] || v.attributeValues[k] === candidate[k],
+        ),
+      );
+    const nextAttributes = compatible ? candidate : { [key]: value };
 
     setSelectionState({
       productId: product.productId,
@@ -238,32 +233,15 @@ export default function ProductMainCard(props: Props) {
   };
 
   const isOptionAvailable = (key: string, value: string) => {
-    const keyIndex = attributeKeys.indexOf(key);
-    if (keyIndex === -1) return false;
-
-    if (keyIndex === 0) {
-      return product.variants.some((v) => v.attributeValues[key] === value);
-    }
-
-    for (let i = 0; i < keyIndex; i++) {
-      const parentKey = attributeKeys[i];
-      if (!parentKey || !selectedAttributes[parentKey]) {
-        return false;
-      }
-    }
-
+    if (!attributeKeys.includes(key)) return false;
     return product.variants.some((v) => {
       if (v.attributeValues[key] !== value) return false;
-      for (let i = 0; i < keyIndex; i++) {
-        const parentKey = attributeKeys[i];
-        if (
-          parentKey &&
-          v.attributeValues[parentKey] !== selectedAttributes[parentKey]
-        ) {
-          return false;
-        }
-      }
-      return true;
+      return attributeKeys.every(
+        (selectedKey) =>
+          selectedKey === key ||
+          !selectedAttributes[selectedKey] ||
+          v.attributeValues[selectedKey] === selectedAttributes[selectedKey],
+      );
     });
   };
 
@@ -377,7 +355,7 @@ export default function ProductMainCard(props: Props) {
               {/* Price / Flash Sale Section */}
               {product.flashSale ? (
                 <div className="mt-5 rounded-2xl overflow-hidden border border-purple-500/30 bg-gradient-to-r from-purple-950 via-indigo-950 to-purple-900 text-white p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-white/10">
+                  <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-amber-400/70">
                     <div className="flex items-center gap-2">
                       <span className="relative overflow-hidden inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-xs">
                         <Zap
@@ -386,11 +364,6 @@ export default function ProductMainCard(props: Props) {
                         />
                         FLASH SALE
                       </span>
-                      {discountPercent > 0 && (
-                        <span className="text-xs font-bold text-yellow-300 bg-white/10 border border-yellow-300/30 px-2 py-0.5 rounded-full">
-                          -{discountPercent}%
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-purple-200">
@@ -414,13 +387,18 @@ export default function ProductMainCard(props: Props) {
                         {strikeLabel}
                       </span>
                     ) : null}
+                    {discountPercent > 0 && (
+                      <span className="text-xs font-bold text-white bg-fuchsia-500/25 border border-fuchsia-300/40 px-2 py-0.5 rounded-full">
+                        -{discountPercent}%
+                      </span>
+                    )}
                   </div>
 
                   {product.flashSale.saleStock > 0 && (
                     <div className="mt-3 flex items-center gap-3 max-w-xs">
                       <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-yellow-400 to-amber-300 rounded-full transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-fuchsia-400 to-purple-500 rounded-full transition-all duration-300"
                           style={{
                             width: `${Math.min(100, Math.max(10, Math.round((product.flashSale.soldCount / product.flashSale.saleStock) * 100)))}`,
                           }}
@@ -441,7 +419,9 @@ export default function ProductMainCard(props: Props) {
                     <div className="flex items-baseline gap-3 flex-wrap">
                       <span
                         className={`text-3xl sm:text-4xl font-bold tracking-tight leading-tight ${
-                          discountPercent > 0 ? "text-red-600" : "text-gray-950"
+                          discountPercent > 0
+                            ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
+                            : "text-gray-950"
                         }`}
                       >
                         {priceLabel}
@@ -450,13 +430,13 @@ export default function ProductMainCard(props: Props) {
                         <span className="text-base sm:text-lg text-gray-400 line-through">
                           {formatCurrency(strikePrice, displayCurrency, locale)}
                         </span>
-                      ) : strikeLabel ? (
+                      ) : strikeLabel && discountPercent > 0 ? (
                         <span className="text-base sm:text-lg text-gray-400 line-through">
                           {strikeLabel}
                         </span>
                       ) : null}
                       {discountPercent > 0 && (
-                        <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-bold text-brand bg-brand/5 border border-brand/20 px-2 py-0.5 rounded-full">
                           -{discountPercent}%
                         </span>
                       )}
@@ -494,8 +474,8 @@ export default function ProductMainCard(props: Props) {
                                   : "GHN ETA unavailable"))}
                       </span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-normal">
-                      <Gift size={13} className="text-amber-600 shrink-0" />
+                    <span className="inline-flex items-center gap-1.5 text-xs text-brand bg-brand/5 border border-brand/20 px-2.5 py-1 rounded-lg font-normal">
+                      <Gift size={13} className="text-brand shrink-0" />
                       <span>{t("productDetail.lateDeliveryVoucher")}</span>
                     </span>
                     {destAddress && (
@@ -619,7 +599,7 @@ export default function ProductMainCard(props: Props) {
                                   ? "border-gray-950 bg-gray-950 text-white shadow-xs font-semibold cursor-pointer"
                                   : available
                                     ? "border-gray-400 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 cursor-pointer"
-                                    : "border-gray-400 bg-gray-50 text-gray-300 line-through cursor-not-allowed opacity-60"
+                                    : "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
                               }`}
                             >
                               <span className="inline-flex items-center justify-center gap-1.5">
@@ -665,7 +645,7 @@ export default function ProductMainCard(props: Props) {
                           className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${
                             canDecrease
                               ? "border border-gray-400 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-400 active:scale-95 cursor-pointer shadow-2xs"
-                              : "bg-gray-50 border border-gray-400 text-gray-300 cursor-not-allowed"
+                              : "border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
                           }`}
                         >
                           <Minus size={14} className="stroke-[2.5]" />
@@ -681,7 +661,7 @@ export default function ProductMainCard(props: Props) {
                           className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${
                             canIncrease
                               ? "border border-gray-400 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-400 active:scale-95 cursor-pointer shadow-2xs"
-                              : "bg-gray-50 border border-gray-400 text-gray-300 cursor-not-allowed"
+                              : "border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
                           }`}
                         >
                           <Plus size={14} className="stroke-[2.5]" />
@@ -707,7 +687,7 @@ export default function ProductMainCard(props: Props) {
             <div className="mt-8 flex gap-3 lg:translate-y-1">
               <button
                 type="button"
-                className="h-12 flex-1 rounded-xl border border-gray-950 bg-white text-gray-950 hover:bg-gray-950 hover:text-white font-bold transition-colors duration-200 shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
+                className="h-12 flex-1 rounded-xl border border-gray-950 bg-gray-950 text-white hover:bg-neutral-800 hover:border-neutral-800 font-bold transition-colors duration-200 shadow-xs cursor-pointer active:scale-[0.99] disabled:border-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleAddToCart}
                 disabled={
                   adding ||
@@ -735,7 +715,7 @@ export default function ProductMainCard(props: Props) {
               </button>
               <button
                 type="button"
-                className="h-12 flex-1 rounded-xl border border-gray-950 bg-gray-950 text-white hover:bg-neutral-800 hover:border-neutral-800 font-bold transition-colors duration-200 shadow-xs hover:shadow-md cursor-pointer active:scale-[0.99] disabled:border-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400 disabled:hover:border-gray-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
+                className="h-12 flex-1 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600 font-bold transition-all duration-200 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base select-none"
                 onClick={handleBuyNow}
                 disabled={
                   adding ||
