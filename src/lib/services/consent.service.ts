@@ -10,17 +10,47 @@ export interface ConsentResponse {
   agreedAt: string;
 }
 
+interface RawConsentResponse {
+  consentId: string;
+  consentType: ConsentResponse["consentType"];
+  version: string | null;
+  agreedAt: string | null;
+  revokedAt: string | null;
+  ipAddress: string | null;
+}
+
+function normalizeConsent(raw: RawConsentResponse): ConsentResponse {
+  return {
+    consentId: raw.consentId,
+    userId: "",
+    consentType: raw.consentType,
+    agreed: Boolean(raw.agreedAt) && !raw.revokedAt,
+    version: raw.version,
+    clientIp: raw.ipAddress,
+    agreedAt: raw.agreedAt ?? "",
+  };
+}
+
 export const consentService = {
-  getMyConsents() {
-    return api.get<ConsentResponse[]>("/consents");
+  async getMyConsents() {
+    const rows = await api.get<RawConsentResponse[]>("/consents");
+    return (rows ?? []).map(normalizeConsent);
   },
-  agreeTerms(version: string) {
-    return api.post<ConsentResponse>("/consents/terms", { version });
+  async agreeTerms(version: string) {
+    return normalizeConsent(
+      await api.post<RawConsentResponse>("/consents/terms", { version }),
+    );
   },
-  agreePrivacy(version: string) {
-    return api.post<ConsentResponse>("/consents/privacy", { version });
+  async agreePrivacy(version: string) {
+    return normalizeConsent(
+      await api.post<RawConsentResponse>("/consents/privacy", { version }),
+    );
   },
-  updateMarketing(agreed: boolean) {
-    return api.patch<ConsentResponse>("/consents/marketing", { agreed });
+  async updateMarketing(agreed: boolean) {
+    return normalizeConsent(
+      await api.patch<RawConsentResponse>("/consents/marketing", {
+        subscribed: agreed,
+      }),
+    );
   },
 };

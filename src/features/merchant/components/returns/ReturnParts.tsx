@@ -57,7 +57,7 @@ export function ReturnCard({
           <div className="flex items-center gap-2 mb-1.5">
             <Badge variant={variant}>{statusLabel}</Badge>
             <span className="text-xs text-gray-400">
-              {formatDateTime(rtn.createdAt)}
+              {formatDateTime(rtn.requestedAt)}
             </span>
           </div>
           <p className="text-xs text-gray-500 font-mono mb-2">
@@ -80,12 +80,12 @@ export function ReturnCard({
               <ExternalLink size={12} />
             </a>
           )}
-          {rtn.rejectReason && (
+          {rtn.rejectionReason && (
             <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2 mt-2">
               <span className="font-medium">
                 {t("merchant.returns.rejectReasonLabel")}
               </span>{" "}
-              {rtn.rejectReason}
+              {rtn.rejectionReason}
             </p>
           )}
           {rtn.refundAmount != null && rtn.currency && (
