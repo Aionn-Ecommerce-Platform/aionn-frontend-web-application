@@ -57,10 +57,10 @@ export default function CheckoutPaymentPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/5 text-brand">
               <CreditCard size={16} />
             </span>
             {locale === "vi" ? t("checkout.paymentMethod") : "Payment method"}
@@ -69,25 +69,25 @@ export default function CheckoutPaymentPanel(props: Props) {
             type="button"
             onClick={() => setPaymentModalOpen(true)}
             disabled={savingPaymentPreference}
-            className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50"
+            className="text-sm font-semibold text-brand hover:text-brand-strong disabled:opacity-50"
           >
             {t("checkout.change")}
           </button>
         </div>
         {loadingPm || loadingPaymentPreference ? (
           <div className="flex justify-center py-5">
-            <Loader2 className="animate-spin text-blue-600" size={20} />
+            <Loader2 className="animate-spin text-brand" size={20} />
           </div>
         ) : isVnpay ? (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-gray-100">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand shadow-sm ring-1 ring-gray-100">
               <CreditCard size={16} />
             </span>
             <span className="font-medium text-gray-900">VNPay</span>
           </div>
         ) : effectivePaymentMethod ? (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-gray-100">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand shadow-sm ring-1 ring-gray-100">
               <CreditCard size={16} />
             </span>
             <span className="font-medium text-gray-900">
@@ -95,7 +95,7 @@ export default function CheckoutPaymentPanel(props: Props) {
             </span>
           </div>
         ) : (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-400 bg-gray-50 px-4 py-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm ring-1 ring-gray-100">
               <Banknote size={16} />
             </span>
@@ -120,7 +120,7 @@ export default function CheckoutPaymentPanel(props: Props) {
             type="button"
             onClick={() => handlePaymentSelection("COD")}
             disabled={savingPaymentPreference}
-            className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === "COD" ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100" : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"}`}
+            className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === "COD" ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "border-gray-400 hover:border-brand/40 hover:bg-gray-50"}`}
           >
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-600">
               <Banknote size={18} />
@@ -129,21 +129,21 @@ export default function CheckoutPaymentPanel(props: Props) {
               {locale === "vi" ? t("checkout.cod") : "Cash on delivery"}
             </span>
             {effectivePaymentOption === "COD" && (
-              <Check size={18} className="ml-auto text-blue-600" />
+              <Check size={18} className="ml-auto text-brand" />
             )}
           </button>
           <button
             type="button"
             onClick={() => handlePaymentSelection("VNPAY")}
             disabled={savingPaymentPreference}
-            className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === "VNPAY" ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100" : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"}`}
+            className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === "VNPAY" ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "border-gray-400 hover:border-brand/40 hover:bg-gray-50"}`}
           >
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/5 text-brand">
               <CreditCard size={18} />
             </span>
             <span className="font-medium text-gray-900">VNPay</span>
             {effectivePaymentOption === "VNPAY" && (
-              <Check size={18} className="ml-auto text-blue-600" />
+              <Check size={18} className="ml-auto text-brand" />
             )}
           </button>
           {usablePaymentMethods.map((method) => (
@@ -152,7 +152,7 @@ export default function CheckoutPaymentPanel(props: Props) {
               type="button"
               onClick={() => handlePaymentSelection(method.methodId)}
               disabled={savingPaymentPreference}
-              className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === method.methodId ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100" : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"}`}
+              className={`flex w-full items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all disabled:opacity-50 ${effectivePaymentOption === method.methodId ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "border-gray-400 hover:border-brand/40 hover:bg-gray-50"}`}
             >
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
                 <CreditCard size={18} />
@@ -161,13 +161,13 @@ export default function CheckoutPaymentPanel(props: Props) {
                 {paymentMethodLabel(method)}
               </span>
               {effectivePaymentOption === method.methodId && (
-                <Check size={18} className="ml-auto text-blue-600" />
+                <Check size={18} className="ml-auto text-brand" />
               )}
             </button>
           ))}
           {usablePaymentMethods.length === 0 && (
             <div className="flex items-center gap-3 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-4 py-4 text-gray-600">
-              <CreditCard size={20} className="text-blue-600" />
+              <CreditCard size={20} className="text-brand" />
               <span className="text-sm">
                 {locale === "vi"
                   ? t("checkout.addStripeCardHint")

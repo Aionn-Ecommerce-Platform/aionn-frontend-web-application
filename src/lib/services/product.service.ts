@@ -354,6 +354,9 @@ export const productService = {
     if (params.brandIds && params.brandIds.length > 0) {
       query.brandIds = params.brandIds.join(",");
     }
+    if (params.provinceCodes && params.provinceCodes.length > 0) {
+      query.provinceCodes = params.provinceCodes.join(",");
+    }
     if (params.attributes) {
       for (const [k, values] of Object.entries(params.attributes)) {
         if (values && values.length > 0) {

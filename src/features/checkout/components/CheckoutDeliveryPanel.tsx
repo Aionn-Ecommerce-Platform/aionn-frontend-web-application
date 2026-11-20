@@ -64,23 +64,23 @@ export default function CheckoutDeliveryPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
         <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/5 text-brand">
             <MapPin size={16} />
           </span>
           {t("checkout.shippingAddress")}
         </h2>
         {loadingAddr ? (
           <div className="py-6 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={20} />
+            <Loader2 className="animate-spin text-brand" size={20} />
           </div>
         ) : !addresses || addresses.length === 0 ? (
           <div className="text-center py-6">
             <p className="text-sm text-gray-500 mb-3">
               {t("checkout.noAddress")}
             </p>
-            <Link href="/account/addresses">
+            <Link href="/account#addresses">
               <Button variant="outline" size="sm">
                 <PlusCircle size={14} className="mr-1" />
                 {t("checkout.addAddress")}
@@ -121,7 +121,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
             <button
               type="button"
               onClick={() => setAddressModalOpen(true)}
-              className="shrink-0 text-sm font-semibold text-blue-600 hover:text-blue-700"
+              className="shrink-0 text-sm font-semibold text-brand hover:text-brand-strong"
             >
               {t("checkout.change")}
             </button>
@@ -153,7 +153,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                 locale={locale}
               />
             ))}
-          <Link href="/account/addresses" className="block pt-2">
+          <Link href="/account#addresses" className="block pt-2">
             <Button variant="outline" className="w-full">
               <PlusCircle size={16} className="mr-2" />
               {t("checkout.addNewAddress")}
@@ -161,9 +161,9 @@ export default function CheckoutDeliveryPanel(props: Props) {
           </Link>
         </div>
       </Modal>
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
         <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/5 text-brand">
             <Truck size={16} />
           </span>
           {t("checkout.shippingMethod")}
@@ -175,7 +175,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
           </div>
         ) : loadingQuote ? (
           <div className="py-6 flex justify-center items-center gap-2">
-            <Loader2 className="animate-spin text-blue-600" size={18} />
+            <Loader2 className="animate-spin text-brand" size={18} />
             <span className="text-sm text-gray-500">
               {t("checkout.calculatingShipping")}
             </span>
@@ -191,8 +191,8 @@ export default function CheckoutDeliveryPanel(props: Props) {
                   onClick={() => onSelectService(option.code)}
                   className={`w-full rounded-xl border p-4 text-left transition-colors cursor-pointer ${
                     selected
-                      ? "border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 ring-1 ring-blue-100"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
+                      ? "border-brand bg-gradient-to-r from-brand/5 to-purple-50 ring-1 ring-brand/20"
+                      : "border-gray-400 bg-white hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -200,7 +200,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                       <span
                         className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
                           selected
-                            ? "bg-white text-blue-600 shadow-sm ring-1 ring-blue-100"
+                            ? "bg-white text-brand shadow-sm ring-1 ring-brand/20"
                             : "bg-gray-50 text-gray-500"
                         }`}
                       >
@@ -229,10 +229,10 @@ export default function CheckoutDeliveryPanel(props: Props) {
             })}
           </div>
         ) : (
-          <div className="relative overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+          <div className="relative overflow-hidden rounded-xl border border-brand/20 bg-gradient-to-r from-brand/5 to-purple-50 p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-blue-100">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand shadow-sm ring-1 ring-brand/20">
                   <Zap size={16} />
                 </span>
                 <div>
@@ -242,10 +242,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                   </p>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-600">
                     <Clock size={11} />
-                    {deliveryDateLabel ??
-                      (locale === "vi"
-                        ? t("checkout.noEstimatedDelivery")
-                        : "GHN ETA unavailable")}
+                    {deliveryDateLabel ?? t("checkout.noEstimatedDelivery")}
                   </p>
                 </div>
               </div>
@@ -271,7 +268,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
             maxLength={1000}
             rows={2}
             placeholder={t("checkout.deliveryNotePlaceholder")}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-400 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
           />
           <p className="mt-1 text-xs text-gray-400">
             {t("checkout.deliveryNoteHint")}

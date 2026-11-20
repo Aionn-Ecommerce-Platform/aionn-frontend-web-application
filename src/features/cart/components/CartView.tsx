@@ -130,7 +130,7 @@ export default function CartPage() {
   if (syncing && items.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-brand" size={32} />
       </div>
     );
   }
@@ -138,11 +138,11 @@ export default function CartPage() {
   const isEmpty = items.length === 0;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50/60 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
               {t("cart.title")}
             </h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -151,7 +151,7 @@ export default function CartPage() {
           </div>
           {syncing && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 size={16} className="animate-spin text-blue-600" />
+              <Loader2 size={16} className="animate-spin text-brand" />
               Syncing
             </div>
           )}
@@ -160,7 +160,7 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
           <div className="space-y-3">
             {isEmpty ? (
-              <div className="rounded-md border border-gray-200 bg-white py-16">
+              <div className="rounded-2xl border border-gray-400 bg-white py-16 shadow-xs">
                 <EmptyState
                   icon={ShoppingBag}
                   title={t("cart.emptyCart")}
@@ -174,12 +174,12 @@ export default function CartPage() {
               </div>
             ) : (
               <>
-                <div className="hidden md:grid grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] items-center gap-3 rounded-2xl border border-gray-200/80 shadow-xs bg-white px-5 py-3 text-sm text-gray-500">
+                <div className="hidden md:grid grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] items-center gap-3 rounded-2xl border border-gray-400 shadow-xs bg-white px-5 py-3 text-sm text-gray-500">
                   <input
                     type="checkbox"
                     checked={allSelected}
                     onChange={toggleAll}
-                    className="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-400 text-brand focus:ring-brand/30"
                     aria-label={t("cart.selectAll")}
                   />
                   <span>{t("cart.product")}</span>
@@ -202,13 +202,13 @@ export default function CartPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.18 }}
-                        className="grid gap-4 rounded-2xl border border-gray-200/80 shadow-xs bg-white p-4 transition-all hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 md:grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] md:items-center md:gap-3 md:px-5 md:py-4"
+                        className="grid gap-4 rounded-2xl border border-gray-400 shadow-xs bg-white p-4 transition-all hover:border-gray-950 hover:shadow-md hover:shadow-black/5 md:grid-cols-[32px_minmax(0,1fr)_112px_128px_128px_48px] md:items-center md:gap-3 md:px-5 md:py-4"
                       >
                         <input
                           type="checkbox"
                           checked={selected}
                           onChange={() => toggleSku(item.skuId)}
-                          className="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500"
+                          className="h-4 w-4 rounded border-gray-400 text-brand focus:ring-brand/30"
                           aria-label={t("cart.selectProduct", {
                             product: item.productName,
                           })}
@@ -217,7 +217,7 @@ export default function CartPage() {
                         <div className="flex min-w-0 items-center gap-3">
                           <Link
                             href={productPath({ productId: item.productId, slug: item.slug })}
-                            className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50 sm:h-24 sm:w-24"
+                            className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-gray-400 bg-gray-50 sm:h-24 sm:w-24"
                           >
                             <Image
                               src={item.imageUrl || "/images/logo.png"}
@@ -230,7 +230,7 @@ export default function CartPage() {
                           <div className="min-w-0 flex-1">
                             <Link
                               href={productPath({ productId: item.productId, slug: item.slug })}
-                              className="line-clamp-2 text-sm font-semibold leading-5 text-gray-900 hover:text-blue-600 sm:text-base"
+                              className="line-clamp-2 text-sm font-semibold leading-5 text-gray-900 hover:text-brand sm:text-base"
                             >
                               {item.productName}
                             </Link>
@@ -259,7 +259,7 @@ export default function CartPage() {
                               pendingSku === item.skuId || item.qty <= 1
                             }
                             onClick={() => handleQty(item.skuId, item.qty - 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-400 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-400 text-gray-600 hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Minus size={12} />
                           </button>
@@ -269,7 +269,7 @@ export default function CartPage() {
                           <button
                             disabled={pendingSku === item.skuId}
                             onClick={() => handleQty(item.skuId, item.qty + 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-400 text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-400 text-gray-600 hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Plus size={12} />
                           </button>
@@ -279,7 +279,7 @@ export default function CartPage() {
                           <p className="text-sm text-gray-500 md:hidden">
                             {t("cart.amount")}
                           </p>
-                          <p className="font-bold text-purple-700">
+                          <p className="font-bold text-sale">
                             {formatCurrency(lineAmount, item.currency, locale)}
                           </p>
                         </div>
@@ -287,7 +287,7 @@ export default function CartPage() {
                         <button
                           disabled={pendingSku === item.skuId}
                           onClick={() => handleRemove(item.skuId)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 md:mx-auto"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-gray-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 md:mx-auto"
                           aria-label="Remove item"
                         >
                           <Trash2 size={16} />
@@ -301,7 +301,7 @@ export default function CartPage() {
           </div>
 
           <div>
-            <div className="sticky top-20 rounded-2xl border border-gray-200/80 shadow-xs bg-white p-6">
+            <div className="sticky top-20 rounded-2xl border border-gray-400 shadow-xs bg-white p-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-900">
                 {t("cart.orderSummary")}
               </h3>
@@ -319,11 +319,11 @@ export default function CartPage() {
                     {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
-                <div className="flex justify-between border-t border-gray-100 pt-3">
+                <div className="flex justify-between border-t border-gray-200 pt-3">
                   <span className="font-semibold text-gray-900">
                     {t("cart.total")}
                   </span>
-                  <span className="text-2xl font-bold text-purple-700">
+                  <span className="text-2xl font-bold text-sale">
                     {formatCurrency(selectedAmount, cartCurrency, locale)}
                   </span>
                 </div>
@@ -343,14 +343,14 @@ export default function CartPage() {
 
               <button
                 onClick={toggleAll}
-                className="mt-4 w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="mt-4 w-full text-center text-sm font-medium text-brand hover:text-brand-strong"
               >
                 {allSelected ? t("cart.deselectAll") : t("cart.selectAll")}
               </button>
 
               <Link
                 href="/products"
-                className="mt-3 block text-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="mt-3 block text-center text-sm font-medium text-brand hover:text-brand-strong"
               >
                 {t("cart.continueShopping")}
               </Link>
@@ -362,7 +362,7 @@ export default function CartPage() {
           <section className="mt-12">
             <div className="mb-6 flex items-center justify-between gap-4">
               <h2 className="hidden">{t("cart.recommendations")}</h2>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-950">
                 {t("cart.recommendations")}
               </h2>
               <Link href="/products" className="hidden">
@@ -371,7 +371,7 @@ export default function CartPage() {
               </Link>
               <Link
                 href="/products"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-strong"
               >
                 {t("common.seeAll")}
                 <ArrowRight size={16} />

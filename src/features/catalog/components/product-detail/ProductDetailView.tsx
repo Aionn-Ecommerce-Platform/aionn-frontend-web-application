@@ -303,7 +303,12 @@ export default function ProductDetailPage({
         .then((q) => {
           if (!active) return;
           setShippingFee(q.fee);
-          setEstimatedDeliveryAt(q.estimatedDeliveryAt ?? null);
+          setEstimatedDeliveryAt(
+            q.estimatedDeliveryAt ??
+              q.options?.find((option) => option.estimatedDeliveryAt)
+                ?.estimatedDeliveryAt ??
+              null,
+          );
         })
         .catch((err) => {
           if (!active) return;

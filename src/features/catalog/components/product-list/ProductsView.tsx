@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid3X3, List } from "lucide-react";
-import { useTranslation, useMerchantProvinceMap } from "@/hooks";
+import { useTranslation, useMerchantProvinceMap, useMerchantProvinceCodes } from "@/hooks";
 import PageLoading from "@/shared/ui/PageLoading";
 import { buildCategoryNameMap } from "@/shared/lib/category-utils";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -244,6 +244,11 @@ function ProductsInner() {
   }, [provinces, locale]);
 
   const merchantProvinceById = useMerchantProvinceMap();
+  const availableProvinceCodes = useMerchantProvinceCodes();
+  const provinceOptions = useMemo(
+    () => (provinces ?? []).filter((p) => availableProvinceCodes.has(p.code)),
+    [provinces, availableProvinceCodes],
+  );
 
   const brandNameById = useMemo(() => {
     const m = new Map<string, string>();
@@ -383,7 +388,7 @@ function ProductsInner() {
             onSale={onSale}
             categoryItems={categoryFilterItems}
             brandItems={brandFilterItems}
-            provinces={provinces ?? []}
+            provinces={provinceOptions}
             provinceCodes={provinceCodes}
             rating={ratingMin}
             priceMin={priceMin}

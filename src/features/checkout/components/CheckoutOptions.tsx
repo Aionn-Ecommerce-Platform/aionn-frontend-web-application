@@ -18,8 +18,8 @@ export function AddressOption({
     <label
       className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
         selected
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 hover:border-gray-400"
+          ? "border-brand bg-brand/5"
+          : "border-gray-400 hover:border-gray-400"
       }`}
     >
       <input
@@ -28,13 +28,13 @@ export function AddressOption({
         name="address"
         checked={selected}
         onChange={onSelect}
-        className="mt-1 text-blue-600 focus:ring-blue-500"
+        className="mt-1 text-brand focus:ring-brand/30"
       />
       <div>
         <p className="text-sm font-medium text-gray-900">
           {address.contactName} • {address.phone}
           {address.isDefault && (
-            <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+            <span className="ml-2 text-xs bg-brand/10 text-brand-strong px-2 py-0.5 rounded-full">
               {t("addresses.defaultBadge")}
             </span>
           )}
