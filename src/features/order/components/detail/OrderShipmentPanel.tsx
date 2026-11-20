@@ -1,13 +1,15 @@
 "use client";
-import { useState } from "react";
-import { Truck, Copy, Check } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Truck, Copy, Check, MapPin } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Badge } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { getShipmentStatus } from "@/lib/domain/status/shipment";
-import { formatDate } from "@/shared/lib/utils";
+import { shippingService } from "@/lib/services";
+import { formatDate, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
-import type { Shipment } from "@/types";
+import type { Shipment, ShipmentStatus } from "@/types";
 
 const STEPS = [
   "REQUESTED",
@@ -18,13 +20,26 @@ const STEPS = [
   "DELIVERED",
 ];
 
+interface DeliveryInfo {
+  hasInfo: boolean;
+  recipientName: string | null;
+  recipientPhone: string | null;
+  addressLine: string | null;
+}
+
 export default function OrderShipmentPanel({
   shipment,
+  deliveryInfo,
 }: {
   shipment: Shipment;
+  deliveryInfo: DeliveryInfo;
 }) {
   const { t, locale } = useTranslation();
   const [trackingCopied, setTrackingCopied] = useState(false);
+  const { data: shipmentEvents = [] } = useQuery({
+    queryKey: ["shipment-events", shipment.shipmentId],
+    queryFn: () => shippingService.listEvents(shipment.shipmentId),
+  });
 
   const handleCopyTrackingCode = () => {
     if (!shipment?.trackingCode) return;
@@ -39,6 +54,7 @@ export default function OrderShipmentPanel({
         toast.error(getErrorMessage(err));
       });
   };
+
   const labels = [
     "orders.trackingStepRequested",
     "orders.trackingStepRegistered",
@@ -47,31 +63,90 @@ export default function OrderShipmentPanel({
     "orders.trackingStepOutForDelivery",
     "orders.trackingStepDelivered",
   ];
+  const descriptions = [
+    "orders.trackingDescRequested",
+    "orders.trackingDescRegistered",
+    "orders.trackingDescPickedUp",
+    "orders.trackingDescInTransit",
+    "orders.trackingDescOutForDelivery",
+    "orders.trackingDescDelivered",
+  ];
+  const timestamps = [
+    shipment.createdAt,
+    shipment.registeredAt,
+    shipment.pickedAt,
+    shipment.inTransitAt,
+    shipment.outForDeliveryAt,
+    shipment.deliveredAt,
+  ];
   const current = STEPS.indexOf(shipment.status);
+  const currentLabel = t(getShipmentStatus(shipment.status).labelKey);
+  const localeTag = locale === "vi" ? "vi-VN" : "en-US";
+
+  const timeline = useMemo(() => {
+    if (shipmentEvents.length > 0) {
+      const descKeyByStatus: Record<string, string> = {
+        REQUESTED: "orders.trackingDescRequested",
+        REGISTERED: "orders.trackingDescRegistered",
+        PICKED_UP: "orders.trackingDescPickedUp",
+        IN_TRANSIT: "orders.trackingDescInTransit",
+        OUT_FOR_DELIVERY: "orders.trackingDescOutForDelivery",
+        DELIVERED: "orders.trackingDescDelivered",
+      };
+      return shipmentEvents.map((event, index) => {
+        const cfg = getShipmentStatus(event.status as ShipmentStatus);
+        return {
+          key: event.eventId,
+          label: cfg ? t(cfg.labelKey) : event.status,
+          description:
+            event.description && event.description.trim()
+              ? event.description
+              : t(descKeyByStatus[event.status] ?? "orders.trackingDescInTransit"),
+          location: event.location,
+          at: event.occurredAt,
+          done: true,
+          current: index === shipmentEvents.length - 1,
+        };
+      });
+    }
+
+    return STEPS.map((step, index) => ({
+      key: step,
+      label: t(labels[index]!),
+      description:
+        step === "IN_TRANSIT" && shipment.currentLocation
+          ? shipment.currentLocation
+          : step === "OUT_FOR_DELIVERY" && shipment.shipperName
+            ? `${shipment.shipperName}${shipment.shipperPhone ? ` · ${shipment.shipperPhone}` : ""}`
+            : t(descriptions[index]!),
+      location: null,
+      at: timestamps[index],
+      done: index <= current,
+      current: index === current,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipmentEvents, shipment, current, t]);
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/90 p-6 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-      <h3 className="font-bold text-gray-950 mb-4 flex items-center gap-2.5 text-base">
-        <div className="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
-          <Truck size={16} />
-        </div>
-        {t("orders.shippingInfo")}
-      </h3>
-      <div className="grid md:grid-cols-2 gap-4 mb-6 text-sm">
-        <div>
-          <p className="text-xs text-gray-500 font-medium">{t("orders.carrier")}</p>
-          <p className="font-semibold text-gray-900 mt-0.5">{t("checkout.express")} (GHN)</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500 font-medium">{t("orders.trackingNumber")}</p>
+    <div className="bg-white rounded-2xl border border-gray-400 p-6 mb-6 shadow-xs">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <h3 className="font-bold text-gray-950 flex items-center gap-2.5 text-base">
+          <span className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
+            <Truck size={24} />
+          </span>
+          {t("orders.shippingInfo")}
+        </h3>
+        <div className="text-right">
+          <p className="text-sm font-semibold text-gray-900">GHN</p>
           <div className="inline-flex items-center gap-1.5 mt-0.5">
-            <span className="font-mono font-bold text-gray-950">
+            <span className="font-mono text-sm font-semibold text-gray-500">
               {shipment.trackingCode || t("orders.noTrackingYet")}
             </span>
             {shipment.trackingCode && (
               <button
                 type="button"
                 onClick={handleCopyTrackingCode}
-                className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200/80 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-950 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-400 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-950 transition-colors shadow-2xs cursor-pointer"
                 title={t("orders.copyCode")}
                 aria-label={t("orders.copyCode")}
               >
@@ -84,84 +159,156 @@ export default function OrderShipmentPanel({
             )}
           </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 font-medium mb-1.5">{t("orders.shippingStatus")}</p>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={getShipmentStatus(shipment.status).variant}
-              className="text-xs px-2.5 py-0.5 font-semibold"
-            >
-              {t(getShipmentStatus(shipment.status).labelKey)}
-            </Badge>
-            {shipment.lastFailureReason && (
-              <span className="text-xs text-rose-600 font-medium">
-                ({shipment.lastFailureReason})
-              </span>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
+              <MapPin size={24} />
+            </span>
+            <p className="text-sm font-bold uppercase tracking-wider text-gray-400">
+              {t("orders.deliverySection")}
+            </p>
+          </div>
+          {deliveryInfo.hasInfo ? (
+            <div className="space-y-1.5">
+              {deliveryInfo.recipientName && (
+                <p className="text-base font-bold text-gray-950">
+                  {deliveryInfo.recipientName}
+                </p>
+              )}
+              {deliveryInfo.recipientPhone && (
+                <p className="text-sm font-medium text-gray-500">
+                  {deliveryInfo.recipientPhone}
+                </p>
+              )}
+              {deliveryInfo.addressLine && (
+                <p className="text-base leading-relaxed text-gray-700">
+                  {deliveryInfo.addressLine}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-base text-gray-500">
+              {t("orders.noShippingAddress")}
+            </p>
+          )}
+
+          <div className="mt-5 space-y-3 text-sm">
+            <div>
+              <p className="text-sm text-gray-500 font-medium">
+                {t("orders.shippingStatus")}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Badge
+                  variant={getShipmentStatus(shipment.status).variant}
+                  className={`inline-flex items-center gap-1.5 !rounded-full !px-3 !py-1 !text-sm font-bold ${
+                    shipment.status === "DELIVERED"
+                      ? "!bg-gray-950 !text-white"
+                      : ""
+                  }`}
+                >
+                  {shipment.status === "DELIVERED" && (
+                    <Check
+                      size={14}
+                      strokeWidth={3}
+                      className="text-emerald-400"
+                    />
+                  )}
+                  {currentLabel}
+                </Badge>
+                {shipment.lastFailureReason && (
+                  <span className="text-sm text-rose-600 font-medium">
+                    ({shipment.lastFailureReason})
+                  </span>
+                )}
+              </div>
+            </div>
+            {shipment.expectedDeliveryDate && (
+              <div>
+                <p className="text-sm text-gray-500 font-medium">
+                  {t("orders.estimatedDelivery")}
+                </p>
+                <p className="font-semibold text-gray-900 mt-0.5">
+                  {formatDate(shipment.expectedDeliveryDate, locale)}
+                </p>
+              </div>
+            )}
+            {shipment.shipperName && (
+              <div>
+                <p className="text-sm text-gray-500 font-medium">
+                  {t("orders.shipperName")}
+                </p>
+                <p className="font-semibold text-gray-900 mt-0.5">
+                  {shipment.shipperName}{" "}
+                  {shipment.shipperPhone && `(${shipment.shipperPhone})`}
+                </p>
+              </div>
             )}
           </div>
         </div>
-        {shipment.shipperName && (
-          <div>
-            <p className="text-xs text-gray-500 font-medium">{t("orders.shipperName")}</p>
-            <p className="font-semibold text-gray-900 mt-0.5">
-              {shipment.shipperName}{" "}
-              {shipment.shipperPhone && `(${shipment.shipperPhone})`}
-            </p>
-          </div>
-        )}
-        {shipment.expectedDeliveryDate && (
-          <div>
-            <p className="text-xs text-gray-500 font-medium">{t("orders.estimatedDelivery")}</p>
-            <p className="font-semibold text-gray-900 mt-0.5">
-              {formatDate(shipment.expectedDeliveryDate, locale)}
-            </p>
-          </div>
-        )}
-      </div>
-      {!["CANCELLED", "RETURNED", "DELIVERY_FAILED"].includes(
-        shipment.status,
-      ) && (
-        <div className="border-t border-gray-100 pt-6">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+
+        <div className="min-w-0 md:border-l md:border-gray-300 md:pl-6">
+          <p className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
             {t("orders.trackingHistory")}
           </p>
-          <div className="flex flex-col md:flex-row gap-4">
-            {STEPS.map((step, index) => {
-              const done = index <= current;
+          <ol className="relative space-y-5 pl-9 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-gray-300">
+            {timeline.map((event, index) => {
               return (
-                <div
-                  key={step}
-                  className="flex-1 flex md:flex-col items-center gap-2 relative"
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-colors ${
-                      done
-                        ? "bg-gray-950 text-white shadow-xs"
+                <li key={event.key} className="relative">
+                  <span
+                    className={`absolute -left-9 top-0.5 flex h-6 w-6 items-center justify-center rounded-full ${
+                      event.done
+                        ? "bg-emerald-500 text-white"
                         : "bg-gray-100 text-gray-400"
                     }`}
                   >
-                    {index + 1}
-                  </div>
-                  <span
-                    className={`text-xs text-center font-medium ${
-                      done ? "text-gray-950 font-bold" : "text-gray-400"
+                    {event.done ? (
+                      <Check size={13} strokeWidth={3} />
+                    ) : (
+                      <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                    )}
+                  </span>
+                  {event.at && (
+                    <p className="text-sm font-medium text-gray-400">
+                      {formatDateTime(event.at, localeTag)}
+                    </p>
+                  )}
+                  <p
+                    className={`text-base font-bold ${
+                      event.current
+                        ? "text-emerald-600"
+                        : event.done
+                          ? "text-gray-950"
+                          : "text-gray-400"
                     }`}
                   >
-                    {t(labels[index]!)}
-                  </span>
-                  {index < STEPS.length - 1 && (
-                    <div
-                      className={`hidden md:block absolute top-4 left-[60%] w-[80%] h-0.5 ${
-                        index < current ? "bg-gray-950" : "bg-gray-200"
-                      }`}
-                    />
+                    {event.label}
+                  </p>
+                  <p
+                    className={`text-sm leading-relaxed ${
+                      event.done ? "text-gray-600" : "text-gray-400"
+                    }`}
+                  >
+                    {event.description}
+                  </p>
+                  {event.location &&
+                    event.location !== event.description && (
+                      <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+                        <MapPin size={12} className="shrink-0" />
+                        {event.location}
+                      </p>
+                    )}
+                  {index < timeline.length - 1 && (
+                    <span className="absolute -bottom-5 left-[-25px] h-5 w-px bg-gray-300" />
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
-      )}
+      </div>
     </div>
   );
 }

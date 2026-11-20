@@ -26,6 +26,7 @@ export interface ReturnAnalytics {
   currency: string;
   returnsByStatus: Array<{ status: string; count: number }>;
   returnsByReason: Array<{ reason: string; count: number }>;
+  returnsByReasonType: Array<{ reasonType: string; count: number }>;
 }
 
 export interface PaymentAnalytics {

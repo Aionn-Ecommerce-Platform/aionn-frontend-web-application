@@ -13,6 +13,7 @@ import { orderReturnService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime, formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
+import { returnReasonBadgeClass, returnReasonLabelKey } from "@/lib/domain/return-reasons";
 import type { OrderReturn, ReturnStatus } from "@/types";
 
 const statusVariant: Record<
@@ -63,6 +64,14 @@ export function ReturnCard({
           <p className="text-xs text-gray-500 font-mono mb-2">
             {t("merchant.returns.returnLabel")}: {rtn.returnId}
           </p>
+          <div className="mb-1.5">
+            <Badge
+              variant="info"
+              className={returnReasonBadgeClass(rtn.reasonType)}
+            >
+              {t(returnReasonLabelKey(rtn.reasonType))}
+            </Badge>
+          </div>
           <p className="text-sm text-gray-900 mb-2">
             <span className="text-gray-500">
               {t("merchant.returns.customerReason")}
@@ -174,6 +183,14 @@ export function ApproveModal({
     >
       <div className="space-y-4">
         <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1">
+          <div>
+            <Badge
+              variant="info"
+              className={returnReasonBadgeClass(rtn.reasonType)}
+            >
+              {t(returnReasonLabelKey(rtn.reasonType))}
+            </Badge>
+          </div>
           <p className="text-gray-700">
             <span className="text-gray-500">
               {t("merchant.returns.reasonLabel")}

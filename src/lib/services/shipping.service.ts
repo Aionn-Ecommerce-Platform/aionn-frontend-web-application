@@ -2,6 +2,7 @@ import api from "@/shared/api";
 import type {
   Shipment,
   ShipmentAddress,
+  ShipmentEvent,
   ShippingQuote,
 } from "@/types";
 
@@ -68,6 +69,12 @@ export const shippingService = {
 
   listByOrder(orderId: string) {
     return api.get<Shipment[]>(`/shipping/shipments/by-order/${orderId}`);
+  },
+
+  listEvents(shipmentId: string) {
+    return api.get<ShipmentEvent[]>(
+      `/shipping/shipments/${shipmentId}/events`,
+    );
   },
 
   applyCarrierWebhook(payload: CarrierWebhookInput) {
