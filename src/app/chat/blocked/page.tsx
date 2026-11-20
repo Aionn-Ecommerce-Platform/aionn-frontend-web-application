@@ -41,11 +41,11 @@ function ChatBlockedInner() {
       </h1>
 
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-100 p-12 flex justify-center">
+        <div className="bg-white rounded-2xl border border-gray-400 p-12 flex justify-center">
           <Loader2 className="animate-spin text-blue-600" size={28} />
         </div>
       ) : blockedUsers.length > 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+        <div className="bg-white rounded-2xl border border-gray-400 divide-y divide-gray-100">
           {blockedUsers.map((block) => (
             <div
               key={block.blockId}
@@ -86,7 +86,7 @@ function ChatBlockedInner() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-gray-400 p-12 text-center">
           <UserX className="mx-auto text-gray-400 mb-4" size={48} />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {t("chatBlocked.emptyTitle")}

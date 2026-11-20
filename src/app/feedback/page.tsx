@@ -99,7 +99,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="bg-white min-h-screen py-8 lg:py-14">
+    <div className="bg-gray-50/60 min-h-screen py-8 lg:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Title */}
         <div className="mb-8 lg:mb-12 max-w-3xl">
@@ -114,11 +114,12 @@ export default function FeedbackPage() {
         </div>
 
         {/* 2-Column Split: Borderless seamless canvas */}
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* Left Column: Form */}
           <div className="lg:col-span-6">
+            <div className="bg-white rounded-2xl border border-gray-400 p-6 sm:p-8 shadow-xs">
             {submitted ? (
-              <div className="py-12 px-6 rounded-2xl bg-gray-50/70 border border-gray-100 text-center space-y-4">
+              <div className="py-12 px-6 rounded-xl bg-gray-50/70 border border-gray-400 text-center space-y-4">
                 <div className="w-16 h-16 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mx-auto shadow-xs">
                   <CheckCircle size={36} />
                 </div>
@@ -157,7 +158,7 @@ export default function FeedbackPage() {
                           className={`flex items-center gap-3 p-3 rounded-xl border text-left text-sm font-semibold transition-all duration-200 cursor-pointer ${
                             isSelected
                               ? "border-brand bg-brand/5 text-brand shadow-xs ring-1 ring-brand/30"
-                              : "border-gray-200 bg-gray-50/60 text-gray-700 hover:border-gray-400 hover:bg-gray-100/80"
+                              : "border-gray-400 bg-white text-gray-700 hover:border-brand/50 hover:bg-brand/5"
                           }`}
                         >
                           <div
@@ -186,7 +187,7 @@ export default function FeedbackPage() {
                     onChange={(e) => setSubject(e.target.value)}
                     maxLength={200}
                     placeholder={t("feedback.titlePlaceholder")}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/40 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
                   />
                 </div>
 
@@ -208,7 +209,7 @@ export default function FeedbackPage() {
                     maxLength={5000}
                     required
                     placeholder={t("feedback.contentPlaceholder")}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/40 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all leading-relaxed"
+                    className="w-full rounded-xl border border-gray-400 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all leading-relaxed"
                   />
                 </div>
 
@@ -248,7 +249,7 @@ export default function FeedbackPage() {
 
                 {/* Anonymous / Guest contact fields */}
                 {!isAuthenticated && (
-                  <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                  <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-gray-400">
                     <div>
                       <label className="block text-xs font-bold text-gray-800 mb-1.5">
                         {t("feedback.emailOptional")}
@@ -263,7 +264,7 @@ export default function FeedbackPage() {
                           value={contactEmail}
                           onChange={(e) => setContactEmail(e.target.value)}
                           placeholder="email@example.com"
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/40 pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
+                          className="w-full rounded-xl border border-gray-400 bg-white pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -280,7 +281,7 @@ export default function FeedbackPage() {
                           value={contactPhone}
                           onChange={(e) => setContactPhone(e.target.value)}
                           placeholder="0901234567"
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/40 pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
+                          className="w-full rounded-xl border border-gray-400 bg-white pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -298,10 +299,12 @@ export default function FeedbackPage() {
                 </Button>
               </form>
             )}
+            </div>
           </div>
 
-          {/* Right Column: Customer Service Illustration & Info - Seamless, Borderless */}
-          <div className="lg:col-span-6 flex flex-col items-center text-center pt-2 lg:pt-0">
+          {/* Right Column: Customer Service Illustration & Info */}
+          <div className="lg:col-span-6">
+            <div className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-2xl border border-gray-400 p-6 sm:p-8 shadow-xs flex flex-col items-center text-center lg:sticky lg:top-24">
             <div className="relative w-full max-w-[440px] aspect-square mb-6 flex items-center justify-center">
               <div className="absolute inset-2 bg-purple-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
               <Image
@@ -321,6 +324,7 @@ export default function FeedbackPage() {
               <p className="text-sm text-gray-600 leading-relaxed">
                 {t("feedback.subtitle")}
               </p>
+            </div>
             </div>
           </div>
         </div>
