@@ -72,7 +72,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
                 type="button"
                 onClick={props.onBack}
                 disabled={props.loading}
-                className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50"
+                className="text-brand hover:underline cursor-pointer disabled:opacity-50"
               >
                 {t(email ? "account.changeEmail" : "account.changePhone")}
               </button>
@@ -81,7 +81,7 @@ export function ChangeContactModal(props: ChangeContactModalProps) {
               type="button"
               disabled={props.loading}
               onClick={props.onRequest}
-              className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50 ml-auto"
+              className="text-brand hover:underline cursor-pointer disabled:opacity-50 ml-auto"
             >
               {t("auth.resendOtp")}
             </button>

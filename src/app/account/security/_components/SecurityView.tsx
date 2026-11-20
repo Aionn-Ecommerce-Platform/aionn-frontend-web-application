@@ -204,7 +204,7 @@ function SecurityInner() {
       </div>
 
       <div className="space-y-6">
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
@@ -223,14 +223,14 @@ function SecurityInner() {
               variant="outline"
               size="sm"
               onClick={() => setPwdModalOpen(true)}
-              className="rounded-xl border-gray-200 hover:border-brand hover:text-brand font-semibold shrink-0"
+              className="rounded-xl border-gray-400 hover:border-brand hover:text-brand font-semibold shrink-0"
             >
               {t("security.changePassword")}
             </Button>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
@@ -259,7 +259,7 @@ function SecurityInner() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-gray-100 pb-4">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
@@ -346,7 +346,7 @@ function SecurityInner() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
           <div className="flex items-center gap-3.5 mb-5 border-b border-gray-100 pb-4">
             <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
               <Clock size={20} />

@@ -57,7 +57,7 @@ export function AgentRow({
   const isLive = agent.status === "ACTIVE";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 transition-all hover:shadow-md">
+    <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 transition-all hover:shadow-md">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
@@ -94,7 +94,7 @@ export function AgentRow({
             variant="outline"
             size="sm"
             onClick={onAudit}
-            className="rounded-xl border-gray-200"
+            className="rounded-xl border-gray-400"
           >
             <ScrollText size={14} className="mr-1" />
             Audit
@@ -105,7 +105,7 @@ export function AgentRow({
                 variant="outline"
                 size="sm"
                 onClick={onEditPermissions}
-                className="rounded-xl border-gray-200 hover:border-brand hover:text-brand"
+                className="rounded-xl border-gray-400 hover:border-brand hover:text-brand"
               >
                 {t("agentIdentities.editPermissions")}
               </Button>
@@ -171,7 +171,7 @@ export function CreateModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("agentIdentities.namePlaceholder")}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none"
           />
           <p className="text-xs text-gray-400 mt-1">
             {t("agentIdentities.nameHelp")}
@@ -236,7 +236,7 @@ export function ApiKeyModal({
               type="text"
               readOnly
               value={agent.apiKey}
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono bg-gray-50"
+              className="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-xs font-mono bg-gray-50"
             />
             <Button onClick={copyKey} variant="outline">
               {copied ? (
@@ -317,8 +317,8 @@ export function PermissionsModal({
                   onClick={() => toggle(p)}
                   className={`px-3 py-1.5 rounded-md border text-xs font-mono transition-colors ${
                     active
-                      ? "bg-blue-50 border-blue-200 text-blue-700"
-                      : "bg-white border-gray-200 text-gray-500 hover:border-gray-400"
+                      ? "bg-brand/5 border-brand/20 text-brand-strong"
+                      : "bg-white border-gray-400 text-gray-500 hover:border-gray-400"
                   }`}
                 >
                   {p}
@@ -339,7 +339,7 @@ export function PermissionsModal({
               onChange={(e) => setCustomInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addCustom()}
               placeholder="MY_CUSTOM_SCOPE"
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:border-blue-500 focus:outline-none"
+              className="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-xs font-mono focus:border-brand focus:outline-none"
             />
             <Button variant="outline" size="sm" onClick={addCustom}>
               {t("common.add")}
@@ -356,7 +356,7 @@ export function PermissionsModal({
               {permissions.map((p) => (
                 <span
                   key={p}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-mono"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-brand/5 text-brand-strong font-mono"
                 >
                   {p}
                 </span>
@@ -409,7 +409,7 @@ export function AuditModal({
     >
       {isLoading ? (
         <div className="py-12 flex justify-center">
-          <Loader2 className="animate-spin text-blue-600" size={24} />
+          <Loader2 className="animate-spin text-brand" size={24} />
         </div>
       ) : logs.length === 0 ? (
         <p className="text-sm text-gray-500 py-8 text-center">

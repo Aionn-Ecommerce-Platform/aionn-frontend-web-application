@@ -132,7 +132,7 @@ function AmexLogo({ className = "w-11 h-7" }: { className?: string }) {
 function GenericCardLogo({ className = "w-11 h-7" }: { className?: string }) {
   return (
     <div
-      className={`${className} rounded bg-gray-100 border border-gray-200 flex items-center justify-center`}
+      className={`${className} rounded bg-gray-100 border border-gray-400 flex items-center justify-center`}
     >
       <CreditCard size={18} className="text-gray-500" />
     </div>
@@ -236,7 +236,7 @@ function PaymentMethodsInner() {
               </Button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
               {isLoading ? (
                 <div className="py-16 flex justify-center">
                   <Loader2 className="animate-spin text-brand" size={32} />
@@ -259,26 +259,23 @@ function PaymentMethodsInner() {
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-semibold text-gray-900">
+                                <span className="text-base font-semibold text-gray-900">
                                   {formatCardBrand(method.provider)}
                                   {method.last4Digits &&
                                     ` •••• ${method.last4Digits}`}
                                 </span>
-                                <Badge variant="info">
-                                  {formatCardBrand(method.provider)}
-                                </Badge>
                                 {verified ? (
                                   <Badge variant="success">
                                     <Check size={12} className="mr-1" />
                                     {t("paymentMethods.verified")}
                                   </Badge>
-                                ) : (
+                                ) : method.status !== "LINKED" ? (
                                   <Badge variant="warning">
                                     {method.status}
                                   </Badge>
-                                )}
+                                ) : null}
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-sm text-gray-500 mt-1">
                                 {t("paymentMethods.cardsTitle")}
                               </p>
                             </div>
@@ -287,10 +284,10 @@ function PaymentMethodsInner() {
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button
                               onClick={() => setDeleteId(method.methodId)}
-                              className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                              className="p-2 text-red-500 hover:text-red-600 transition-colors cursor-pointer"
                               title={t("common.delete")}
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={20} />
                             </button>
                           </div>
                         </div>

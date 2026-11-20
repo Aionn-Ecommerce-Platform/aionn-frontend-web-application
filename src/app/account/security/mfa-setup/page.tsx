@@ -98,10 +98,10 @@ function MfaSetupWizardInner() {
           {t("mfaSetup.back")}
         </button>
 
-        <div className="bg-white rounded-sm border border-gray-100 p-8">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-8">
           <div className="flex items-center justify-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full">
-              <Smartphone className="text-blue-600" size={28} />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-brand/5 rounded-full">
+              <Smartphone className="text-brand" size={28} />
             </div>
           </div>
 
@@ -119,7 +119,7 @@ function MfaSetupWizardInner() {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       step >= s.id
-                        ? "bg-blue-600 text-white"
+                        ? "bg-brand text-white"
                         : "bg-gray-200 text-gray-500"
                     }`}
                   >
@@ -130,7 +130,7 @@ function MfaSetupWizardInner() {
                 {idx < STEPS.length - 1 && (
                   <div
                     className={`h-0.5 flex-1 ${
-                      step > s.id ? "bg-blue-600" : "bg-gray-200"
+                      step > s.id ? "bg-brand" : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -141,7 +141,7 @@ function MfaSetupWizardInner() {
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-center mb-6">
-                <Key className="inline-block text-blue-600 mb-2" size={32} />
+                <Key className="inline-block text-brand mb-2" size={32} />
                 <p className="text-sm text-gray-600">
                   {t("mfaSetup.passwordPrompt")}
                 </p>
@@ -171,7 +171,7 @@ function MfaSetupWizardInner() {
                 <p className="text-sm text-gray-600 mb-4">
                   {t("mfaSetup.scanPrompt")}
                 </p>
-                <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-sm">
+                <div className="inline-block p-4 bg-white border-2 border-gray-400 rounded-sm">
                   <AppImage
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mfaSetup.otpauthUri)}`}
                     alt="QR Code"
@@ -185,7 +185,7 @@ function MfaSetupWizardInner() {
                   {t("mfaSetup.manualSecret")}
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-2 bg-white border border-gray-200 rounded-xs text-sm font-mono break-all">
+                  <code className="flex-1 p-2 bg-white border border-gray-400 rounded-xs text-sm font-mono break-all">
                     {mfaSetup.secret}
                   </code>
                   <Button
@@ -209,7 +209,7 @@ function MfaSetupWizardInner() {
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Smartphone
-                  className="inline-block text-blue-600 mb-2"
+                  className="inline-block text-brand mb-2"
                   size={32}
                 />
                 <p className="text-sm text-gray-600">

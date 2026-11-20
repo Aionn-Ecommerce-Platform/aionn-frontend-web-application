@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Check, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Camera, Check, Pencil, Store } from "lucide-react";
 import toast from "react-hot-toast";
-import { Avatar } from "@/shared/ui";
+import { Avatar, Button } from "@/shared/ui";
 import Sidebar from "@/components/layout/Sidebar";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useAuthStore } from "@/stores/auth.store";
@@ -16,12 +17,17 @@ import {
   VerifyEmailModal,
 } from "./AccountVerificationModals";
 import { EditProfileModal } from "./EditProfileModal";
+import AddressBook from "./AddressBook";
 
 function AccountInner() {
   const user = useAuthStore((s) => s.user);
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const setUser = useAuthStore((s) => s.setUser);
   const { t, locale } = useTranslation();
+  const roleCodes = (user?.roles ?? []).map((role) =>
+    role.replace(/^ROLE_/, ""),
+  );
+  const isMerchant = roleCodes.includes("MERCHANT");
 
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -189,16 +195,26 @@ function AccountInner() {
   }
 
   return (
-    <div className="member-page bg-gray-50/60 min-h-screen">
+    <div className="member-page bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight mb-6">
-              {t("account.information")}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+                {t("account.information")}
+              </h1>
+              <Button
+                size="sm"
+                onClick={() => setEditProfileOpen(true)}
+                className="font-semibold rounded-xl shadow-xs shrink-0"
+              >
+                <Pencil size={16} className="mr-1" />
+                {t("account.editProfile")}
+              </Button>
+            </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200/90 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+            <div className="bg-white rounded-2xl border border-gray-400 p-6 sm:p-8 shadow-xs">
               {/* Header profile info */}
               <div className="flex items-center gap-5 mb-8">
                 <button
@@ -232,17 +248,28 @@ function AccountInner() {
                           })}
                     </p>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setEditProfileOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs text-brand hover:text-brand-strong transition-colors pt-1 cursor-pointer font-semibold group/edit"
-                  >
-                    <Pencil
-                      size={12}
-                      className="text-brand transition-colors"
-                    />
-                    <span>{t("account.editProfile")}</span>
-                  </button>
+                  {roleCodes.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      {roleCodes.map((code) => {
+                        const isAdmin =
+                          code === "CS_ADMIN" || code === "SYSTEM_ADMIN";
+                        const labelKey = `account.roles.${code}`;
+                        const label = t(labelKey);
+                        return (
+                          <span
+                            key={code}
+                            className={
+                              isAdmin
+                                ? "inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700"
+                                : "inline-flex items-center rounded-full border border-brand/20 bg-brand/10 px-2.5 py-0.5 text-[11px] font-bold text-brand"
+                            }
+                          >
+                            {label === labelKey ? code : label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -317,6 +344,33 @@ function AccountInner() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {!isMerchant && (
+              <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-gray-400 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-7">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center text-brand">
+                    <Store size={30} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-950">
+                      {t("account.sellTitle")}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {t("account.sellDesc")}
+                    </p>
+                  </div>
+                </div>
+                <Link href="/merchant/register" className="shrink-0">
+                  <Button className="h-10 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-5 text-sm font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600">
+                    {t("account.sellCta")}
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            <div className="mt-6">
+              <AddressBook />
             </div>
           </div>
         </div>

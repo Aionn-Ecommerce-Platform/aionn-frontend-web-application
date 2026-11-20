@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import SocialAccountsPanel from "@/components/settings/SocialAccountsPanel";
+import PrivacySettings from "@/components/settings/PrivacySettings";
 import { preferenceService, webPushService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
@@ -145,13 +146,13 @@ function SettingsInner() {
       </div>
 
       {loading || !data ? (
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-16 flex justify-center">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-16 flex justify-center">
           <Loader2 className="animate-spin text-brand" size={32} />
         </div>
       ) : (
         <div className="space-y-6">
           {/* Card: AI Agent Hub & API Keys */}
-          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7 relative overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7 relative overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
@@ -179,7 +180,7 @@ function SettingsInner() {
           </div>
 
           {/* Card: AI & Personalization */}
-          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
             <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
               <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
                 <Sparkles size={16} />
@@ -204,7 +205,7 @@ function SettingsInner() {
           </div>
 
           {/* Card: Notifications */}
-          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
             <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
               <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
                 <Bell size={16} />
@@ -288,7 +289,7 @@ function SettingsInner() {
 
           {/* Card: Browser push */}
           {pushSupported && (
-            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+            <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
               <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
                 <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
                   <Bell size={16} />
@@ -315,6 +316,17 @@ function SettingsInner() {
 
           {/* Card: Social Accounts Panel */}
           <SocialAccountsPanel />
+
+          {/* Data & privacy */}
+          <section id="privacy" className="scroll-mt-24 space-y-5">
+            <div>
+              <h2 className="text-xl font-extrabold text-gray-950 tracking-tight">
+                {t("privacy.title")}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">{t("privacy.subtitle")}</p>
+            </div>
+            <PrivacySettings />
+          </section>
         </div>
       )}
     </MemberPageLayout>
