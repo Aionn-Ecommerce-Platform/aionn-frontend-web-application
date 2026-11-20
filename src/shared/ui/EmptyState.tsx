@@ -20,7 +20,7 @@ export default function EmptyState({
   className,
   iconWrapperClassName,
   iconClassName,
-  iconSize = 28,
+  iconSize = 40,
 }: EmptyStateProps) {
   return (
     <div
@@ -31,11 +31,11 @@ export default function EmptyState({
     >
       <div
         className={cn(
-          "w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4",
+          "w-16 h-16 rounded-2xl flex items-center justify-center mb-4",
           iconWrapperClassName,
         )}
       >
-        <Icon size={iconSize} className={cn("text-gray-400", iconClassName)} />
+        <Icon size={iconSize} className={cn("text-gray-950", iconClassName)} />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
       {description && (
