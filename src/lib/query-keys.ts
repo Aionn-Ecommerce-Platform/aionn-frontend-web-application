@@ -87,6 +87,7 @@ export const qk = {
     ["orders", "merchant", params] as const,
   adminOrder: (orderId: string) => ["orders", "admin", orderId] as const,
   myReturns: ["returns", "mine"] as const,
+  myReviews: ["reviews", "mine"] as const,
   merchantReturns: (params: Record<string, unknown> = {}) =>
     ["returns", "merchant", params] as const,
   adminReturns: (params: Record<string, unknown> = {}) =>

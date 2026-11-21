@@ -137,8 +137,7 @@ export default function OrderShipmentPanel({
           {t("orders.shippingInfo")}
         </h3>
         <div className="text-right">
-          <p className="text-sm font-semibold text-gray-900">GHN</p>
-          <div className="inline-flex items-center gap-1.5 mt-0.5">
+          <div className="inline-flex items-center gap-1.5">
             <span className="font-mono text-sm font-semibold text-gray-500">
               {shipment.trackingCode || t("orders.noTrackingYet")}
             </span>
@@ -157,20 +156,13 @@ export default function OrderShipmentPanel({
                 )}
               </button>
             )}
+            <span className="text-sm font-semibold text-gray-900">GHN</span>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="min-w-0">
-          <div className="flex items-center gap-2.5 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
-              <MapPin size={24} />
-            </span>
-            <p className="text-sm font-bold uppercase tracking-wider text-gray-400">
-              {t("orders.deliverySection")}
-            </p>
-          </div>
           {deliveryInfo.hasInfo ? (
             <div className="space-y-1.5">
               {deliveryInfo.recipientName && (
@@ -179,12 +171,12 @@ export default function OrderShipmentPanel({
                 </p>
               )}
               {deliveryInfo.recipientPhone && (
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm leading-relaxed text-gray-600">
                   {deliveryInfo.recipientPhone}
                 </p>
               )}
               {deliveryInfo.addressLine && (
-                <p className="text-base leading-relaxed text-gray-700">
+                <p className="text-sm leading-relaxed text-gray-600">
                   {deliveryInfo.addressLine}
                 </p>
               )}
@@ -203,19 +195,8 @@ export default function OrderShipmentPanel({
               <div className="flex items-center gap-2 mt-0.5">
                 <Badge
                   variant={getShipmentStatus(shipment.status).variant}
-                  className={`inline-flex items-center gap-1.5 !rounded-full !px-3 !py-1 !text-sm font-bold ${
-                    shipment.status === "DELIVERED"
-                      ? "!bg-gray-950 !text-white"
-                      : ""
-                  }`}
+                  className="!rounded-full !px-3 !py-1 !text-sm"
                 >
-                  {shipment.status === "DELIVERED" && (
-                    <Check
-                      size={14}
-                      strokeWidth={3}
-                      className="text-emerald-400"
-                    />
-                  )}
                   {currentLabel}
                 </Badge>
                 {shipment.lastFailureReason && (
@@ -249,8 +230,8 @@ export default function OrderShipmentPanel({
           </div>
         </div>
 
-        <div className="min-w-0 md:border-l md:border-gray-300 md:pl-6">
-          <p className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
+        <div className="min-w-0">
+          <p className="text-base font-bold text-gray-950 mb-4">
             {t("orders.trackingHistory")}
           </p>
           <ol className="relative space-y-5 pl-9 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-gray-300">
@@ -271,7 +252,7 @@ export default function OrderShipmentPanel({
                     )}
                   </span>
                   {event.at && (
-                    <p className="text-sm font-medium text-gray-400">
+                    <p className="text-xs font-medium text-gray-400">
                       {formatDateTime(event.at, localeTag)}
                     </p>
                   )}
