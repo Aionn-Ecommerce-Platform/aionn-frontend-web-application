@@ -316,19 +316,19 @@ function SettingsInner() {
 
           {/* Card: Social Accounts Panel */}
           <SocialAccountsPanel />
-
-          {/* Data & privacy */}
-          <section id="privacy" className="scroll-mt-24 space-y-5">
-            <div>
-              <h2 className="text-xl font-extrabold text-gray-950 tracking-tight">
-                {t("privacy.title")}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">{t("privacy.subtitle")}</p>
-            </div>
-            <PrivacySettings />
-          </section>
         </div>
       )}
+
+      {/* Data & privacy stays available even if preferences fail to load. */}
+      <section id="privacy" className="scroll-mt-24 space-y-5 mt-6">
+        <div>
+          <h2 className="text-xl font-extrabold text-gray-950 tracking-tight">
+            {t("privacy.title")}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">{t("privacy.subtitle")}</p>
+        </div>
+        <PrivacySettings />
+      </section>
     </MemberPageLayout>
   );
 }

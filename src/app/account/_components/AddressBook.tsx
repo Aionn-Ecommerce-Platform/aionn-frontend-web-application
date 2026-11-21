@@ -152,7 +152,15 @@ export default function AddressBook() {
           return;
         }
 
-        await addressService.update(editingId, body);
+        await addressService.update(editingId, {
+          contactName: body.contactName,
+          phone: body.phone,
+          provinceCode: body.provinceCode,
+          districtCode: body.districtCode,
+          wardCode: body.wardCode,
+          detailAddress: body.detailAddress,
+          type: body.type,
+        });
 
         if (form.isDefault && !isEditingDefault) {
           await addressService.setDefault(editingId);
@@ -418,10 +426,7 @@ export default function AddressBook() {
             onChange={(e) =>
               setForm({ ...form, detailAddress: e.target.value })
             }
-            placeholder={
-              t("addresses.detailPlaceholder") ||
-              t("addresses.detailPlaceholder")
-            }
+            placeholder={t("addresses.detailPlaceholder")}
             error={fieldErrors.detailAddress}
             required
           />
