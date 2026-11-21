@@ -14,6 +14,7 @@ interface OrderItem {
   skuId: string;
   qty: number;
   unitPrice: number;
+  originalUnitPrice?: number | null;
   warehouseId: string | null;
   reservationId: string | null;
   productName?: string | null;
@@ -89,11 +90,23 @@ export type ReturnStatus =
   | "REFUNDED"
   | "CANCELLED";
 
+export type ReturnReasonType =
+  | "WRONG_ITEM"
+  | "DAMAGED"
+  | "DEFECTIVE"
+  | "NOT_AS_DESCRIBED"
+  | "MISSING_PARTS"
+  | "WRONG_SIZE"
+  | "LATE_DELIVERY"
+  | "CHANGED_MIND"
+  | "OTHER";
+
 export interface OrderReturn {
   returnId: string;
   orderId: string;
   userId: string;
   merchantId: string;
+  reasonType: ReturnReasonType;
   reason: string;
   evidenceUrl: string | null;
   refundAmount: number | null;

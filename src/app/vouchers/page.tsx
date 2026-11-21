@@ -194,11 +194,11 @@ function VoucherCard({
       </div>
 
       {/* Right Ticket Body */}
-      <div className="flex-1 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-gray-200">
+      <div className="flex-1 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-gray-400">
         <div className="min-w-0 flex-1">
           {/* Voucher Code & Status */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 bg-gray-100/90 hover:bg-gray-200/80 border border-gray-200 text-gray-900 px-2.5 py-1 rounded-lg transition-colors">
+            <div className="inline-flex items-center gap-1.5 bg-gray-100/90 hover:bg-gray-200/80 border border-gray-400 text-gray-900 px-2.5 py-1 rounded-lg transition-colors">
               <code className="text-xs font-mono font-bold tracking-wider">
                 {voucher.voucherCode}
               </code>
@@ -321,13 +321,6 @@ function VouchersInner() {
     }, 2000);
   };
 
-  const counts = {
-    ALL: vouchers.length,
-    AVAILABLE: vouchers.filter(isAvailable).length,
-    USED: vouchers.filter(isUsed).length,
-    EXPIRED: vouchers.filter(isExpired).length,
-  };
-
   const handleTabChange = (tab: TabFilter) => {
     setActiveTab(tab);
     setCurrentPage(1);
@@ -364,14 +357,14 @@ function VouchersInner() {
   const renderVoucherList = () => {
     if (isLoading) {
       return (
-        <div className="bg-white rounded-2xl border border-gray-200/90 py-20 flex justify-center shadow-xs">
+        <div className="bg-white rounded-2xl border border-gray-400 py-20 flex justify-center shadow-xs">
           <Loader2 className="animate-spin text-brand" size={32} />
         </div>
       );
     }
     if (filteredVouchers.length === 0) {
       return (
-        <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-xs">
+        <div className="bg-white rounded-2xl border border-gray-400 p-8 shadow-xs">
           <EmptyState
             icon={Ticket}
             title={t("myVouchers.emptyTitle")}
@@ -411,13 +404,10 @@ function VouchersInner() {
             {t("myVouchers.title")}
           </h1>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          {t("myVouchers.subtitle")}
-        </p>
       </div>
 
       {/* Enter Voucher Code Form */}
-      <div className="bg-white rounded-2xl border border-gray-200/90 p-5 sm:p-6 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-gray-400 p-5 sm:p-6 mb-6 shadow-xs">
         <form
           onSubmit={handleClaim}
           className="flex flex-col sm:flex-row items-center gap-3"
@@ -432,7 +422,7 @@ function VouchersInner() {
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
               placeholder={t("myVouchers.inputPlaceholder")}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal placeholder:text-gray-400"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-400 rounded-xl focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal placeholder:text-gray-400"
             />
           </div>
           <button
@@ -449,7 +439,7 @@ function VouchersInner() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-6 scrollbar-none">
         {(
           [
             { key: "ALL", label: t("myVouchers.all") },
@@ -458,28 +448,18 @@ function VouchersInner() {
             { key: "EXPIRED", label: t("myVouchers.expired") },
           ] as const
         ).map((tab) => {
-          const count = counts[tab.key];
           const active = activeTab === tab.key;
           return (
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 active
-                  ? "bg-gray-950 text-white shadow-xs"
-                  : "bg-gray-100/80 text-gray-600 hover:bg-gray-200/80 hover:text-gray-900"
+                  ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                  : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
               }`}
             >
-              <span>{tab.label}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  active
-                    ? "bg-white/20 text-white"
-                    : "bg-white text-gray-500 border border-gray-200"
-                }`}
-              >
-                {count}
-              </span>
+              {tab.label}
             </button>
           );
         })}

@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Loader2, ShoppingBag } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import ProductCard from "@/components/product/ProductCard";
-import { Button, EmptyState } from "@/shared/ui";
+import { EmptyState, Pagination } from "@/shared/ui";
 import { wishlistService } from "@/lib/services";
 import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -17,10 +17,15 @@ function WishlistInner() {
   const qc = useQueryClient();
   const merchantProvinceById = useMerchantProvinceMap();
 
+  const [page, setPage] = useState(0);
+  const pageSize = 12;
   const { data, isLoading } = useQuery({
-    queryKey: ["wishlist"],
-    queryFn: () => wishlistService.list(0, 50),
+    queryKey: ["wishlist", page, pageSize],
+    queryFn: () => wishlistService.list(page, pageSize),
   });
+
+  const products = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
 
   const remove = useMutation({
     mutationFn: (productId: string) => wishlistService.remove(productId),
@@ -28,27 +33,19 @@ function WishlistInner() {
       toast.success(t("wishlist.removed"));
       qc.invalidateQueries({ queryKey: ["wishlist"] });
       qc.invalidateQueries({ queryKey: ["wishlist-status"] });
+      if (products.length === 1 && page > 0) {
+        setPage((current) => current - 1);
+      }
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const products = data?.content ?? [];
-
   return (
     <MemberPageLayout>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
-            {t("wishlist.title")}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">{t("wishlist.subtitle")}</p>
-        </div>
-        <Link href="/products">
-          <Button variant="outline" size="sm" className="rounded-xl">
-            <ShoppingBag size={14} className="mr-1.5" />
-            {t("common.allProducts")}
-          </Button>
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
+          {t("wishlist.title")}
+        </h1>
       </div>
 
       {isLoading ? (
@@ -106,6 +103,14 @@ function WishlistInner() {
             );
           })}
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          onPageChange={(nextPage) => setPage(nextPage - 1)}
+        />
       )}
     </MemberPageLayout>
   );

@@ -41,7 +41,7 @@ export default function CheckoutVoucherPanel(props: Props) {
   return (
     <>
       {" "}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-commerce">
@@ -63,7 +63,7 @@ export default function CheckoutVoucherPanel(props: Props) {
             <button
               type="button"
               onClick={() => setVoucherModalOpen(true)}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+              className="text-sm font-semibold text-brand hover:text-brand-strong"
             >
               {voucherCode
                 ? locale === "vi"
@@ -124,7 +124,7 @@ export default function CheckoutVoucherPanel(props: Props) {
       >
         {loadingVouchers ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="animate-spin text-blue-600" size={24} />
+            <Loader2 className="animate-spin text-brand" size={24} />
           </div>
         ) : userVouchers.filter(
             (voucher) =>
@@ -172,7 +172,7 @@ export default function CheckoutVoucherPanel(props: Props) {
                         ? "border-commerce shadow-md ring-2 ring-commerce/30"
                         : meetsMinimum
                           ? "border-gray-400 hover:shadow-lg hover:border-commerce"
-                          : "border-gray-200 opacity-60"
+                          : "border-gray-400 opacity-60"
                     }`}
                   >
                     <div className="absolute top-0 left-28 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border border-gray-400 z-10" />

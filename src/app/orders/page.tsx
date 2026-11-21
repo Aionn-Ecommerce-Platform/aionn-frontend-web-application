@@ -6,20 +6,31 @@ import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Eye, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button, EmptyState, Badge } from "@/shared/ui";
+import { Package, Loader2, Store } from "lucide-react";
+import { Button, EmptyState, Badge, Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
+import OrderReturns from "./_components/OrderReturns";
 import { orderService, productService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
+import { productPath } from "@/shared/lib/product-url";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
-import { useTranslation } from "@/hooks";
+import { useMerchantNameMap, useTranslation } from "@/hooks";
 import type { Product } from "@/types";
+
+const STATUS_DOT_CLASS: Record<string, string> = {
+  default: "bg-gray-500",
+  success: "bg-green-600",
+  warning: "bg-yellow-500",
+  danger: "bg-red-600",
+  info: "bg-blue-600",
+};
 
 function OrdersInner() {
   const { t, locale } = useTranslation();
+  const merchantNameById = useMerchantNameMap();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -31,6 +42,7 @@ function OrdersInner() {
     { key: "SHIPPED", label: t("orders.shipping") },
     { key: "COMPLETED", label: t("orders.completed") },
     { key: "CANCELLED,REJECTED", label: t("orders.cancelled") },
+    { key: "RETURNS", label: t("orders.returns.title") },
   ] as const;
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,10 +65,13 @@ function OrdersInner() {
     router.replace(query ? `/orders?${query}` : "/orders", { scroll: false });
   };
 
-  const status = activeTab === "all" ? undefined : activeTab;
+  const isReturnsTab = activeTab === "RETURNS";
+  const status =
+    activeTab === "all" || isReturnsTab ? undefined : activeTab;
   const { data: orders, isLoading } = useQuery({
     queryKey: qk.orders({ status, limit: 100 }),
     queryFn: () => orderService.listMine({ status, limit: 100 }),
+    enabled: !isReturnsTab,
   });
 
   const totalOrders = orders?.length ?? 0;
@@ -112,8 +127,8 @@ function OrdersInner() {
               onClick={() => handleTabChange(tab.key)}
               className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                  : "bg-white text-gray-700 border-2 border-gray-900 hover:bg-gray-100 hover:text-black"
+                  ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                  : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
               }`}
             >
               {tab.label}
@@ -122,13 +137,19 @@ function OrdersInner() {
         })}
       </div>
 
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/90 py-20 flex justify-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+      {isReturnsTab ? (
+        <OrderReturns
+          highlight={searchParams.get("highlight")}
+          onViewOrders={() => handleTabChange("all")}
+        />
+      ) : (
+        <div className="space-y-4">
+          {isLoading ? (
+          <div className="bg-white rounded-2xl border border-gray-400 py-20 flex justify-center shadow-xs">
             <Loader2 className="animate-spin text-brand" size={32} />
           </div>
         ) : !orders || orders.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-2xl border border-gray-400 p-8 shadow-xs">
             <EmptyState
               icon={Package}
               title={t("orders.noOrders")}
@@ -147,7 +168,6 @@ function OrdersInner() {
             <AnimatePresence mode="popLayout">
               {paginatedOrders.map((order) => {
                 const cfg = getOrderStatus(order.status);
-                const totalQty = order.items.reduce((s, i) => s + i.qty, 0);
                 return (
                   <motion.div
                     key={order.orderId}
@@ -156,25 +176,41 @@ function OrdersInner() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden transition-all hover:shadow-md"
+                    className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden transition-all hover:shadow-md"
                   >
                     {/* Order header - styled cleanly like Apple / Modern e-commerce */}
                     <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-gray-100 bg-gray-50/60">
                       <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
-                        <div className="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
-                          <Package size={15} />
+                        <div className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
+                          <Package size={24} />
                         </div>
-                        <span className="text-xs font-mono font-bold text-gray-950 bg-white border border-gray-200/80 px-2 py-0.5 rounded-md">
-                          {order.orderSn || order.orderId}
-                        </span>
-                        <span className="text-gray-300 hidden sm:inline">•</span>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">
+                        <Link
+                          href={`/merchants/${order.merchantId}`}
+                          className="truncate text-base sm:text-lg font-bold text-gray-950 transition-colors hover:text-brand"
+                        >
+                          {merchantNameById.get(order.merchantId) ??
+                            t("orders.store")}
+                        </Link>
+                        <Link
+                          href={`/merchants/${order.merchantId}`}
+                          className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-gray-950 bg-gray-950 px-2.5 text-[11px] font-semibold text-white transition-colors hover:border-neutral-800 hover:bg-neutral-800"
+                        >
+                          <Store size={12} />
+                          {t("orders.viewStore")}
+                        </Link>
+                        <span
+                          className={`hidden h-2 w-2 shrink-0 rounded-full sm:inline-block ${STATUS_DOT_CLASS[cfg?.variant ?? "default"]}`}
+                        />
+                        <span className="text-sm font-medium text-gray-500">
                           {formatDate(order.createdAt, locale)}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant={cfg?.variant ?? "default"}>
+                        <Badge
+                          variant={cfg?.variant ?? "default"}
+                          className="!rounded-full !px-3 !py-1 !text-sm"
+                        >
                           {cfg ? t(cfg.labelKey) : order.status}
                         </Badge>
                       </div>
@@ -189,6 +225,9 @@ function OrdersInner() {
                         const image =
                           product?.imageList?.[0] ?? "/images/logo.png";
                         const productName = product?.name ?? item.skuId;
+                        const originalUnit = item.originalUnitPrice;
+                        const hasDiscount =
+                          originalUnit != null && originalUnit > item.unitPrice;
                         const variantLabel = formatVariantLabel(
                           variant?.attributeValues,
                           " · ",
@@ -196,10 +235,14 @@ function OrdersInner() {
                         return (
                           <Link
                             key={item.skuId}
-                            href={`/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`}
+                            href={
+                              product
+                                ? productPath(product)
+                                : `/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`
+                            }
                             className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/60 transition-colors group"
                           >
-                            <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-gray-200 bg-white rounded-xl">
+                            <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-gray-400 bg-white rounded-xl">
                               <Image
                                 src={image}
                                 alt={productName}
@@ -209,23 +252,37 @@ function OrdersInner() {
                               />
                             </div>
                             <div className="flex-1 min-w-0 pr-4">
-                              <h4 className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug group-hover:text-brand transition-colors">
+                              <h4 className="text-base font-semibold text-gray-900 line-clamp-2 leading-snug group-hover:text-brand transition-colors">
                                 {productName}
                               </h4>
                               {variantLabel && (
-                                <p className="mt-1 text-xs text-gray-500 truncate">
+                                <p className="mt-1 text-sm text-gray-500 truncate">
                                   {t("orders.variantLabel")}
                                   {variantLabel}
                                 </p>
                               )}
-                              <p className="mt-1 text-xs text-gray-500 font-mono">
+                              <p className="mt-1 text-sm text-gray-500 font-mono">
                                 x{item.qty}
                               </p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-sm font-semibold text-gray-900">
+                            <div className="flex shrink-0 items-baseline justify-end gap-2 text-right">
+                              {hasDiscount && (
+                                <span className="text-sm text-gray-400 line-through">
+                                  {formatCurrency(
+                                    originalUnit ?? item.unitPrice,
+                                    order.currency,
+                                  )}
+                                </span>
+                              )}
+                              <span
+                                className={`text-lg font-extrabold ${
+                                  hasDiscount
+                                    ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
+                                    : "text-gray-950"
+                                }`}
+                              >
                                 {formatCurrency(item.unitPrice, order.currency)}
-                              </p>
+                              </span>
                             </div>
                           </Link>
                         );
@@ -236,26 +293,23 @@ function OrdersInner() {
                     <div className="bg-white px-6 py-4 border-t border-gray-100">
                       <div className="flex flex-col items-end gap-0.5 text-right">
                         <div className="flex items-baseline justify-end gap-2">
-                          <span className="text-xs text-gray-500">
-                            {t("orders.total")} ({totalQty}{" "}
-                            {t("orders.products").toLowerCase()}):
+                          <span className="text-sm text-gray-600">
+                            {t("orders.total")}:
                           </span>
-                          <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                          <span className="text-2xl sm:text-3xl font-extrabold text-gray-950">
                             {formatCurrency(order.totalAmount, order.currency)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end pt-3 mt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-end pt-3 mt-3">
                         <Link
                           href={`/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`}
                         >
                           <Button
-                            variant="outline"
                             size="sm"
-                            className="h-9 px-4 text-xs font-semibold border-gray-200 hover:border-brand hover:text-brand text-gray-800 rounded-xl"
+                            className="h-9 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-4 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600"
                           >
-                            <Eye size={14} className="mr-1.5 text-gray-400" />
                             {t("orders.viewDetails")}
                           </Button>
                         </Link>
@@ -266,66 +320,16 @@ function OrdersInner() {
               })}
             </AnimatePresence>
 
-            {/* Apple-style Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="pt-6 pb-2 flex items-center justify-between border-t border-gray-100">
-                <p className="text-xs text-gray-500 font-medium">
-                  {safeCurrentPage} / {totalPages} ({(safeCurrentPage - 1) * PAGE_SIZE + 1} - {Math.min(safeCurrentPage * PAGE_SIZE, totalOrders)} / {totalOrders})
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      if (safeCurrentPage <= 1) return;
-                      setCurrentPage((p) => Math.max(1, p - 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    aria-label="Previous Page"
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-
-                  <div className="flex items-center gap-1.5">
-                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-                      (pageNum) => {
-                        const isSelected = pageNum === safeCurrentPage;
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => {
-                              setCurrentPage(pageNum);
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className={`h-9 min-w-9 px-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
-                                : "bg-white text-gray-800 border border-gray-400 hover:border-gray-950 hover:bg-gray-100"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      },
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (safeCurrentPage >= totalPages) return;
-                      setCurrentPage((p) => Math.min(totalPages, p + 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    aria-label="Next Page"
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors hover:border-gray-950 hover:bg-gray-100"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={safeCurrentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="border-t border-gray-100"
+            />
           </>
         )}
-      </div>
+        </div>
+      )}
     </MemberPageLayout>
   );
 }
@@ -337,7 +341,7 @@ export default function OrdersPage() {
         fallback={
           <MemberPageLayout>
             <div className="min-h-[60vh] flex justify-center items-center">
-              <Loader2 className="animate-spin text-blue-600" size={32} />
+              <Loader2 className="animate-spin text-brand" size={32} />
             </div>
           </MemberPageLayout>
         }

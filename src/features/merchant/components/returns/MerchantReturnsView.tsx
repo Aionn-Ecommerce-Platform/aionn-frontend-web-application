@@ -7,7 +7,8 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { Button, EmptyState } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { orderReturnService } from "@/lib/services";
-import type { OrderReturn } from "@/types";
+import { RETURN_REASON_TYPES, returnReasonLabelKey } from "@/lib/domain/return-reasons";
+import type { OrderReturn, ReturnReasonType } from "@/types";
 import {
   ApproveModal,
   ReceiveModal,
@@ -34,6 +35,7 @@ function MerchantReturnsInner() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof TAB_KEYS)[number]>("REQUESTED");
+  const [reasonFilter, setReasonFilter] = useState<"all" | ReturnReasonType>("all");
   const [approving, setApproving] = useState<OrderReturn | null>(null);
   const [rejecting, setRejecting] = useState<OrderReturn | null>(null);
   const [receiving, setReceiving] = useState<OrderReturn | null>(null);
@@ -43,8 +45,11 @@ function MerchantReturnsInner() {
     retry: false,
   });
   const returns = data ?? [];
-  const filtered =
-    tab === "all" ? returns : returns.filter((item) => item.status === tab);
+  const filtered = returns.filter(
+    (item) =>
+      (tab === "all" || item.status === tab) &&
+      (reasonFilter === "all" || item.reasonType === reasonFilter),
+  );
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["merchant-returns"] });
 
@@ -106,7 +111,7 @@ function MerchantReturnsInner() {
           {t("merchant.returns.subtitle")}
         </p>
         {!isError && (
-          <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
+          <div className="flex items-center gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
             {TAB_KEYS.map((key) => {
               const count =
                 key === "all"
@@ -127,6 +132,21 @@ function MerchantReturnsInner() {
                 </button>
               );
             })}
+            <select
+              value={reasonFilter}
+              onChange={(e) =>
+                setReasonFilter(e.target.value as "all" | ReturnReasonType)
+              }
+              className="ml-auto mb-1 shrink-0 rounded-lg border border-gray-400 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              aria-label={t("orders.returns.reasonType")}
+            >
+              <option value="all">{t("orders.returns.allReasonTypes")}</option>
+              {RETURN_REASON_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {t(returnReasonLabelKey(type))}
+                </option>
+              ))}
+            </select>
           </div>
         )}
         {content}

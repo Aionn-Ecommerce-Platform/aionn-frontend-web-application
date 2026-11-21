@@ -38,7 +38,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? errorId : props["aria-describedby"]}
             className={cn(
               "w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-white",
-              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none",
+              "focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none",
               "disabled:bg-gray-50 disabled:text-gray-900 disabled:opacity-100 disabled:cursor-not-allowed",
               "transition-all duration-200",
               icon && "pl-10",

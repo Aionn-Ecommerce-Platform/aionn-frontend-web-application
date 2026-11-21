@@ -6,6 +6,7 @@ import type {
   OrderReturn,
   PlatformOrderAnalytics,
   ReturnAnalytics,
+  ReturnReasonType,
   ShippingAddressSnapshot,
   TopProduct,
 } from "@/types";
@@ -98,6 +99,7 @@ export const orderReturnService = {
   request(
     orderId: string,
     body: {
+      reasonType: ReturnReasonType;
       reason: string;
       evidenceUrl?: string | null;
       items?: Array<{ skuId: string; qty: number }>;

@@ -27,6 +27,8 @@ import { adminAnalyticsService, orderService } from "@/lib/services";
 import { formatCurrency, formatNumber } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTranslation } from "@/hooks";
+import { returnReasonLabelKey } from "@/lib/domain/return-reasons";
+import type { ReturnReasonType } from "@/types";
 
 const EMPTY_ROLES: string[] = [];
 
@@ -244,8 +246,8 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
 
   const currency = payments?.currency ?? "VND";
   const reasonData =
-    returns?.returnsByReason.slice(0, 8).map((r) => ({
-      name: r.reason.length > 20 ? r.reason.slice(0, 20) + "…" : r.reason,
+    returns?.returnsByReasonType.slice(0, 8).map((r) => ({
+      name: t(returnReasonLabelKey(r.reasonType as ReturnReasonType)),
       value: r.count,
     })) ?? [];
   const payoutTrend =

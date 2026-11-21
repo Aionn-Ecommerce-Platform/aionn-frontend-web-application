@@ -7,10 +7,8 @@ import { useTranslation } from "@/hooks";
 import { Avatar } from "@/shared/ui";
 import {
   User,
-  MapPin,
   CreditCard,
   ShoppingBag,
-  RotateCcw,
   Bell,
   Shield,
   Ticket,
@@ -18,7 +16,6 @@ import {
   Settings,
   Bot,
   ShieldCheck,
-  FileCheck,
   Heart,
 } from "lucide-react";
 
@@ -34,19 +31,9 @@ const menuItems = [
     icon: User,
   },
   {
-    translationKey: "memberSidebar.addresses",
-    href: "/account/addresses",
-    icon: MapPin,
-  },
-  {
     translationKey: "memberSidebar.paymentMethods",
     href: "/account/payment-methods",
     icon: CreditCard,
-  },
-  {
-    translationKey: "memberSidebar.orders",
-    href: "/orders",
-    icon: ShoppingBag,
   },
   {
     translationKey: "memberSidebar.wishlist",
@@ -54,20 +41,20 @@ const menuItems = [
     icon: Heart,
   },
   {
-    translationKey: "memberSidebar.returns",
-    href: "/orders/returns",
-    icon: RotateCcw,
+    translationKey: "memberSidebar.orders",
+    href: "/orders",
+    icon: ShoppingBag,
+  },
+  {
+    translationKey: "memberSidebar.vouchers",
+    href: "/vouchers",
+    icon: Ticket,
   },
   {
     translationKey: "memberSidebar.notifications",
     href: "/notifications",
     icon: Bell,
     badgeKey: "notifications" as const,
-  },
-  {
-    translationKey: "memberSidebar.vouchers",
-    href: "/vouchers",
-    icon: Ticket,
   },
   {
     translationKey: "memberSidebar.chat",
@@ -89,11 +76,7 @@ const menuItems = [
     translationKey: "memberSidebar.kyc",
     href: "/account/kyc",
     icon: ShieldCheck,
-  },
-  {
-    translationKey: "memberSidebar.privacy",
-    href: "/account/privacy",
-    icon: FileCheck,
+    merchantOnly: true,
   },
   {
     translationKey: "memberSidebar.settings",
@@ -103,9 +86,6 @@ const menuItems = [
 ];
 
 function getActiveHref(pathname: string): string | null {
-  if (pathname.includes('/return') || pathname.startsWith('/orders/returns')) {
-    return '/orders/returns';
-  }
   const matches = menuItems
     .filter(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
@@ -120,6 +100,13 @@ export default function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const activeHref = getActiveHref(pathname);
+  const isMerchant = (user?.roles ?? []).some(
+    (role) => role.replace(/^ROLE_/, "") === "MERCHANT",
+  );
+  const visibleMenuItems = menuItems.filter(
+    (item) =>
+      !("merchantOnly" in item) || !item.merchantOnly || isMerchant,
+  );
 
   const { data: notifications } = useQuery({
     queryKey: qk.notifications(),
@@ -155,33 +142,26 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 flex-shrink-0 hidden lg:block">
-      <div className="space-y-4">
-        {/* User Profile Header replacing Account Control */}
-        <Link
-          href="/account"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100/70 transition-colors group cursor-pointer"
-        >
+      <div className="relative overflow-hidden rounded-2xl border border-purple-800/60 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-5 text-white shadow-xl shadow-purple-950/20">
+        <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-purple-600/25 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-fuchsia-600/20 blur-2xl" />
+
+        <div className="relative z-10 flex items-center gap-3 border-b border-amber-400/70 pb-4">
           <Avatar
             src={user?.avatarUrl}
             alt={displayName}
             size="md"
-            className="ring-2 ring-white shadow-xs shrink-0"
+            className="ring-2 ring-white/20 shadow-sm shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-gray-950 truncate group-hover:text-brand transition-colors">
+            <p className="text-sm font-bold text-white truncate">
               {displayName}
             </p>
-            {user?.email && (
-              <p className="text-xs text-gray-400 truncate mt-0.5">
-                {user.email}
-              </p>
-            )}
           </div>
-        </Link>
+        </div>
 
-        {/* Tab Navigation */}
-        <nav className="space-y-1">
-          {menuItems.map((item) => {
+        <nav className="relative z-10 mt-4 space-y-1">
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeHref === item.href;
             const badgeCount = item.badgeKey ? badges[item.badgeKey] ?? 0 : 0;
@@ -191,10 +171,10 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer group",
+                  "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer group",
                   isActive
-                    ? "bg-brand/10 text-brand font-bold"
-                    : "text-gray-600 hover:text-gray-950 hover:bg-gray-100/70",
+                    ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
+                    : "text-purple-100/80 hover:bg-white/10 hover:text-white",
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -203,8 +183,8 @@ export default function Sidebar() {
                     className={cn(
                       "transition-colors shrink-0",
                       isActive
-                        ? "text-brand"
-                        : "text-gray-400 group-hover:text-gray-600",
+                        ? "text-white"
+                        : "text-purple-200/70 group-hover:text-white",
                     )}
                   />
                   <span className="truncate">{t(item.translationKey)}</span>
@@ -214,8 +194,8 @@ export default function Sidebar() {
                     className={cn(
                       "text-[11px] font-bold px-2 py-0.5 rounded-full transition-all shrink-0",
                       isActive
-                        ? "bg-brand text-white shadow-xs"
-                        : "bg-gray-200 text-gray-700 group-hover:bg-brand group-hover:text-white",
+                        ? "bg-amber-400 text-purple-950 shadow-xs"
+                        : "bg-white/15 text-white group-hover:bg-amber-400 group-hover:text-purple-950",
                     )}
                   >
                     {badgeCount > 99 ? "99+" : badgeCount}

@@ -88,7 +88,7 @@ function KycInner() {
   const approvedProfile = data?.find((p) => p.status === "APPROVED");
 
   return (
-    <div className="member-page bg-gray-50/60 min-h-screen">
+    <div className="member-page bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="flex gap-8">
           <Sidebar />
@@ -115,7 +115,7 @@ function KycInner() {
             </div>
 
             {loading ? (
-              <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-16 flex justify-center">
+              <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-16 flex justify-center">
                 <Loader2 className="animate-spin text-brand" size={32} />
               </div>
             ) : data && data.length > 0 ? (
@@ -147,7 +147,7 @@ function KycInner() {
                   return (
                     <div
                       key={profile.kycId}
-                      className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7"
+                      className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7"
                     >
                       <div className="flex items-start justify-between mb-5 border-b border-gray-100 pb-4">
                         <div className="flex items-center gap-3.5">
@@ -251,9 +251,9 @@ function KycInner() {
                 })}
               </div>
             ) : (
-              <div className="bg-white rounded-sm border border-gray-100 p-12 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
-                  <ShieldCheck className="text-blue-600" size={28} />
+              <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-brand/5 rounded-full mb-4">
+                  <ShieldCheck className="text-brand" size={28} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("myKyc.emptyTitle")}
@@ -267,11 +267,11 @@ function KycInner() {
               </div>
             )}
 
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-sm p-4 flex items-start gap-3">
-              <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-900">
+            <div className="mt-6 bg-brand/5 border border-brand/20 rounded-sm p-4 flex items-start gap-3">
+              <AlertCircle className="text-brand flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-brand-strong">
                 <p className="font-medium">{t("myKyc.noticeTitle")}</p>
-                <ul className="mt-2 space-y-1 text-xs text-blue-800">
+                <ul className="mt-2 space-y-1 text-xs text-brand-strong">
                   <li>• {t("myKyc.noticeDocument")}</li>
                   <li>• {t("myKyc.noticeSelfie")}</li>
                   <li>• {t("myKyc.noticeDuration")}</li>

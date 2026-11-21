@@ -16,8 +16,9 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { adminOrderReturnService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
-import type { OrderReturn, ReturnStatus } from "@/types";
+import type { OrderReturn, ReturnReasonType, ReturnStatus } from "@/types";
 import { useTranslation } from "@/hooks";
+import { RETURN_REASON_TYPES, returnReasonBadgeClass, returnReasonLabelKey } from "@/lib/domain/return-reasons";
 
 const TABS: Array<{ key: ReturnStatus; labelKey: string }> = [
   { key: "REQUESTED", labelKey: "statuses.return.REQUESTED" },
@@ -54,6 +55,7 @@ function AdminOrderReturnsInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState<ReturnStatus>("REQUESTED");
+  const [reasonFilter, setReasonFilter] = useState<"all" | ReturnReasonType>("all");
   const [dialog, setDialog] = useState<DialogState>({ kind: "idle" });
   const [refundAmount, setRefundAmount] = useState<number | "">("");
   const [currency, setCurrency] = useState("VND");
@@ -65,7 +67,10 @@ function AdminOrderReturnsInner() {
     queryKey: ["admin-returns", tab],
     queryFn: () => adminOrderReturnService.listByStatus(tab, 100),
   });
-  const items = data ?? [];
+  const items = (data ?? []).filter(
+    (item) =>
+      reasonFilter === "all" || item.reasonType === reasonFilter,
+  );
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["admin-returns"] });
@@ -188,6 +193,21 @@ function AdminOrderReturnsInner() {
               {t(tabOption.labelKey)}
             </Button>
           ))}
+          <select
+            value={reasonFilter}
+            onChange={(e) =>
+              setReasonFilter(e.target.value as "all" | ReturnReasonType)
+            }
+            className="ml-auto rounded-lg border border-gray-400 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            aria-label={t("orders.returns.reasonType")}
+          >
+            <option value="all">{t("orders.returns.allReasonTypes")}</option>
+            {RETURN_REASON_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {t(returnReasonLabelKey(type))}
+              </option>
+            ))}
+          </select>
         </div>
 
         {isLoading ? (
@@ -223,6 +243,14 @@ function AdminOrderReturnsInner() {
                         Merchant{" "}
                         <span className="font-mono">{r.merchantId}</span>
                       </p>
+                      <div className="mb-1.5">
+                        <Badge
+                          variant="info"
+                          className={returnReasonBadgeClass(r.reasonType)}
+                        >
+                          {t(returnReasonLabelKey(r.reasonType))}
+                        </Badge>
+                      </div>
                       <p className="text-sm text-gray-700">
                         {t("adminReturns.reason")}:{" "}
                         <span className="font-medium">{r.reason}</span>

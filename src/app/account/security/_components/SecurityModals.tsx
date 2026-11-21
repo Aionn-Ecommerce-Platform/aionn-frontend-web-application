@@ -120,8 +120,8 @@ export function MfaModal(props: MfaModalProps) {
         <div className="space-y-4">
           <p className="text-sm text-gray-600">{t("security.mfaScanPrompt")}</p>
           {props.otpauthUri && (
-            <div className="flex justify-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-2xs">
+            <div className="flex justify-center p-3 bg-gray-50 border border-gray-400 rounded-lg">
+              <div className="p-3 bg-white border border-gray-400 rounded-lg shadow-2xs">
                 <AppImage
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(props.otpauthUri)}`}
                   alt="2FA QR Code"
@@ -134,7 +134,7 @@ export function MfaModal(props: MfaModalProps) {
             <span className="block text-xs text-gray-600 font-medium mb-1">
               {t("mfaSetup.manualSecret")}
             </span>
-            <div className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-gray-800">
+            <div className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg p-2.5 border border-gray-400 text-gray-800">
               <span className="font-mono text-xs break-all select-all leading-relaxed">
                 {props.secret}
               </span>

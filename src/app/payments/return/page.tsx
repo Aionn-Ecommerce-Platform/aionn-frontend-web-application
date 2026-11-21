@@ -90,7 +90,7 @@ function PaymentReturnInner() {
           <>
             <Loader2
               size={56}
-              className="mx-auto text-blue-600 animate-spin"
+              className="mx-auto text-brand animate-spin"
               aria-hidden
             />
             <h1 className="mt-5 text-xl font-semibold text-gray-900">
@@ -106,7 +106,7 @@ function PaymentReturnInner() {
           <>
             <Loader2
               size={56}
-              className="mx-auto text-blue-600 animate-spin"
+              className="mx-auto text-brand animate-spin"
               aria-hidden
             />
             <h1 className="mt-5 text-xl font-semibold text-gray-900">
@@ -121,7 +121,7 @@ function PaymentReturnInner() {
             {orderId && (
               <Link
                 href={`/orders/${orderId}`}
-                className="mt-5 inline-block text-sm text-blue-600 hover:underline"
+                className="mt-5 inline-block text-sm text-brand hover:underline"
               >
                 {t("checkout.viewOrder")}
               </Link>
@@ -215,7 +215,7 @@ export default function PaymentReturnPage() {
       <Suspense
         fallback={
           <div className="min-h-[60vh] flex items-center justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={32} />
+            <Loader2 className="animate-spin text-brand" size={32} />
           </div>
         }
       >

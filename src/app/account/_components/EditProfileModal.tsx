@@ -152,7 +152,7 @@ export function EditProfileModal({
               type="button"
               disabled={loading}
               onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-0 right-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-50"
+              className="absolute bottom-0 right-0 p-2 bg-brand hover:bg-brand-strong text-white rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-50"
               title={t("account.changePhoto")}
             >
               <Camera size={16} />
@@ -171,7 +171,7 @@ export function EditProfileModal({
           />
 
           {selectedFile ? (
-            <div className="mt-2.5 flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
+            <div className="mt-2.5 flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-300">
               <span className="truncate max-w-[180px]">
                 {selectedFile.name}
               </span>
@@ -187,7 +187,7 @@ export function EditProfileModal({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+              className="mt-2 text-xs text-brand hover:text-brand-strong font-medium cursor-pointer"
             >
               {t("account.changeProfilePhoto")}
             </button>
@@ -256,7 +256,7 @@ export function EditProfileModal({
                 handleClose();
                 onOpenEmailModal();
               }}
-              className="h-[42px] px-4 shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
+              className="h-[42px] px-4 shrink-0 bg-brand/5 hover:bg-brand/10 text-brand-strong border border-brand/20 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
             >
               {t(user?.email ? "account.change" : "account.add")}
             </Button>
@@ -285,7 +285,7 @@ export function EditProfileModal({
                 handleClose();
                 onOpenPhoneModal();
               }}
-              className="h-[42px] px-4 shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
+              className="h-[42px] px-4 shrink-0 bg-brand/5 hover:bg-brand/10 text-brand-strong border border-brand/20 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-sm"
             >
               {t(user?.phone ? "account.change" : "account.add")}
             </Button>
@@ -293,7 +293,7 @@ export function EditProfileModal({
         </div>
 
         {/* Footer actions */}
-        <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+        <div className="flex justify-end gap-3 pt-3 border-t border-gray-300">
           <Button
             type="button"
             variant="outline"
@@ -306,7 +306,7 @@ export function EditProfileModal({
             type="button"
             onClick={handleConfirm}
             loading={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            className="bg-brand hover:bg-brand-strong text-white font-medium"
           >
             {t("account.saveChanges")}
           </Button>

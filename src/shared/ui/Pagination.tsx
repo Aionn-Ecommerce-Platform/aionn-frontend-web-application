@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "@/hooks";
+import { getPaginationRange } from "@/shared/lib/pagination";
 
 interface PaginationProps {
   currentPage: number;
@@ -63,8 +64,19 @@ export default function Pagination({
         </button>
 
         <div className="flex items-center gap-1.5">
-          {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-            (pageNum) => {
+          {getPaginationRange(safeCurrentPage - 1, totalPages).map(
+            (item, index) => {
+              if (item === "...") {
+                return (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="flex h-9 min-w-6 items-center justify-center text-gray-500 font-bold"
+                  >
+                    …
+                  </span>
+                );
+              }
+              const pageNum = Number(item);
               const isSelected = pageNum === safeCurrentPage;
               return (
                 <button

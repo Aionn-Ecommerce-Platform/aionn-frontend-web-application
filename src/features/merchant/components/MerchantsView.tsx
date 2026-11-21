@@ -244,7 +244,13 @@ export default function MerchantsPage() {
                 <div className="h-12 w-px bg-gray-300" />
                 <div className="text-center">
                   <div className="text-4xl font-black text-brand sm:text-5xl">
-                    <CountUp value={activeProvinces.length} />
+                    <CountUp
+                      value={
+                        provinceOptions.filter(
+                          (option) => option.key !== "unknown",
+                        ).length
+                      }
+                    />
                   </div>
                   <div className="mt-1 text-sm font-medium text-gray-500">
                     {t("merchants.heroProvinces")}

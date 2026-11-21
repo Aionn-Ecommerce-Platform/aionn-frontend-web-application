@@ -35,12 +35,24 @@ export interface Shipment {
   attemptCount: number;
   lastFailureReason: string | null;
   expectedDeliveryDate: string | null;
+  registeredAt: string | null;
   pickedAt: string | null;
+  inTransitAt: string | null;
+  outForDeliveryAt: string | null;
   deliveredAt: string | null;
   cancelledAt: string | null;
   returnedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ShipmentEvent {
+  eventId: string;
+  shipmentId: string;
+  status: string;
+  description: string | null;
+  location: string | null;
+  occurredAt: string;
 }
 
 interface ShippingQuoteOption {

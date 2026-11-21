@@ -461,19 +461,13 @@ export default function ProductMainCard(props: Props) {
                       <Truck size={18} className="text-emerald-600" />
                       <span className="font-medium">
                         {shippingLoading
-                          ? locale === "vi"
-                            ? t("productDetail.loadingDeliveryDate")
-                            : "Loading GHN ETA..."
+                          ? t("productDetail.loadingDeliveryDate")
                           : (deliveryDateLabel ??
                             (!isAuthenticated
-                              ? locale === "vi"
-                                ? t("productDetail.loginForDelivery")
-                                : "Sign in to view delivery date"
+                              ? t("productDetail.loginForDelivery")
                               : !destAddress
                                 ? t("productDetail.chooseDefaultAddress")
-                                : locale === "vi"
-                                  ? t("productDetail.noDeliveryDate")
-                                  : "GHN ETA unavailable"))}
+                                : t("productDetail.noDeliveryDate")))}
                       </span>
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-xs text-brand bg-brand/5 border border-brand/20 px-2.5 py-1 rounded-lg font-normal">

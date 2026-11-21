@@ -416,7 +416,7 @@ export function ChatInner({
   return (
     <div
       className={
-        variant === "console" ? "" : "member-page bg-gray-50 min-h-screen"
+        variant === "console" ? "" : "member-page bg-transparent min-h-screen"
       }
     >
       <div
@@ -429,7 +429,13 @@ export function ChatInner({
         <div className={variant === "console" ? "" : "flex gap-8"}>
           {variant === "member" && <Sidebar />}
           <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden min-h-[600px] h-[calc(100vh-12rem)] flex">
+            <div
+              className={`bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden flex ${
+                variant === "console"
+                  ? "min-h-[600px] h-[calc(100vh-12rem)]"
+                  : "min-h-[560px] h-[calc(100vh-19rem)] lg:h-[620px] lg:min-h-[620px]"
+              }`}
+            >
               <div className="w-80 border-r border-gray-100 flex flex-col flex-shrink-0 bg-gray-50/40">
                 <div className="p-4 border-b border-gray-100 bg-white space-y-3">
                   <h2 className="text-base font-bold text-gray-950">

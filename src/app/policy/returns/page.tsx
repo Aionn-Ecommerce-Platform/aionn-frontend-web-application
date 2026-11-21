@@ -129,7 +129,7 @@ export default function ReturnsPolicyPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Commitment 1 */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-gray-400 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center mb-4">
                   <RotateCcw size={22} className="stroke-[2.2]" />
@@ -148,7 +148,7 @@ export default function ReturnsPolicyPage() {
             </div>
 
             {/* Commitment 2 */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-gray-400 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
                   <Truck size={22} className="stroke-[2.2]" />
@@ -167,9 +167,9 @@ export default function ReturnsPolicyPage() {
             </div>
 
             {/* Commitment 3 */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-gray-400 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-brand/5 text-brand flex items-center justify-center mb-4">
                   <Eye size={22} className="stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900">
@@ -179,7 +179,7 @@ export default function ReturnsPolicyPage() {
                   {t("productDetail.commitment3Desc")}
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-semibold text-brand">
                 <CheckCircle2 size={15} />
                 <span>{t("returnPolicyPage.commitment3Footer")}</span>
               </div>
@@ -188,7 +188,7 @@ export default function ReturnsPolicyPage() {
         </div>
 
         {/* 4 Steps Timeline */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-400 shadow-xs space-y-6">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-gray-950 tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
@@ -241,7 +241,7 @@ export default function ReturnsPolicyPage() {
         {/* Conditions: Eligible vs Non-eligible */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Eligible */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-400 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <CheckCircle2 size={18} />
@@ -264,7 +264,7 @@ export default function ReturnsPolicyPage() {
           </div>
 
           {/* Non-Eligible */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-400 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
                 <XCircle size={18} />
@@ -285,7 +285,7 @@ export default function ReturnsPolicyPage() {
         </div>
 
         {/* Refund Timeline & Methods */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-400 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
               <CreditCard size={18} />
@@ -317,7 +317,7 @@ export default function ReturnsPolicyPage() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-400 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 mb-2">
             <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
               <HelpCircle size={18} />

@@ -627,7 +627,7 @@ export default function Header() {
                 <div className="relative ml-1" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 rounded-full px-2 py-1.5 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-100"
                   >
                     <Avatar
                       src={user?.avatarUrl}
@@ -635,7 +635,10 @@ export default function Header() {
                       size="sm"
                       className="ring-2 ring-gray-200"
                     />
-                    <ChevronDown size={14} className="hidden lg:block text-gray-500" />
+                    <ChevronDown
+                      size={14}
+                      className={`hidden lg:block text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   <AnimatePresence>
@@ -645,9 +648,9 @@ export default function Header() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -4 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg py-2 z-50"
+                        className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"
                       >
-                        <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                        <div className="mb-1 border-b border-gray-100 px-3 py-2">
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {user?.displayName ??
                               user?.username ??
@@ -659,21 +662,21 @@ export default function Header() {
                         </div>
                         <Link
                           href="/account"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <User size={16} /> {t("common.account")}
                         </Link>
                         <Link
                           href="/orders"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <Package size={16} /> {t("common.orders")}
                         </Link>
                         <Link
                           href="/account/wishlist"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <Heart size={16} /> {t("memberSidebar.wishlist")}
@@ -681,7 +684,7 @@ export default function Header() {
                         {hasMerchant && (
                           <Link
                             href="/merchant/dashboard"
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Store size={16} /> {t("common.sellerChannel")}
@@ -690,7 +693,7 @@ export default function Header() {
                         {hasAdminRole && (
                           <Link
                             href="/admin"
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Shield size={16} /> {t("adminDashboard.title")}
@@ -698,15 +701,15 @@ export default function Header() {
                         )}
                         <Link
                           href="/account/settings"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <Settings size={16} /> {t("common.settings")}
                         </Link>
-                        <div className="border-t border-gray-100 mt-1 pt-1">
+                        <div className="mt-1 border-t border-gray-100 pt-1">
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
                           >
                             <LogOut size={16} /> {t("common.logout")}
                           </button>
