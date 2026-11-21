@@ -13,6 +13,8 @@ import toast from "react-hot-toast";
 
 interface SubmitReviewFormProps {
   productId: string;
+  orderId?: string;
+  skuId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
   disabled?: boolean;
@@ -26,6 +28,8 @@ interface SubmitReviewFormProps {
 
 export function SubmitReviewForm({
   productId,
+  orderId,
+  skuId,
   onSuccess,
   onCancel,
   disabled = false,
@@ -69,6 +73,9 @@ export function SubmitReviewForm({
       queryClient.invalidateQueries({
         queryKey: ["product-rating-summary", productId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["review-eligibility"],
+      });
       onSuccess?.();
       setRating(5);
       setTitle("");
@@ -95,6 +102,8 @@ export function SubmitReviewForm({
     }
 
     submitMutation.mutate({
+      orderId,
+      skuId,
       rating,
       title: title.trim() || undefined,
       content: content.trim(),

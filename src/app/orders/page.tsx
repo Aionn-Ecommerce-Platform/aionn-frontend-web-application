@@ -2,23 +2,30 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Loader2, Store } from "lucide-react";
+import { Package, Loader2 } from "lucide-react";
 import { Button, EmptyState, Badge, Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import OrderReturns from "./_components/OrderReturns";
-import { orderService, productService } from "@/lib/services";
+import { OrderCardActions } from "@/features/order";
+import { isActiveReturnStatus } from "@/features/order/lib/order-card-actions";
+import {
+  orderService,
+  orderReturnService,
+  productService,
+  reviewService,
+} from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
 import { productPath } from "@/shared/lib/product-url";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { useMerchantNameMap, useTranslation } from "@/hooks";
-import type { Product } from "@/types";
+import type { OrderReturn, Product } from "@/types";
 
 const STATUS_DOT_CLASS: Record<string, string> = {
   default: "bg-gray-500",
@@ -32,6 +39,7 @@ function OrdersInner() {
   const { t, locale } = useTranslation();
   const merchantNameById = useMerchantNameMap();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
 
@@ -45,7 +53,10 @@ function OrdersInner() {
     { key: "RETURNS", label: t("orders.returns.title") },
   ] as const;
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const pageParam = Number(searchParams.get("page"));
+  const currentPage =
+    Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+  const focusOrderId = searchParams.get("focus");
   const PAGE_SIZE = 10;
 
   const activeTab: (typeof TABS)[number]["key"] =
@@ -54,8 +65,9 @@ function OrdersInner() {
       : "all";
 
   const handleTabChange = (key: (typeof TABS)[number]["key"]) => {
-    setCurrentPage(1);
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    params.delete("focus");
     if (key === "all") {
       params.delete("tab");
     } else {
@@ -65,9 +77,20 @@ function OrdersInner() {
     router.replace(query ? `/orders?${query}` : "/orders", { scroll: false });
   };
 
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("focus");
+    if (page <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(page));
+    }
+    const query = params.toString();
+    router.replace(query ? `/orders?${query}` : "/orders", { scroll: false });
+  };
+
   const isReturnsTab = activeTab === "RETURNS";
-  const status =
-    activeTab === "all" || isReturnsTab ? undefined : activeTab;
+  const status = activeTab === "all" || isReturnsTab ? undefined : activeTab;
   const { data: orders, isLoading } = useQuery({
     queryKey: qk.orders({ status, limit: 100 }),
     queryFn: () => orderService.listMine({ status, limit: 100 }),
@@ -83,6 +106,14 @@ function OrdersInner() {
     const start = (safeCurrentPage - 1) * PAGE_SIZE;
     return orders.slice(start, start + PAGE_SIZE);
   }, [orders, safeCurrentPage]);
+
+  useEffect(() => {
+    if (!focusOrderId || !orders) {
+      return;
+    }
+    const element = document.getElementById(`order-${focusOrderId}`);
+    element?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusOrderId, orders, safeCurrentPage]);
 
   const allSkuIds = useMemo(() => {
     if (!orders) return [];
@@ -106,6 +137,77 @@ function OrdersInner() {
     });
     return map;
   }, [productList]);
+
+  const { data: myReturns } = useQuery({
+    queryKey: ["returns", "mine", "orders-list"],
+    queryFn: () => orderReturnService.listMine(200),
+    enabled: !isReturnsTab && Boolean(orders?.length),
+  });
+
+  const { data: myReviews } = useQuery({
+    queryKey: qk.myReviews,
+    queryFn: () => reviewService.getMyReviews(0, 100),
+    enabled: !isReturnsTab && Boolean(orders?.length),
+  });
+
+  const activeReturnByOrder = useMemo(() => {
+    const map = new Map<string, OrderReturn>();
+    myReturns?.forEach((item) => {
+      if (isActiveReturnStatus(item.status)) {
+        map.set(item.orderId, item);
+      }
+    });
+    return map;
+  }, [myReturns]);
+
+  const countedReturns = useMemo(
+    () =>
+      (myReturns ?? []).filter(
+        (item) =>
+          item.status !== "REJECTED" &&
+          (orders ?? []).some((order) => order.orderId === item.orderId),
+      ),
+    [myReturns, orders],
+  );
+
+  const returnItemQueries = useQueries({
+    queries: countedReturns.map((item) => ({
+      queryKey: ["returns", "items", item.returnId],
+      queryFn: () => orderReturnService.getItems(item.returnId),
+    })),
+  });
+
+  const returnedQtyByOrder = new Map<string, Map<string, number>>();
+  countedReturns.forEach((ret, index) => {
+    const perSku = returnedQtyByOrder.get(ret.orderId) ?? new Map();
+    (returnItemQueries[index]?.data ?? []).forEach((item) => {
+      perSku.set(item.skuId, (perSku.get(item.skuId) ?? 0) + item.qty);
+    });
+    returnedQtyByOrder.set(ret.orderId, perSku);
+  });
+
+  const reviewedSkus = new Set<string>();
+  myReviews?.content.forEach((review) => {
+    if (!review.orderId || review.status === "DELETED") {
+      return;
+    }
+    if (review.skuId) {
+      reviewedSkus.add(`${review.orderId}:${review.skuId}`);
+      return;
+    }
+    (orders ?? [])
+      .find((order) => order.orderId === review.orderId)
+      ?.items.forEach((item) => {
+        const lookup = skuLookup.get(item.skuId);
+        if (lookup?.product.productId === review.productId) {
+          reviewedSkus.add(`${review.orderId}:${item.skuId}`);
+        }
+      });
+  });
+
+  const handleReviewSubmitted = () => {
+    queryClient.invalidateQueries({ queryKey: qk.myReviews });
+  };
 
   return (
     <MemberPageLayout>
@@ -145,25 +247,25 @@ function OrdersInner() {
       ) : (
         <div className="space-y-4">
           {isLoading ? (
-          <div className="bg-white rounded-2xl border border-gray-400 py-20 flex justify-center shadow-xs">
-            <Loader2 className="animate-spin text-brand" size={32} />
-          </div>
-        ) : !orders || orders.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-400 p-8 shadow-xs">
-            <EmptyState
-              icon={Package}
-              title={t("orders.noOrders")}
-              description={t("orders.noOrdersDesc")}
-              action={
-                <Link href="/products">
-                  <Button className="bg-brand hover:bg-brand-strong text-white rounded-xl">
-                    {t("cart.continueShopping")}
-                  </Button>
-                </Link>
-              }
-            />
-          </div>
-        ) : (
+            <div className="bg-white rounded-2xl border border-gray-400 py-20 flex justify-center shadow-xs">
+              <Loader2 className="animate-spin text-brand" size={32} />
+            </div>
+          ) : !orders || orders.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-400 p-8 shadow-xs">
+              <EmptyState
+                icon={Package}
+                title={t("orders.noOrders")}
+                description={t("orders.noOrdersDesc")}
+                action={
+                  <Link href="/products">
+                    <Button className="bg-brand hover:bg-brand-strong text-white rounded-xl">
+                      {t("cart.continueShopping")}
+                    </Button>
+                  </Link>
+                }
+              />
+            </div>
+          ) : (
           <>
             <AnimatePresence mode="popLayout">
               {paginatedOrders.map((order) => {
@@ -171,12 +273,17 @@ function OrdersInner() {
                 return (
                   <motion.div
                     key={order.orderId}
+                    id={`order-${order.orderId}`}
                     layout
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden transition-all hover:shadow-md"
+                    className={`bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden transition-all hover:shadow-md ${
+                      focusOrderId === order.orderId
+                        ? "ring-2 ring-brand ring-offset-2"
+                        : ""
+                    }`}
                   >
                     {/* Order header - styled cleanly like Apple / Modern e-commerce */}
                     <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-gray-100 bg-gray-50/60">
@@ -190,13 +297,6 @@ function OrdersInner() {
                         >
                           {merchantNameById.get(order.merchantId) ??
                             t("orders.store")}
-                        </Link>
-                        <Link
-                          href={`/merchants/${order.merchantId}`}
-                          className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-gray-950 bg-gray-950 px-2.5 text-[11px] font-semibold text-white transition-colors hover:border-neutral-800 hover:bg-neutral-800"
-                        >
-                          <Store size={12} />
-                          {t("orders.viewStore")}
                         </Link>
                         <span
                           className={`hidden h-2 w-2 shrink-0 rounded-full sm:inline-block ${STATUS_DOT_CLASS[cfg?.variant ?? "default"]}`}
@@ -289,30 +389,37 @@ function OrdersInner() {
                       })}
                     </div>
 
-                    {/* Order footer with total & action buttons */}
+                    {/* Order footer with total and actions next to details */}
                     <div className="bg-white px-6 py-4 border-t border-gray-100">
-                      <div className="flex flex-col items-end gap-0.5 text-right">
+                      <div className="flex flex-col items-end gap-6">
                         <div className="flex items-baseline justify-end gap-2">
                           <span className="text-sm text-gray-600">
                             {t("orders.total")}:
                           </span>
-                          <span className="text-2xl sm:text-3xl font-extrabold text-gray-950">
+                          <span className="text-lg font-extrabold text-gray-950 sm:text-xl">
                             {formatCurrency(order.totalAmount, order.currency)}
                           </span>
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-end pt-3 mt-3">
-                        <Link
-                          href={`/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`}
-                        >
-                          <Button
-                            size="sm"
-                            className="h-9 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-4 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600"
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <OrderCardActions
+                            order={order}
+                            skuLookup={skuLookup}
+                            activeReturn={activeReturnByOrder.get(order.orderId)}
+                            returnedQtyBySku={returnedQtyByOrder.get(order.orderId)}
+                            reviewedSkus={reviewedSkus}
+                            onReviewSubmitted={handleReviewSubmitted}
+                          />
+                          <Link
+                            href={`/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}&fromPage=${safeCurrentPage}`}
                           >
-                            {t("orders.viewDetails")}
-                          </Button>
-                        </Link>
+                            <Button
+                              size="sm"
+                              className="h-9 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-4 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600"
+                            >
+                              {t("orders.viewDetails")}
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -323,7 +430,7 @@ function OrdersInner() {
             <Pagination
               currentPage={safeCurrentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
               className="border-t border-gray-100"
             />
           </>

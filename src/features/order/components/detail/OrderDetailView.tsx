@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Suspense, use, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   Package,
   Truck,
@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Copy,
   Check,
+  Star,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, ConfirmDialog } from "@/shared/ui";
@@ -30,6 +31,7 @@ import {
   geographyService,
   paymentMethodService,
   paymentService,
+  reviewService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
@@ -40,6 +42,10 @@ import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useMerchantNameMap, useTranslation } from "@/hooks";
 import OrderShipmentPanel from "./OrderShipmentPanel";
+import RateOrderItem from "./RateOrderItem";
+import RateOrderDialog, {
+  type OrderSkuLookup,
+} from "../list/RateOrderDialog";
 
 const STATUS_FLOW: Array<{
   key: string;
@@ -67,8 +73,14 @@ const STATUS_FLOW: Array<{
   },
   {
     key: "COMPLETED",
-    labelKey: "orders.statusCompleted",
+    labelKey: "orders.orderReceived",
     icon: CheckCircle,
+    matches: ["COMPLETED"],
+  },
+  {
+    key: "TO_RATE",
+    labelKey: "orders.statusToRate",
+    icon: Star,
     matches: ["COMPLETED"],
   },
 ];
@@ -81,7 +93,9 @@ function OrderDetailInner({ id }: { id: string }) {
   const merchantNameById = useMerchantNameMap();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [orderIdCopied, setOrderIdCopied] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
   const fromTab = searchParams.get("fromTab") || searchParams.get("tab");
+  const fromPage = searchParams.get("fromPage");
 
   const { data: order, isLoading } = useQuery({
     queryKey: qk.order(id),
@@ -99,6 +113,22 @@ function OrderDetailInner({ id }: { id: string }) {
       item.orderId === order?.orderId &&
       ["REQUESTED", "APPROVED", "ITEM_RECEIVED"].includes(item.status),
   );
+
+  const orderReturns = useMemo(
+    () =>
+      (myReturns ?? []).filter(
+        (item) =>
+          item.orderId === order?.orderId && item.status !== "REJECTED",
+      ),
+    [myReturns, order?.orderId],
+  );
+
+  const returnItemQueries = useQueries({
+    queries: orderReturns.map((item) => ({
+      queryKey: ["returns", "items", item.returnId],
+      queryFn: () => orderReturnService.getItems(item.returnId),
+    })),
+  });
 
   const { data: shipments } = useQuery({
     queryKey: qk.shipments(id),
@@ -139,6 +169,53 @@ function OrderDetailInner({ id }: { id: string }) {
     p.variants.forEach((v) => {
       skuLookup.set(v.skuId, { product: p, variant: v });
     });
+  });
+
+  const rateLookup: OrderSkuLookup = new Map();
+  orderProducts.forEach((product) => {
+    product.variants.forEach((variant, variantIdx) => {
+      rateLookup.set(variant.skuId, { product, variantIdx });
+    });
+  });
+
+  const { data: myReviews } = useQuery({
+    queryKey: qk.myReviews,
+    queryFn: () => reviewService.getMyReviews(0, 100),
+    enabled: order?.status === "COMPLETED",
+  });
+
+  const reviewedSkus = new Set<string>();
+  myReviews?.content.forEach((review) => {
+    if (review.orderId !== order?.orderId || review.status === "DELETED") {
+      return;
+    }
+    if (review.skuId) {
+      reviewedSkus.add(`${review.orderId}:${review.skuId}`);
+      return;
+    }
+    order?.items.forEach((item) => {
+      const lookup = skuLookup.get(item.skuId);
+      if (lookup?.product.productId === review.productId) {
+        reviewedSkus.add(`${order.orderId}:${item.skuId}`);
+      }
+    });
+  });
+
+  const returnedQtyBySku = new Map<string, number>();
+  orderReturns.forEach((ret, index) => {
+    (returnItemQueries[index]?.data ?? []).forEach((item) => {
+      returnedQtyBySku.set(
+        item.skuId,
+        (returnedQtyBySku.get(item.skuId) ?? 0) + item.qty,
+      );
+    });
+  });
+
+  const hasUnreviewedItem = (order?.items ?? []).some((item) => {
+    if (reviewedSkus.has(`${order?.orderId}:${item.skuId}`)) {
+      return false;
+    }
+    return (returnedQtyBySku.get(item.skuId) ?? 0) < item.qty;
   });
 
   const orderAddress =
@@ -260,9 +337,12 @@ function OrderDetailInner({ id }: { id: string }) {
     );
   }
 
-  const currentStepIdx = STATUS_FLOW.findIndex((s) =>
-    s.matches.includes(order.status),
-  );
+  const toRateStepIdx = STATUS_FLOW.length - 1;
+  const currentStepIdx =
+    order.status === "COMPLETED"
+      ? toRateStepIdx
+      : STATUS_FLOW.findIndex((s) => s.matches.includes(order.status));
+  const canOpenRate = order.status === "COMPLETED" && hasUnreviewedItem;
   const cfg = getOrderStatus(order.status);
   const canCancel =
     order.status === "PLACED" ||
@@ -303,13 +383,16 @@ function OrderDetailInner({ id }: { id: string }) {
       }
     }
 
+    const params = new URLSearchParams();
     if (targetTab && targetTab !== "all") {
-      router.push(`/orders?tab=${encodeURIComponent(targetTab)}`);
-    } else {
-      router.push("/orders");
+      params.set("tab", targetTab);
     }
+    if (fromPage && fromPage !== "1") {
+      params.set("page", fromPage);
+    }
+    params.set("focus", order.orderId);
+    router.push(`/orders?${params.toString()}`);
   };
-
   const handleCopyOrderId = () => {
     navigator.clipboard
       .writeText(order.orderId)
@@ -360,7 +443,10 @@ function OrderDetailInner({ id }: { id: string }) {
                 <Copy size={14} />
               )}
             </button>
-            <span className="text-gray-400">•</span>
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${cfg?.dot ?? "bg-gray-500"}`}
+              aria-hidden="true"
+            />
             <span className="font-medium text-gray-950">
               {formatDateTime(
                 order.createdAt,
@@ -385,16 +471,22 @@ function OrderDetailInner({ id }: { id: string }) {
             {STATUS_FLOW.map((step, i) => {
               const Icon = step.icon;
               const done = i <= currentStepIdx;
-              return (
-                <div
-                  key={step.key}
-                  className="flex-1 flex flex-col items-center relative"
-                >
+              const isRateStep = step.key === "TO_RATE";
+              const labelKey =
+                isRateStep && !hasUnreviewedItem
+                  ? "orders.statusRated"
+                  : step.labelKey;
+              const stepContent = (
+                <>
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       done
                         ? "bg-gray-950 text-white shadow-xs"
                         : "bg-gray-100 text-gray-400"
+                    } ${
+                      isRateStep && canOpenRate
+                        ? "group-hover:scale-105"
+                        : ""
                     }`}
                   >
                     <Icon size={18} />
@@ -404,8 +496,29 @@ function OrderDetailInner({ id }: { id: string }) {
                       done ? "text-gray-950 font-bold" : "text-gray-400"
                     }`}
                   >
-                    {t(step.labelKey)}
+                    {t(labelKey)}
                   </span>
+                </>
+              );
+              return (
+                <div
+                  key={step.key}
+                  className="flex-1 flex flex-col items-center relative"
+                >
+                  {isRateStep && canOpenRate ? (
+                    <button
+                      type="button"
+                      onClick={() => setRateOpen(true)}
+                      className="group flex cursor-pointer flex-col items-center"
+                      title={t("orders.rate")}
+                    >
+                      {stepContent}
+                    </button>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      {stepContent}
+                    </div>
+                  )}
                   {i < STATUS_FLOW.length - 1 && (
                     <div
                       className={`absolute top-5 left-[55%] w-[90%] h-0.5 transition-colors ${
@@ -437,7 +550,7 @@ function OrderDetailInner({ id }: { id: string }) {
               </Link>
             </div>
           </div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+          <p className="text-sm font-semibold uppercase tracking-wider text-gray-950 mb-2">
             {t("orders.products")}
           </p>
           <div className="space-y-3">
@@ -494,6 +607,14 @@ function OrderDetailInner({ id }: { id: string }) {
                       </p>
                     )}
                     <p className="text-sm text-gray-400 font-mono mt-0.5">x{item.qty}</p>
+                    {product && (
+                      <RateOrderItem
+                        orderId={order.orderId}
+                        skuId={item.skuId}
+                        productId={product.productId}
+                        productName={displayName ?? product.name}
+                      />
+                    )}
                   </div>
                   <div className="ml-3 flex shrink-0 items-baseline justify-end gap-2 whitespace-nowrap">
                     {originalLineTotal != null && (
@@ -517,64 +638,57 @@ function OrderDetailInner({ id }: { id: string }) {
             </div>
             <div className="mt-2 divide-y divide-gray-300 text-sm sm:text-base">
               <div className="flex items-center justify-between py-3">
-                <span className="font-medium text-gray-500">
+                <span className="text-gray-900">
                   {t("cart.subtotal")}
                 </span>
-                <span className="font-semibold text-gray-900">
+                <span className="text-gray-900">
                   {formatCurrency(subtotal, order.currency)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="font-medium text-gray-500">
+                <span className="text-gray-900">
                   {t("cart.shippingFee")}
                 </span>
-                <span className="font-semibold text-gray-900">
+                <span className="text-gray-900">
                   {formatCurrency(order.shippingFee, order.currency)}
                 </span>
               </div>
               {discount > 0 && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-medium text-gray-500">
+                  <span className="text-gray-900">
                     {t("cart.discount")}
                   </span>
-                  <span className="font-semibold text-emerald-600">
+                  <span className="text-gray-900">
                     -{formatCurrency(discount, order.currency)}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between py-4">
-                <span className="text-base font-bold text-gray-900">
+                <span className="text-base text-gray-900">
                   {t("cart.total")}
                 </span>
-                <span className="text-2xl font-extrabold text-gray-950 sm:text-3xl">
+                <span className="text-lg font-extrabold text-gray-950 sm:text-xl">
                   {formatCurrency(order.totalAmount, order.currency)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4 py-3">
-                <span className="font-medium text-gray-500">
+                <span className="text-gray-900">
                   {t("orders.paymentMethod")}
                 </span>
-                <span className="text-right font-semibold text-gray-900">
+                <span className="text-right text-gray-900">
                   {paymentMethodLabel}
                 </span>
               </div>
-              {(order.paymentId || payment?.invoiceUrl) && (
+              {payment?.invoiceUrl && (
                 <div className="py-3 text-right">
-                  {order.paymentId && (
-                    <p className="font-mono text-sm text-gray-400">
-                      {t("orders.transactionId")}: {order.paymentId}
-                    </p>
-                  )}
-                  {payment?.invoiceUrl && (
-                    <a
-                      href={payment.invoiceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline underline-offset-2 hover:text-brand-strong"
-                    >
-                      {t("orders.downloadInvoice")}
-                    </a>
-                  )}
+                  <a
+                    href={payment.invoiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline underline-offset-2 hover:text-brand-strong"
+                  >
+                    {t("orders.downloadInvoice")}
+                  </a>
                 </div>
               )}
             </div>
@@ -707,6 +821,16 @@ function OrderDetailInner({ id }: { id: string }) {
         confirmLabel={t("orders.confirmCancelLabel")}
         variant="danger"
         loading={cancelMutation.isPending}
+      />
+
+      <RateOrderDialog
+        open={rateOpen}
+        onClose={() => setRateOpen(false)}
+        order={order}
+        skuLookup={rateLookup}
+        returnedQtyBySku={returnedQtyBySku}
+        reviewedSkus={reviewedSkus}
+        onReviewed={() => qc.invalidateQueries({ queryKey: qk.myReviews })}
       />
     </MemberPageLayout>
   );

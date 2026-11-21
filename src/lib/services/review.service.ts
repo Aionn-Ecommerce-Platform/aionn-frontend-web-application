@@ -6,6 +6,7 @@ export interface Review {
   productId: string;
   userId: string;
   orderId: string | null;
+  skuId?: string | null;
   rating: number;
   title: string | null;
   content: string | null;
@@ -38,6 +39,8 @@ interface RatingSummary {
 }
 
 export interface SubmitReviewRequest {
+  orderId?: string;
+  skuId?: string;
   rating: number;
   title?: string;
   content?: string;
@@ -58,6 +61,8 @@ interface MerchantReplyRequest {
 interface ReviewEligibility {
   canReview: boolean;
   reason: "ALREADY_REVIEWED" | "NOT_PURCHASED" | null;
+  orderId?: string | null;
+  skuId?: string | null;
 }
 
 export const reviewService = {
@@ -65,9 +70,13 @@ export const reviewService = {
     return api.post<Review>(`/catalog/products/${productId}/reviews`, data);
   },
 
-  checkEligibility(productId: string) {
+  checkEligibility(
+    productId: string,
+    params: { orderId?: string; skuId?: string } = {},
+  ) {
     return api.get<ReviewEligibility>(
       `/catalog/products/${productId}/reviews/eligibility`,
+      { query: params },
     );
   },
 

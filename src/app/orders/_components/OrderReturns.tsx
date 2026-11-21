@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { Loader2, Package, PackageX, Store } from "lucide-react";
+import { Loader2, Package, PackageX } from "lucide-react";
 import { AppImage, Badge, Button, EmptyState } from "@/shared/ui";
 import { orderReturnService, orderService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
@@ -11,6 +12,8 @@ import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { useMerchantNameMap, useTranslation } from "@/hooks";
 import { getReturnStatus } from "@/lib/domain/status/return";
 import { returnReasonBadgeClass, returnReasonLabelKey } from "@/lib/domain/return-reasons";
+import ReturnRequestDialog from "./ReturnRequestDialog";
+import type { OrderReturn } from "@/types";
 
 const STATUS_DOT_CLASS: Record<string, string> = {
   default: "bg-gray-500",
@@ -31,6 +34,7 @@ export default function OrderReturns({
 }: OrderReturnsProps) {
   const { t, locale } = useTranslation();
   const merchantNameById = useMerchantNameMap();
+  const [detailRequest, setDetailRequest] = useState<OrderReturn | null>(null);
 
   const { data: returns, isLoading } = useQuery({
     queryKey: ["returns", "mine"],
@@ -130,13 +134,6 @@ export default function OrderReturns({
                   className="truncate text-base font-bold text-gray-950 transition-colors hover:text-brand sm:text-lg"
                 >
                   {merchantNameById.get(r.merchantId) ?? t("orders.store")}
-                </Link>
-                <Link
-                  href={`/merchants/${r.merchantId}`}
-                  className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-gray-950 bg-gray-950 px-2.5 text-[11px] font-semibold text-white transition-colors hover:border-neutral-800 hover:bg-neutral-800"
-                >
-                  <Store size={12} />
-                  {t("orders.viewStore")}
                 </Link>
                 <span
                   className={`hidden h-2 w-2 shrink-0 rounded-full sm:inline-block ${
@@ -263,7 +260,7 @@ export default function OrderReturns({
                       <span className="text-sm text-gray-600">
                         {t("orders.returns.refundAmountLabel")}:
                       </span>
-                      <span className="text-2xl font-extrabold text-gray-950 sm:text-3xl">
+                      <span className="text-lg font-extrabold text-gray-950 sm:text-xl">
                         {formatCurrency(r.refundAmount, currency)}
                       </span>
                     </div>
@@ -271,20 +268,43 @@ export default function OrderReturns({
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-end pt-3">
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 pt-3">
                 <Link href={orderHref}>
                   <Button
                     size="sm"
-                    className="h-9 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-4 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600"
+                    variant="outline"
+                    className="h-9 rounded-xl px-4 text-xs font-bold"
                   >
-                    {t("orders.viewDetails")}
+                    {t("orders.orderDetails")}
                   </Button>
                 </Link>
+                <Button
+                  size="sm"
+                  className="h-9 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 px-4 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600"
+                  onClick={() => setDetailRequest(r)}
+                >
+                  {t("orders.returns.viewRequestDetail")}
+                </Button>
               </div>
             </div>
           </div>
         );
       })}
+
+      <ReturnRequestDialog
+        request={detailRequest}
+        order={
+          detailRequest
+            ? orderByReturnId.get(detailRequest.returnId)
+            : undefined
+        }
+        items={
+          detailRequest
+            ? (itemsByReturnId.get(detailRequest.returnId) ?? [])
+            : []
+        }
+        onClose={() => setDetailRequest(null)}
+      />
     </div>
   );
 }
