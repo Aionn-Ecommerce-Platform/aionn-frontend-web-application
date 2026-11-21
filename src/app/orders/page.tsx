@@ -11,8 +11,7 @@ import { Button, EmptyState, Badge, Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
 import OrderReturns from "./_components/OrderReturns";
-import { OrderCardActions } from "@/features/order";
-import { isActiveReturnStatus } from "@/features/order/lib/order-card-actions";
+import { OrderCardActions, isActiveReturnStatus } from "@/features/order";
 import {
   orderService,
   orderReturnService,
@@ -146,7 +145,7 @@ function OrdersInner() {
 
   const { data: myReviews } = useQuery({
     queryKey: qk.myReviews,
-    queryFn: () => reviewService.getMyReviews(0, 100),
+    queryFn: () => reviewService.getAllMyReviews(),
     enabled: !isReturnsTab && Boolean(orders?.length),
   });
 
@@ -187,22 +186,10 @@ function OrdersInner() {
   });
 
   const reviewedSkus = new Set<string>();
-  myReviews?.content.forEach((review) => {
-    if (!review.orderId || review.status === "DELETED") {
-      return;
-    }
-    if (review.skuId) {
+  myReviews?.forEach((review) => {
+    if (review.orderId && review.skuId && review.status !== "DELETED") {
       reviewedSkus.add(`${review.orderId}:${review.skuId}`);
-      return;
     }
-    (orders ?? [])
-      .find((order) => order.orderId === review.orderId)
-      ?.items.forEach((item) => {
-        const lookup = skuLookup.get(item.skuId);
-        if (lookup?.product.productId === review.productId) {
-          reviewedSkus.add(`${review.orderId}:${item.skuId}`);
-        }
-      });
   });
 
   const handleReviewSubmitted = () => {
@@ -338,7 +325,7 @@ function OrdersInner() {
                             href={
                               product
                                 ? productPath(product)
-                                : `/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}`
+                                : `/orders/${order.orderId}?fromTab=${encodeURIComponent(activeTab)}&fromPage=${safeCurrentPage}`
                             }
                             className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/60 transition-colors group"
                           >

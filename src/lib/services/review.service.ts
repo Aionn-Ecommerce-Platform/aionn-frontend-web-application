@@ -112,6 +112,22 @@ export const reviewService = {
     });
   },
 
+  async getAllMyReviews(pageSize = 100) {
+    const first = await this.getMyReviews(0, pageSize);
+    if (first.totalPages <= 1) {
+      return first.content;
+    }
+    const remaining = await Promise.all(
+      Array.from({ length: first.totalPages - 1 }, (_, index) =>
+        this.getMyReviews(index + 1, pageSize),
+      ),
+    );
+    return remaining.reduce(
+      (all, page) => all.concat(page.content),
+      [...first.content],
+    );
+  },
+
   merchantReply(reviewId: string, data: MerchantReplyRequest) {
     return api.post<Review>(`/catalog/reviews/${reviewId}/reply`, data);
   },

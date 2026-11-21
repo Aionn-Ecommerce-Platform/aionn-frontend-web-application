@@ -180,25 +180,19 @@ function OrderDetailInner({ id }: { id: string }) {
 
   const { data: myReviews } = useQuery({
     queryKey: qk.myReviews,
-    queryFn: () => reviewService.getMyReviews(0, 100),
+    queryFn: () => reviewService.getAllMyReviews(),
     enabled: order?.status === "COMPLETED",
   });
 
   const reviewedSkus = new Set<string>();
-  myReviews?.content.forEach((review) => {
-    if (review.orderId !== order?.orderId || review.status === "DELETED") {
-      return;
-    }
-    if (review.skuId) {
+  myReviews?.forEach((review) => {
+    if (
+      review.orderId === order?.orderId &&
+      review.skuId &&
+      review.status !== "DELETED"
+    ) {
       reviewedSkus.add(`${review.orderId}:${review.skuId}`);
-      return;
     }
-    order?.items.forEach((item) => {
-      const lookup = skuLookup.get(item.skuId);
-      if (lookup?.product.productId === review.productId) {
-        reviewedSkus.add(`${order.orderId}:${item.skuId}`);
-      }
-    });
   });
 
   const returnedQtyBySku = new Map<string, number>();

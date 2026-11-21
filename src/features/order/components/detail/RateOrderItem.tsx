@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Star } from "lucide-react";
 import { Button, Modal } from "@/shared/ui";
 import { SubmitReviewForm } from "@/components/review/SubmitReviewForm";
 import { reviewService } from "@/lib/services";
+import { qk } from "@/lib/query-keys";
 import { useTranslation } from "@/hooks";
 
 export default function RateOrderItem({
@@ -20,6 +21,7 @@ export default function RateOrderItem({
   productName: string;
 }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const { data: eligibility } = useQuery({
     queryKey: ["review-eligibility", orderId, skuId, productId],
@@ -53,7 +55,10 @@ export default function RateOrderItem({
             productId={productId}
             orderId={orderId}
             skuId={skuId}
-            onSuccess={() => setOpen(false)}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: qk.myReviews });
+              setOpen(false);
+            }}
             onCancel={() => setOpen(false)}
           />
         </div>
