@@ -2198,6 +2198,8 @@
       "title": "Dashboard",
       "yourShop": "Your store",
       "statRevenue": "Net revenue",
+      "currencyBillion": "B",
+      "currencyMillion": "M",
       "statAvgPerDay": "Avg / day (since open)",
       "statProducts": "Products",
       "statCustomers": "Customers",

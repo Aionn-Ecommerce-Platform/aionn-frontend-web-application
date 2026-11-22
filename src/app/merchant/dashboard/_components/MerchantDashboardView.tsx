@@ -61,29 +61,22 @@ const APPROVED_RETURN_STATUSES = new Set([
   "REFUNDED",
 ]);
 
-function formatCompactMoney(value: number, locale: string) {
+function formatCompactMoney(
+  value: number,
+  locale: string,
+  billionUnit: string,
+  millionUnit: string,
+) {
   const abs = Math.abs(value);
-  if (abs >= 1_000_000_000) {
-    if (locale === "vi") {
-      return `${(value / 1_000_000_000).toLocaleString("vi-VN", {
-        maximumFractionDigits: 1,
-      })} tỷ VND`;
-    }
-    return `${new Intl.NumberFormat("en", {
-      notation: "compact",
+  const formatNumber = (number: number) =>
+    number.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", {
       maximumFractionDigits: 1,
-    }).format(value)} VND`;
+    });
+  if (abs >= 1_000_000_000) {
+    return `${formatNumber(value / 1_000_000_000)} ${billionUnit} VND`;
   }
   if (abs >= 1_000_000) {
-    if (locale === "vi") {
-      return `${(value / 1_000_000).toLocaleString("vi-VN", {
-        maximumFractionDigits: 1,
-      })} tr VND`;
-    }
-    return `${new Intl.NumberFormat("en", {
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value)} VND`;
+    return `${formatNumber(value / 1_000_000)} ${millionUnit} VND`;
   }
   return formatCurrency(value, "VND", locale);
 }
@@ -297,7 +290,12 @@ function MerchantDashboardInner() {
   const stats = [
     {
       label: t("merchant.dashboard.statRevenue"),
-      value: formatCompactMoney(allTimeNetRevenue, locale),
+      value: formatCompactMoney(
+        allTimeNetRevenue,
+        locale,
+        t("merchant.dashboard.currencyBillion"),
+        t("merchant.dashboard.currencyMillion"),
+      ),
       fullValue: formatCurrency(allTimeNetRevenue),
       icon: Wallet,
       cardClass:
@@ -306,7 +304,12 @@ function MerchantDashboardInner() {
     },
     {
       label: t("merchant.dashboard.statAvgPerDay"),
-      value: formatCompactMoney(avgDayRevenue, locale),
+      value: formatCompactMoney(
+        avgDayRevenue,
+        locale,
+        t("merchant.dashboard.currencyBillion"),
+        t("merchant.dashboard.currencyMillion"),
+      ),
       fullValue: formatCurrency(avgDayRevenue),
       icon: TrendingUp,
       cardClass: "from-[#12b8d0] via-[#22c7d8] to-[#4dd0e1] shadow-cyan-900/40",
@@ -887,7 +890,12 @@ function MerchantDashboardInner() {
                   className="mt-2 truncate text-xl font-extrabold text-white"
                   title={formatCurrency(monthRefundTotal)}
                 >
-                  {formatCompactMoney(monthRefundTotal, locale)}
+                  {formatCompactMoney(
+                    monthRefundTotal,
+                    locale,
+                    t("merchant.dashboard.currencyBillion"),
+                    t("merchant.dashboard.currencyMillion"),
+                  )}
                 </p>
               </div>
             </div>

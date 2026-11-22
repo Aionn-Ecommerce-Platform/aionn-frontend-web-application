@@ -2198,6 +2198,8 @@
       "title": "Tổng quan",
       "yourShop": "Cửa hàng của bạn",
       "statRevenue": "Doanh thu thuần",
+      "currencyBillion": "tỷ",
+      "currencyMillion": "tr",
       "statAvgPerDay": "TB / ngày (từ khi mở)",
       "statProducts": "Sản phẩm",
       "statCustomers": "Khách hàng",
