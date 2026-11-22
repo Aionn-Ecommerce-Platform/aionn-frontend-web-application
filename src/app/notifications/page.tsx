@@ -226,7 +226,7 @@ function NotificationsInner() {
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-4 py-2.5">
+            <div className="flex flex-wrap items-center gap-3 border-b border-gray-300 bg-gray-50/70 px-4 py-2.5 sm:px-5">
               <input
                 type="checkbox"
                 checked={allPageSelected}
@@ -272,7 +272,7 @@ function NotificationsInner() {
                 </>
               )}
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-300">
             <AnimatePresence initial={false}>
               {paginatedList.map((notif) => {
                 const read = isNotificationRead(notif);
@@ -295,7 +295,7 @@ function NotificationsInner() {
                     }`}
                   >
                     {/* Unread indicator dot slot with balanced width so content stays aligned */}
-                    <div className="shrink-0 pt-1">
+                    <div className="shrink-0 self-center">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(notif.notiId)}
@@ -354,7 +354,7 @@ function NotificationsInner() {
                         e.stopPropagation();
                         removeMutation.mutate(notif.notiId);
                       }}
-                      className="p-1.5 text-red-500 hover:text-red-600 bg-transparent transition-colors shrink-0 cursor-pointer"
+                      className="self-center p-1.5 text-red-500 hover:text-red-600 bg-transparent transition-colors shrink-0 cursor-pointer"
                       aria-label={t("notifications.deleteLabel")}
                     >
                       <Trash2 size={20} />

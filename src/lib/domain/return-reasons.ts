@@ -12,12 +12,6 @@ export const RETURN_REASON_TYPES: ReturnReasonType[] = [
   "OTHER",
 ];
 
-export const RETURN_REASON_EVIDENCE_REQUIRED = new Set<ReturnReasonType>([
-  "DAMAGED",
-  "DEFECTIVE",
-  "NOT_AS_DESCRIBED",
-]);
-
 export const RETURN_REASON_BADGE_CLASS: Record<ReturnReasonType, string> = {
   WRONG_ITEM: "bg-blue-100 text-blue-700 border-blue-200",
   DAMAGED: "bg-red-100 text-red-700 border-red-200",

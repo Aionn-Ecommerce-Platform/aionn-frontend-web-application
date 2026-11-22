@@ -67,8 +67,8 @@ function MerchantWarehousesInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -85,8 +85,8 @@ function MerchantWarehousesInner() {
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 flex justify-center">
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         ) : !warehouses || warehouses.length === 0 ? (
           <EmptyState
@@ -101,12 +101,12 @@ function MerchantWarehousesInner() {
               return (
                 <div
                   key={wh.warehouseId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
+                  className="bg-white rounded-2xl border border-gray-400 shadow-xs p-5"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <WarehouseIcon size={20} className="text-blue-600" />
+                      <div className="p-2 bg-brand/10 rounded-lg">
+                        <WarehouseIcon size={20} className="text-brand" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-mono text-gray-700 truncate">
@@ -195,11 +195,11 @@ function MerchantWarehousesInner() {
           </div>
         )}
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="mt-6 bg-brand/10 border border-brand/30 rounded-md p-4">
+          <h4 className="text-sm font-medium text-brand-strong mb-2">
             {t("merchant.warehouses.aboutTitle")}
           </h4>
-          <ul className="text-xs text-blue-800 space-y-1">
+          <ul className="text-xs text-brand-strong space-y-1">
             <li>{t("merchant.warehouses.aboutPriority")}</li>
             <li>{t("merchant.warehouses.aboutInactive")}</li>
             <li>{t("merchant.warehouses.aboutSuspended")}</li>
@@ -277,7 +277,7 @@ function CreateModal({
             onChange={(e) => setAddress(e.target.value)}
             rows={3}
             placeholder={t("merchant.warehouses.addressPlaceholder")}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div>
@@ -290,7 +290,7 @@ function CreateModal({
             max="100"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -356,7 +356,7 @@ function PriorityModal({
             max="100"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div className="flex justify-end gap-2">

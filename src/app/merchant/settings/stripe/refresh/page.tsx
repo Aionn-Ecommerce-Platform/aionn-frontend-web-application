@@ -29,9 +29,9 @@ function StripeRefreshInner() {
   }, [refresh]);
 
   return (
-    <div className="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+    <div className="flex min-h-[50vh] items-center justify-center p-6">
       <div className="text-center">
-        <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
+        <Loader2 className="w-12 h-12 text-brand mx-auto mb-4 animate-spin" />
         <p className="text-gray-600">{t("merchant.stripeRefresh.loading")}</p>
       </div>
     </div>

@@ -20,6 +20,7 @@ interface ImagesCardProps {
   onAdd: (file: File) => void;
   onRemove: (url: string) => void;
   onSave: () => void;
+  embedded?: boolean;
 }
 
 export function ProductImagesCard({
@@ -29,11 +30,18 @@ export function ProductImagesCard({
   onAdd,
   onRemove,
   onSave,
+  embedded = false,
 }: ImagesCardProps) {
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
+    <div
+      className={
+        embedded
+          ? "border-t border-gray-200 pt-6"
+          : "bg-white rounded-2xl border border-gray-400 shadow-xs p-6"
+      }
+    >
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-gray-900">
           {t("merchant.productEdit.productImages")}
@@ -47,7 +55,7 @@ export function ProductImagesCard({
           {t("merchant.productEdit.save")}
         </Button>
       </div>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-6">
         {images.map((url) => (
           <div
             key={url}
@@ -72,7 +80,7 @@ export function ProductImagesCard({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="aspect-square rounded-lg border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center transition-colors disabled:opacity-50"
+          className="aspect-square rounded-lg border-2 border-dashed border-gray-400 text-gray-400 hover:border-brand hover:text-brand flex flex-col items-center justify-center transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="animate-spin" size={20} />
@@ -104,9 +112,11 @@ export function ProductImagesCard({
 export function CollectionsCard({
   productId,
   initialCollectionIds,
+  embedded = false,
 }: {
   productId: string;
   initialCollectionIds: string[];
+  embedded?: boolean;
 }) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string[]>(initialCollectionIds);
@@ -149,7 +159,13 @@ export function CollectionsCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
+    <div
+      className={
+        embedded
+          ? "border-t border-gray-200 pt-6"
+          : "bg-white rounded-2xl border border-gray-400 shadow-xs p-6"
+      }
+    >
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="font-semibold text-gray-900">
@@ -173,7 +189,7 @@ export function CollectionsCard({
           {t("merchant.productEdit.collectionsEmpty")}
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
             <label
               key={collection.collectionId}
@@ -229,12 +245,19 @@ interface VariantsCardProps {
   onRemove: (sku: string) => void;
   onDraft: (draft: VariantDraft) => void;
   onAdd: () => void;
+  embedded?: boolean;
 }
 
 export function VariantsCard(props: VariantsCardProps) {
   const { t } = useTranslation();
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
+    <div
+      className={
+        props.embedded
+          ? "border-t border-gray-200 pt-6"
+          : "bg-white rounded-2xl border border-gray-400 shadow-xs p-6"
+      }
+    >
       <h2 className="font-semibold text-gray-900 mb-4">
         {t("merchant.productEdit.variantsTitle")}
       </h2>
@@ -298,7 +321,9 @@ export function VariantsCard(props: VariantsCardProps) {
                   variant="outline"
                   disabled={
                     (props.parcelWeights[variant.skuId] ?? "") ===
-                    (variant.weightGram == null ? "" : String(variant.weightGram))
+                    (variant.weightGram == null
+                      ? ""
+                      : String(variant.weightGram))
                   }
                   loading={props.savingParcelSku === variant.skuId}
                   onClick={() => props.onSaveParcel(variant.skuId)}
@@ -377,7 +402,10 @@ export function VariantsCard(props: VariantsCardProps) {
               min={1}
               value={props.draft.weightGram}
               onChange={(event) =>
-                props.onDraft({ ...props.draft, weightGram: event.target.value })
+                props.onDraft({
+                  ...props.draft,
+                  weightGram: event.target.value,
+                })
               }
             />
           </div>

@@ -101,8 +101,8 @@ function MerchantBulkPriceInner() {
   const cfg = CHANGE_TYPES.find((c) => c.key === changeType)!;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div>
         <Link
           href="/merchant/products"
           className="text-sm text-gray-500 hover:text-gray-900 mb-4 inline-block"
@@ -111,14 +111,14 @@ function MerchantBulkPriceInner() {
         </Link>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-          <TrendingUp size={24} className="text-blue-600" />
+          <TrendingUp size={24} className="text-brand" />
           {t("merchant.bulkPrice.title")}
         </h1>
         <p className="text-gray-500 text-sm mb-6">
           {t("merchant.bulkPrice.subtitle")}
         </p>
 
-        <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-4">
+        <div className="max-w-3xl bg-white rounded-2xl border border-gray-400 shadow-xs p-5 mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t("merchant.bulkPrice.skuListLabel")}
           </label>
@@ -127,7 +127,7 @@ function MerchantBulkPriceInner() {
             onChange={(e) => setSkuInput(e.target.value)}
             rows={3}
             placeholder={t("merchant.bulkPrice.skuPlaceholder")}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <div className="flex justify-between items-center mt-2">
             <p className="text-xs text-gray-400">
@@ -144,12 +144,12 @@ function MerchantBulkPriceInner() {
               {skuIds.map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-mono"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-brand/10 text-brand-strong text-xs font-mono"
                 >
                   {s}
                   <button
                     onClick={() => removeSku(s)}
-                    className="hover:text-blue-900"
+                    className="hover:text-brand-strong"
                   >
                     <X size={12} />
                   </button>
@@ -159,7 +159,7 @@ function MerchantBulkPriceInner() {
           )}
         </div>
 
-        <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-4 space-y-4">
+        <div className="max-w-3xl bg-white rounded-2xl border border-gray-400 shadow-xs p-5 mb-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("merchant.bulkPrice.changeTypeLabel")}
@@ -171,7 +171,7 @@ function MerchantBulkPriceInner() {
                   onClick={() => setChangeType(c.key)}
                   className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
                     changeType === c.key
-                      ? "border-blue-500 bg-blue-50 text-blue-900"
+                      ? "border-brand bg-brand/10 text-brand-strong"
                       : "border-gray-200 hover:border-gray-400"
                   }`}
                 >
@@ -193,7 +193,7 @@ function MerchantBulkPriceInner() {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={changeType.includes("PERCENT") ? "10" : "100000"}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
@@ -206,7 +206,7 @@ function MerchantBulkPriceInner() {
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value.toUpperCase())}
                 disabled={changeType.includes("PERCENT")}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
               />
             </div>
           </div>

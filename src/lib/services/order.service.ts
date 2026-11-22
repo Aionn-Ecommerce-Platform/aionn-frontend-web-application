@@ -64,6 +64,34 @@ export const orderService = {
     );
   },
 
+  /**
+   * Backend analytics windows are capped at 366 days, so aggregate lifetime
+   * revenue by walking the range in chunks instead of sending one huge range.
+   */
+  async merchantRevenueTotal(params: { from: string; to: string }) {
+    const DAY_MS = 86_400_000;
+    const start = Date.parse(`${params.from}T00:00:00Z`);
+    const end = Date.parse(`${params.to}T00:00:00Z`);
+    let cursor = start;
+    let totalRevenue = 0;
+    let totalOrders = 0;
+    const formatDate = (time: number) =>
+      new Date(time).toISOString().slice(0, 10);
+
+    while (cursor <= end) {
+      const chunkEnd = Math.min(cursor + 366 * DAY_MS, end);
+      const chunk = await this.merchantAnalytics({
+        from: formatDate(cursor),
+        to: formatDate(chunkEnd),
+      });
+      totalRevenue += chunk.totalRevenue ?? 0;
+      totalOrders += chunk.totalOrders ?? 0;
+      cursor = chunkEnd + DAY_MS;
+    }
+
+    return { totalRevenue, totalOrders };
+  },
+
   merchantTopProducts(
     params: { from?: string; to?: string; limit?: number } = {},
   ) {
@@ -101,11 +129,15 @@ export const orderReturnService = {
     body: {
       reasonType: ReturnReasonType;
       reason: string;
-      evidenceUrl?: string | null;
+      evidenceUrls: string[];
       items?: Array<{ skuId: string; qty: number }>;
     },
   ) {
     return api.post<OrderReturn>(`/ordering/returns/orders/${orderId}`, body);
+  },
+
+  cancel(returnId: string) {
+    return api.post<OrderReturn>(`/ordering/returns/${returnId}/cancel`);
   },
 
   getItems(returnId: string) {

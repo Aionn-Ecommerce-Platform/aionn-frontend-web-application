@@ -35,7 +35,7 @@ function MerchantProductEditInner({ productId }: { productId: string }) {
   if (isLoading || !product) {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+        <Loader2 className="animate-spin text-brand" size={32} />
       </div>
     );
   }
@@ -85,8 +85,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     () => {
       const seeded: Record<string, string> = {};
       for (const v of product.variants) {
-        seeded[v.skuId] =
-          v.weightGram == null ? "" : String(v.weightGram);
+        seeded[v.skuId] = v.weightGram == null ? "" : String(v.weightGram);
       }
       return seeded;
     },
@@ -223,12 +222,20 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     const existing = product.variants.find((v) => v.skuId === skuId);
     setSavingParcel(skuId);
     try {
-      const updated = await productService.changeVariantParcel(productId, skuId, {
-        weightGram,
-        ...(existing?.lengthCm != null ? { lengthCm: existing.lengthCm } : {}),
-        ...(existing?.widthCm != null ? { widthCm: existing.widthCm } : {}),
-        ...(existing?.heightCm != null ? { heightCm: existing.heightCm } : {}),
-      });
+      const updated = await productService.changeVariantParcel(
+        productId,
+        skuId,
+        {
+          weightGram,
+          ...(existing?.lengthCm != null
+            ? { lengthCm: existing.lengthCm }
+            : {}),
+          ...(existing?.widthCm != null ? { widthCm: existing.widthCm } : {}),
+          ...(existing?.heightCm != null
+            ? { heightCm: existing.heightCm }
+            : {}),
+        },
+      );
       applyOptimistic(updated);
       toast.success(t("merchant.productEdit.parcelSaved"));
     } catch (err) {
@@ -240,7 +247,8 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     }
   }
 
-  async function handleRemoveVariant(skuId: string) {    if (!confirm(t("merchant.productEdit.confirmRemoveVariant"))) return;
+  async function handleRemoveVariant(skuId: string) {
+    if (!confirm(t("merchant.productEdit.confirmRemoveVariant"))) return;
     setRemovingVariant(skuId);
     try {
       const updated = await productService.removeVariant(productId, skuId);
@@ -261,13 +269,20 @@ function MerchantProductEditForm({ product }: { product: Product }) {
       return;
     }
     if (!Number.isFinite(weightGram) || weightGram <= 0) {
-      toast.error(t("merchant.productNew.errorWeightRequired", { value: newVariant.value }));
+      toast.error(
+        t("merchant.productNew.errorWeightRequired", {
+          value: newVariant.value,
+        }),
+      );
       return;
     }
     const lengthCm = parseFloat(newVariant.lengthCm);
     const widthCm = parseFloat(newVariant.widthCm);
     const heightCm = parseFloat(newVariant.heightCm);
-    const hasBox = Number.isFinite(lengthCm) && Number.isFinite(widthCm) && Number.isFinite(heightCm);
+    const hasBox =
+      Number.isFinite(lengthCm) &&
+      Number.isFinite(widthCm) &&
+      Number.isFinite(heightCm);
     setAddingVariant(true);
     try {
       const updated = await productService.defineVariant(productId, {
@@ -278,7 +293,15 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         ...(hasBox ? { lengthCm, widthCm, heightCm } : {}),
       });
       applyOptimistic(updated);
-      setNewVariant({ attribute: newVariant.attribute, value: "", price: "", weightGram: "", lengthCm: "", widthCm: "", heightCm: "" });
+      setNewVariant({
+        attribute: newVariant.attribute,
+        value: "",
+        price: "",
+        weightGram: "",
+        lengthCm: "",
+        widthCm: "",
+        heightCm: "",
+      });
       toast.success(t("merchant.productEdit.variantAdded"));
     } catch (err) {
       toast.error(
@@ -320,24 +343,34 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   const cfg = getProductStatus(product.status);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="w-full">
         <Link
           href="/merchant/products"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4"
+          className="group mb-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-gray-950"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft
+            size={16}
+            className="text-gray-500 transition-transform group-hover:-translate-x-0.5 group-hover:text-gray-950"
+          />
           {t("merchant.productEdit.backToList")}
         </Link>
 
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">
-              {product.productId}
-            </p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words text-2xl font-extrabold tracking-tight text-gray-950 sm:text-3xl">
+              {product.name}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-sm text-gray-600">
+              <span className="font-medium">
+                {t("merchant.productEdit.productIdLabel")}:
+              </span>
+              <span className="font-mono font-semibold text-gray-950">
+                {product.productId}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 self-start">
             <Button
               variant="outline"
               size="sm"
@@ -348,12 +381,19 @@ function MerchantProductEditForm({ product }: { product: Product }) {
               <Copy size={14} className="mr-1.5" />
               {t("merchant.productEdit.clone")}
             </Button>
-            {cfg && <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>}
+            {cfg && (
+              <Badge
+                variant={cfg.variant}
+                className="!rounded-full !px-3 !py-1 !text-sm"
+              >
+                {t(cfg.labelKey)}
+              </Badge>
+            )}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 flex items-center justify-between">
+        <div className="space-y-6 rounded-2xl border border-gray-400 bg-white p-6 shadow-xs sm:p-8">
+          <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900">
                 {t("merchant.productEdit.status")}
@@ -393,6 +433,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
             onAdd={handleAddImage}
             onRemove={handleRemoveImage}
             onSave={handleSaveMedia}
+            embedded
           />
           <VariantsCard
             variants={product.variants}
@@ -414,13 +455,15 @@ function MerchantProductEditForm({ product }: { product: Product }) {
             onRemove={handleRemoveVariant}
             onDraft={setNewVariant}
             onAdd={handleAddVariant}
+            embedded
           />
           <CollectionsCard
             productId={productId}
             initialCollectionIds={product.collectionIds ?? []}
+            embedded
           />
 
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
+          <div className="border-t border-gray-200 pt-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">
                 {t("merchant.productEdit.aiMetadata")}
@@ -442,7 +485,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                   value={aiDescription}
                   onChange={(e) => setAiDescription(e.target.value)}
                   maxLength={1000}
@@ -451,7 +494,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 border-t border-gray-200 pt-6">
             <Button
               variant="outline"
               size="lg"

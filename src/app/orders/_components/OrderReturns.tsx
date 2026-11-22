@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Loader2, Package, PackageX } from "lucide-react";
-import { AppImage, Badge, Button, EmptyState } from "@/shared/ui";
+import { Badge, Button, EmptyState } from "@/shared/ui";
 import { orderReturnService, orderService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
@@ -150,7 +150,7 @@ export default function OrderReturns({
 
               <Badge
                 variant={status?.variant ?? "default"}
-                className="shrink-0 !rounded-full !px-3 !py-1 !text-sm"
+                className="shrink-0 !rounded-full !px-3 !py-1 !text-sm font-semibold"
               >
                 {t(status.labelKey)}
               </Badge>
@@ -239,14 +239,6 @@ export default function OrderReturns({
                     {r.reason}
                   </p>
 
-                  {r.evidenceUrl && (
-                    <AppImage
-                      src={r.evidenceUrl}
-                      alt={t("orders.returns.evidenceLabel")}
-                      className="h-24 w-24 rounded-lg border border-gray-400 object-cover"
-                    />
-                  )}
-
                   {r.status === "REJECTED" && r.rejectionReason && (
                     <p className="text-base text-red-600">
                       {t("orders.returns.rejectReasonLabel")}: {r.rejectionReason}
@@ -297,11 +289,6 @@ export default function OrderReturns({
           detailRequest
             ? orderByReturnId.get(detailRequest.returnId)
             : undefined
-        }
-        items={
-          detailRequest
-            ? (itemsByReturnId.get(detailRequest.returnId) ?? [])
-            : []
         }
         onClose={() => setDetailRequest(null)}
       />

@@ -20,7 +20,7 @@ function VoucherAnalyticsInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+        <Loader2 className="animate-spin text-brand" size={28} />
       </div>
     );
   }
@@ -32,8 +32,8 @@ function VoucherAnalyticsInner() {
     })) ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div>
+      <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           {t("merchant.promotionAnalytics.title")}
         </h1>

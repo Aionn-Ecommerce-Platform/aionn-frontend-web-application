@@ -17,7 +17,7 @@ function LowStockInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+        <Loader2 className="animate-spin text-brand" size={28} />
       </div>
     );
   }
@@ -25,7 +25,7 @@ function LowStockInner() {
   const alerts = data ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 bg-orange-50 text-orange-600 rounded-md">

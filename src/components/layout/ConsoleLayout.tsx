@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
   Bot,
@@ -29,8 +30,11 @@ import {
   Wallet,
   Warehouse,
 } from "lucide-react";
+import { Avatar } from "@/shared/ui";
+import PageLoading from "@/shared/ui/PageLoading";
 import { cn } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
+import { merchantService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 
 const EMPTY_ROLES: string[] = [];
@@ -236,8 +240,29 @@ export default function ConsoleLayout({
   kind: ConsoleKind;
 }) {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
   const userRoles = useAuthStore((s) => s.user?.roles ?? EMPTY_ROLES);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { t } = useTranslation();
+
+  const isMerchantConsole =
+    kind === "merchant" && !pathname.startsWith("/merchant/register");
+  const isLegacyMerchantPage =
+    isMerchantConsole &&
+    !["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
+      (base) => pathname === base || pathname.startsWith(`${base}/`),
+    );
+  const { data: merchantContext, isError: merchantContextFailed } = useQuery({
+    queryKey: ["merchant", "me"],
+    queryFn: () => merchantService.getMine(),
+    enabled: isMerchantConsole && isAuthenticated,
+    staleTime: 60_000,
+  });
+  const awaitingMerchantContext =
+    isMerchantConsole &&
+    isAuthenticated &&
+    !merchantContext &&
+    !merchantContextFailed;
 
   if (kind === "merchant" && pathname.startsWith("/merchant/register")) {
     return <>{children}</>;
@@ -252,18 +277,35 @@ export default function ConsoleLayout({
       ? t("console.merchant.title")
       : t("console.admin.title");
   const Icon = kind === "merchant" ? Store : ShieldCheck;
+  const displayName =
+    user?.displayName || user?.username || t("common.account");
 
   return (
-    <div className="console-page member-page bg-gray-50 min-h-screen">
+    <div className="console-page member-page min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           <aside className="w-64 flex-shrink-0 hidden lg:block">
-            <div className="bg-white rounded-2xl border border-gray-200/80 p-5 space-y-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] sticky top-24">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3.5">
-                <Icon size={18} className="text-blue-600" />
-                <span>{title}</span>
-              </h3>
-              <nav className="space-y-1">
+            <div className="relative overflow-hidden rounded-2xl border border-purple-800/60 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-5 text-white shadow-xl shadow-purple-950/20">
+              <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-purple-600/25 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-fuchsia-600/20 blur-2xl" />
+              <div className="relative z-10 flex items-center gap-3 border-b border-amber-400/70 pb-4">
+                <Avatar
+                  src={user?.avatarUrl}
+                  alt={displayName}
+                  size="md"
+                  className="ring-2 ring-white/20 shadow-sm shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-white truncate">
+                    {displayName}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-amber-300">
+                    <Icon size={12} className="shrink-0" />
+                    <span className="truncate">{title}</span>
+                  </p>
+                </div>
+              </div>
+              <nav className="relative z-10 mt-4 space-y-1">
                 {items.map((item) => {
                   const ItemIcon = item.icon;
                   const isActive = item.exact
@@ -275,25 +317,35 @@ export default function ConsoleLayout({
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
+                        "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer group",
                         isActive
-                          ? "bg-blue-50 text-blue-700 font-semibold shadow-xs"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                          ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
+                          : "text-purple-100/80 hover:bg-white/10 hover:text-white",
                       )}
                     >
                       <ItemIcon
                         size={18}
-                        className={isActive ? "text-blue-600" : "text-gray-400"}
+                        className={cn(
+                          "shrink-0 transition-colors",
+                          isActive
+                            ? "text-white"
+                            : "text-purple-200/70 group-hover:text-white",
+                        )}
                       />
-                      <span>{t(item.labelKey)}</span>
+                      <span className="truncate">{t(item.labelKey)}</span>
                     </Link>
                   );
                 })}
               </nav>
             </div>
           </aside>
-          <section className="console-content flex-1 min-w-0">
-            {children}
+          <section
+            className={cn(
+              "console-content flex-1 min-w-0",
+              (isLegacyMerchantPage || kind === "admin") && "console-dark",
+            )}
+          >
+            {awaitingMerchantContext ? <PageLoading /> : children}
           </section>
         </div>
       </div>

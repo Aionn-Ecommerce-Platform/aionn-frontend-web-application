@@ -103,7 +103,7 @@ export function RegisterModal({
                 setValidationError(null);
               }}
               placeholder="CMP_..."
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:border-blue-500 focus:outline-none"
+              className="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
             <Button
               variant="outline"
@@ -137,7 +137,7 @@ export function RegisterModal({
               value={productId}
               onChange={(e) => setProductId(e.target.value)}
               placeholder="PRD_..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div>
@@ -149,7 +149,7 @@ export function RegisterModal({
               value={skuId}
               onChange={(e) => setSkuId(e.target.value)}
               placeholder="SKU_..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
         </div>
@@ -164,7 +164,7 @@ export function RegisterModal({
               min="0"
               value={salePrice}
               onChange={(e) => setSalePrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div>
@@ -176,7 +176,7 @@ export function RegisterModal({
               maxLength={3}
               value={currency}
               onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
         </div>
@@ -190,7 +190,7 @@ export function RegisterModal({
             min="1"
             value={saleStock}
             onChange={(e) => setSaleStock(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <p className="text-xs text-gray-400 mt-1">
             {t("merchant.flashSales.register.saleStockHint")}

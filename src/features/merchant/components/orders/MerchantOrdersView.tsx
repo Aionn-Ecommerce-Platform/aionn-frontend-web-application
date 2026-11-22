@@ -2,9 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, X, Eye, Loader2, Package, Truck, Search } from "lucide-react";
+import {
+  Check,
+  Eye,
+  Loader2,
+  Package,
+  Search,
+  ShoppingBag,
+  Truck,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, EmptyState, PeriodDropdown } from "@/shared/ui";
+import { Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { orderService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
@@ -42,8 +51,8 @@ function MerchantOrdersInner() {
   const [editingShipping, setEditingShipping] = useState<Order | null>(null);
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: qk.merchantOrders({ limit: 200 }),
-    queryFn: () => orderService.listForMerchant({ limit: 200 }),
+    queryKey: qk.merchantOrders({ limit: 100 }),
+    queryFn: () => orderService.listForMerchant({ limit: 100 }),
   });
 
   const years = useMemo(
@@ -92,21 +101,46 @@ function MerchantOrdersInner() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          {t("merchant.orders.title")}
-        </h1>
+    <div className="relative rounded-2xl bg-[#100d24] p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+        <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+      </div>
 
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 mb-6 scrollbar-none">
+      <div className="relative">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+              <ShoppingBag size={22} className="text-purple-300" />
+              <span className="text-purple-300">
+                {t("merchant.orders.title")}
+              </span>
+            </h1>
+          </div>
+          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300">
+            {t("merchant.orders.resultCount", {
+              count: visibleOrders.length,
+            })}
+          </span>
+        </div>
+
+        <div className="mb-5 flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
+              className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-150 sm:text-sm ${
                 activeTab === tab.key
-                  ? "bg-gray-950 text-white border-2 border-gray-950 shadow-xs"
-                  : "bg-white text-gray-700 border-2 border-gray-900 hover:bg-gray-100 hover:text-black"
+                  ? "border-purple-500 bg-purple-600 text-white shadow-md shadow-purple-900/40"
+                  : "border-gray-600 bg-white/5 text-slate-300 hover:border-gray-400 hover:bg-white/10 hover:text-white"
               }`}
             >
               {tab.label}
@@ -114,180 +148,202 @@ function MerchantOrdersInner() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mb-6">
+        <div className="relative z-30 mb-5 flex flex-wrap items-center gap-2">
           <div className="relative min-w-64 flex-1">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               size={17}
             />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t("merchant.orders.searchPlaceholder")}
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
             />
           </div>
-          <PeriodDropdown
-            label={t("merchant.orders.filterYearAll")}
+          <select
             value={year}
-            options={[
-              { value: 0, label: t("merchant.orders.filterYearAll") },
-              ...years.map((value) => ({ value, label: String(value) })),
-            ]}
-            onChange={(value) => {
-              setYear(value);
+            onChange={(event) => {
+              setYear(Number(event.target.value));
               setMonth(0);
               setDay(0);
             }}
-          />
-          <PeriodDropdown
-            label={t("merchant.orders.filterMonthAll")}
+            aria-label={t("merchant.orders.filterYearAll")}
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 [&>option]:bg-[#191534] [&>option]:text-white"
+          >
+            <option value={0}>{t("merchant.orders.filterYearAll")}</option>
+            {years.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+          <select
             value={month}
             disabled={!year}
-            options={[
-              { value: 0, label: t("merchant.orders.filterMonthAll") },
-              ...Array.from({ length: 12 }, (_, index) => ({
-                value: index + 1,
-                label: t("merchant.orders.monthFormat", { month: index + 1 }),
-              })),
-            ]}
-            onChange={(value) => {
-              setMonth(value);
+            onChange={(event) => {
+              setMonth(Number(event.target.value));
               setDay(0);
             }}
-          />
-          <PeriodDropdown
-            label={t("merchant.orders.filterDayAll")}
+            aria-label={t("merchant.orders.filterMonthAll")}
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-[#191534] [&>option]:text-white"
+          >
+            <option value={0}>{t("merchant.orders.filterMonthAll")}</option>
+            {Array.from({ length: 12 }, (_, index) => (
+              <option key={index + 1} value={index + 1}>
+                {t("merchant.orders.monthFormat", { month: index + 1 })}
+              </option>
+            ))}
+          </select>
+          <select
             value={day}
             disabled={!month}
-            options={[
-              { value: 0, label: t("merchant.orders.filterDayAll") },
-              ...Array.from({ length: daysInMonth }, (_, index) => ({
-                value: index + 1,
-                label: String(index + 1),
-              })),
-            ]}
-            onChange={setDay}
-          />
+            onChange={(event) => setDay(Number(event.target.value))}
+            aria-label={t("merchant.orders.filterDayAll")}
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-[#191534] [&>option]:text-white"
+          >
+            <option value={0}>{t("merchant.orders.filterDayAll")}</option>
+            {Array.from({ length: daysInMonth }, (_, index) => (
+              <option key={index + 1} value={index + 1}>
+                {index + 1}
+              </option>
+            ))}
+          </select>
         </div>
 
         {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-purple-400" size={28} />
           </div>
         ) : visibleOrders.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title={t("merchant.orders.emptyTitle")}
-            description={t("merchant.orders.emptyDesc")}
-          />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
+              <Package size={34} />
+            </div>
+            <h3 className="text-lg font-semibold text-white">
+              {t("merchant.orders.emptyTitle")}
+            </h3>
+            <p className="mt-1 max-w-sm text-sm text-slate-400">
+              {t("merchant.orders.emptyDesc")}
+            </p>
+          </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    {t("merchant.orders.tableOrder")}
-                  </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    {t("merchant.orders.tableCustomer")}
-                  </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    {t("merchant.orders.tableTotal")}
-                  </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    {t("merchant.orders.tableStatus")}
-                  </th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    {t("merchant.orders.tableActions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleOrders.map((order) => {
-                  const cfg = getOrderStatus(order.status);
-                  const isPending =
-                    confirmMutation.isPending || rejectMutation.isPending;
-                  return (
-                    <tr
-                      key={order.orderId}
-                      className="border-b border-gray-50 hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-mono font-medium text-gray-900">
-                          #{order.orderId.slice(0, 8).toUpperCase()}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString(
-                            "vi-VN",
-                          )}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700 truncate max-w-[180px]">
-                        {order.userId.slice(0, 8)}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium">
-                        {formatCurrency(order.totalAmount, order.currency)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {cfg && (
-                          <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1">
-                          {order.status === "PLACED" && (
-                            <>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                disabled={isPending}
-                                onClick={() =>
-                                  confirmMutation.mutate(order.orderId)
-                                }
-                              >
-                                <Check size={14} className="mr-1" />
-                                {t("merchant.orders.btnConfirm")}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={isPending}
-                                onClick={() =>
-                                  rejectMutation.mutate(order.orderId)
-                                }
-                              >
-                                <X size={14} />
-                              </Button>
-                            </>
-                          )}
-                          {(order.status === "PLACED" ||
-                            order.status === "PREPARING") && (
-                            <button
-                              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
-                              title={t("merchant.orders.btnEditShipping")}
-                              onClick={() => setEditingShipping(order)}
+          <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/[0.03]">
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {t("merchant.orders.tableOrder")}
+                    </th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {t("merchant.orders.tableCustomer")}
+                    </th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {t("merchant.orders.tableTotal")}
+                    </th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {t("merchant.orders.tableStatus")}
+                    </th>
+                    <th className="px-6 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {t("merchant.orders.tableActions")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleOrders.map((order) => {
+                    const cfg = getOrderStatus(order.status);
+                    const isPending =
+                      confirmMutation.isPending || rejectMutation.isPending;
+                    return (
+                      <tr
+                        key={order.orderId}
+                        className="border-b border-white/5 transition-colors last:border-0 hover:bg-white/[0.04]"
+                      >
+                        <td className="px-6 py-4">
+                          <p className="font-mono text-sm font-semibold text-white">
+                            #{order.orderId.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "vi-VN",
+                            )}
+                          </p>
+                        </td>
+                        <td className="max-w-[180px] truncate px-6 py-4 text-sm text-slate-300">
+                          {order.userId.slice(0, 8)}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-semibold text-white">
+                          {formatCurrency(order.totalAmount, order.currency)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {cfg && (
+                            <Badge
+                              variant={cfg.variant}
+                              className="!rounded-full !px-2.5 !py-0.5 !text-[11px]"
                             >
-                              <Truck size={16} />
-                            </button>
+                              {t(cfg.labelKey)}
+                            </Badge>
                           )}
-                          <button
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
-                            title={t("merchant.orders.btnDetail")}
-                            onClick={() => setSelectedOrder(order)}
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {order.status === "PLACED" && (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    confirmMutation.mutate(order.orderId)
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <Check size={13} />
+                                  {t("merchant.orders.btnConfirm")}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    rejectMutation.mutate(order.orderId)
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-lg border border-rose-400/30 px-2.5 py-1.5 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <X size={13} />
+                                </button>
+                              </>
+                            )}
+                            {(order.status === "PLACED" ||
+                              order.status === "PREPARING") && (
+                              <button
+                                type="button"
+                                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                                title={t("merchant.orders.btnEditShipping")}
+                                onClick={() => setEditingShipping(order)}
+                              >
+                                <Truck size={16} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                              title={t("merchant.orders.btnDetail")}
+                              onClick={() => setSelectedOrder(order)}
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
+
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}

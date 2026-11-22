@@ -109,6 +109,7 @@ export interface OrderReturn {
   reasonType: ReturnReasonType;
   reason: string;
   evidenceUrl: string | null;
+  evidenceUrls?: string[] | null;
   refundAmount: number | null;
   currency: string | null;
   itemCondition: string | null;

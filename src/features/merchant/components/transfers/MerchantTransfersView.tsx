@@ -40,12 +40,12 @@ function MerchantTransfersInner() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <ArrowLeftRight size={24} className="text-blue-600" />
+              <ArrowLeftRight size={24} className="text-brand" />
               {t("merchant.transfers.title")}
             </h1>
             <p className="text-gray-500 text-sm">
@@ -58,7 +58,7 @@ function MerchantTransfersInner() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-5 mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t("merchant.transfers.lookupLabel")}
           </label>
@@ -76,7 +76,7 @@ function MerchantTransfersInner() {
                     lookupMutation.mutate(transferId);
                 }}
                 placeholder="TRF_..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <Button
@@ -91,7 +91,7 @@ function MerchantTransfersInner() {
 
         {lookupMutation.isPending ? (
           <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         ) : transfer ? (
           <TransferCard

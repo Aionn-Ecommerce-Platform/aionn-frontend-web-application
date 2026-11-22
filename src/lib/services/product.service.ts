@@ -106,6 +106,22 @@ export const productService = {
       query: { q: keyword, page: 0, size: limit },
     });
   },
+  listMine(page = 0, size = 20) {
+    return api.page<Product>("/catalog/products/merchant", {
+      query: { page, size },
+    });
+  },
+
+  async listAllMine() {
+    const first = await this.listMine(0, 100);
+    const content = [...first.content];
+    for (let page = 1; page < first.totalPages; page++) {
+      const next = await this.listMine(page, 100);
+      content.push(...next.content);
+    }
+    return content;
+  },
+
   async listByMerchant(merchantId: string, page = 0, size = 20) {
     const result = await this.search({ merchantId, page, size });
     return result.page;

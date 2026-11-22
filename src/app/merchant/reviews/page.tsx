@@ -74,8 +74,8 @@ function MerchantReviewsInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           {t("merchant.reviews.title")}
         </h1>
@@ -103,11 +103,11 @@ function MerchantReviewsInner() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 flex justify-center">
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         ) : backendUnavailable ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 text-center">
             <MessageSquare className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("merchant.reviews.unavailableTitle")}
@@ -123,12 +123,12 @@ function MerchantReviewsInner() {
               return (
                 <div
                   key={review.reviewId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
+                  className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold text-blue-600">
+                      <div className="w-12 h-12 bg-brand/15 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-semibold text-brand">
                           {review.userId.slice(0, 1).toUpperCase()}
                         </span>
                       </div>
@@ -189,18 +189,18 @@ function MerchantReviewsInner() {
                   </div>
 
                   {review.merchantReply ? (
-                    <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
+                    <div className="bg-brand/10 border-l-4 border-brand p-4 rounded">
                       <div className="flex items-start gap-2">
-                        <Reply size={14} className="text-blue-600 mt-0.5" />
+                        <Reply size={14} className="text-brand mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-blue-900 mb-1">
+                          <p className="text-xs font-medium text-brand-strong mb-1">
                             {t("merchant.reviews.merchantReplyLabel")}
                           </p>
-                          <p className="text-sm text-blue-800">
+                          <p className="text-sm text-brand-strong">
                             {review.merchantReply}
                           </p>
                           {review.merchantRepliedAt && (
-                            <p className="text-xs text-blue-600 mt-2">
+                            <p className="text-xs text-brand mt-2">
                               {formatDateTime(review.merchantRepliedAt)}
                             </p>
                           )}
@@ -269,7 +269,7 @@ function MerchantReviewsInner() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 text-center">
             <MessageSquare className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t("merchant.reviews.emptyTitle")}

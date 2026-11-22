@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   RETURN_REASON_BADGE_CLASS,
-  RETURN_REASON_EVIDENCE_REQUIRED,
   RETURN_REASON_TYPES,
   returnReasonBadgeClass,
   returnReasonLabelKey,
@@ -23,15 +22,6 @@ describe("return reasons", () => {
     expect(Object.keys(RETURN_REASON_BADGE_CLASS)).toHaveLength(
       RETURN_REASON_TYPES.length,
     );
-  });
-
-  it("requires evidence only for damage-related reasons", () => {
-    expect([...RETURN_REASON_EVIDENCE_REQUIRED]).toEqual([
-      "DAMAGED",
-      "DEFECTIVE",
-      "NOT_AS_DESCRIBED",
-    ]);
-    expect(RETURN_REASON_EVIDENCE_REQUIRED.has("CHANGED_MIND")).toBe(false);
   });
 
   it("returns a badge class for a known reason", () => {

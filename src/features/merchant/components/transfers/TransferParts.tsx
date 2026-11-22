@@ -39,7 +39,7 @@ export function TransferCard({
     transfer.status === "INITIATED" || transfer.status === "IN_TRANSIT";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs text-gray-500 font-mono mb-1">
@@ -172,7 +172,7 @@ export function CreateTransferModal({
             <select
               value={fromWarehouseId}
               onChange={(e) => setFromWarehouseId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="">
                 {t("merchant.transfers.warehouseSelectPlaceholder")}
@@ -191,7 +191,7 @@ export function CreateTransferModal({
             <select
               value={toWarehouseId}
               onChange={(e) => setToWarehouseId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="">
                 {t("merchant.transfers.warehouseSelectPlaceholder")}
@@ -213,7 +213,7 @@ export function CreateTransferModal({
             value={skuId}
             onChange={(e) => setSkuId(e.target.value)}
             placeholder="SKU_..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div>
@@ -225,7 +225,7 @@ export function CreateTransferModal({
             min="1"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <p className="text-xs text-gray-400 mt-1">
             {t("merchant.transfers.qtyHelp")}
@@ -293,7 +293,7 @@ export function CompleteModal({
             min="0"
             value={receivedQty}
             onChange={(e) => setReceivedQty(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           {receivedQty !== "" && diff !== 0 && (
             <p
@@ -369,7 +369,7 @@ export function CancelModal({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div className="flex justify-end gap-2">

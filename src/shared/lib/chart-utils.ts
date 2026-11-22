@@ -5,19 +5,57 @@ export function compactCurrency(value: number) {
 }
 
 export function smoothPath(points: { x: number; y: number }[]) {
+  const count = points.length;
   const first = points[0];
-  if (!first || points.length < 2) return "";
+  if (!first || count < 2) return "";
+
+  // Monotone cubic interpolation (Fritsch-Carlson). A plain Catmull-Rom spline
+  // can overshoot below zero when revenue collapses to a flat zero line.
+  const dx: number[] = [];
+  const slopes: number[] = [];
+  for (let i = 0; i < count - 1; i++) {
+    const current = points[i]!;
+    const next = points[i + 1]!;
+    const width = next.x - current.x;
+    dx.push(width);
+    slopes.push(width === 0 ? 0 : (next.y - current.y) / width);
+  }
+
+  const tangents = new Array<number>(count);
+  tangents[0] = slopes[0]!;
+  tangents[count - 1] = slopes[count - 2]!;
+  for (let i = 1; i < count - 1; i++) {
+    tangents[i] = (slopes[i - 1]! + slopes[i]!) / 2;
+  }
+
+  for (let i = 0; i < count - 1; i++) {
+    const slope = slopes[i]!;
+    if (slope === 0) {
+      tangents[i] = 0;
+      tangents[i + 1] = 0;
+      continue;
+    }
+    const left = tangents[i]! / slope;
+    const right = tangents[i + 1]! / slope;
+    if (left < 0) tangents[i] = 0;
+    if (right < 0) tangents[i + 1] = 0;
+    const magnitude = left * left + right * right;
+    if (magnitude > 9) {
+      const scale = 3 / Math.sqrt(magnitude);
+      tangents[i] = scale * left * slope;
+      tangents[i + 1] = scale * right * slope;
+    }
+  }
+
   const d = [`M ${first.x} ${first.y}`];
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    if (!p0 || !p1 || !p2) continue;
-    const p3 = points[i + 2] ?? p2;
+  for (let i = 0; i < count - 1; i++) {
+    const current = points[i]!;
+    const next = points[i + 1]!;
+    const width = dx[i]!;
     d.push(
-      `C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${
-        p2.x - (p3.x - p1.x) / 6
-      } ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`,
+      `C ${current.x + width / 3} ${current.y + (tangents[i]! * width) / 3}, ${
+        next.x - width / 3
+      } ${next.y - (tangents[i + 1]! * width) / 3}, ${next.x} ${next.y}`,
     );
   }
   return d.join(" ");

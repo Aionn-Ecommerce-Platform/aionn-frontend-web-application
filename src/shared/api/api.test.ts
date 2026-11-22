@@ -5,6 +5,7 @@ import {
   requestEnvelope,
   requestPage,
   setUnauthorizedHandler,
+  setActiveMerchantId,
   tokenStore,
 } from ".";
 
@@ -45,6 +46,7 @@ beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   tokenStore.setTokens(null);
+  setActiveMerchantId(null);
   setUnauthorizedHandler(null);
 });
 
@@ -79,6 +81,30 @@ describe("request", () => {
 
     const headers = new Headers(firstFetchCall()[1].headers);
     expect(headers.get("Authorization")).toBe("Bearer token-abc");
+  });
+
+  it("sends the active merchant id on authenticated requests", async () => {
+    tokenStore.setTokens({
+      accessToken: "token-abc",
+      ...TOKEN_FIELDS,
+    });
+    setActiveMerchantId("merchant-1");
+    fetchMock.mockResolvedValueOnce(jsonResponse(envelope(null)));
+
+    await request("/ordering/orders/merchant");
+
+    const headers = new Headers(firstFetchCall()[1].headers);
+    expect(headers.get("X-Merchant-Id")).toBe("merchant-1");
+  });
+
+  it("does not send the merchant id on anonymous requests", async () => {
+    setActiveMerchantId("merchant-1");
+    fetchMock.mockResolvedValueOnce(jsonResponse(envelope(null)));
+
+    await request("/catalog/merchants", { anonymous: true });
+
+    const headers = new Headers(firstFetchCall()[1].headers);
+    expect(headers.has("X-Merchant-Id")).toBe(false);
   });
 
   it("always sends an Accept-Language header", async () => {

@@ -9,7 +9,10 @@ import { reviewService, type SubmitReviewRequest } from "@/lib/services";
 import { mediaService, uploadToCloudinary } from "@/lib/services/media.service";
 import { useTranslation } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { isVideoUrl, MEDIA_LIMITS } from "@/shared/lib/media";
 import toast from "react-hot-toast";
+
+const MAX_REVIEW_MEDIA = MEDIA_LIMITS.reviewFiles;
 
 interface SubmitReviewFormProps {
   productId: string;
@@ -96,7 +99,7 @@ export function SubmitReviewForm({
       return;
     }
 
-    if (imageUrls.length > 5) {
+    if (imageUrls.length > MAX_REVIEW_MEDIA) {
       toast.error(t("reviews.maxImagesExceeded"));
       return;
     }
@@ -117,9 +120,24 @@ export function SubmitReviewForm({
     e.target.value = "";
     if (files.length === 0) return;
 
-    if (imageUrls.length + files.length > 5) {
+    if (imageUrls.length + files.length > MAX_REVIEW_MEDIA) {
       toast.error(t("reviews.maxImagesExceeded"));
       return;
+    }
+    for (const file of files) {
+      const isVideo = file.type.startsWith("video/");
+      const isImage = file.type.startsWith("image/");
+      if (!isImage && !isVideo) {
+        toast.error(t("reviews.onlyMediaAllowed"));
+        return;
+      }
+      const maxBytes = isVideo
+        ? MEDIA_LIMITS.videoBytes
+        : MEDIA_LIMITS.imageBytes;
+      if (file.size > maxBytes) {
+        toast.error(t("reviews.mediaSizeLimit"));
+        return;
+      }
     }
 
     setUploading(true);
@@ -264,7 +282,7 @@ export function SubmitReviewForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t("reviews.images")} {!disabled && `(${imageUrls.length}/5)`}
+            {t("reviews.images")} {!disabled && `(${imageUrls.length}/${MAX_REVIEW_MEDIA})`}
           </label>
           {disabled ? (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-xl cursor-not-allowed text-sm">
@@ -281,10 +299,10 @@ export function SubmitReviewForm({
               {t("reviews.addImage")}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 className="hidden"
-                disabled={uploading || imageUrls.length >= 5}
+                disabled={uploading || imageUrls.length >= MAX_REVIEW_MEDIA}
                 onChange={handleFileSelect}
               />
             </label>
@@ -293,11 +311,21 @@ export function SubmitReviewForm({
             <div className="flex gap-2 flex-wrap mt-3">
               {imageUrls.map((url, index) => (
                 <div key={index} className="relative group">
-                  <AppImage
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded-xl border border-gray-400"
-                  />
+                  {isVideoUrl(url) ? (
+                    <video
+                      src={url}
+                      controls
+                      className="h-24 w-32 rounded-xl border border-gray-400 bg-black object-cover"
+                    >
+                      <track kind="captions" />
+                    </video>
+                  ) : (
+                    <AppImage
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-24 h-24 object-cover rounded-xl border border-gray-400"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => removeImage(index)}

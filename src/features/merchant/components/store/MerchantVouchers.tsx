@@ -113,7 +113,7 @@ export default function MerchantVouchers({
                   <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-100/90 px-2.5 py-1 text-xs font-mono font-bold tracking-wider text-gray-900">
                     {voucher.voucherCode}
                   </span>
-                  <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                  <span className="inline-flex items-center rounded-full border border-gray-400 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600">
                     {t("promotions.stockLeft", { count: remaining })}
                   </span>
                 </div>

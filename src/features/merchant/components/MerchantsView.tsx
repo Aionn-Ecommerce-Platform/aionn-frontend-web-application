@@ -197,7 +197,7 @@ export default function MerchantsPage() {
 
   return (
     <div className="relative bg-transparent min-h-screen pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("merchants.title")}
@@ -291,7 +291,7 @@ export default function MerchantsPage() {
                 <ul
                   role="listbox"
                   aria-label={t("merchants.allProvinces")}
-                  className="absolute left-0 z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"
+                  className="absolute left-0 z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-gray-400 bg-white p-1.5 shadow-xl"
                 >
                   <li>
                     <button

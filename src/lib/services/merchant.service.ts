@@ -1,4 +1,4 @@
-import api from "@/shared/api";
+import api, { setActiveMerchantId } from "@/shared/api";
 import type { Merchant, MerchantStorefrontStats } from "@/types";
 
 export const merchantService = {
@@ -35,8 +35,10 @@ export const merchantService = {
       query: { page, size },
     });
   },
-  getMine() {
-    return api.get<Merchant>("/catalog/merchants/me");
+  async getMine() {
+    const merchant = await api.get<Merchant>("/catalog/merchants/me");
+    setActiveMerchantId(merchant.merchantId);
+    return merchant;
   },
   register(name: string) {
     return api.post<Merchant>("/catalog/merchants", { name });

@@ -42,7 +42,7 @@ function MerchantQuestionsInner() {
   const questions = data?.content ?? [];
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">
           {t("merchantQuestions.title")}
@@ -83,7 +83,7 @@ function MerchantQuestionsInner() {
             {questions.map((q) => (
               <div
                 key={q.questionId}
-                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
+                className="bg-white rounded-2xl border border-gray-400 shadow-xs p-5"
               >
                 <p className="text-sm font-semibold text-gray-900">
                   {q.question}

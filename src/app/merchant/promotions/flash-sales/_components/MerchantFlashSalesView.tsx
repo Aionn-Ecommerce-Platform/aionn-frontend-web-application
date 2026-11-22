@@ -66,7 +66,7 @@ function MerchantFlashSalesInner() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
@@ -83,7 +83,7 @@ function MerchantFlashSalesInner() {
           </Button>
         </div>
 
-        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
+        <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-4 scrollbar-none">
           {TAB_KEYS.map((key) => {
             const count =
               key === "all"
@@ -93,17 +93,21 @@ function MerchantFlashSalesInner() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
+                className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
                   tab === key
-                    ? "text-blue-600 border-blue-600"
-                    : "text-gray-500 border-transparent hover:text-gray-700"
+                    ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                    : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
                 }`}
               >
                 {key === "all"
                   ? t("merchant.flashSales.tabs.all")
                   : t(`merchant.flashSales.status.${STATUS_MESSAGE_KEYS[key]}`)}
                 {count > 0 && (
-                  <span className="ml-1.5 text-xs text-gray-400">
+                  <span
+                    className={`ml-1.5 text-xs ${
+                      tab === key ? "text-gray-300" : "text-gray-400"
+                    }`}
+                  >
                     ({count})
                   </span>
                 )}
@@ -114,7 +118,7 @@ function MerchantFlashSalesInner() {
 
         {isLoading ? (
           <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         ) : filtered.length === 0 ? (
           <EmptyState
@@ -127,7 +131,7 @@ function MerchantFlashSalesInner() {
             }
           />
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

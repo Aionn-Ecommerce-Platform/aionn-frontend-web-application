@@ -64,7 +64,7 @@ export default function OrderCardActions({
 
   const buyAgainMutation = useMutation({
     mutationFn: async () => {
-      let added = 0;
+      const addedSkuIds: string[] = [];
       for (const item of order.items) {
         const lookup = skuLookup.get(item.skuId);
         if (!lookup) {
@@ -86,20 +86,24 @@ export default function OrderCardActions({
             variantAttributes: variant?.attributeValues,
             merchantId: product.merchantId,
           });
-          added += 1;
+          addedSkuIds.push(item.skuId);
         } catch {
           // addItem already surfaces the error toast for this item.
         }
       }
-      return added;
+      return addedSkuIds;
     },
-    onSuccess: (added) => {
-      if (added === 0) {
+    onSuccess: (addedSkuIds) => {
+      if (addedSkuIds.length === 0) {
         toast.error(t("orders.buyAgainUnavailable"));
         return;
       }
-      toast.success(t("orders.buyAgainSuccess", { count: added }));
-      router.push("/cart");
+      toast.success(
+        t("orders.buyAgainSuccess", { count: addedSkuIds.length }),
+      );
+      router.push(
+        `/cart?select=${encodeURIComponent(addedSkuIds.join(","))}`,
+      );
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });

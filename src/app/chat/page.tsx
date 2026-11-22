@@ -28,6 +28,7 @@ import {
 import { qk } from "@/lib/query-keys";
 import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { isVideoUrl, MEDIA_LIMITS } from "@/shared/lib/media";
 import { useTranslation, useChatSocket } from "@/hooks";
 import { formatTime, formatDateTime } from "@/shared/lib/utils";
 import type { ChatConversation, ChatMessage } from "@/types";
@@ -216,10 +217,11 @@ export function ChatInner({
       );
       const sig = await mediaService.generateChatImageSignature();
       const url = await uploadToCloudinary(file, sig);
+      const isVideo = file.type.startsWith("video/");
       return messageService.send(effectiveSelectedId!, {
-        type: "IMAGE",
+        type: isVideo ? "FILE" : "IMAGE",
         body: url,
-        metadata: { imageUrl: url },
+        metadata: { imageUrl: url, videoUrl: isVideo ? url : undefined },
       });
     },
     onSuccess: handleMessageSent,
@@ -327,7 +329,22 @@ export function ChatInner({
       );
     }
     const imageUrl = (msg.metadata?.imageUrl as string) || msg.body;
-    if (msg.type === "IMAGE" && imageUrl) {
+    if (
+      imageUrl &&
+      (msg.type === "IMAGE" ||
+        (msg.type === "FILE" && isVideoUrl(imageUrl)))
+    ) {
+      if (isVideoUrl(imageUrl)) {
+        return (
+          <video
+            src={imageUrl}
+            controls
+            className="max-w-full max-h-64 rounded-xl bg-black"
+          >
+            <track kind="captions" />
+          </video>
+        );
+      }
       return (
         <AppImage
           src={imageUrl}
@@ -769,13 +786,27 @@ export function ChatInner({
                           )}
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/*,video/*"
                             className="hidden"
                             disabled={sendImageMutation.isPending}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               e.target.value = "";
-                              if (file) sendImageMutation.mutate(file);
+                              if (!file) return;
+                              const isVideo = file.type.startsWith("video/");
+                              const isImage = file.type.startsWith("image/");
+                              if (!isImage && !isVideo) {
+                                toast.error(t("chat.onlyMediaAllowed"));
+                                return;
+                              }
+                              const maxBytes = isVideo
+                                ? MEDIA_LIMITS.chatVideoBytes
+                                : MEDIA_LIMITS.imageBytes;
+                              if (file.size > maxBytes) {
+                                toast.error(t("chat.mediaSizeLimit"));
+                                return;
+                              }
+                              sendImageMutation.mutate(file);
                             }}
                           />
                         </label>

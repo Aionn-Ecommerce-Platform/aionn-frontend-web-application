@@ -112,11 +112,11 @@ function MerchantPayoutsInner() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div>
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Wallet size={22} className="text-blue-600" />
+            <Wallet size={22} className="text-brand" />
             {t("merchant.payouts.title")}
           </h1>
           <p className="text-sm text-gray-500">
@@ -202,7 +202,7 @@ function MerchantPayoutsInner() {
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
             <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-              <CreditCard size={16} className="text-blue-600" />
+              <CreditCard size={16} className="text-brand" />
               {t("merchant.payouts.historyTitle")}
             </h2>
             <Button
@@ -217,7 +217,7 @@ function MerchantPayoutsInner() {
 
           {loadingPayouts ? (
             <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={24} />
+              <Loader2 className="animate-spin text-brand" size={24} />
             </div>
           ) : !payouts || payouts.length === 0 ? (
             <div className="py-12 text-center text-sm text-gray-400">
@@ -240,9 +240,9 @@ function MerchantPayoutsInner() {
         size="md"
       >
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-            <AlertCircle size={14} className="text-blue-600 mt-0.5 shrink-0" />
-            <p className="text-xs text-blue-900">
+          <div className="bg-brand/10 border border-brand/30 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle size={14} className="text-brand mt-0.5 shrink-0" />
+            <p className="text-xs text-brand-strong">
               {t("merchant.payouts.availableNote", {
                 amount: formatCurrency(available, "VND"),
               })}

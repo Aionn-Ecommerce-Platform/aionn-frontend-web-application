@@ -105,16 +105,16 @@ function MerchantSettingsInner() {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex justify-center pt-32">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-brand" size={32} />
       </div>
     );
   }
 
   if (!merchant) {
     return (
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-8 max-w-md text-center">
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-8 max-w-md text-center">
           <Store className="mx-auto text-gray-300 mb-4" size={40} />
           <h2 className="text-base font-semibold text-gray-900 mb-1">
             {t("merchant.settings.noMerchantTitle")}
@@ -139,7 +139,7 @@ function MerchantSettingsInner() {
     form.provinceCode !== (merchant.provinceCode ?? "");
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
@@ -185,7 +185,7 @@ function MerchantSettingsInner() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 space-y-5">
+        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 space-y-5">
           <Field label={t("merchant.settings.nameLabel")} required>
             <input
               type="text"
@@ -193,7 +193,7 @@ function MerchantSettingsInner() {
               onChange={(e) => updateForm({ name: e.target.value })}
               maxLength={150}
               disabled={isClosed}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+              className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
             />
           </Field>
 
@@ -207,7 +207,7 @@ function MerchantSettingsInner() {
               onChange={(e) => updateForm({ logoUrl: e.target.value })}
               placeholder="https://..."
               disabled={isClosed}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+              className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
             />
             {form.logoUrl && (
               <div className="mt-2">
@@ -233,7 +233,7 @@ function MerchantSettingsInner() {
               rows={4}
               maxLength={1000}
               disabled={isClosed}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+              className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
             />
             <p className="text-xs text-gray-400 mt-1">
               {form.description.length}/1000
@@ -248,7 +248,7 @@ function MerchantSettingsInner() {
               value={form.provinceCode}
               onChange={(e) => updateForm({ provinceCode: e.target.value })}
               disabled={isClosed}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white disabled:bg-gray-50"
+              className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm bg-white disabled:bg-gray-50"
             >
               <option value="">
                 {t("merchant.settings.provincePlaceholder")}
@@ -324,7 +324,7 @@ function MerchantSettingsInner() {
                 onChange={(e) => setCloseReason(e.target.value)}
                 rows={3}
                 placeholder={t("merchant.settings.closeReasonPlaceholder")}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div className="flex items-start gap-2 text-xs text-gray-600">

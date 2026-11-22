@@ -216,7 +216,10 @@ function VoucherCard({
               </button>
             </div>
 
-            <Badge variant={statusCfg?.variant ?? "info"}>
+            <Badge
+              variant={statusCfg?.variant ?? "info"}
+              className="!rounded-full !px-3 !py-1 !text-sm"
+            >
               {statusCfg ? t(statusCfg.labelKey) : voucher.status}
             </Badge>
           </div>
@@ -241,11 +244,14 @@ function VoucherCard({
             </span>
 
             {validUntil && (
-              <span className="flex items-center gap-1 text-gray-400">
-                <Clock size={12} />
-                {t("myVouchers.validUntil", {
-                  date: formatDate(validUntil, locale),
-                })}
+              <span className="flex items-center gap-1">
+                <Clock size={12} className="text-amber-500" />
+                <span className="font-semibold text-amber-600">
+                  {t("myVouchers.expiresLabel")}
+                </span>
+                <span className="text-gray-950">
+                  {formatDate(validUntil, locale)}
+                </span>
               </span>
             )}
           </div>
@@ -371,7 +377,7 @@ function VouchersInner() {
             description={t("myVouchers.emptyDescription")}
             action={
               <button
-                onClick={() => router.push("/products")}
+                onClick={() => router.push("/promotions")}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-950 hover:bg-black text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
               >
                 <ShoppingBag size={15} />
@@ -422,13 +428,13 @@ function VouchersInner() {
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
               placeholder={t("myVouchers.inputPlaceholder")}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-400 rounded-xl focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal placeholder:text-gray-400"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-400 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
             />
           </div>
           <button
             type="submit"
             disabled={!inputCode.trim() || claimMutation.isPending}
-            className="w-full sm:w-auto px-6 py-2.5 bg-gray-950 hover:bg-black text-white text-xs font-bold rounded-xl disabled:opacity-50 transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-xs font-bold text-white shadow-md shadow-purple-600/20 transition-all hover:from-purple-600 hover:via-fuchsia-500 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {claimMutation.isPending && (
               <Loader2 size={14} className="animate-spin" />

@@ -3,8 +3,17 @@
 import { AppImage } from "@/shared/ui";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2, ImagePlus, ChevronDown, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  X,
+  Loader2,
+  ImagePlus,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Input } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -57,7 +66,7 @@ function AttributeDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-blue-400 focus:outline-none"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         aria-expanded={open}
       >
         <span className="truncate">{current?.label}</span>
@@ -68,7 +77,7 @@ function AttributeDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-400 bg-white py-1 shadow-lg">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -81,13 +90,16 @@ function AttributeDropdown({
                 }}
                 className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
                   active
-                    ? "bg-blue-50 font-semibold text-blue-700"
+                    ? "bg-brand/10 font-semibold text-brand-strong"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <span>{option.label}</span>
                 {active ? (
-                  <Check size={14} className="ml-2 shrink-0 text-blue-700" />
+                  <Check
+                    size={14}
+                    className="ml-2 shrink-0 text-brand-strong"
+                  />
                 ) : null}
               </button>
             );
@@ -267,273 +279,278 @@ function NewProductInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+    <div className="w-full">
+      <Link
+        href="/merchant/products"
+        className="group mb-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-gray-950"
+      >
+        <ArrowLeft
+          size={16}
+          className="text-gray-500 transition-transform group-hover:-translate-x-0.5 group-hover:text-gray-950"
+        />
+        {t("merchant.productNew.backToProducts")}
+      </Link>
+
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-950 sm:text-3xl">
           {t("merchant.productNew.title")}
         </h1>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">
-              {t("merchant.productNew.basicInfo")}
-            </h2>
-            <div className="space-y-4">
-              <Input
-                id="name"
-                label={t("merchant.productNew.productName")}
-                placeholder={t("merchant.productNew.productNamePlaceholder")}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                error={fieldErrors.name}
-                maxLength={200}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900">
-                {t("merchant.productNew.productImages")}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {images.map((url) => (
-                <div
-                  key={url}
-                  className="relative aspect-square rounded-lg overflow-hidden border border-gray-200"
-                >
-                  <AppImage
-                    src={url}
-                    alt="product"
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(url)}
-                    className="absolute top-1 right-1 w-7 h-7 rounded-full bg-white/95 border border-gray-200 shadow-sm flex items-center justify-center hover:bg-red-50 hover:text-red-600"
-                    aria-label={t("merchant.productNew.removeImage")}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="aspect-square rounded-lg border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center transition-colors disabled:opacity-50"
-              >
-                {uploading ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <>
-                    <ImagePlus size={20} />
-                    <span className="text-xs mt-1">
-                      {t("merchant.productNew.add")}
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAddImage}
-              className="hidden"
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-7 rounded-2xl border border-gray-400 bg-white p-6 shadow-xs sm:p-8"
+      >
+        <div>
+          <h2 className="font-semibold text-gray-900 mb-4">
+            {t("merchant.productNew.basicInfo")}
+          </h2>
+          <div className="space-y-4">
+            <Input
+              id="name"
+              label={t("merchant.productNew.productName")}
+              placeholder={t("merchant.productNew.productNamePlaceholder")}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              error={fieldErrors.name}
+              maxLength={200}
+              required
             />
           </div>
+        </div>
 
-          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="font-semibold text-gray-900">
-                  {t("merchant.productNew.variantsTitle")}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {t("merchant.productNew.variantsHint")}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addVariant}
-              >
-                <Plus size={14} className="mr-1" />
-                {t("merchant.productNew.add")}
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {variants.map((v, i) => (
-                <div
-                  key={i}
-                  className="flex items-end gap-3 p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="w-32">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      {i === 0 ? t("merchant.productNew.attributeName") : null}
-                    </label>
-                    <AttributeDropdown
-                      value={v.attribute}
-                      onChange={(attribute) => updateVariant(i, { attribute })}
-                      options={attributeOptions}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Input
-                      label={
-                        i === 0 ? t("merchant.productNew.value") : undefined
-                      }
-                      placeholder={t("merchant.productNew.valuePlaceholder")}
-                      value={v.value}
-                      onChange={(e) =>
-                        updateVariant(i, { value: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="w-40">
-                    <Input
-                      label={
-                        i === 0 ? t("merchant.productNew.priceVnd") : undefined
-                      }
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      placeholder="890000"
-                      value={v.price}
-                      onChange={(e) =>
-                        updateVariant(i, { price: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="w-32">
-                    <Input
-                      label={
-                        i === 0
-                          ? t("merchant.productNew.weightGramLabel")
-                          : undefined
-                      }
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      placeholder="500"
-                      value={v.weightGram}
-                      onChange={(e) =>
-                        updateVariant(i, { weightGram: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="w-24">
-                    <Input
-                      label={i === 0 ? t("merchant.productNew.lengthCmLabel") : undefined}
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      placeholder="15"
-                      value={v.lengthCm}
-                      onChange={(e) =>
-                        updateVariant(i, { lengthCm: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="w-24">
-                    <Input
-                      label={i === 0 ? t("merchant.productNew.widthCmLabel") : undefined}
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      placeholder="10"
-                      value={v.widthCm}
-                      onChange={(e) =>
-                        updateVariant(i, { widthCm: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="w-24">
-                    <Input
-                      label={i === 0 ? t("merchant.productNew.heightCmLabel") : undefined}
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      placeholder="5"
-                      value={v.heightCm}
-                      onChange={(e) =>
-                        updateVariant(i, { heightCm: e.target.value })
-                      }
-                    />
-                  </div>
-                  {variants.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeVariant(i)}
-                      className="p-2 text-gray-400 hover:text-red-500 mb-0.5"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">
-              {t("merchant.productNew.aiMetadataTitle")}
+        <div className="border-t border-gray-200 pt-7">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">
+              {t("merchant.productNew.productImages")}
             </h2>
-            <div className="space-y-4">
-              <Input
-                id="tags"
-                label={t("merchant.productNew.tagsLabel")}
-                placeholder={t("merchant.productNew.tagsPlaceholder")}
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("merchant.productNew.aiDescriptionLabel")}
-                </label>
-                <textarea
-                  rows={3}
-                  className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                  placeholder={t(
-                    "merchant.productNew.aiDescriptionPlaceholder",
-                  )}
-                  value={aiDescription}
-                  onChange={(e) => setAiDescription(e.target.value)}
-                  maxLength={1000}
-                />
-              </div>
-            </div>
           </div>
 
-          <div className="max-w-3xl flex gap-3">
-            <Button type="submit" size="lg" loading={loading}>
-              {loading ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  {t("merchant.productNew.saving")}
-                </>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-6">
+            {images.map((url) => (
+              <div
+                key={url}
+                className="relative aspect-square rounded-lg overflow-hidden border border-gray-200"
+              >
+                <AppImage
+                  src={url}
+                  alt="product"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(url)}
+                  className="absolute top-1 right-1 w-7 h-7 rounded-full bg-white/95 border border-gray-200 shadow-sm flex items-center justify-center hover:bg-red-50 hover:text-red-600"
+                  aria-label={t("merchant.productNew.removeImage")}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="aspect-square rounded-lg border-2 border-dashed border-gray-400 text-gray-400 hover:border-brand hover:text-brand flex flex-col items-center justify-center transition-colors disabled:opacity-50"
+            >
+              {uploading ? (
+                <Loader2 className="animate-spin" size={20} />
               ) : (
-                t("merchant.productNew.createProduct")
+                <>
+                  <ImagePlus size={20} />
+                  <span className="text-xs mt-1">
+                    {t("merchant.productNew.add")}
+                  </span>
+                </>
               )}
-            </Button>
+            </button>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAddImage}
+            className="hidden"
+          />
+        </div>
+
+        <div className="border-t border-gray-200 pt-7">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-900">
+                {t("merchant.productNew.variantsTitle")}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {t("merchant.productNew.variantsHint")}
+              </p>
+            </div>
             <Button
               type="button"
               variant="outline"
-              size="lg"
-              onClick={() => router.back()}
-              disabled={loading}
+              size="sm"
+              onClick={addVariant}
             >
-              {t("merchant.productNew.cancel")}
+              <Plus size={14} className="mr-1" />
+              {t("merchant.productNew.add")}
             </Button>
           </div>
-        </form>
-      </div>
+          <div className="space-y-3">
+            {variants.map((v, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-2 gap-3 rounded-xl bg-gray-50 p-3 lg:grid-cols-4"
+              >
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    {t("merchant.productNew.attributeName")}
+                  </label>
+                  <AttributeDropdown
+                    value={v.attribute}
+                    onChange={(attribute) => updateVariant(i, { attribute })}
+                    options={attributeOptions}
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.value")}
+                    placeholder={t("merchant.productNew.valuePlaceholder")}
+                    value={v.value}
+                    onChange={(e) =>
+                      updateVariant(i, { value: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.priceVnd")}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    placeholder="890000"
+                    value={v.price}
+                    onChange={(e) =>
+                      updateVariant(i, { price: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.weightGramLabel")}
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    placeholder="500"
+                    value={v.weightGram}
+                    onChange={(e) =>
+                      updateVariant(i, { weightGram: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.lengthCmLabel")}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    placeholder="15"
+                    value={v.lengthCm}
+                    onChange={(e) =>
+                      updateVariant(i, { lengthCm: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.widthCmLabel")}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    placeholder="10"
+                    value={v.widthCm}
+                    onChange={(e) =>
+                      updateVariant(i, { widthCm: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    label={t("merchant.productNew.heightCmLabel")}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    placeholder="5"
+                    value={v.heightCm}
+                    onChange={(e) =>
+                      updateVariant(i, { heightCm: e.target.value })
+                    }
+                  />
+                </div>
+                {variants.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(i)}
+                    className="justify-self-end self-end p-2 text-gray-400 hover:text-red-500"
+                    aria-label={t("merchant.productNew.removeImage")}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-200 pt-7">
+          <h2 className="font-semibold text-gray-900 mb-4">
+            {t("merchant.productNew.aiMetadataTitle")}
+          </h2>
+          <div className="space-y-4">
+            <Input
+              id="tags"
+              label={t("merchant.productNew.tagsLabel")}
+              placeholder={t("merchant.productNew.tagsPlaceholder")}
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t("merchant.productNew.aiDescriptionLabel")}
+              </label>
+              <textarea
+                rows={3}
+                className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
+                placeholder={t("merchant.productNew.aiDescriptionPlaceholder")}
+                value={aiDescription}
+                onChange={(e) => setAiDescription(e.target.value)}
+                maxLength={1000}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 border-t border-gray-200 pt-6">
+          <Button type="submit" size="lg" loading={loading}>
+            {loading ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                {t("merchant.productNew.saving")}
+              </>
+            ) : (
+              t("merchant.productNew.createProduct")
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => router.back()}
+            disabled={loading}
+          >
+            {t("merchant.productNew.cancel")}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -108,15 +108,15 @@ function MerchantAutoReplyInner() {
 
   if (!merchantId) {
     return (
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={28} />
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div>
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -130,14 +130,14 @@ function MerchantAutoReplyInner() {
 
         {isLoading ? (
           <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         ) : (
-          <div className="max-w-3xl bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 space-y-6">
+          <div className="max-w-3xl bg-white rounded-2xl border border-gray-400 shadow-xs p-6 space-y-6">
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-100">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Bot className="text-blue-600" size={20} />
+                <div className="p-2 bg-brand/10 rounded-lg">
+                  <Bot className="text-brand" size={20} />
                 </div>
                 <div>
                   <h2 className="text-sm font-medium text-gray-900">
@@ -156,7 +156,7 @@ function MerchantAutoReplyInner() {
                   onChange={(e) => setEnabled(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-checked:bg-blue-600 rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-checked:bg-brand rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"></div>
               </label>
             </div>
 
@@ -171,7 +171,7 @@ function MerchantAutoReplyInner() {
                 maxLength={500}
                 disabled={!enabled}
                 placeholder={t("merchant.autoReply.greeting.placeholder")}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+                className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
               />
             </Field>
 
@@ -186,7 +186,7 @@ function MerchantAutoReplyInner() {
                 maxLength={500}
                 disabled={!enabled}
                 placeholder={t("merchant.autoReply.away.placeholder")}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+                className="w-full px-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
               />
             </Field>
 
@@ -202,7 +202,7 @@ function MerchantAutoReplyInner() {
                     value={workingHourStart}
                     onChange={(e) => setWorkingHourStart(e.target.value)}
                     disabled={!enabled}
-                    className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+                    className="w-full pl-9 pr-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
                   />
                 </div>
               </Field>
@@ -217,7 +217,7 @@ function MerchantAutoReplyInner() {
                     value={workingHourEnd}
                     onChange={(e) => setWorkingHourEnd(e.target.value)}
                     disabled={!enabled}
-                    className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50"
+                    className="w-full pl-9 pr-3 py-2.5 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
                   />
                 </div>
               </Field>
@@ -241,7 +241,7 @@ function MerchantAutoReplyInner() {
                       }
                       className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                         active
-                          ? "bg-blue-50 border-blue-200 text-blue-700"
+                          ? "bg-brand/10 border-brand/30 text-brand-strong"
                           : "bg-white border-gray-200 text-gray-500 hover:border-gray-400"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
