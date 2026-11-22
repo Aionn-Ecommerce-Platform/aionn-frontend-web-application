@@ -51,7 +51,7 @@ export function AdjustModal({
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="INBOUND">
                 {t("merchant.inventory.adjustInbound")}
@@ -77,7 +77,7 @@ export function AdjustModal({
               min="1"
               value={qty}
               onChange={(e) => setQty(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export function AdjustModal({
             onChange={(e) => setReason(e.target.value)}
             rows={3}
             placeholder={t("merchant.inventory.reasonPlaceholder")}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -159,7 +159,7 @@ export function AuditModal({
             min="0"
             value={actualQty}
             onChange={(e) => setActualQty(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           {actualQty !== "" && (
             <p

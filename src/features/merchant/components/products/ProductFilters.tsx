@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
-import { Button } from "@/shared/ui";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
@@ -48,10 +47,10 @@ export function StatusDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
         aria-expanded={open}
       >
-        <span className="text-gray-500">
+        <span className="text-slate-400">
           {t("merchant.productList.statusHeading")}:
         </span>
         <span>{currentLabel}</span>
@@ -62,7 +61,7 @@ export function StatusDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 overflow-hidden">
+        <div className="absolute left-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
           <DropdownItem
             label={t("merchant.productList.statusAll")}
             active={!value}
@@ -109,10 +108,10 @@ export function CategoryDropdown({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
         aria-expanded={open}
       >
-        <span className="text-gray-500">
+        <span className="text-slate-400">
           {t("merchant.productList.categoryHeading")}:
         </span>
         <span className="max-w-[160px] truncate">{currentLabel}</span>
@@ -123,7 +122,7 @@ export function CategoryDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50 overflow-hidden max-h-72 overflow-y-auto">
+        <div className="absolute left-0 z-50 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
           <DropdownItem
             label={t("merchant.productList.categoryAll")}
             active={!value}
@@ -133,7 +132,7 @@ export function CategoryDropdown({
             }}
           />
           {options.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-gray-400">
+            <p className="px-3 py-2 text-xs text-slate-400">
               {t("merchant.productList.categoryEmpty")}
             </p>
           ) : (
@@ -195,10 +194,10 @@ export function PricePopover({
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={togglePopover}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm focus:border-blue-400 focus:outline-none"
+        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
         aria-expanded={open}
       >
-        <span className="text-gray-500">
+        <span className="text-slate-400">
           {t("merchant.productList.priceHeading")}:
         </span>
         <span className="max-w-[180px] truncate">{summary}</span>
@@ -209,7 +208,7 @@ export function PricePopover({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-lg p-3 z-50">
+        <div className="absolute left-0 z-50 mt-2 w-64 rounded-xl border border-gray-500 bg-console-panel-raised p-3 shadow-2xl shadow-black/40">
           <div className="space-y-2">
             <input
               type="number"
@@ -218,7 +217,7 @@ export function PricePopover({
               placeholder={t("merchant.productList.priceFromPlaceholder", {
                 value: "0",
               })}
-              className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-md border border-gray-500 bg-white/5 px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
             />
             <input
               type="number"
@@ -227,26 +226,25 @@ export function PricePopover({
               placeholder={t("merchant.productList.priceToPlaceholder", {
                 value: t("merchant.productList.priceUnlimited"),
               })}
-              className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-md border border-gray-500 bg-white/5 px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
             />
             <div className="flex gap-2 pt-1">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1"
+              <button
+                type="button"
+                className="flex-1 rounded-lg border border-gray-500 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                 onClick={() => closeWith(undefined, undefined)}
               >
                 {t("merchant.productList.priceClear")}
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1"
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
                 onClick={() =>
                   closeWith(minInput || undefined, maxInput || undefined)
                 }
               >
                 {t("merchant.productList.applyBtn")}
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -269,12 +267,12 @@ function DropdownItem({
       onClick={onClick}
       className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
         active
-          ? "bg-blue-50 text-blue-700 font-semibold"
-          : "text-gray-700 hover:bg-gray-50"
+          ? "bg-purple-500/20 text-purple-200 font-semibold"
+          : "text-slate-300 hover:bg-white/5"
       }`}
     >
       <span className="truncate">{label}</span>
-      {active && <Check size={14} className="text-blue-700 shrink-0 ml-2" />}
+      {active && <Check size={14} className="ml-2 shrink-0 text-purple-300" />}
     </button>
   );
 }

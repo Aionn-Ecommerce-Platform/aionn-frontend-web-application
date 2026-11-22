@@ -8,6 +8,7 @@ import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { reviewService, type Review } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 import { formatDate } from "@/shared/lib/utils";
+import { isVideoUrl } from "@/shared/lib/media";
 
 interface ReviewListProps {
   productId: string;
@@ -270,21 +271,32 @@ function ReviewCard({
 
       {review.imageUrls && review.imageUrls.length > 0 && (
         <div className="flex gap-2 mb-3 flex-wrap">
-          {review.imageUrls.map((url, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setPreviewImage(url)}
-              className="cursor-zoom-in overflow-hidden rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950"
-              aria-label={t("reviews.imageAlt", { index: idx + 1 })}
-            >
-              <AppImage
+          {review.imageUrls.map((url, idx) =>
+            isVideoUrl(url) ? (
+              <video
+                key={idx}
                 src={url}
-                alt={t("reviews.imageAlt", { index: idx + 1 })}
-                className="w-20 h-20 object-cover transition-transform hover:scale-105"
-              />
-            </button>
-          ))}
+                controls
+                className="h-20 w-32 rounded-xl border border-gray-400 bg-black object-cover"
+              >
+                <track kind="captions" />
+              </video>
+            ) : (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setPreviewImage(url)}
+                className="cursor-zoom-in overflow-hidden rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950"
+                aria-label={t("reviews.imageAlt", { index: idx + 1 })}
+              >
+                <AppImage
+                  src={url}
+                  alt={t("reviews.imageAlt", { index: idx + 1 })}
+                  className="w-20 h-20 object-cover transition-transform hover:scale-105"
+                />
+              </button>
+            ),
+          )}
         </div>
       )}
 

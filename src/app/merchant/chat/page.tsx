@@ -10,8 +10,8 @@ export default function MerchantChatPage() {
     <AuthGuard requiredRoles={["MERCHANT"]}>
       <Suspense
         fallback={
-          <div className="bg-gray-50 min-h-screen flex justify-center pt-32">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-brand" size={28} />
           </div>
         }
       >

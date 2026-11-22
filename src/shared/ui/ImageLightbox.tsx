@@ -81,6 +81,7 @@ export default function ImageLightbox({
         alt={alt}
         width={1600}
         height={1600}
+        unoptimized
         className="h-auto w-auto min-w-[320px] max-h-[85vh] max-w-[90vw] object-contain"
       />
       <button

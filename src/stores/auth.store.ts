@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { AuthTokens, UserProfile } from "@/types";
-import { tokenStore, setUnauthorizedHandler } from "@/shared/api";
+import {
+  tokenStore,
+  setUnauthorizedHandler,
+  setActiveMerchantId,
+} from "@/shared/api";
 import { authService, userService } from "@/lib/services";
 
 function clearGuestRecommendation() {
@@ -48,8 +52,14 @@ export const useAuthStore = create<AuthState>()(
 
       loginSuccess: (tokens, user) => {
         tokenStore.setTokens(tokens);
+        setActiveMerchantId(null);
         clearGuestRecommendation();
-        const shouldClearQueryCache = !get().isAuthenticated;
+        const previousUser = get().user;
+        const shouldClearQueryCache =
+          !get().isAuthenticated ||
+          (Boolean(user) &&
+            Boolean(previousUser) &&
+            user?.userId !== previousUser?.userId);
         if (shouldClearQueryCache) {
           void import("@/lib/query-client").then(({ queryClient }) => {
             queryClient.clear();
@@ -69,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
           } catch {}
         }
         tokenStore.setTokens(null);
+        setActiveMerchantId(null);
 
         clearGuestRecommendation();
 

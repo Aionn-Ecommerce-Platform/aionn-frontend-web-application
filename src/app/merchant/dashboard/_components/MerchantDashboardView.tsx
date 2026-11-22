@@ -2,13 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, TrendingUp } from "lucide-react";
+import {
+  BadgeCheck,
+  Inbox,
+  Package,
+  PieChart,
+  RotateCcw,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { Card, CardTitle } from "@/shared/ui";
 import { compactCurrency, smoothPath } from "@/shared/lib/chart-utils";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { qk } from "@/lib/query-keys";
-import { merchantService, orderService, productService } from "@/lib/services";
+import {
+  merchantService,
+  orderReturnService,
+  orderService,
+  productService,
+} from "@/lib/services";
 import { formatCurrency } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTranslation } from "@/hooks";
@@ -33,12 +46,61 @@ function formatIso(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  PLACED: "#c4b5fd",
+  APPROVED: "#fbbf24",
+  PREPARING: "#f59e0b",
+  SHIPPED: "#38bdf8",
+  COMPLETED: "#34d399",
+  CANCELLED: "#fb7185",
+};
+
+function formatCompactMoney(
+  value: number,
+  locale: string,
+  billionUnit: string,
+  millionUnit: string,
+) {
+  const abs = Math.abs(value);
+  const formatNumber = (number: number) =>
+    number.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", {
+      maximumFractionDigits: 1,
+    });
+  if (abs >= 1_000_000_000) {
+    return `${formatNumber(value / 1_000_000_000)} ${billionUnit} VND`;
+  }
+  if (abs >= 1_000_000) {
+    return `${formatNumber(value / 1_000_000)} ${millionUnit} VND`;
+  }
+  return formatCurrency(value, "VND", locale);
+}
+
+function buildSparkline(values: number[]) {
+  const width = 160;
+  const height = 44;
+  const safe = values.length > 0 ? values : [0, 0];
+  const max = Math.max(...safe);
+  const min = Math.min(...safe);
+  const span = max - min || 1;
+  const flat = max === min;
+  const points = safe.map((value, index) => ({
+    x: safe.length === 1 ? width / 2 : (index / (safe.length - 1)) * width,
+    y: flat ? height / 2 : height - 6 - ((value - min) / span) * (height - 12),
+  }));
+  const line =
+    smoothPath(points) || `M 0 ${height / 2} L ${width} ${height / 2}`;
+  const area = `${line} L ${width} ${height} L 0 ${height} Z`;
+  return { line, area };
+}
+
 function MerchantDashboardInner() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [now] = useState(() => new Date());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredStatus, setHoveredStatus] = useState<string | null>(null);
 
   const { data: merchant } = useQuery({
     queryKey: ["merchant", "me"],
@@ -104,27 +166,43 @@ function MerchantDashboardInner() {
       }),
   });
 
+  const merchantCreatedAt = merchant?.createdAt;
   const allTimeRange = useMemo(() => {
     const today = new Date();
     const to = today.toISOString().slice(0, 10);
-    return { from: "2000-01-01", to };
-  }, []);
+    const from = merchantCreatedAt
+      ? `${new Date(merchantCreatedAt).getFullYear()}-01-01`
+      : "2000-01-01";
+    return { from, to };
+  }, [merchantCreatedAt]);
 
   const { data: allTimeAnalytics } = useQuery({
     queryKey: qk.merchantOrderAnalytics({
       from: allTimeRange.from,
       to: allTimeRange.to,
+      scope: "all-time",
     }),
-    queryFn: () =>
-      orderService.merchantAnalytics({
-        from: allTimeRange.from,
-        to: allTimeRange.to,
-      }),
+    queryFn: () => orderService.merchantRevenueTotal(allTimeRange),
+    enabled: !!merchant?.createdAt,
   });
 
   const { data: orders } = useQuery({
     queryKey: qk.merchantOrders({ limit: 100 }),
     queryFn: () => orderService.listForMerchant({ limit: 100 }),
+  });
+
+  const { data: returnSummary } = useQuery({
+    queryKey: ["merchant-return-summary", monthRange.from, monthRange.to],
+    queryFn: () =>
+      orderReturnService.summaryForMerchant({
+        from: monthRange.from,
+        to: monthRange.to,
+      }),
+  });
+
+  const { data: allTimeReturnSummary } = useQuery({
+    queryKey: ["merchant-return-summary", "all-time"],
+    queryFn: () => orderReturnService.summaryForMerchant(),
   });
 
   const merchantId = merchant?.merchantId;
@@ -141,6 +219,28 @@ function MerchantDashboardInner() {
     () => analytics?.revenueTrend ?? [],
     [analytics?.revenueTrend],
   );
+  const chartTrend = useMemo(() => {
+    const openedDate = merchantCreatedAt ? new Date(merchantCreatedAt) : null;
+    const openedIso = openedDate
+      ? formatIso(
+          openedDate.getFullYear(),
+          openedDate.getMonth(),
+          openedDate.getDate(),
+        )
+      : null;
+    const todayIso = formatIso(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+    const from =
+      openedIso && openedIso > monthRange.from ? openedIso : monthRange.from;
+    const to = todayIso < monthRange.to ? todayIso : monthRange.to;
+    if (from > to) return [];
+    return revenueTrend.filter(
+      (point) => point.date >= from && point.date <= to,
+    );
+  }, [revenueTrend, merchantCreatedAt, monthRange.from, monthRange.to, now]);
   const statusRows = useMemo(
     () =>
       [...(analytics?.statusBreakdown ?? [])].sort((a, b) => b.count - a.count),
@@ -151,29 +251,81 @@ function MerchantDashboardInner() {
   const productsCount = products?.totalElements ?? 0;
   const customers = new Set((orders ?? []).map((o) => o.userId)).size;
 
-  const totalMonthRevenue = revenueTrend.reduce(
+  const totalMonthRevenue = chartTrend.reduce(
     (sum, point) => sum + point.revenue,
     0,
   );
-  const avgDayRevenue =
-    revenueTrend.length > 0 ? totalMonthRevenue / revenueTrend.length : 0;
+  const allTimeRefundTotal = allTimeReturnSummary?.refundTotal ?? 0;
+  const monthRefundTotal = returnSummary?.refundTotal ?? 0;
+  const allTimeNetRevenue = Math.max(0, totalRevenue - allTimeRefundTotal);
+  const merchantActiveDays = useMemo(() => {
+    const start = merchantCreatedAt
+      ? new Date(merchantCreatedAt)
+      : new Date(now);
+    const startDay = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+    );
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startUtc = Date.UTC(
+      startDay.getFullYear(),
+      startDay.getMonth(),
+      startDay.getDate(),
+    );
+    const todayUtc = Date.UTC(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    return Math.max(1, Math.floor((todayUtc - startUtc) / 86_400_000) + 1);
+  }, [merchantCreatedAt, now]);
+  const avgDayRevenue = allTimeNetRevenue / merchantActiveDays;
+  const selectedMonthLabel =
+    monthOptions.find((option) => option.value === selectedMonth)?.label ?? "";
 
   const stats = [
     {
       label: t("merchant.dashboard.statRevenue"),
-      value: formatCurrency(totalRevenue),
+      value: formatCompactMoney(
+        allTimeNetRevenue,
+        locale,
+        t("merchant.dashboard.currencyBillion"),
+        t("merchant.dashboard.currencyMillion"),
+      ),
+      fullValue: formatCurrency(allTimeNetRevenue),
+      icon: Wallet,
+      cardClass:
+        "from-violet-500 via-violet-500 to-violet-300 shadow-purple-900/40",
+      spark: chartTrend.map((point) => point.revenue),
     },
     {
       label: t("merchant.dashboard.statAvgPerDay"),
-      value: formatCurrency(avgDayRevenue),
+      value: formatCompactMoney(
+        avgDayRevenue,
+        locale,
+        t("merchant.dashboard.currencyBillion"),
+        t("merchant.dashboard.currencyMillion"),
+      ),
+      fullValue: formatCurrency(avgDayRevenue),
+      icon: TrendingUp,
+      cardClass: "from-cyan-500 via-cyan-400 to-cyan-300 shadow-cyan-900/40",
+      spark: chartTrend.map((point) => point.revenue),
     },
     {
       label: t("merchant.dashboard.statProducts"),
       value: String(productsCount),
+      icon: Package,
+      cardClass: "from-rose-500 via-rose-400 to-orange-300 shadow-rose-900/40",
+      spark: statusRows.map((row) => row.count),
     },
     {
       label: t("merchant.dashboard.statCustomers"),
       value: String(customers),
+      icon: Users,
+      cardClass:
+        "from-violet-400 via-violet-400 to-purple-300 shadow-indigo-900/40",
+      spark: chartTrend.map((point) => point.orders),
     },
   ];
 
@@ -184,9 +336,9 @@ function MerchantDashboardInner() {
     const PAD_R = 24;
     const PAD_T = 32;
     const PAD_B = 44;
-    const peakValue = Math.max(1, ...revenueTrend.map((p) => p.revenue));
-    const points = revenueTrend.map((item, index) => {
-      const span = revenueTrend.length > 1 ? revenueTrend.length - 1 : 1;
+    const peakValue = Math.max(1, ...chartTrend.map((p) => p.revenue));
+    const points = chartTrend.map((item, index) => {
+      const span = chartTrend.length > 1 ? chartTrend.length - 1 : 1;
       const x = PAD_L + (index / span) * (W - PAD_L - PAD_R);
       const y = PAD_T + (1 - item.revenue / peakValue) * (H - PAD_T - PAD_B);
       const day = new Date(item.date).getDate();
@@ -219,7 +371,7 @@ function MerchantDashboardInner() {
       areaPath,
       labelEvery,
     };
-  }, [revenueTrend]);
+  }, [chartTrend]);
 
   const completionRate =
     totalOrders > 0
@@ -230,220 +382,521 @@ function MerchantDashboardInner() {
         )
       : 0;
 
+  const donutRadius = 54;
+  const donutCircumference = 2 * Math.PI * donutRadius;
+  const segmentLength = (count: number) =>
+    totalOrders > 0 ? (count / totalOrders) * donutCircumference : 0;
+  const donutSegments = statusRows.map((row, index) => ({
+    ...row,
+    length: segmentLength(row.count),
+    offset: statusRows
+      .slice(0, index)
+      .reduce((sum, previous) => sum + segmentLength(previous.count), 0),
+    color: STATUS_COLORS[row.status] ?? "#a78bfa",
+  }));
+
+  const hoveredStatusRow = statusRows.find(
+    (row) => row.status === hoveredStatus,
+  );
+  const hoveredStatusConfig = hoveredStatusRow
+    ? getOrderStatus(hoveredStatusRow.status)
+    : null;
+
+  const hoveredPoint =
+    hoveredIndex != null ? chart.points[hoveredIndex] : undefined;
+  const chartPointSpacing =
+    chart.points.length > 1 ? chart.points[1]!.x - chart.points[0]!.x : 0;
+  const hoveredLeft = hoveredPoint
+    ? Math.min(88, Math.max(12, (hoveredPoint.x / chart.W) * 100))
+    : 0;
+
+  const renderPeriodFilter = () => (
+    <div className="flex flex-wrap items-center gap-2">
+      <PeriodDropdown
+        label={t("merchant.dashboard.month")}
+        value={selectedMonth}
+        options={monthOptions}
+        onChange={(value) => {
+          setSelectedMonth(value);
+          setHoveredStatus(null);
+          setHoveredIndex(null);
+        }}
+        width="w-32"
+      />
+      <PeriodDropdown
+        label={t("merchant.dashboard.year")}
+        value={selectedYear}
+        options={yearOptions}
+        onChange={(value) => {
+          setSelectedYear(value);
+          setHoveredStatus(null);
+          setHoveredIndex(null);
+        }}
+        width="w-24"
+      />
+    </div>
+  );
+
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("merchant.dashboard.title")}
+    <div className="relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+        <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
+        <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+      </div>
+
+      <div className="relative">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
+            <span className="text-purple-300">
+              {merchant?.name ??
+                user?.displayName ??
+                t("merchant.dashboard.yourShop")}
+            </span>{" "}
+            <span className="text-white">Dashboard</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {merchant?.name ??
-              user?.displayName ??
-              t("merchant.dashboard.yourShop")}
-          </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.label}>
-              <p className="text-xs text-gray-500 uppercase font-medium tracking-wide">
-                {stat.label}
-              </p>
-              <p className="text-xl font-bold text-gray-900 mt-2 truncate">
-                {stat.value}
-              </p>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                  <CardTitle>{t("merchant.dashboard.revenueByDay")}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {t("merchant.dashboard.revenueByDayDesc")}
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {stats.map((stat) => {
+            const StatIcon = stat.icon;
+            const spark = buildSparkline(stat.spark);
+            return (
+              <div
+                key={stat.label}
+                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br p-3.5 shadow-lg transition-transform duration-300 hover:-translate-y-1 ${stat.cardClass}`}
+              >
+                <div className="pointer-events-none absolute inset-0 bg-white/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <StatIcon
+                  className="absolute right-3 top-3 text-white/90 group-hover:text-white"
+                  size={22}
+                  strokeWidth={2.2}
+                />
+                <div className="relative z-10 pb-4">
+                  <p className="text-[13px] font-medium text-white/80">
+                    {stat.label}
+                  </p>
+                  <p
+                    className="mt-1 truncate text-lg font-extrabold tracking-tight text-white drop-shadow-sm sm:text-xl"
+                    title={stat.fullValue ?? stat.value}
+                  >
+                    {stat.value}
                   </p>
                 </div>
+                <svg
+                  viewBox="0 0 160 44"
+                  preserveAspectRatio="none"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-7 w-full text-white/70"
+                  style={{
+                    filter: "blur(0.3px)",
+                    maskImage:
+                      "linear-gradient(to top, rgba(0,0,0,0.95) 24%, transparent 100%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to top, rgba(0,0,0,0.95) 24%, transparent 100%)",
+                  }}
+                  aria-hidden="true"
+                >
+                  <path d={spark.area} fill="currentColor" fillOpacity="0.12" />
+                  <path
+                    d={spark.line}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeOpacity="0.9"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="order-2 rounded-2xl border border-gray-500 bg-white/[0.04] p-5 backdrop-blur">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <PeriodDropdown
-                    label={t("merchant.dashboard.month")}
-                    value={selectedMonth}
-                    options={monthOptions}
-                    onChange={setSelectedMonth}
-                    width="w-36"
+                  <PieChart size={18} className="text-purple-300" />
+                  <h3 className="text-base font-bold text-white">
+                    {t("merchant.dashboard.orderBreakdown")}
+                  </h3>
+                </div>
+                <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+                  {t("merchant.dashboard.totalOrders", { count: totalOrders })}
+                </span>
+              </div>
+              {renderPeriodFilter()}
+            </div>
+
+            <div className="flex flex-col items-center gap-5 xl:flex-row">
+              <div className="relative h-40 w-40 shrink-0">
+                <svg viewBox="0 0 160 160" className="h-full w-full">
+                  <circle
+                    cx="80"
+                    cy="80"
+                    r={donutRadius}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.06)"
+                    strokeWidth="17"
                   />
-                  <PeriodDropdown
-                    label={t("merchant.dashboard.year")}
-                    value={selectedYear}
-                    options={yearOptions}
-                    onChange={setSelectedYear}
-                    width="w-28"
-                  />
+                  {donutSegments.map((segment) =>
+                    segment.length > 0 ? (
+                      <circle
+                        key={segment.status}
+                        cx="80"
+                        cy="80"
+                        r={donutRadius}
+                        fill="none"
+                        stroke={segment.color}
+                        strokeWidth={hoveredStatus === segment.status ? 20 : 17}
+                        strokeDasharray={`${segment.length} ${donutCircumference - segment.length}`}
+                        strokeDashoffset={-segment.offset}
+                        transform="rotate(-90 80 80)"
+                        opacity={
+                          hoveredStatus && hoveredStatus !== segment.status
+                            ? 0.35
+                            : 1
+                        }
+                        className="cursor-pointer transition-all duration-150"
+                        onPointerEnter={() => setHoveredStatus(segment.status)}
+                        onPointerLeave={() => setHoveredStatus(null)}
+                      >
+                        <title>
+                          {getOrderStatus(segment.status)
+                            ? t(getOrderStatus(segment.status)!.labelKey)
+                            : segment.status}
+                          {` · ${segment.count} · ${Math.round(
+                            (segment.count / Math.max(1, totalOrders)) * 100,
+                          )}%`}
+                        </title>
+                      </circle>
+                    ) : null,
+                  )}
+                </svg>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-extrabold text-white">
+                    {hoveredStatusRow
+                      ? hoveredStatusRow.count
+                      : `${completionRate}%`}
+                  </span>
+                  <span className="max-w-[86px] text-center text-[9px] font-semibold uppercase tracking-wider text-slate-400">
+                    {hoveredStatusRow && hoveredStatusConfig
+                      ? t(hoveredStatusConfig.labelKey)
+                      : t("merchant.dashboard.completionRate")}
+                  </span>
                 </div>
               </div>
 
-              <div className="h-72 w-full">
-                <svg
-                  viewBox={`0 0 ${chart.W} ${chart.H}`}
-                  preserveAspectRatio="none"
-                  className="h-full w-full"
-                  role="img"
-                  aria-label={t("merchant.dashboard.chartAria")}
-                >
-                  <defs>
-                    <linearGradient id="revArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stopColor="#3b82f6"
-                        stopOpacity="0.28"
-                      />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="100%" stopColor="#3b82f6" />
-                    </linearGradient>
-                  </defs>
-                  {chart.yTicks.map((tick, i) => {
-                    const y =
-                      chart.PAD_T +
-                      (i / (chart.yTicks.length - 1)) *
-                        (chart.H - chart.PAD_T - chart.PAD_B);
-                    return (
-                      <g key={`${tick}-${i}`}>
-                        <line
-                          x1={chart.PAD_L}
-                          x2={chart.W - chart.PAD_R}
-                          y1={y}
-                          y2={y}
-                          stroke="#eef2f7"
-                          strokeWidth="1"
-                          strokeDasharray={
-                            i === chart.yTicks.length - 1 ? "0" : "4 4"
-                          }
+              <div className="grid w-full min-w-0 grid-cols-1 gap-x-10 gap-y-2.5 sm:grid-cols-2">
+                {statusRows.map((row) => {
+                  const percent =
+                    totalOrders > 0
+                      ? Math.round((row.count / totalOrders) * 100)
+                      : 0;
+                  const status = getOrderStatus(row.status);
+                  return (
+                    <div
+                      key={row.status}
+                      className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-1 -mx-2 transition-colors ${
+                        hoveredStatus === row.status
+                          ? "bg-white/5"
+                          : "hover:bg-white/5"
+                      }`}
+                      onPointerEnter={() => setHoveredStatus(row.status)}
+                      onPointerLeave={() => setHoveredStatus(null)}
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor:
+                              STATUS_COLORS[row.status] ?? "#a78bfa",
+                          }}
                         />
-                        <text
-                          x={chart.PAD_L - 12}
-                          y={y + 4}
-                          textAnchor="end"
-                          className="fill-gray-400 text-[10px] font-medium"
-                        >
-                          {compactCurrency(tick)}
-                        </text>
-                      </g>
-                    );
-                  })}
-                  {chart.points.length > 1 ? (
-                    <>
-                      <path d={chart.areaPath} fill="url(#revArea)" />
-                      <path
-                        d={chart.linePath}
-                        fill="none"
-                        stroke="url(#revLine)"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                        <span className="truncate text-sm text-slate-300">
+                          {status ? t(status.labelKey) : row.status}
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-xs font-semibold text-white">
+                        {row.count}
+                        <span className="ml-1 font-normal text-slate-500">
+                          {percent}%
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })}
+                {totalOrders === 0 ? (
+                  <p className="py-2 text-center text-sm text-slate-400">
+                    {t("merchant.dashboard.noOrderData")}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 rounded-2xl border border-gray-500 bg-white/[0.04] p-5 backdrop-blur">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp size={18} className="text-cyan-300" />
+                    <h3 className="text-base font-bold text-white">
+                      {t("merchant.dashboard.revenueByDay")}
+                    </h3>
+                  </div>
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300">
+                    {selectedMonthLabel} · {formatCurrency(totalMonthRevenue)}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-400">
+                  {t("merchant.dashboard.revenueByDayDesc")}
+                </p>
+              </div>
+              {renderPeriodFilter()}
+            </div>
+
+            <div className="relative h-64 w-full sm:h-80">
+              <svg
+                viewBox={`0 0 ${chart.W} ${chart.H}`}
+                preserveAspectRatio="none"
+                className="h-full w-full"
+                role="img"
+                aria-label={t("merchant.dashboard.chartAria")}
+              >
+                <defs>
+                  <linearGradient id="revArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.55" />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#c4b5fd" />
+                    <stop offset="55%" stopColor="#a78bfa" />
+                    <stop offset="100%" stopColor="#22d3ee" />
+                  </linearGradient>
+                  <clipPath id="revPlotClip">
+                    <rect
+                      x={chart.PAD_L}
+                      y={chart.PAD_T - 12}
+                      width={chart.W - chart.PAD_L - chart.PAD_R}
+                      height={chart.H - chart.PAD_T - chart.PAD_B + 12}
+                    />
+                  </clipPath>
+                </defs>
+                {chart.yTicks.map((tick, i) => {
+                  const y =
+                    chart.PAD_T +
+                    (i / (chart.yTicks.length - 1)) *
+                      (chart.H - chart.PAD_T - chart.PAD_B);
+                  return (
+                    <g key={`${tick}-${i}`}>
+                      <line
+                        x1={chart.PAD_L}
+                        x2={chart.W - chart.PAD_R}
+                        y1={y}
+                        y2={y}
+                        stroke="rgba(255,255,255,0.24)"
+                        strokeWidth="1"
+                        strokeDasharray={
+                          i === chart.yTicks.length - 1 ? "0" : "4 4"
+                        }
                       />
-                    </>
-                  ) : null}
-                  {chart.points.map((point, index) => (
+                      <text
+                        x={chart.PAD_L - 12}
+                        y={y + 4}
+                        textAnchor="end"
+                        fill="#b6b2cf"
+                        className="text-[10px] font-medium"
+                      >
+                        {compactCurrency(tick)}
+                      </text>
+                    </g>
+                  );
+                })}
+                {chart.points.length > 1 ? (
+                  <g clipPath="url(#revPlotClip)">
+                    <path d={chart.areaPath} fill="url(#revArea)" />
+                    <path
+                      d={chart.linePath}
+                      fill="none"
+                      stroke="url(#revLine)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                ) : null}
+                {hoveredPoint ? (
+                  <line
+                    x1={hoveredPoint.x}
+                    x2={hoveredPoint.x}
+                    y1={chart.PAD_T}
+                    y2={chart.H - chart.PAD_B}
+                    stroke="rgba(255,255,255,0.32)"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 5"
+                  />
+                ) : null}
+                {chart.points.map((point, index) => {
+                  const active = hoveredIndex === index;
+                  return (
                     <g key={point.date}>
+                      {active ? (
+                        <circle
+                          cx={point.x}
+                          cy={point.y}
+                          r={11}
+                          fill="#c4b5fd"
+                          opacity={0.2}
+                        />
+                      ) : null}
                       <circle
                         cx={point.x}
                         cy={point.y}
-                        r={4}
-                        fill="#fff"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                      >
-                        <title>
-                          {t("merchant.dashboard.tooltip", {
-                            day: point.day,
-                            revenue: formatCurrency(point.revenue),
-                            orders: point.orders,
-                          })}
-                        </title>
-                      </circle>
+                        r={active ? 5.5 : 4}
+                        fill={active ? "#ffffff" : "#151329"}
+                        stroke={active ? "#ffffff" : "#c4b5fd"}
+                        strokeWidth={2.2}
+                      />
                       {index % chart.labelEvery === 0 ? (
                         <text
                           x={point.x}
                           y={chart.H - chart.PAD_B + 22}
                           textAnchor="middle"
-                          className="fill-gray-500 text-[11px] font-medium"
+                          fill="#b6b2cf"
+                          className="text-[11px] font-medium"
                         >
                           {point.day}
                         </text>
                       ) : null}
                     </g>
-                  ))}
-                </svg>
-              </div>
-            </Card>
-          </div>
+                  );
+                })}
+                <rect
+                  x={chart.PAD_L}
+                  y={chart.PAD_T}
+                  width={chart.W - chart.PAD_L - chart.PAD_R}
+                  height={chart.H - chart.PAD_T - chart.PAD_B}
+                  fill="transparent"
+                  onPointerMove={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const x =
+                      chart.PAD_L +
+                      ((event.clientX - rect.left) / rect.width) *
+                        (chart.W - chart.PAD_L - chart.PAD_R);
+                    let nearest = 0;
+                    let best = Number.POSITIVE_INFINITY;
+                    chart.points.forEach((point, index) => {
+                      const distance = Math.abs(point.x - x);
+                      if (distance < best) {
+                        best = distance;
+                        nearest = index;
+                      }
+                    });
+                    const threshold =
+                      chartPointSpacing > 0 ? chartPointSpacing * 0.4 : 12;
+                    setHoveredIndex(best <= threshold ? nearest : null);
+                  }}
+                  onPointerLeave={() => setHoveredIndex(null)}
+                />
+              </svg>
 
-          <Card>
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <BarChart3 size={18} className="text-blue-600" />
-                <CardTitle>{t("merchant.dashboard.orderBreakdown")}</CardTitle>
-              </div>
-              <span className="text-xs text-gray-500">
-                {t("merchant.dashboard.totalOrders", { count: totalOrders })}
-              </span>
-            </div>
-            <div className="space-y-3.5">
-              {statusRows.map((row) => {
-                const percent =
-                  totalOrders > 0
-                    ? Math.round((row.count / totalOrders) * 100)
-                    : 0;
-                const status = getOrderStatus(row.status);
-                return (
-                  <div key={row.status}>
-                    <div className="flex items-center justify-between text-sm mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`h-2 w-2 rounded-full ${status?.dot ?? "bg-gray-400"}`}
-                        />
-                        <span className="font-medium text-gray-700">
-                          {status ? t(status.labelKey) : row.status}
-                        </span>
-                      </div>
-                      <span className="text-gray-500">
-                        <span className="font-semibold text-gray-700">
-                          {row.count}
-                        </span>{" "}
-                        · {percent}%
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${status?.bar ?? "from-gray-300 to-gray-400"}`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {totalOrders === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-2">
-                  {t("merchant.dashboard.noOrderData")}
-                </p>
+              {hoveredPoint ? (
+                <div
+                  className="pointer-events-none absolute z-20 whitespace-nowrap rounded-xl border border-white/15 bg-console-popover/95 px-3 py-2 text-xs shadow-2xl shadow-black/30 backdrop-blur"
+                  style={{
+                    left: `${hoveredLeft}%`,
+                    top: `${(hoveredPoint.y / chart.H) * 100}%`,
+                    transform:
+                      hoveredPoint.y < chart.H * 0.35
+                        ? "translate(-50%, 16px)"
+                        : "translate(-50%, calc(-100% - 16px))",
+                  }}
+                >
+                  <p className="font-semibold text-white">
+                    {t("merchant.dashboard.dayLabel", {
+                      day: hoveredPoint.day,
+                    })}
+                  </p>
+                  <p className="mt-0.5 font-bold text-emerald-300">
+                    {formatCurrency(hoveredPoint.revenue)}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {t("merchant.dashboard.ordersLabel", {
+                      count: hoveredPoint.orders,
+                    })}
+                  </p>
+                </div>
               ) : null}
             </div>
-            <div className="mt-5 pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 rounded-md px-3 py-2">
-                <TrendingUp size={14} />
-                <span>
-                  {t("merchant.dashboard.completionRate")}{" "}
-                  <strong>{completionRate}%</strong>
-                </span>
+          </div>
+
+          <div className="order-3 rounded-2xl border border-gray-500 bg-white/[0.04] p-5 backdrop-blur">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <RotateCcw size={18} className="text-rose-300" />
+                <h3 className="text-base font-bold text-white">
+                  {t("merchant.dashboard.returnsTitle")}
+                </h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {renderPeriodFilter()}
               </div>
             </div>
-          </Card>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-gray-600 bg-white/[0.03] p-3.5">
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <Inbox size={14} className="text-purple-300" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    {t("merchant.dashboard.returnsRequests")}
+                  </span>
+                </div>
+                <p className="mt-2 text-xl font-extrabold text-white">
+                  {returnSummary?.requests ?? 0}
+                </p>
+              </div>
+              <div className="rounded-xl border border-gray-600 bg-white/[0.03] p-3.5">
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <BadgeCheck size={14} className="text-amber-300" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    {t("merchant.dashboard.returnsApproved")}
+                  </span>
+                </div>
+                <p className="mt-2 text-xl font-extrabold text-white">
+                  {returnSummary?.approved ?? 0}
+                </p>
+              </div>
+              <div className="rounded-xl border border-gray-600 bg-white/[0.03] p-3.5">
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <RotateCcw size={14} className="text-rose-300" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    {t("merchant.dashboard.returnsRefund")}
+                  </span>
+                </div>
+                <p
+                  className="mt-2 truncate text-xl font-extrabold text-white"
+                  title={formatCurrency(monthRefundTotal)}
+                >
+                  {formatCompactMoney(
+                    monthRefundTotal,
+                    locale,
+                    t("merchant.dashboard.currencyBillion"),
+                    t("merchant.dashboard.currencyMillion"),
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -65,8 +65,8 @@ function MerchantInventoryInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             {t("merchant.inventory.title")}
@@ -91,12 +91,12 @@ function MerchantInventoryInner() {
 
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <WarehouseIcon size={20} className="text-blue-600" />
+            <WarehouseIcon size={20} className="text-brand" />
             {t("merchant.inventory.warehouseSectionTitle")}
           </h2>
           {loadingWh ? (
             <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={24} />
+              <Loader2 className="animate-spin text-brand" size={24} />
             </div>
           ) : !warehouses || warehouses.length === 0 ? (
             <EmptyState
@@ -114,7 +114,7 @@ function MerchantInventoryInner() {
                     onClick={() => setActiveWarehouseId(wh.warehouseId)}
                     className={`text-left transition-all ${
                       isActive
-                        ? "ring-2 ring-blue-500 ring-offset-2 rounded-md"
+                        ? "ring-2 ring-brand ring-offset-2 rounded-md"
                         : ""
                     }`}
                   >
@@ -158,7 +158,7 @@ function MerchantInventoryInner() {
 
         <section>
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package size={20} className="text-blue-600" />
+            <Package size={20} className="text-brand" />
             {t("merchant.inventory.stockSectionTitle")}
             {effectiveWarehouseId && (
               <span className="text-xs text-gray-400 font-normal font-mono">
@@ -168,7 +168,7 @@ function MerchantInventoryInner() {
           </h2>
           {!effectiveWarehouseId ? null : loadingInv ? (
             <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={24} />
+              <Loader2 className="animate-spin text-brand" size={24} />
             </div>
           ) : inventory.length === 0 ? (
             <EmptyState
@@ -177,7 +177,7 @@ function MerchantInventoryInner() {
               description={t("merchant.inventory.emptyStockDescription")}
             />
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>

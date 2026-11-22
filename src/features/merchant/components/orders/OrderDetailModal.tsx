@@ -152,7 +152,7 @@ export function OrderDetailModal({
           </div>
           <div>
             <p className="text-gray-500">{t("merchant.orders.detailStatus")}</p>
-            <p className="font-semibold text-blue-600">
+            <p className="font-semibold text-brand">
               {status ? t(status.labelKey) : order.status}
             </p>
           </div>
@@ -192,7 +192,7 @@ export function OrderDetailModal({
               </span>
               <span>{formatCurrency(order.shippingFee, order.currency)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-100 text-blue-600">
+            <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-100 text-brand">
               <span>{t("merchant.orders.detailGrandTotal")}</span>
               <span>{formatCurrency(order.totalAmount, order.currency)}</span>
             </div>
@@ -286,7 +286,7 @@ export function OrderDetailModal({
                       href={shipment.labelUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-brand hover:underline font-medium"
                     >
                       {t("merchant.orders.downloadLabel")}
                     </a>
@@ -311,8 +311,8 @@ export function OrderDetailModal({
               {shipment.trackingCode &&
                 shipment.status !== "DELIVERED" &&
                 shipment.status !== "CANCELLED" && (
-                  <div className="border border-blue-100 bg-blue-50/50 rounded-md p-4 space-y-3">
-                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+                  <div className="border border-brand/20 bg-brand/5 rounded-md p-4 space-y-3">
+                    <p className="text-xs font-bold text-brand-strong uppercase tracking-wider">
                       {t("merchant.orders.simulatorTitle")}
                     </p>
                     <p className="text-xs text-gray-500">

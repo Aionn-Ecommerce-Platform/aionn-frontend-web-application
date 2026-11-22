@@ -151,6 +151,8 @@ export interface UploadSignature {
    * upload form or Cloudinary rejects the signature. KYC documents use "private".
    */
   type?: string;
+  allowedFormats?: string | null;
+  maxFileSize?: number | null;
 }
 
 export interface RegistrationSession {

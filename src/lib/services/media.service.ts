@@ -8,6 +8,9 @@ export const mediaService = {
   generateKycDocumentSignature() {
     return api.post<UploadSignature>("/media/upload-signatures/kyc");
   },
+  generateReturnEvidenceSignature() {
+    return api.post<UploadSignature>("/media/upload-signatures/return-evidence");
+  },
   generateProductImageSignature() {
     return api.post<UploadSignature>(
       "/catalog/media/upload-signatures/product-image",
@@ -51,6 +54,12 @@ export async function uploadAssetToCloudinary(
   form.append("timestamp", String(signature.timestamp));
   form.append("signature", signature.signature);
   if (signature.folder) form.append("folder", signature.folder);
+  if (signature.allowedFormats) {
+    form.append("allowed_formats", signature.allowedFormats);
+  }
+  if (signature.maxFileSize) {
+    form.append("max_file_size", String(signature.maxFileSize));
+  }
   // Cloudinary includes "type" in the signature when the backend sets it (KYC uploads
   // are signed as private assets); omitting it makes the signature invalid.
   if (signature.type) form.append("type", signature.type);

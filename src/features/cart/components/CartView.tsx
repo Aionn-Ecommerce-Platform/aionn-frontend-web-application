@@ -64,7 +64,15 @@ export default function CartPage() {
     const currentSkuIds = items.map((item) => item.skuId);
     setSelectedSkuIds((previous) => {
       if (!selectionInitialized.current) {
+        if (currentSkuIds.length === 0) return previous;
         selectionInitialized.current = true;
+        const requested = new URLSearchParams(window.location.search).get(
+          "select",
+        );
+        if (requested) {
+          const currentSet = new Set(currentSkuIds);
+          return requested.split(",").filter((skuId) => currentSet.has(skuId));
+        }
         return currentSkuIds;
       }
       const currentSet = new Set(currentSkuIds);

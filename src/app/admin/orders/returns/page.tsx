@@ -285,17 +285,23 @@ function AdminOrderReturnsInner() {
                           })}
                         </p>
                       )}
-                      {r.evidenceUrl && (
+                      {(r.evidenceUrls?.length
+                        ? r.evidenceUrls
+                        : r.evidenceUrl
+                          ? [r.evidenceUrl]
+                          : []
+                      ).map((url, index) => (
                         <a
-                          href={r.evidenceUrl}
+                          key={`${url}-${index}`}
+                          href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-2"
+                          className="mr-3 mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                         >
                           <ExternalLink size={12} />{" "}
                           {t("adminReturns.viewEvidence")}
                         </a>
-                      )}
+                      ))}
                       <p className="text-xs text-gray-400 mt-2">
                         {t("adminReturns.createdAt", {
                           date: formatDateTime(r.requestedAt, locale),

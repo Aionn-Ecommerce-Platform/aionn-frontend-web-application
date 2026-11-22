@@ -363,13 +363,13 @@ export default function MerchantStorePage({
 
   return (
     <div className="bg-transparent min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600">
+          <Link href="/" className="hover:text-brand">
             {t("common.home")}
           </Link>
           <span>/</span>
-          <Link href="/merchants" className="hover:text-blue-600">
+          <Link href="/merchants" className="hover:text-brand">
             {t("merchants.title")}
           </Link>
           <span>/</span>
@@ -479,7 +479,7 @@ export default function MerchantStorePage({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5 border-t xl:border-t-0 xl:border-l border-gray-200/80 pt-6 xl:pt-0 xl:pl-8 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5 border-t xl:border-t-0 xl:border-l border-gray-400 pt-6 xl:pt-0 xl:pl-8 flex-1">
               <StatItem
                 icon={<Star size={16} />}
                 label={t("merchantStore.reviews")}

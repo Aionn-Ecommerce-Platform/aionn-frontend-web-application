@@ -71,6 +71,21 @@ class TokenStore {
 
 export const tokenStore = new TokenStore();
 
+/**
+ * Merchant-scoped backend endpoints require the caller to prove which merchant
+ * it is acting for via `X-Merchant-Id`. The seller console resolves its own
+ * merchant once and stores it here so every console request carries it.
+ */
+let activeMerchantId: string | null = null;
+
+export function setActiveMerchantId(merchantId: string | null) {
+  activeMerchantId = merchantId;
+}
+
+export function getActiveMerchantId(): string | null {
+  return activeMerchantId;
+}
+
 let refreshPromise: Promise<AuthTokens | null> | null = null;
 let onUnauthorized: (() => void) | null = null;
 
@@ -190,6 +205,9 @@ async function rawFetch(
     const token = tokenStore.getAccessToken();
     if (token && !headers.has("Authorization")) {
       headers.set("Authorization", `Bearer ${token}`);
+    }
+    if (activeMerchantId && !headers.has("X-Merchant-Id")) {
+      headers.set("X-Merchant-Id", activeMerchantId);
     }
   }
   if (opts.idempotent && !headers.has("Idempotency-Key")) {

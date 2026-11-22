@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, PackageX, Search } from "lucide-react";
+import { Home, PackageSearch, Search } from "lucide-react";
 import { Button } from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 
@@ -11,8 +11,8 @@ export default function NotFoundContent() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
-        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gray-100 flex items-center justify-center">
-          <PackageX size={32} className="text-gray-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+          <PackageSearch size={40} className="text-gray-950" />
         </div>
         <p className="text-7xl font-extrabold text-gray-900 tracking-tight">
           404
