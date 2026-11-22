@@ -34,7 +34,11 @@ export function PeriodDropdown<T extends string | number>({
         setOpen(false);
       }
     };
-    const close = () => setOpen(false);
+    const close = (event?: Event) => {
+      const target = event?.target as Node | null;
+      if (target && menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);

@@ -54,7 +54,12 @@ export const useAuthStore = create<AuthState>()(
         tokenStore.setTokens(tokens);
         setActiveMerchantId(null);
         clearGuestRecommendation();
-        const shouldClearQueryCache = !get().isAuthenticated;
+        const previousUser = get().user;
+        const shouldClearQueryCache =
+          !get().isAuthenticated ||
+          (Boolean(user) &&
+            Boolean(previousUser) &&
+            user?.userId !== previousUser?.userId);
         if (shouldClearQueryCache) {
           void import("@/lib/query-client").then(({ queryClient }) => {
             queryClient.clear();

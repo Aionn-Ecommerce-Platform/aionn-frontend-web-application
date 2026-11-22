@@ -92,7 +92,7 @@ export function SubmitReviewForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (disabled) return;
+    if (disabled || uploading) return;
 
     if (!content.trim()) {
       toast.error(t("reviews.contentRequired"));
@@ -282,7 +282,8 @@ export function SubmitReviewForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t("reviews.images")} {!disabled && `(${imageUrls.length}/${MAX_REVIEW_MEDIA})`}
+            {t("reviews.images")}{" "}
+            {!disabled && `(${imageUrls.length}/${MAX_REVIEW_MEDIA})`}
           </label>
           {disabled ? (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-xl cursor-not-allowed text-sm">
@@ -357,7 +358,12 @@ export function SubmitReviewForm({
           )}
           <button
             type="submit"
-            disabled={disabled || submitMutation.isPending || !content.trim()}
+            disabled={
+              disabled ||
+              submitMutation.isPending ||
+              uploading ||
+              !content.trim()
+            }
             className="px-6 py-2 bg-gray-950 text-white rounded-xl hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-xs cursor-pointer"
           >
             {submitMutation.isPending

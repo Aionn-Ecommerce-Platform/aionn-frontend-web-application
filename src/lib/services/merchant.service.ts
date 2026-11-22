@@ -1,4 +1,4 @@
-import api, { setActiveMerchantId } from "@/shared/api";
+import api, { setActiveMerchantId, tokenStore } from "@/shared/api";
 import type { Merchant, MerchantStorefrontStats } from "@/types";
 
 export const merchantService = {
@@ -36,8 +36,11 @@ export const merchantService = {
     });
   },
   async getMine() {
+    const sessionToken = tokenStore.getAccessToken();
     const merchant = await api.get<Merchant>("/catalog/merchants/me");
-    setActiveMerchantId(merchant.merchantId);
+    if (tokenStore.getAccessToken() === sessionToken) {
+      setActiveMerchantId(merchant.merchantId);
+    }
     return merchant;
   },
   register(name: string) {

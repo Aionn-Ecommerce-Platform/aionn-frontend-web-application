@@ -55,12 +55,6 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "#fb7185",
 };
 
-const APPROVED_RETURN_STATUSES = new Set([
-  "APPROVED",
-  "ITEM_RECEIVED",
-  "REFUNDED",
-]);
-
 function formatCompactMoney(
   value: number,
   locale: string,
@@ -197,9 +191,18 @@ function MerchantDashboardInner() {
     queryFn: () => orderService.listForMerchant({ limit: 100 }),
   });
 
-  const { data: returns } = useQuery({
-    queryKey: ["merchant-returns", "dashboard"],
-    queryFn: () => orderReturnService.listForMerchant(100),
+  const { data: returnSummary } = useQuery({
+    queryKey: ["merchant-return-summary", monthRange.from, monthRange.to],
+    queryFn: () =>
+      orderReturnService.summaryForMerchant({
+        from: monthRange.from,
+        to: monthRange.to,
+      }),
+  });
+
+  const { data: allTimeReturnSummary } = useQuery({
+    queryKey: ["merchant-return-summary", "all-time"],
+    queryFn: () => orderReturnService.summaryForMerchant(),
   });
 
   const merchantId = merchant?.merchantId;
@@ -252,21 +255,8 @@ function MerchantDashboardInner() {
     (sum, point) => sum + point.revenue,
     0,
   );
-  const allReturns = returns ?? [];
-  const allTimeRefundTotal = allReturns
-    .filter((item) => APPROVED_RETURN_STATUSES.has(item.status))
-    .reduce((sum, item) => sum + (item.refundAmount ?? 0), 0);
-  const monthReturns = allReturns.filter((item) => {
-    const requestedDate = item.requestedAt.slice(0, 10);
-    return requestedDate >= monthRange.from && requestedDate <= monthRange.to;
-  });
-  const monthApprovedReturns = monthReturns.filter((item) =>
-    APPROVED_RETURN_STATUSES.has(item.status),
-  );
-  const monthRefundTotal = monthApprovedReturns.reduce(
-    (sum, item) => sum + (item.refundAmount ?? 0),
-    0,
-  );
+  const allTimeRefundTotal = allTimeReturnSummary?.refundTotal ?? 0;
+  const monthRefundTotal = returnSummary?.refundTotal ?? 0;
   const allTimeNetRevenue = Math.max(0, totalRevenue - allTimeRefundTotal);
   const merchantActiveDays = useMemo(() => {
     const start = merchantCreatedAt
@@ -278,10 +268,17 @@ function MerchantDashboardInner() {
       start.getDate(),
     );
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return Math.max(
-      1,
-      Math.floor((today.getTime() - startDay.getTime()) / 86_400_000) + 1,
+    const startUtc = Date.UTC(
+      startDay.getFullYear(),
+      startDay.getMonth(),
+      startDay.getDate(),
     );
+    const todayUtc = Date.UTC(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    return Math.max(1, Math.floor((todayUtc - startUtc) / 86_400_000) + 1);
   }, [merchantCreatedAt, now]);
   const avgDayRevenue = allTimeNetRevenue / merchantActiveDays;
   const selectedMonthLabel =
@@ -865,7 +862,7 @@ function MerchantDashboardInner() {
                   </span>
                 </div>
                 <p className="mt-2 text-xl font-extrabold text-white">
-                  {monthReturns.length}
+                  {returnSummary?.requests ?? 0}
                 </p>
               </div>
               <div className="rounded-xl border border-gray-600 bg-white/[0.03] p-3.5">
@@ -876,7 +873,7 @@ function MerchantDashboardInner() {
                   </span>
                 </div>
                 <p className="mt-2 text-xl font-extrabold text-white">
-                  {monthApprovedReturns.length}
+                  {returnSummary?.approved ?? 0}
                 </p>
               </div>
               <div className="rounded-xl border border-gray-600 bg-white/[0.03] p-3.5">

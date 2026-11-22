@@ -7,7 +7,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, ChevronDown, ImagePlus, Loader2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ImagePlus,
+  Loader2,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -55,9 +62,7 @@ function VideoEvidenceTile({ url }: { url: string }) {
         muted
         playsInline
         preload="metadata"
-        onLoadedMetadata={(event) =>
-          setDuration(event.currentTarget.duration)
-        }
+        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
         className="pointer-events-none h-full w-full object-cover"
       >
         <track kind="captions" />
@@ -101,6 +106,16 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
+  }, [reasonOpen]);
+
+  useEffect(() => {
+    if (!reasonOpen) return;
+    const options =
+      reasonRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+    const selected = reasonRef.current?.querySelector<HTMLButtonElement>(
+      '[role="option"][aria-selected="true"]',
+    );
+    (selected ?? options?.[0])?.focus();
   }, [reasonOpen]);
 
   const { data: order, isLoading } = useQuery({
@@ -337,8 +352,8 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
                       {item.productName ?? item.skuId}
                     </p>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")} &times;{" "}
-                      {item.qty}
+                      {formatCurrency(item.unitPrice, order?.currency ?? "VND")}{" "}
+                      &times; {item.qty}
                       {item.variantLabel ? ` · ${item.variantLabel}` : ""}
                     </p>
                   </div>
@@ -372,6 +387,17 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
               disabled={!canReturn || submitting}
               aria-expanded={reasonOpen}
               aria-haspopup="listbox"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  setReasonOpen(false);
+                } else if (
+                  event.key === "ArrowDown" ||
+                  event.key === "ArrowUp"
+                ) {
+                  event.preventDefault();
+                  setReasonOpen(true);
+                }
+              }}
               className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-400 bg-white px-3.5 py-2.5 text-left text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-gray-50"
             >
               <span className={reasonType ? "text-gray-900" : "text-gray-400"}>
@@ -389,7 +415,36 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
             {reasonOpen && (
               <div
                 role="listbox"
+                tabIndex={-1}
                 className="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"
+                onKeyDown={(event) => {
+                  const options = Array.from(
+                    reasonRef.current?.querySelectorAll<HTMLButtonElement>(
+                      '[role="option"]',
+                    ) ?? [],
+                  );
+                  const index = options.indexOf(
+                    document.activeElement as HTMLButtonElement,
+                  );
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    setReasonOpen(false);
+                  } else if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    options[(index + 1) % options.length]?.focus();
+                  } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    options[
+                      (index - 1 + options.length) % options.length
+                    ]?.focus();
+                  } else if (event.key === "Home") {
+                    event.preventDefault();
+                    options[0]?.focus();
+                  } else if (event.key === "End") {
+                    event.preventDefault();
+                    options[options.length - 1]?.focus();
+                  }
+                }}
               >
                 {RETURN_REASON_TYPES.map((type) => {
                   const active = reasonType === type;
@@ -427,7 +482,9 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
             )}
           </div>
           {fieldErrors.reasonType && (
-            <p className="mt-1 text-xs text-red-600">{fieldErrors.reasonType}</p>
+            <p className="mt-1 text-xs text-red-600">
+              {fieldErrors.reasonType}
+            </p>
           )}
         </div>
 
@@ -506,12 +563,13 @@ function ReturnRequestInner({ orderId }: { orderId: string }) {
                     )}
                     <button
                       type="button"
+                      disabled={submitting}
                       onClick={() =>
                         setEvidenceUrls((urls) =>
                           urls.filter((_, itemIndex) => itemIndex !== index),
                         )
                       }
-                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-gray-400 bg-white/95 shadow-sm hover:bg-gray-50"
+                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-gray-400 bg-white/95 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={t("common.deleteImage")}
                     >
                       <X size={14} />

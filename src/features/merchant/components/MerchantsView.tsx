@@ -59,10 +59,7 @@ function CountUp({
     frame = window.requestAnimationFrame(tick);
     // Background tabs pause requestAnimationFrame; make sure the final value
     // still lands even if the counter never paints a frame.
-    const settle = window.setTimeout(
-      () => setDisplay(value),
-      duration + 120,
-    );
+    const settle = window.setTimeout(() => setDisplay(value), duration + 120);
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -157,7 +154,7 @@ export default function MerchantsPage() {
         label:
           key === "unknown"
             ? t("merchants.otherProvince")
-            : provinceNameByCode.get(key) ?? cleanProvinceName(key),
+            : (provinceNameByCode.get(key) ?? cleanProvinceName(key)),
       }))
       .sort((a, b) => a.label.localeCompare(b.label, locale));
   }, [merchants, provinceNameByCode, t, locale]);
@@ -204,7 +201,7 @@ export default function MerchantsPage() {
           </h1>
         </div>
 
-        <section className="relative">
+        <section className="relative overflow-hidden">
           <div className="grid items-center gap-4 md:grid-cols-[1.15fr_0.85fr]">
             <div className="relative h-[340px] w-full sm:h-[460px] md:h-[620px]">
               <Image
@@ -425,65 +422,73 @@ export default function MerchantsPage() {
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {visibleMerchants.map((merchant) => {
-              const initial = merchant.name?.charAt(0).toUpperCase() ?? "M";
+                const initial = merchant.name?.charAt(0).toUpperCase() ?? "M";
 
-              const formattedDate = merchant.createdAt
-                ? formatMonthYear(merchant.createdAt, locale)
-                : t("merchants.yearsAgo");
+                const formattedDate = merchant.createdAt
+                  ? formatMonthYear(merchant.createdAt, locale)
+                  : t("merchants.yearsAgo");
 
-              const displayProvince = merchant.provinceCode
-                ? provinceNameByCode.get(merchant.provinceCode)
-                : merchant.provinceName
-                  ? cleanProvinceName(merchant.provinceName)
-                  : undefined;
+                const displayProvince = merchant.provinceCode
+                  ? provinceNameByCode.get(merchant.provinceCode)
+                  : merchant.provinceName
+                    ? cleanProvinceName(merchant.provinceName)
+                    : undefined;
 
-              return (
-                <Link
-                  key={merchant.merchantId}
-                  href={`/merchants/${merchant.merchantId}`}
-                  className="group flex cursor-pointer flex-col justify-between rounded-lg border border-gray-400 bg-white p-4 transition-colors hover:border-gray-950"
-                >
-                  <div>
-                    <div className="flex items-start gap-3">
-                      {merchant.logoUrl ? (
-                        <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-gray-200">
-                          <Image
-                            src={merchant.logoUrl}
-                            alt={merchant.name}
-                            fill
-                            sizes="60px"
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-gray-950 text-lg font-bold text-white">
-                          {initial}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <h2 className="truncate text-base font-bold text-gray-900 transition-colors group-hover:text-black">
-                          {merchant.name}
-                        </h2>
-                        {displayProvince && (
-                          <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
-                            <MapPin size={11} className="shrink-0 text-red-500" />
-                            <span className="truncate">{displayProvince}</span>
-                          </p>
+                return (
+                  <Link
+                    key={merchant.merchantId}
+                    href={`/merchants/${merchant.merchantId}`}
+                    className="group flex cursor-pointer flex-col justify-between rounded-lg border border-gray-400 bg-white p-4 transition-colors hover:border-gray-950"
+                  >
+                    <div>
+                      <div className="flex items-start gap-3">
+                        {merchant.logoUrl ? (
+                          <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-gray-200">
+                            <Image
+                              src={merchant.logoUrl}
+                              alt={merchant.name}
+                              fill
+                              sizes="60px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-gray-950 text-lg font-bold text-white">
+                            {initial}
+                          </div>
                         )}
-                        <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
-                          <Calendar size={11} className="shrink-0 text-amber-500" />
-                          {formattedDate}
-                        </p>
+                        <div className="min-w-0">
+                          <h2 className="truncate text-base font-bold text-gray-900 transition-colors group-hover:text-black">
+                            {merchant.name}
+                          </h2>
+                          {displayProvince && (
+                            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
+                              <MapPin
+                                size={11}
+                                className="shrink-0 text-red-500"
+                              />
+                              <span className="truncate">
+                                {displayProvince}
+                              </span>
+                            </p>
+                          )}
+                          <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-gray-500">
+                            <Calendar
+                              size={11}
+                              className="shrink-0 text-amber-500"
+                            />
+                            {formattedDate}
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-gray-600">
-                      {merchant.description || t("merchants.noDescription")}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+                      <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-gray-600">
+                        {merchant.description || t("merchants.noDescription")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
 
             <Pagination

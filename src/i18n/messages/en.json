@@ -2344,6 +2344,7 @@
     "orders": {
       "title": "Order management",
       "resultCount": "{count} orders",
+      "btnReject": "Reject",
       "tabs": {
         "all": "All",
         "placed": "Awaiting confirmation",

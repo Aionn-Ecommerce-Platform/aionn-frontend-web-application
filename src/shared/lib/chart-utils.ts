@@ -35,10 +35,16 @@ export function smoothPath(points: { x: number; y: number }[]) {
       tangents[i + 1] = 0;
       continue;
     }
-    const left = tangents[i]! / slope;
-    const right = tangents[i + 1]! / slope;
-    if (left < 0) tangents[i] = 0;
-    if (right < 0) tangents[i + 1] = 0;
+    let left = tangents[i]! / slope;
+    let right = tangents[i + 1]! / slope;
+    if (left < 0) {
+      tangents[i] = 0;
+      left = 0;
+    }
+    if (right < 0) {
+      tangents[i + 1] = 0;
+      right = 0;
+    }
     const magnitude = left * left + right * right;
     if (magnitude > 9) {
       const scale = 3 / Math.sqrt(magnitude);

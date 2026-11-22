@@ -194,6 +194,18 @@ export const orderReturnService = {
       headers: { "X-Merchant-Id": merchant.merchantId },
     });
   },
+
+  async summaryForMerchant(params: { from?: string; to?: string } = {}) {
+    const merchant = await merchantService.getMine();
+    return api.get<{
+      requests: number;
+      approved: number;
+      refundTotal: number;
+    }>("/ordering/returns/merchant/summary", {
+      query: params,
+      headers: { "X-Merchant-Id": merchant.merchantId },
+    });
+  },
 };
 
 export const adminOrderReturnService = {

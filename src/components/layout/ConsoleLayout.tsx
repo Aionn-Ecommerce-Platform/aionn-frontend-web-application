@@ -252,7 +252,11 @@ export default function ConsoleLayout({
     !["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
       (base) => pathname === base || pathname.startsWith(`${base}/`),
     );
-  const { data: merchantContext, isError: merchantContextFailed } = useQuery({
+  const {
+    data: merchantContext,
+    isError: merchantContextFailed,
+    refetch: retryMerchantContext,
+  } = useQuery({
     queryKey: ["merchant", "me"],
     queryFn: () => merchantService.getMine(),
     enabled: isMerchantConsole && isAuthenticated,
@@ -345,7 +349,27 @@ export default function ConsoleLayout({
               (isLegacyMerchantPage || kind === "admin") && "console-dark",
             )}
           >
-            {awaitingMerchantContext ? <PageLoading /> : children}
+            {isMerchantConsole && isAuthenticated && merchantContextFailed ? (
+              <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-6 py-12 text-center">
+                <p className="text-base font-semibold text-rose-300">
+                  {t("common.error")}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {t("common.tryAgain")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void retryMerchantContext()}
+                  className="mt-5 rounded-xl border border-gray-500 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+                >
+                  {t("common.retry")}
+                </button>
+              </div>
+            ) : awaitingMerchantContext ? (
+              <PageLoading />
+            ) : (
+              children
+            )}
           </section>
         </div>
       </div>

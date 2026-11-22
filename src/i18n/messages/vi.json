@@ -2344,6 +2344,7 @@
     "orders": {
       "title": "Quản lý đơn hàng",
       "resultCount": "{count} đơn",
+      "btnReject": "Từ chối",
       "tabs": {
         "all": "Tất cả",
         "placed": "Chờ xác nhận",

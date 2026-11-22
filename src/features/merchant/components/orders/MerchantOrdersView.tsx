@@ -304,6 +304,7 @@ function MerchantOrdersInner() {
                                 <button
                                   type="button"
                                   disabled={isPending}
+                                  aria-label={t("merchant.orders.btnReject")}
                                   onClick={() =>
                                     rejectMutation.mutate(order.orderId)
                                   }
