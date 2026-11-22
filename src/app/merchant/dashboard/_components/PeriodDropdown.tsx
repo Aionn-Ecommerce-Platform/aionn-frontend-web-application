@@ -88,7 +88,7 @@ export function PeriodDropdown<T extends string | number>({
               top: menuPosition.top,
               right: menuPosition.right,
             }}
-            className={`z-[100] max-h-48 ${width} overflow-y-auto rounded-xl border border-gray-500 bg-[#191534] py-1 shadow-2xl shadow-black/50`}
+            className={`z-[100] max-h-48 ${width} overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/50`}
           >
             {options.map((opt) => {
               const active = opt.value === value;

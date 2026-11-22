@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-inter:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-brand-logo: "Dancing Script", cursive;
   --foreground: #0f172a;
   --background: #ffffff;
@@ -15,6 +16,9 @@
   --shop: #2673dd;
   --sale: #d0011b;
   --merchant-surface: #333246;
+  --console-panel: #100d24;
+  --console-panel-raised: #191534;
+  --console-popover: #1b1735;
   --surface-muted: #f8fafc;
   --border-subtle: #e2e8f0;
   --status-success: #059669;
@@ -35,15 +39,20 @@
   --color-shop: var(--shop);
   --color-sale: var(--sale);
   --color-merchant-surface: var(--merchant-surface);
+  --color-console-panel: var(--console-panel);
+  --color-console-panel-raised: var(--console-panel-raised);
+  --color-console-popover: var(--console-popover);
   --color-surface-muted: var(--surface-muted);
   --color-border-subtle: var(--border-subtle);
   --color-status-success: var(--status-success);
   --color-status-warning: var(--status-warning);
   --color-status-danger: var(--status-danger);
   --font-sans:
-    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
   --font-display:
-    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    sans-serif;
   --font-brand: var(--font-brand-logo), cursive;
 }
 
@@ -230,7 +239,8 @@ a {
 
 /* Lightning & Flash Sale Electrical Effects */
 @keyframes lightning-strike {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
     opacity: 1;
@@ -278,11 +288,16 @@ a {
 }
 
 @keyframes pulse-lightning-glow {
-  0%, 100% {
-    box-shadow: 0 4px 15px -2px rgba(239, 68, 68, 0.5), 0 0 20px 0 rgba(249, 115, 22, 0.4);
+  0%,
+  100% {
+    box-shadow:
+      0 4px 15px -2px rgba(239, 68, 68, 0.5),
+      0 0 20px 0 rgba(249, 115, 22, 0.4);
   }
   50% {
-    box-shadow: 0 4px 25px 4px rgba(239, 68, 68, 0.8), 0 0 35px 8px rgba(251, 191, 36, 0.6);
+    box-shadow:
+      0 4px 25px 4px rgba(239, 68, 68, 0.8),
+      0 0 35px 8px rgba(251, 191, 36, 0.6);
   }
 }
 
@@ -306,7 +321,6 @@ a {
     animation: none;
   }
 }
-
 
 /* Dark shell for legacy merchant console pages */
 .console-content.console-dark {

@@ -296,7 +296,7 @@ function MerchantDashboardInner() {
       fullValue: formatCurrency(allTimeNetRevenue),
       icon: Wallet,
       cardClass:
-        "from-[#7c5cff] via-[#8b5cf6] to-[#b18cff] shadow-purple-900/40",
+        "from-violet-500 via-violet-500 to-violet-300 shadow-purple-900/40",
       spark: chartTrend.map((point) => point.revenue),
     },
     {
@@ -309,14 +309,14 @@ function MerchantDashboardInner() {
       ),
       fullValue: formatCurrency(avgDayRevenue),
       icon: TrendingUp,
-      cardClass: "from-[#12b8d0] via-[#22c7d8] to-[#4dd0e1] shadow-cyan-900/40",
+      cardClass: "from-cyan-500 via-cyan-400 to-cyan-300 shadow-cyan-900/40",
       spark: chartTrend.map((point) => point.revenue),
     },
     {
       label: t("merchant.dashboard.statProducts"),
       value: String(productsCount),
       icon: Package,
-      cardClass: "from-[#ff7b8e] via-[#ff8e95] to-[#ffb08a] shadow-rose-900/40",
+      cardClass: "from-rose-500 via-rose-400 to-orange-300 shadow-rose-900/40",
       spark: statusRows.map((row) => row.count),
     },
     {
@@ -324,7 +324,7 @@ function MerchantDashboardInner() {
       value: String(customers),
       icon: Users,
       cardClass:
-        "from-[#9d7bff] via-[#b48cff] to-[#d8b4fe] shadow-indigo-900/40",
+        "from-violet-400 via-violet-400 to-purple-300 shadow-indigo-900/40",
       spark: chartTrend.map((point) => point.orders),
     },
   ];
@@ -438,7 +438,7 @@ function MerchantDashboardInner() {
   );
 
   return (
-    <div className="relative rounded-2xl bg-[#100d24] p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+    <div className="relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
         <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
@@ -812,7 +812,7 @@ function MerchantDashboardInner() {
 
               {hoveredPoint ? (
                 <div
-                  className="pointer-events-none absolute z-20 whitespace-nowrap rounded-xl border border-white/15 bg-[#1b1735]/95 px-3 py-2 text-xs shadow-2xl shadow-black/30 backdrop-blur"
+                  className="pointer-events-none absolute z-20 whitespace-nowrap rounded-xl border border-white/15 bg-console-popover/95 px-3 py-2 text-xs shadow-2xl shadow-black/30 backdrop-blur"
                   style={{
                     left: `${hoveredLeft}%`,
                     top: `${(hoveredPoint.y / chart.H) * 100}%`,

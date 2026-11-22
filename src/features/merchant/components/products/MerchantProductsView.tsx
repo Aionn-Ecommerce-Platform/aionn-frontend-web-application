@@ -173,7 +173,7 @@ function MerchantProductsInner() {
   ];
 
   return (
-    <div className="relative rounded-2xl bg-[#100d24] p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+    <div className="relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
         <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
@@ -337,7 +337,7 @@ function MerchantProductsInner() {
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 20vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#100d24]/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-console-panel/80 via-transparent to-transparent" />
                     <div className="absolute left-2.5 top-2.5">
                       {cfg ? (
                         <Badge

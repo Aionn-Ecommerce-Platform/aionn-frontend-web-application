@@ -101,7 +101,7 @@ function MerchantOrdersInner() {
   });
 
   return (
-    <div className="relative rounded-2xl bg-[#100d24] p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+    <div className="relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
         <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
@@ -169,7 +169,7 @@ function MerchantOrdersInner() {
               setDay(0);
             }}
             aria-label={t("merchant.orders.filterYearAll")}
-            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 [&>option]:bg-[#191534] [&>option]:text-white"
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 [&>option]:bg-console-panel-raised [&>option]:text-white"
           >
             <option value={0}>{t("merchant.orders.filterYearAll")}</option>
             {years.map((value) => (
@@ -186,7 +186,7 @@ function MerchantOrdersInner() {
               setDay(0);
             }}
             aria-label={t("merchant.orders.filterMonthAll")}
-            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-[#191534] [&>option]:text-white"
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-console-panel-raised [&>option]:text-white"
           >
             <option value={0}>{t("merchant.orders.filterMonthAll")}</option>
             {Array.from({ length: 12 }, (_, index) => (
@@ -200,7 +200,7 @@ function MerchantOrdersInner() {
             disabled={!month}
             onChange={(event) => setDay(Number(event.target.value))}
             aria-label={t("merchant.orders.filterDayAll")}
-            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-[#191534] [&>option]:text-white"
+            className="rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-sm text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40 [&>option]:bg-console-panel-raised [&>option]:text-white"
           >
             <option value={0}>{t("merchant.orders.filterDayAll")}</option>
             {Array.from({ length: daysInMonth }, (_, index) => (

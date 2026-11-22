@@ -61,7 +61,7 @@ export function StatusDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-500 bg-[#191534] py-1 shadow-2xl shadow-black/40">
+        <div className="absolute left-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
           <DropdownItem
             label={t("merchant.productList.statusAll")}
             active={!value}
@@ -122,7 +122,7 @@ export function CategoryDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 z-50 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-gray-500 bg-[#191534] py-1 shadow-2xl shadow-black/40">
+        <div className="absolute left-0 z-50 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
           <DropdownItem
             label={t("merchant.productList.categoryAll")}
             active={!value}
@@ -208,7 +208,7 @@ export function PricePopover({
       </button>
 
       {open && (
-        <div className="absolute left-0 z-50 mt-2 w-64 rounded-xl border border-gray-500 bg-[#191534] p-3 shadow-2xl shadow-black/40">
+        <div className="absolute left-0 z-50 mt-2 w-64 rounded-xl border border-gray-500 bg-console-panel-raised p-3 shadow-2xl shadow-black/40">
           <div className="space-y-2">
             <input
               type="number"
