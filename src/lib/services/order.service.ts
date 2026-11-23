@@ -34,25 +34,57 @@ export const orderService = {
 
   changeShippingInfo(
     orderId: string,
-    body: { newAddress: ShippingAddressSnapshot; newShippingFee: number },
+    body: { newAddress: ShippingAddressSnapshot },
   ) {
     return api.put<Order>(`/ordering/orders/${orderId}/shipping-info`, body);
+  },
+  changeShippingAddress(
+    orderId: string,
+    body: { newAddress: ShippingAddressSnapshot },
+  ) {
+    return api.put<Order>(
+      `/ordering/orders/${orderId}/merchant/shipping-address`,
+      body,
+    );
   },
 
   get(orderId: string) {
     return api.get<Order>(`/ordering/orders/${orderId}`);
   },
 
-  listMine(params: { status?: string; limit?: number } = {}) {
-    return api.get<Order[]>("/ordering/orders", {
-      query: { status: params.status, limit: params.limit ?? 20 },
+  listMine(params: { status?: string; page?: number; limit?: number } = {}) {
+    return api.page<Order>("/ordering/orders", {
+      query: {
+        status: params.status,
+        page: params.page ?? 0,
+        limit: params.limit ?? 20,
+      },
     });
   },
 
-  listForMerchant(params: { status?: string; limit?: number } = {}) {
-    return api.get<Order[]>("/ordering/orders/merchant", {
-      query: { status: params.status, limit: params.limit ?? 20 },
+  listForMerchant(
+    params: {
+      status?: string;
+      search?: string;
+      from?: string;
+      to?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
+    return api.page<Order>("/ordering/orders/merchant", {
+      query: {
+        status: params.status,
+        search: params.search,
+        from: params.from,
+        to: params.to,
+        page: params.page ?? 0,
+        limit: params.limit ?? 20,
+      },
     });
+  },
+  merchantOrderStats() {
+    return api.get<Record<string, number>>("/ordering/orders/merchant/stats");
   },
 
   merchantAnalytics(params: { from?: string; to?: string } = {}) {
@@ -187,10 +219,30 @@ export const orderReturnService = {
     });
   },
 
-  async listForMerchant(limit = 20) {
+  async listForMerchant(
+    params: {
+      status?: string;
+      reasonType?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
     const merchant = await merchantService.getMine();
-    return api.get<OrderReturn[]>("/ordering/returns/merchant", {
-      query: { limit },
+    return api.page<OrderReturn>("/ordering/returns/merchant", {
+      query: {
+        status: params.status,
+        reasonType: params.reasonType,
+        search: params.search,
+        page: params.page ?? 0,
+        limit: params.limit ?? 20,
+      },
+      headers: { "X-Merchant-Id": merchant.merchantId },
+    });
+  },
+  async merchantReturnStats() {
+    const merchant = await merchantService.getMine();
+    return api.get<Record<string, number>>("/ordering/returns/merchant/stats", {
       headers: { "X-Merchant-Id": merchant.merchantId },
     });
   },

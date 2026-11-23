@@ -4,7 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Suspense, use, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQueries, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import {
+  useQueries,
+  useQuery,
+  useQueryClient,
+  useMutation,
+} from "@tanstack/react-query";
 import {
   Package,
   Truck,
@@ -22,6 +27,7 @@ import toast from "react-hot-toast";
 import { Button, Badge, EmptyState, ConfirmDialog } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MemberPageLayout from "@/components/layout/MemberPageLayout";
+import { getProductCoverImage } from "@/shared/lib/media";
 import {
   orderService,
   orderReturnService,
@@ -43,9 +49,7 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { useMerchantNameMap, useTranslation } from "@/hooks";
 import OrderShipmentPanel from "./OrderShipmentPanel";
 import RateOrderItem from "./RateOrderItem";
-import RateOrderDialog, {
-  type OrderSkuLookup,
-} from "../list/RateOrderDialog";
+import RateOrderDialog, { type OrderSkuLookup } from "../list/RateOrderDialog";
 
 const STATUS_FLOW: Array<{
   key: string;
@@ -117,8 +121,7 @@ function OrderDetailInner({ id }: { id: string }) {
   const orderReturns = useMemo(
     () =>
       (myReturns ?? []).filter(
-        (item) =>
-          item.orderId === order?.orderId && item.status !== "REJECTED",
+        (item) => item.orderId === order?.orderId && item.status !== "REJECTED",
       ),
     [myReturns, order?.orderId],
   );
@@ -418,9 +421,7 @@ function OrderDetailInner({ id }: { id: string }) {
             {t("orders.orderDetails")}
           </h1>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2 text-sm sm:text-base text-gray-950">
-            <span className="font-medium">
-              {t("orders.orderId")}:
-            </span>
+            <span className="font-medium">{t("orders.orderId")}:</span>
             <span className="font-mono font-semibold text-gray-950">
               {order.orderId}
             </span>
@@ -478,9 +479,7 @@ function OrderDetailInner({ id }: { id: string }) {
                         ? "bg-gray-950 text-white shadow-xs"
                         : "bg-gray-100 text-gray-400"
                     } ${
-                      isRateStep && canOpenRate
-                        ? "group-hover:scale-105"
-                        : ""
+                      isRateStep && canOpenRate ? "group-hover:scale-105" : ""
                     }`}
                   >
                     <Icon size={18} />
@@ -527,7 +526,9 @@ function OrderDetailInner({ id }: { id: string }) {
         </div>
       )}
 
-      {shipment && <OrderShipmentPanel shipment={shipment} deliveryInfo={deliveryInfo} />}
+      {shipment && (
+        <OrderShipmentPanel shipment={shipment} deliveryInfo={deliveryInfo} />
+      )}
 
       <div className="space-y-6">
         <div className="bg-white rounded-2xl border border-gray-400 p-6 shadow-xs">
@@ -549,109 +550,110 @@ function OrderDetailInner({ id }: { id: string }) {
           </p>
           <div className="space-y-3">
             <div className="divide-y divide-gray-100">
-            {order.items.map((item) => {
-              const lookup = skuLookup.get(item.skuId);
-              const product = lookup?.product;
-              const variant = lookup?.variant;
-              const variantLabel =
-                item.variantLabel ?? formatVariantLabel(variant?.attributeValues);
-              const image = item.imageUrl ?? product?.imageList?.[0];
-              const displayName = item.productName ?? product?.name;
-              const originalUnit = item.originalUnitPrice;
-              const hasDiscount =
-                originalUnit != null && originalUnit > item.unitPrice;
-              const lineTotal = item.unitPrice * item.qty;
-              const originalLineTotal = hasDiscount
-                ? originalUnit * item.qty
-                : null;
-              return (
-                <div key={item.skuId} className="flex gap-3.5 py-2.5">
-                  <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-400 flex-shrink-0 overflow-hidden relative p-1">
-                    {image ? (
-                      <Image
-                        src={image}
-                        alt={displayName ?? item.skuId}
-                        fill
-                        sizes="64px"
-                        className="object-contain p-1"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <Package size={20} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {product ? (
-                      <Link
-                        href={productPath(product)}
-                        className="text-base font-semibold text-gray-900 hover:text-brand line-clamp-2 transition-colors"
+              {order.items.map((item) => {
+                const lookup = skuLookup.get(item.skuId);
+                const product = lookup?.product;
+                const variant = lookup?.variant;
+                const variantLabel =
+                  item.variantLabel ??
+                  formatVariantLabel(variant?.attributeValues);
+                const image =
+                  item.imageUrl ??
+                  (product
+                    ? getProductCoverImage(product.imageList)
+                    : undefined);
+                const displayName = item.productName ?? product?.name;
+                const originalUnit = item.originalUnitPrice;
+                const hasDiscount =
+                  originalUnit != null && originalUnit > item.unitPrice;
+                const lineTotal = item.unitPrice * item.qty;
+                const originalLineTotal = hasDiscount
+                  ? originalUnit * item.qty
+                  : null;
+                return (
+                  <div key={item.skuId} className="flex gap-3.5 py-2.5">
+                    <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-400 flex-shrink-0 overflow-hidden relative p-1">
+                      {image ? (
+                        <Image
+                          src={image}
+                          alt={displayName ?? item.skuId}
+                          fill
+                          sizes="64px"
+                          className="object-contain p-1"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <Package size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {product ? (
+                        <Link
+                          href={productPath(product)}
+                          className="text-base font-semibold text-gray-900 hover:text-brand line-clamp-2 transition-colors"
+                        >
+                          {displayName}
+                        </Link>
+                      ) : (
+                        <p className="text-base font-semibold text-gray-900 truncate">
+                          {displayName ?? `SKU: ${item.skuId}`}
+                        </p>
+                      )}
+                      {variantLabel && (
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {variantLabel}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-400 font-mono mt-0.5">
+                        x{item.qty}
+                      </p>
+                      {product && (
+                        <RateOrderItem
+                          orderId={order.orderId}
+                          skuId={item.skuId}
+                          productId={product.productId}
+                          productName={displayName ?? product.name}
+                        />
+                      )}
+                    </div>
+                    <div className="ml-3 flex shrink-0 items-baseline justify-end gap-2 whitespace-nowrap">
+                      {originalLineTotal != null && (
+                        <span className="text-sm text-gray-400 line-through">
+                          {formatCurrency(originalLineTotal, order.currency)}
+                        </span>
+                      )}
+                      <span
+                        className={`text-base font-extrabold ${
+                          hasDiscount
+                            ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
+                            : "text-gray-950"
+                        }`}
                       >
-                        {displayName}
-                      </Link>
-                    ) : (
-                      <p className="text-base font-semibold text-gray-900 truncate">
-                        {displayName ?? `SKU: ${item.skuId}`}
-                      </p>
-                    )}
-                    {variantLabel && (
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        {variantLabel}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-400 font-mono mt-0.5">x{item.qty}</p>
-                    {product && (
-                      <RateOrderItem
-                        orderId={order.orderId}
-                        skuId={item.skuId}
-                        productId={product.productId}
-                        productName={displayName ?? product.name}
-                      />
-                    )}
-                  </div>
-                  <div className="ml-3 flex shrink-0 items-baseline justify-end gap-2 whitespace-nowrap">
-                    {originalLineTotal != null && (
-                      <span className="text-sm text-gray-400 line-through">
-                        {formatCurrency(originalLineTotal, order.currency)}
+                        {formatCurrency(lineTotal, order.currency)}
                       </span>
-                    )}
-                    <span
-                      className={`text-base font-extrabold ${
-                        hasDiscount
-                          ? "bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 bg-clip-text text-transparent"
-                          : "text-gray-950"
-                      }`}
-                    >
-                      {formatCurrency(lineTotal, order.currency)}
-                    </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
             <div className="mt-2 divide-y divide-gray-300 text-sm sm:text-base">
               <div className="flex items-center justify-between py-3">
-                <span className="text-gray-900">
-                  {t("cart.subtotal")}
-                </span>
+                <span className="text-gray-900">{t("cart.subtotal")}</span>
                 <span className="text-gray-900">
                   {formatCurrency(subtotal, order.currency)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="text-gray-900">
-                  {t("cart.shippingFee")}
-                </span>
+                <span className="text-gray-900">{t("cart.shippingFee")}</span>
                 <span className="text-gray-900">
                   {formatCurrency(order.shippingFee, order.currency)}
                 </span>
               </div>
               {discount > 0 && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="text-gray-900">
-                    {t("cart.discount")}
-                  </span>
+                  <span className="text-gray-900">{t("cart.discount")}</span>
                   <span className="text-gray-900">
                     -{formatCurrency(discount, order.currency)}
                   </span>
@@ -691,72 +693,78 @@ function OrderDetailInner({ id }: { id: string }) {
 
         <div className="space-y-6">
           {!shipment && (
-          <div className="bg-white rounded-2xl border border-gray-400 p-6 shadow-xs">
-            <h3 className="font-bold text-gray-950 mb-3 flex items-center gap-2 text-base">
-              <span className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
-                <MapPin size={24} />
-              </span>
-              {t("orders.deliverySection")}
-            </h3>
-            {deliveryInfo.hasInfo ? (
-              <div className="text-base space-y-2">
-                {deliveryInfo.recipientName && (
-                  <p className="text-gray-700">
-                    <span className="font-medium text-gray-500">
-                      {t("orders.recipientName")}:
-                    </span>{" "}
-                    <span className="font-semibold text-gray-900">{deliveryInfo.recipientName}</span>
-                  </p>
-                )}
-                {deliveryInfo.recipientPhone && (
-                  <p className="text-gray-700">
-                    <span className="font-medium text-gray-500">
-                      {t("orders.recipientPhone")}:
-                    </span>{" "}
-                    <span className="font-semibold text-gray-900 font-mono">{deliveryInfo.recipientPhone}</span>
-                  </p>
-                )}
-                {deliveryInfo.addressLine && (
-                  <div className="flex items-start gap-2 text-gray-700">
-                    <p>
+            <div className="bg-white rounded-2xl border border-gray-400 p-6 shadow-xs">
+              <h3 className="font-bold text-gray-950 mb-3 flex items-center gap-2 text-base">
+                <span className="flex h-10 w-10 items-center justify-center text-brand shrink-0">
+                  <MapPin size={24} />
+                </span>
+                {t("orders.deliverySection")}
+              </h3>
+              {deliveryInfo.hasInfo ? (
+                <div className="text-base space-y-2">
+                  {deliveryInfo.recipientName && (
+                    <p className="text-gray-700">
                       <span className="font-medium text-gray-500">
-                        {t("orders.recipientAddress")}:
+                        {t("orders.recipientName")}:
                       </span>{" "}
-                      <span className="font-semibold text-gray-900">{deliveryInfo.addressLine}</span>
+                      <span className="font-semibold text-gray-900">
+                        {deliveryInfo.recipientName}
+                      </span>
                     </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-start gap-2 text-base text-gray-600">
-                <MapPin
-                  size={16}
-                  className="text-gray-400 mt-0.5 flex-shrink-0"
-                />
-                <span>
-                  {order.addressId
-                    ? `${t("orders.addressHash")} #${order.addressId.slice(0, 8)}`
-                    : t("orders.noShippingAddress")}
-                </span>
-              </div>
-            )}
-            {order.note && (
-              <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-base text-amber-900">
-                <span className="font-semibold">
-                  {t("orders.deliveryNote")}:
-                </span>{" "}
-                {order.note}
-              </div>
-            )}
-            {order.shippingService && (
-              <p className="mt-2 text-sm text-gray-500">
-                {t("orders.shippingService")}:{" "}
-                <span className="font-semibold text-gray-700">
-                  {order.shippingService}
-                </span>
-              </p>
-            )}
-          </div>
+                  )}
+                  {deliveryInfo.recipientPhone && (
+                    <p className="text-gray-700">
+                      <span className="font-medium text-gray-500">
+                        {t("orders.recipientPhone")}:
+                      </span>{" "}
+                      <span className="font-semibold text-gray-900 font-mono">
+                        {deliveryInfo.recipientPhone}
+                      </span>
+                    </p>
+                  )}
+                  {deliveryInfo.addressLine && (
+                    <div className="flex items-start gap-2 text-gray-700">
+                      <p>
+                        <span className="font-medium text-gray-500">
+                          {t("orders.recipientAddress")}:
+                        </span>{" "}
+                        <span className="font-semibold text-gray-900">
+                          {deliveryInfo.addressLine}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-start gap-2 text-base text-gray-600">
+                  <MapPin
+                    size={16}
+                    className="text-gray-400 mt-0.5 flex-shrink-0"
+                  />
+                  <span>
+                    {order.addressId
+                      ? `${t("orders.addressHash")} #${order.addressId.slice(0, 8)}`
+                      : t("orders.noShippingAddress")}
+                  </span>
+                </div>
+              )}
+              {order.note && (
+                <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-base text-amber-900">
+                  <span className="font-semibold">
+                    {t("orders.deliveryNote")}:
+                  </span>{" "}
+                  {order.note}
+                </div>
+              )}
+              {order.shippingService && (
+                <p className="mt-2 text-sm text-gray-500">
+                  {t("orders.shippingService")}:{" "}
+                  <span className="font-semibold text-gray-700">
+                    {order.shippingService}
+                  </span>
+                </p>
+              )}
+            </div>
           )}
           {activeReturn && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">

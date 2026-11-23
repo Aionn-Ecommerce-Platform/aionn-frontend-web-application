@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Loader2, PackageX, RotateCcw } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Loader2,
+  PackageX,
+  RotateCcw,
+  Search,
+  XCircle,
+} from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
+import { Pagination } from "@/shared/ui";
 import { orderReturnService } from "@/lib/services";
 import {
   RETURN_REASON_TYPES,
@@ -15,7 +27,8 @@ import {
   ApproveModal,
   ReceiveModal,
   RejectModal,
-  ReturnCard,
+  ReturnDetailModal,
+  ReturnRow,
 } from "./ReturnParts";
 
 const TAB_KEYS = [
@@ -33,29 +46,268 @@ const TAB_MESSAGE_KEYS = {
   REJECTED: "rejected",
 } as const;
 
-function MerchantReturnsInner() {
+type ReturnTabKey = (typeof TAB_KEYS)[number];
+
+function ReturnStatusDropdown({
+  value,
+  counts,
+  onChange,
+}: {
+  value: ReturnTabKey;
+  counts: Record<ReturnTabKey, number>;
+  onChange: (value: ReturnTabKey) => void;
+}) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  return (
+    <div className="relative inline-block text-left" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+        aria-expanded={open}
+      >
+        <span className="text-slate-400">
+          {t("merchant.returns.statusFilterLabel")}:
+        </span>
+        <span>{t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[value]}`)}</span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
+          {TAB_KEYS.map((key) => {
+            const active = value === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  onChange(key);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "bg-purple-500/20 font-semibold text-purple-200"
+                    : "text-slate-300 hover:bg-white/5"
+                }`}
+              >
+                <span className="truncate">
+                  {t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`)}
+                </span>
+                <span className="flex shrink-0 items-center gap-1.5">
+                  <span
+                    className={active ? "text-purple-200" : "text-slate-500"}
+                  >
+                    ({counts[key] ?? 0})
+                  </span>
+                  {active && (
+                    <Check size={14} className="shrink-0 text-purple-300" />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReasonDropdown({
+  value,
+  onChange,
+}: {
+  value: "all" | ReturnReasonType;
+  onChange: (value: "all" | ReturnReasonType) => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  const options: Array<{ value: "all" | ReturnReasonType; label: string }> = [
+    { value: "all", label: t("orders.returns.allReasonTypes") },
+    ...RETURN_REASON_TYPES.map((type) => ({
+      value: type,
+      label: t(returnReasonLabelKey(type)),
+    })),
+  ];
+
+  return (
+    <div className="relative inline-block text-left" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+        aria-expanded={open}
+      >
+        <span className="text-slate-400">
+          {t("orders.returns.reasonType")}:
+        </span>
+        <span className="max-w-[180px] truncate">
+          {options.find((option) => option.value === value)?.label}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 z-50 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
+          {options.map((option) => {
+            const active = value === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "bg-purple-500/20 font-semibold text-purple-200"
+                    : "text-slate-300 hover:bg-white/5"
+                }`}
+              >
+                <span className="truncate">{option.label}</span>
+                {active && (
+                  <Check size={14} className="ml-2 shrink-0 text-purple-300" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MerchantReturnsInner() {
+  const { t, locale } = useTranslation();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<(typeof TAB_KEYS)[number]>("REQUESTED");
+  const [tab, setTab] = useState<ReturnTabKey>("REQUESTED");
   const [reasonFilter, setReasonFilter] = useState<"all" | ReturnReasonType>(
     "all",
   );
+  const [search, setSearch] = useState("");
   const [approving, setApproving] = useState<OrderReturn | null>(null);
   const [rejecting, setRejecting] = useState<OrderReturn | null>(null);
   const [receiving, setReceiving] = useState<OrderReturn | null>(null);
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["merchant-returns"],
-    queryFn: () => orderReturnService.listForMerchant(100),
+  const [detailItem, setDetailItem] = useState<OrderReturn | null>(null);
+  const PAGE_SIZE = 10;
+  const filterKey = [search, tab, reasonFilter].join("|");
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const page = pageState.key === filterKey ? pageState.page : 1;
+  const setPage = (next: number) =>
+    setPageState({ key: filterKey, page: next });
+
+  const {
+    data: returnPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["merchant-returns", page, tab, reasonFilter, search.trim()],
+    queryFn: () =>
+      orderReturnService.listForMerchant({
+        status: tab === "all" ? undefined : tab,
+        reasonType: reasonFilter === "all" ? undefined : reasonFilter,
+        search: search.trim() || undefined,
+        page: page - 1,
+        limit: PAGE_SIZE,
+      }),
     retry: false,
   });
-  const returns = data ?? [];
-  const filtered = returns.filter(
-    (item) =>
-      (tab === "all" || item.status === tab) &&
-      (reasonFilter === "all" || item.reasonType === reasonFilter),
+  const returns = returnPage?.content ?? [];
+  const totalPages = returnPage?.totalPages ?? 1;
+  const safePage = Math.min(page, totalPages);
+
+  const { data: statsData } = useQuery({
+    queryKey: ["merchant-return-stats"],
+    queryFn: () => orderReturnService.merchantReturnStats(),
+  });
+  const numberFormat = new Intl.NumberFormat(
+    locale === "vi" ? "vi-VN" : "en-US",
   );
-  const refresh = () =>
+  const countStatus = (...statuses: string[]) =>
+    statuses.reduce((sum, status) => sum + (statsData?.[status] ?? 0), 0);
+  const totalReturns = Object.values(statsData ?? {}).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+  const returnStats = [
+    {
+      label: t("merchant.returns.stats.total"),
+      value: numberFormat.format(totalReturns),
+      icon: RotateCcw,
+      iconClass: "text-rose-300",
+    },
+    {
+      label: t("merchant.returns.stats.requested"),
+      value: numberFormat.format(countStatus("REQUESTED")),
+      icon: Clock3,
+      iconClass: "text-amber-300",
+    },
+    {
+      label: t("merchant.returns.stats.approved"),
+      value: numberFormat.format(countStatus("APPROVED")),
+      icon: CheckCircle2,
+      iconClass: "text-emerald-300",
+    },
+    {
+      label: t("merchant.returns.stats.itemReceived"),
+      value: numberFormat.format(countStatus("ITEM_RECEIVED")),
+      icon: PackageX,
+      iconClass: "text-sky-300",
+    },
+    {
+      label: t("merchant.returns.stats.rejected"),
+      value: numberFormat.format(countStatus("REJECTED")),
+      icon: XCircle,
+      iconClass: "text-slate-300",
+    },
+  ];
+  const returnCounts: Record<ReturnTabKey, number> = {
+    all: totalReturns,
+    REQUESTED: statsData?.REQUESTED ?? 0,
+    APPROVED: statsData?.APPROVED ?? 0,
+    ITEM_RECEIVED: statsData?.ITEM_RECEIVED ?? 0,
+    REJECTED: statsData?.REJECTED ?? 0,
+  };
+  const hasFilters = Boolean(search || tab !== "all" || reasonFilter !== "all");
+  const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["merchant-returns"] });
+    queryClient.invalidateQueries({ queryKey: ["merchant-return-stats"] });
+  };
 
   let content: ReactNode;
   if (isError) {
@@ -83,36 +335,84 @@ function MerchantReturnsInner() {
         <Loader2 className="animate-spin text-purple-400" size={28} />
       </div>
     );
-  } else if (filtered.length === 0) {
+  } else if (returns.length === 0) {
     content = (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
           <PackageX size={34} />
         </div>
         <h3 className="text-lg font-semibold text-white">
-          {t("merchant.returns.emptyTitle")}
+          {t(
+            hasFilters
+              ? "merchant.returns.emptyFilteredTitle"
+              : "merchant.returns.emptyTitle",
+          )}
         </h3>
         <p className="mt-1 max-w-sm text-sm text-slate-400">
           {t(
-            tab === "REQUESTED"
-              ? "merchant.returns.emptyDescRequested"
-              : "merchant.returns.emptyDescOther",
+            hasFilters
+              ? "merchant.returns.emptyFilteredDesc"
+              : tab === "REQUESTED"
+                ? "merchant.returns.emptyDescRequested"
+                : "merchant.returns.emptyDescOther",
           )}
         </p>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch("");
+              setTab("all");
+              setReasonFilter("all");
+            }}
+            className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+          >
+            {t("merchant.returns.clearFilters")}
+          </button>
+        )}
       </div>
     );
   } else {
     content = (
-      <div className="space-y-3">
-        {filtered.map((item) => (
-          <ReturnCard
-            key={item.returnId}
-            rtn={item}
-            onApprove={() => setApproving(item)}
-            onReject={() => setRejecting(item)}
-            onReceive={() => setReceiving(item)}
-          />
-        ))}
+      <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colReturn")}
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colRequestedAt")}
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colReason")}
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colRefund")}
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colStatus")}
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("merchant.returns.colActions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {returns.map((item) => (
+                <ReturnRow
+                  key={item.returnId}
+                  rtn={item}
+                  onApprove={() => setApproving(item)}
+                  onReject={() => setRejecting(item)}
+                  onReceive={() => setReceiving(item)}
+                  onDetail={() => setDetailItem(item)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
@@ -133,7 +433,7 @@ function MerchantReturnsInner() {
       </div>
 
       <div className="relative">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div className="mb-6">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
               <RotateCcw size={22} className="text-rose-300" />
@@ -145,61 +445,62 @@ function MerchantReturnsInner() {
               {t("merchant.returns.subtitle")}
             </p>
           </div>
-          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300">
-            {t("merchant.orders.resultCount", { count: filtered.length })}
-          </span>
+        </div>
+
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {returnStats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="flex items-center gap-3 rounded-2xl border border-gray-600 bg-white/[0.04] p-3.5"
+              >
+                <Icon
+                  size={24}
+                  strokeWidth={2.2}
+                  className={`shrink-0 ${stat.iconClass}`}
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    {stat.label}
+                  </p>
+                  <p className="truncate text-xl font-extrabold text-white">
+                    {stat.value}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {!isError && (
           <div className="relative z-30 mb-5 flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
-              {TAB_KEYS.map((key) => {
-                const count =
-                  key === "all"
-                    ? returns.length
-                    : returns.filter((item) => item.status === key).length;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setTab(key)}
-                    className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-150 sm:text-sm ${
-                      tab === key
-                        ? "border-purple-500 bg-purple-600 text-white shadow-md shadow-purple-900/40"
-                        : "border-gray-600 bg-white/5 text-slate-300 hover:border-gray-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`)}
-                    {count > 0 && (
-                      <span
-                        className={`ml-1.5 text-xs ${
-                          tab === key ? "text-purple-100" : "text-slate-500"
-                        }`}
-                      >
-                        ({count})
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            <div className="relative min-w-64 flex-1">
+              <Search
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                size={17}
+              />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t("merchant.returns.searchPlaceholder")}
+                className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+              />
             </div>
-            <select
-              value={reasonFilter}
-              onChange={(e) =>
-                setReasonFilter(e.target.value as "all" | ReturnReasonType)
-              }
-              className="ml-auto shrink-0 rounded-xl border border-gray-500 bg-white/5 px-3 py-2.5 text-xs font-medium text-slate-200 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 [&>option]:bg-console-panel-raised [&>option]:text-white"
-              aria-label={t("orders.returns.reasonType")}
-            >
-              <option value="all">{t("orders.returns.allReasonTypes")}</option>
-              {RETURN_REASON_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {t(returnReasonLabelKey(type))}
-                </option>
-              ))}
-            </select>
+            <ReturnStatusDropdown
+              value={tab}
+              counts={returnCounts}
+              onChange={setTab}
+            />
+            <ReasonDropdown value={reasonFilter} onChange={setReasonFilter} />
           </div>
         )}
         {content}
+        <Pagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
 
       {approving && (
@@ -230,6 +531,12 @@ function MerchantReturnsInner() {
             refresh();
             setReceiving(null);
           }}
+        />
+      )}
+      {detailItem && (
+        <ReturnDetailModal
+          rtn={detailItem}
+          onClose={() => setDetailItem(null)}
         />
       )}
     </div>

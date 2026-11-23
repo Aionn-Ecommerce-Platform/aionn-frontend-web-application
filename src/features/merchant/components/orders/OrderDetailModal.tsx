@@ -1,12 +1,20 @@
 "use client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Package } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Modal } from "@/shared/ui";
-import { orderService, shippingService, paymentService } from "@/lib/services";
+import { AppImage, Badge, Button, Modal } from "@/shared/ui";
+import {
+  orderService,
+  shippingService,
+  paymentService,
+  productService,
+} from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
+import { getPaymentStatus } from "@/lib/domain/status/payment";
 import { getShipmentStatus } from "@/lib/domain/status/shipment";
+import { getProductCoverImage } from "@/shared/lib/media";
+import { formatVariantLabel } from "@/shared/lib/product-utils";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -27,13 +35,38 @@ export function OrderDetailModal({
     queryFn: () => shippingService.listByOrder(order.orderId),
   });
 
-  const { data: payments, isLoading: loadingPayments } = useQuery({
+  const {
+    data: payments,
+    isLoading: loadingPayments,
+    isError: paymentsError,
+  } = useQuery({
     queryKey: qk.payments(order.orderId),
     queryFn: () => paymentService.listByOrder(order.orderId),
   });
 
+  const orderSkuIds = order.items.map((item) => item.skuId);
+  const { data: orderProducts = [] } = useQuery({
+    queryKey: ["order-products", order.orderId, orderSkuIds.join(",")],
+    queryFn: () => productService.resolveBySkuIds(orderSkuIds),
+    enabled: orderSkuIds.length > 0,
+  });
+
+  const skuLookup = new Map<
+    string,
+    {
+      product: (typeof orderProducts)[number];
+      variant: (typeof orderProducts)[number]["variants"][number];
+    }
+  >();
+  orderProducts.forEach((product) => {
+    product.variants.forEach((variant) => {
+      skuLookup.set(variant.skuId, { product, variant });
+    });
+  });
+
   const shipment = shipments && shipments.length > 0 ? shipments[0] : null;
   const payment = payments && payments.length > 0 ? payments[0] : null;
+  const paymentStatus = payment ? getPaymentStatus(payment.status) : null;
   const createShipmentMutation = useMutation({
     mutationFn: () => {
       return shippingService.create({
@@ -52,7 +85,10 @@ export function OrderDetailModal({
           provinceCode: order.recipientProvinceCode ?? "",
           countryCode: order.recipientCountryCode ?? "VN",
         },
-        items: order.items.map((item) => ({ skuId: item.skuId, qty: item.qty })),
+        items: order.items.map((item) => ({
+          skuId: item.skuId,
+          qty: item.qty,
+        })),
         codAmount: order.totalAmount,
         shippingFee: order.shippingFee,
         currency: order.currency,
@@ -115,9 +151,9 @@ export function OrderDetailModal({
       isOpen={true}
       onClose={onClose}
       title={t("merchant.orders.detailTitle", {
-        id: order.orderId.slice(0, 8).toUpperCase(),
+        id: order.orderId,
       })}
-      size="md"
+      size="full"
     >
       <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -152,9 +188,12 @@ export function OrderDetailModal({
           </div>
           <div>
             <p className="text-gray-500">{t("merchant.orders.detailStatus")}</p>
-            <p className="font-semibold text-brand">
+            <Badge
+              variant={status?.variant ?? "default"}
+              className="!mt-1 !rounded-full !px-3 !py-1 !text-xs"
+            >
               {status ? t(status.labelKey) : order.status}
-            </p>
+            </Badge>
           </div>
         </div>
 
@@ -165,41 +204,86 @@ export function OrderDetailModal({
           </div>
         )}
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailProducts")}
           </h4>
           <div className="space-y-2">
-            {order.items.map((item) => (
-              <div
-                key={item.skuId}
-                className="flex justify-between text-sm py-1 border-b border-gray-50"
-              >
-                <span className="font-mono text-gray-700">
-                  {t("merchant.orders.detailSkuLine", {
-                    sku: item.skuId,
-                    qty: item.qty,
-                  })}
-                </span>
-                <span className="font-medium text-gray-900">
-                  {formatCurrency(item.unitPrice * item.qty, order.currency)}
-                </span>
-              </div>
-            ))}
+            <div className="divide-y divide-gray-200">
+              {order.items.map((item) => {
+                const lookup = skuLookup.get(item.skuId);
+                const product = lookup?.product;
+                const variant = lookup?.variant;
+                const variantLabel =
+                  item.variantLabel ??
+                  formatVariantLabel(variant?.attributeValues);
+                const image =
+                  item.imageUrl ??
+                  (product
+                    ? getProductCoverImage(product.imageList)
+                    : undefined);
+                const displayName =
+                  item.productName ?? product?.name ?? item.skuId;
+                return (
+                  <div
+                    key={item.skuId}
+                    className="flex gap-3 py-2 first:pt-0 last:pb-0"
+                  >
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      {image ? (
+                        <AppImage
+                          src={image}
+                          alt={displayName}
+                          width={56}
+                          height={56}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-gray-300">
+                          <Package size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-sm font-semibold text-gray-900">
+                        {displayName}
+                      </p>
+                      {variantLabel && (
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {variantLabel}
+                        </p>
+                      )}
+                      <p className="mt-0.5 text-xs text-gray-400">
+                        x{item.qty} ·{" "}
+                        {formatCurrency(item.unitPrice, order.currency)}
+                      </p>
+                    </div>
+                    <span className="ml-2 shrink-0 text-sm font-semibold text-gray-900">
+                      {formatCurrency(
+                        item.unitPrice * item.qty,
+                        order.currency,
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
             <div className="flex justify-between text-sm font-medium pt-2">
-              <span className="text-gray-500">
+              <span className="text-gray-900">
                 {t("merchant.orders.detailShippingFee")}
               </span>
               <span>{formatCurrency(order.shippingFee, order.currency)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-100 text-brand">
+            <div className="flex justify-between text-base font-bold pt-2 text-gray-900">
               <span>{t("merchant.orders.detailGrandTotal")}</span>
-              <span>{formatCurrency(order.totalAmount, order.currency)}</span>
+              <span className="text-brand">
+                {formatCurrency(order.totalAmount, order.currency)}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailPayment")}
           </h4>
@@ -208,8 +292,12 @@ export function OrderDetailModal({
               <Loader2 size={16} className="animate-spin" />{" "}
               {t("merchant.orders.loadingPayment")}
             </div>
+          ) : paymentsError ? (
+            <p className="text-sm text-rose-600">
+              {t("merchant.orders.paymentLoadFailed")}
+            </p>
           ) : payment ? (
-            <div className="bg-gray-50 rounded-md p-4 text-sm space-y-2">
+            <div className="bg-gray-200 rounded-md p-4 text-sm space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">
                   {t("merchant.orders.paymentTxnId")}
@@ -230,8 +318,33 @@ export function OrderDetailModal({
                 <span className="text-gray-500">
                   {t("merchant.orders.paymentStatus")}
                 </span>
-                <Badge variant="success">{payment.status}</Badge>
+                {paymentStatus ? (
+                  <Badge
+                    variant={paymentStatus.variant}
+                    className="!rounded-full !px-3 !py-1 !text-xs"
+                  >
+                    {t(paymentStatus.labelKey)}
+                  </Badge>
+                ) : null}
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">
+                  {t("merchant.orders.paymentAmount")}
+                </span>
+                <span className="font-semibold text-gray-900">
+                  {formatCurrency(payment.amount, payment.currency)}
+                </span>
+              </div>
+              {payment.paidAt ? (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">
+                    {t("merchant.orders.paidAt")}
+                  </span>
+                  <span className="text-gray-900">
+                    {formatDateTime(payment.paidAt, locale)}
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : (
             <p className="text-sm text-gray-500">
@@ -240,7 +353,7 @@ export function OrderDetailModal({
           )}
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailShipping")}
           </h4>
@@ -251,7 +364,7 @@ export function OrderDetailModal({
             </div>
           ) : shipment ? (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-md p-4 text-sm space-y-2">
+              <div className="bg-gray-200 rounded-md p-4 text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-500">
                     {t("merchant.orders.shipmentId")}
@@ -273,7 +386,10 @@ export function OrderDetailModal({
                   <span className="text-gray-500">
                     {t("merchant.orders.shipmentStatus")}
                   </span>
-                  <Badge variant={getShipmentStatus(shipment.status).variant}>
+                  <Badge
+                    variant={getShipmentStatus(shipment.status).variant}
+                    className="!rounded-full !px-3 !py-1 !text-xs"
+                  >
                     {t(getShipmentStatus(shipment.status).labelKey)}
                   </Badge>
                 </div>
@@ -422,7 +538,7 @@ export function OrderDetailModal({
           (shipment &&
             shipment.status === "DELIVERED" &&
             order.status !== "COMPLETED")) && (
-          <div className="border-t border-gray-100 pt-4 flex justify-between items-center bg-green-50 p-4 rounded-md">
+          <div className="border-t border-gray-300 pt-4 flex justify-between items-center bg-green-50 p-4 rounded-md">
             <div>
               <p className="text-sm font-semibold text-green-800">
                 {t("merchant.orders.completeBoxTitle")}
@@ -442,7 +558,7 @@ export function OrderDetailModal({
           </div>
         )}
 
-        <div className="border-t border-gray-100 pt-4 flex justify-end">
+        <div className="border-t border-gray-300 pt-4 flex justify-end">
           <Button variant="outline" onClick={onClose}>
             {t("merchant.orders.btnClose")}
           </Button>

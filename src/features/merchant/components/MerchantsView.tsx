@@ -21,16 +21,6 @@ import { cleanProvinceName } from "@/shared/lib/address-utils";
 
 const MERCHANT_PAGE_SIZE = 12;
 
-function normalizeForSearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
-    .toLowerCase()
-    .trim();
-}
-
 function CountUp({
   value,
   suffix = "",
@@ -107,16 +97,25 @@ export default function MerchantsPage() {
   }, [provinceOpen]);
 
   const {
-    data: merchants,
+    data: merchantPage,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["merchants", "list"],
-    queryFn: async () => {
-      const res = await merchantService.list(0, 100);
-      return res ?? [];
-    },
+    queryKey: [
+      "merchants",
+      "list",
+      currentPage,
+      deferredSearch,
+      selectedProvince,
+    ],
+    queryFn: () =>
+      merchantService.listPaged(currentPage - 1, MERCHANT_PAGE_SIZE, {
+        search: deferredSearch.trim() || undefined,
+        provinceCode: selectedProvince === "all" ? undefined : selectedProvince,
+      }),
   });
+  const merchants = useMemo(() => merchantPage?.content ?? [], [merchantPage]);
+  const totalMerchants = merchantPage?.totalElements ?? 0;
 
   const { data: provinces } = useQuery({
     queryKey: ["geography", "provinces", "VN", "v2"],
@@ -138,59 +137,27 @@ export default function MerchantsPage() {
     return m;
   }, [activeProvinces, locale]);
 
-  const provinceOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const merchant of merchants ?? []) {
-      const key =
-        merchant.provinceCode ||
-        cleanProvinceName(merchant.provinceName ?? "") ||
-        "unknown";
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([key, count]) => ({
-        key,
-        count,
-        label:
-          key === "unknown"
-            ? t("merchants.otherProvince")
-            : (provinceNameByCode.get(key) ?? cleanProvinceName(key)),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label, locale));
-  }, [merchants, provinceNameByCode, t, locale]);
-
-  const filteredMerchants = useMemo(() => {
-    const query = normalizeForSearch(deferredSearch);
-    return (merchants ?? []).filter((merchant) => {
-      if (selectedProvince !== "all") {
-        const key =
-          merchant.provinceCode ||
-          cleanProvinceName(merchant.provinceName ?? "") ||
-          "unknown";
-        if (key !== selectedProvince) return false;
-      }
-      if (!query) return true;
-      const haystack = normalizeForSearch(
-        `${merchant.name ?? ""} ${merchant.description ?? ""}`,
-      );
-      return haystack.includes(query);
-    });
-  }, [merchants, selectedProvince, deferredSearch]);
-
-  const totalPages = Math.ceil(filteredMerchants.length / MERCHANT_PAGE_SIZE);
-  const safePage = Math.min(Math.max(currentPage, 1), Math.max(totalPages, 1));
-  const pageStart = (safePage - 1) * MERCHANT_PAGE_SIZE;
-  const visibleMerchants = filteredMerchants.slice(
-    pageStart,
-    pageStart + MERCHANT_PAGE_SIZE,
+  const provinceOptions = useMemo(
+    () =>
+      activeProvinces
+        .map((province) => ({
+          key: province.code,
+          label: provinceNameByCode.get(province.code) ?? province.name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, locale)),
+    [activeProvinces, locale, provinceNameByCode],
   );
+
+  const totalPages = Math.max(1, merchantPage?.totalPages ?? 1);
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+  const visibleMerchants = merchants;
 
   const selectedProvinceOption = provinceOptions.find(
     (option) => option.key === selectedProvince,
   );
   const provinceButtonLabel = selectedProvinceOption
-    ? `${selectedProvinceOption.label} (${selectedProvinceOption.count})`
-    : `${t("merchants.allProvinces")} (${merchants?.length ?? 0})`;
+    ? selectedProvinceOption.label
+    : `${t("merchants.allProvinces")} (${totalMerchants})`;
 
   return (
     <div className="relative bg-transparent min-h-screen pb-16">
@@ -334,13 +301,6 @@ export default function MerchantsPage() {
                           }`}
                         >
                           <span className="truncate">{option.label}</span>
-                          <span
-                            className={`ml-2 shrink-0 text-[11px] ${
-                              active ? "text-white/70" : "text-gray-400"
-                            }`}
-                          >
-                            {option.count}
-                          </span>
                         </button>
                       </li>
                     );
@@ -407,7 +367,7 @@ export default function MerchantsPage() {
         {!isLoading &&
           !error &&
           (merchants?.length ?? 0) > 0 &&
-          filteredMerchants.length === 0 && (
+          visibleMerchants.length === 0 && (
             <EmptyState
               icon={Search}
               title={t("merchants.noResultsTitle")}
@@ -418,7 +378,7 @@ export default function MerchantsPage() {
             />
           )}
 
-        {!isLoading && !error && filteredMerchants.length > 0 && (
+        {!isLoading && !error && visibleMerchants.length > 0 && (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {visibleMerchants.map((merchant) => {

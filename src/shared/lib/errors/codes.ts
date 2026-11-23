@@ -16,6 +16,8 @@ const ERROR_CODE_MESSAGE_KEYS: Record<string, string> = {
   IDENTITY_219: "auth.phoneChangeNotFound",
   PRM_206: "myVouchers.dailyClaimLimitReached",
   PRM_207: "myVouchers.walletLimitReached",
+  CATALOG_310: "merchant.productEdit.errorLastVariant",
+  ORD_111: "merchant.orders.errorShippingQuote",
 };
 
 export function getMessageKeyForErrorCode(

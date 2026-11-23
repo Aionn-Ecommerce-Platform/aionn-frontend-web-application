@@ -70,7 +70,7 @@ export default function PromotionsPage() {
 
   const { data: myVouchers, isLoading: loadingMine } = useQuery({
     queryKey: qk.myVouchers(),
-    queryFn: () => voucherService.listMine(100),
+    queryFn: () => voucherService.listMine({ limit: 100 }),
     enabled: isAuthenticated,
   });
 
@@ -287,19 +287,21 @@ export default function PromotionsPage() {
               id: "MINE",
               label: `${t("promotions.tabMine")} (${isAuthenticated ? mineCount : 0})`,
             },
-          ].filter((tab) => tab.id !== "MINE" || isAuthenticated).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
-                  : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ]
+            .filter((tab) => tab.id !== "MINE" || isAuthenticated)
+            .map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                  activeTab === tab.id
+                    ? "bg-gray-950 text-white border border-gray-950 shadow-xs"
+                    : "bg-white text-gray-700 border border-gray-950 hover:bg-gray-100 hover:text-black"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
         </div>
 
         {loadingCamp || loadingVouchers || (isAuthenticated && loadingMine) ? (

@@ -9,7 +9,7 @@ const STATUS_VALUES: ProductStatus[] = [
   "DRAFT",
   "PENDING_REVIEW",
   "PUBLISHED",
-  "DEACTIVATED",
+  "HIDDEN",
   "TAKEN_DOWN",
   "REJECTED",
 ];

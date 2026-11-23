@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -21,6 +22,16 @@ interface SelectProps {
   required?: boolean;
 }
 
+interface DropdownPosition {
+  left: number;
+  width: number;
+  top?: number;
+  bottom?: number;
+}
+
+const DROPDOWN_MIN_WIDTH = 220;
+const DROPDOWN_MAX_HEIGHT = 240;
+
 export default function Select({
   label,
   value,
@@ -33,21 +44,78 @@ export default function Select({
   required = false,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<DropdownPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const insideTrigger = containerRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      if (!insideTrigger && !insideDropdown) {
         setIsOpen(false);
       }
     };
+    const handleScroll = (event: Event) => {
+      if (
+        dropdownRef.current &&
+        event.target instanceof Node &&
+        dropdownRef.current.contains(event.target)
+      ) {
+        return;
+      }
+      setIsOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    const handleResize = () => setIsOpen(false);
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("scroll", handleScroll, true);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("scroll", handleScroll, true);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
+    };
   }, [isOpen]);
+
+  const updatePosition = () => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewportPadding = 8;
+    const width = Math.min(
+      Math.max(rect.width, DROPDOWN_MIN_WIDTH),
+      window.innerWidth - viewportPadding * 2,
+    );
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp =
+      spaceBelow < DROPDOWN_MAX_HEIGHT + 40 && rect.top > spaceBelow;
+    const left = Math.max(
+      viewportPadding,
+      Math.min(rect.left, window.innerWidth - width - viewportPadding),
+    );
+    setPosition(
+      openUp
+        ? {
+            left,
+            width,
+            bottom: window.innerHeight - rect.top + viewportPadding - 2,
+          }
+        : { left, width, top: rect.bottom + viewportPadding - 2 },
+    );
+  };
+
+  const toggle = () => {
+    if (!isOpen) updatePosition();
+    setIsOpen((prev) => !prev);
+  };
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -61,9 +129,10 @@ export default function Select({
       )}
       <div className="relative">
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={toggle}
           className={cn(
             "w-full flex items-center justify-between rounded-xl border border-gray-400 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all cursor-pointer font-medium text-left shadow-sm min-w-0",
             disabled && "bg-gray-50 opacity-50 cursor-not-allowed",
@@ -87,9 +156,22 @@ export default function Select({
             )}
           />
         </button>
-
-        {isOpen && !disabled && (
-          <div className="absolute left-0 mt-1.5 w-full bg-white rounded-2xl border border-gray-300 shadow-lg py-1 z-50 max-h-60 overflow-y-auto">
+      </div>
+      {isOpen &&
+        !disabled &&
+        position &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{
+              position: "fixed",
+              left: position.left,
+              width: position.width,
+              top: position.top,
+              bottom: position.bottom,
+            }}
+            className="z-[100] max-h-60 overflow-y-auto rounded-2xl border border-gray-300 bg-white py-1 shadow-lg"
+          >
             {options.map((opt) => {
               const isActive = opt.value === value;
               return (
@@ -109,9 +191,9 @@ export default function Select({
                 </button>
               );
             })}
-          </div>
+          </div>,
+          document.body,
         )}
-      </div>
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );

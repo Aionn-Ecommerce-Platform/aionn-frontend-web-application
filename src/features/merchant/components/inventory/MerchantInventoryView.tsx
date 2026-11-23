@@ -15,7 +15,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import Link from "next/link";
-import { Button, Badge, Card, EmptyState } from "@/shared/ui";
+import { EmptyState } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { warehouseService, inventoryService } from "@/lib/services";
 import type { InventoryItem } from "@/types";
@@ -65,38 +65,56 @@ function MerchantInventoryInner() {
   }
 
   return (
-    <div>
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("merchant.inventory.title")}
+    <div className="relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+        <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+      </div>
+
+      <div className="relative">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+            <WarehouseIcon size={22} className="text-purple-300" />
+            <span className="text-purple-300">
+              {t("merchant.inventory.title")}
+            </span>
           </h1>
-          <div className="flex gap-2">
-            <Link href="/merchant/inventory/transfers">
-              <Button variant="outline" size="sm">
-                <ArrowLeftRight size={14} className="mr-1.5" />
-                {t("merchant.inventory.transferBtn")}
-              </Button>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/merchant/inventory/transfers"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:border-gray-400 hover:bg-white/10"
+            >
+              <ArrowLeftRight size={16} />
+              {t("merchant.inventory.transferBtn")}
             </Link>
-            <Button
-              size="sm"
+            <button
+              type="button"
               onClick={() => setAction({ type: "init", item: null })}
               disabled={!effectiveWarehouseId}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-900/40 transition-all hover:from-purple-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Plus size={14} className="mr-1.5" />
+              <Plus size={16} />
               {t("merchant.inventory.initSkuBtn")}
-            </Button>
+            </button>
           </div>
         </div>
 
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <WarehouseIcon size={20} className="text-brand" />
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+            <WarehouseIcon size={18} className="text-purple-300" />
             {t("merchant.inventory.warehouseSectionTitle")}
           </h2>
           {loadingWh ? (
             <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-brand" size={24} />
+              <Loader2 className="animate-spin text-purple-400" size={24} />
             </div>
           ) : !warehouses || warehouses.length === 0 ? (
             <EmptyState
@@ -105,50 +123,52 @@ function MerchantInventoryInner() {
               description={t("merchant.inventory.noWarehouseDescription")}
             />
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {warehouses.map((wh) => {
                 const isActive = effectiveWarehouseId === wh.warehouseId;
+                const statusLabel =
+                  wh.status === "ACTIVE"
+                    ? t("merchant.inventory.statusActive")
+                    : wh.status === "SUSPENDED"
+                      ? t("merchant.inventory.statusSuspended")
+                      : t("merchant.inventory.statusInactive");
+                const statusClass =
+                  wh.status === "ACTIVE"
+                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                    : wh.status === "SUSPENDED"
+                      ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                      : "border-slate-500/40 bg-white/5 text-slate-300";
                 return (
                   <button
                     key={wh.warehouseId}
+                    type="button"
                     onClick={() => setActiveWarehouseId(wh.warehouseId)}
-                    className={`text-left transition-all ${
+                    className={`rounded-2xl border p-4 text-left transition-all ${
                       isActive
-                        ? "ring-2 ring-brand ring-offset-2 rounded-md"
-                        : ""
+                        ? "border-purple-500/70 bg-purple-500/10 ring-2 ring-purple-500/50"
+                        : "border-gray-600 bg-white/[0.04] hover:border-gray-500 hover:bg-white/[0.07]"
                     }`}
                   >
-                    <Card>
-                      <div className="flex items-center justify-between">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {wh.address ??
-                              t("merchant.inventory.warehouseFallback", {
-                                id: wh.warehouseId.slice(0, 6),
-                              })}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {t("merchant.inventory.priorityLabel")}:{" "}
-                            {wh.priorityLevel}
-                          </p>
-                        </div>
-                        <Badge
-                          variant={
-                            wh.status === "ACTIVE"
-                              ? "success"
-                              : wh.status === "SUSPENDED"
-                                ? "warning"
-                                : "default"
-                          }
-                        >
-                          {wh.status === "ACTIVE"
-                            ? t("merchant.inventory.statusActive")
-                            : wh.status === "SUSPENDED"
-                              ? t("merchant.inventory.statusSuspended")
-                              : wh.status}
-                        </Badge>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">
+                          {wh.address ??
+                            t("merchant.inventory.warehouseFallback", {
+                              id: wh.warehouseId.slice(0, 6),
+                            })}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">
+                          {t("merchant.inventory.priorityLabel", {
+                            value: wh.priorityLevel,
+                          })}
+                        </p>
                       </div>
-                    </Card>
+                      <span
+                        className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${statusClass}`}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -157,18 +177,18 @@ function MerchantInventoryInner() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package size={20} className="text-brand" />
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+            <Package size={18} className="text-purple-300" />
             {t("merchant.inventory.stockSectionTitle")}
             {effectiveWarehouseId && (
-              <span className="text-xs text-gray-400 font-normal font-mono">
+              <span className="font-mono text-xs font-normal text-slate-500">
                 · {effectiveWarehouseId}
               </span>
             )}
           </h2>
           {!effectiveWarehouseId ? null : loadingInv ? (
             <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-brand" size={24} />
+              <Loader2 className="animate-spin text-purple-400" size={24} />
             </div>
           ) : inventory.length === 0 ? (
             <EmptyState
@@ -177,33 +197,33 @@ function MerchantInventoryInner() {
               description={t("merchant.inventory.emptyStockDescription")}
             />
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
+            <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                    <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         SKU
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colPhysical")}
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colReserved")}
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colAvailable")}
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colSafety")}
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colBatch")}
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colStatus")}
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("merchant.inventory.colActions")}
                       </th>
                     </tr>
@@ -216,63 +236,63 @@ function MerchantInventoryInner() {
                       return (
                         <tr
                           key={`${item.skuId}-${item.warehouseId}`}
-                          className="border-b border-gray-50 hover:bg-gray-50"
+                          className="border-b border-slate-600/60 transition-colors last:border-0 hover:bg-white/[0.04]"
                         >
-                          <td className="px-4 py-3">
-                            <p className="text-xs text-gray-900 font-mono truncate">
+                          <td className="px-4 py-3 text-center">
+                            <p className="truncate font-mono text-xs text-slate-200">
                               {item.skuId}
                             </p>
                           </td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-900">
+                          <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-slate-200">
                             {item.physicalQty}
                           </td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-600">
+                          <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-slate-300">
                             {item.reservedQty}
                           </td>
-                          <td className="px-4 py-3 text-sm text-right">
+                          <td className="whitespace-nowrap px-4 py-3 text-center text-sm">
                             <span
-                              className={`font-medium ${
-                                lowStock ? "text-red-600" : "text-gray-900"
+                              className={`font-semibold ${
+                                lowStock ? "text-rose-300" : "text-slate-200"
                               }`}
                             >
                               {item.availableQty}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-600">
+                          <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-slate-300">
                             {item.safetyStockQty}
                           </td>
-                          <td className="px-4 py-3 text-xs text-gray-600">
+                          <td className="px-4 py-3 text-center text-xs text-slate-400">
                             {item.batchNo || item.expiryDate ? (
                               <>
                                 {item.batchNo && <p>{item.batchNo}</p>}
                                 {item.expiryDate && (
-                                  <p className="text-gray-400">
+                                  <p className="text-slate-500">
                                     {item.expiryDate}
                                   </p>
                                 )}
                               </>
                             ) : (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-slate-500">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="whitespace-nowrap px-4 py-3 text-center">
                             {item.locked ? (
-                              <Badge variant="danger">
+                              <span className="inline-flex items-center whitespace-nowrap rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-semibold text-rose-300">
                                 {t("merchant.inventory.lockedBadge")}
-                              </Badge>
+                              </span>
                             ) : lowStock ? (
-                              <Badge variant="warning">
-                                <AlertTriangle size={10} className="mr-1" />
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300">
+                                <AlertTriangle size={11} />
                                 {t("merchant.inventory.lowStockBadge")}
-                              </Badge>
+                              </span>
                             ) : (
-                              <Badge variant="success">
+                              <span className="inline-flex items-center whitespace-nowrap rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
                                 {t("merchant.inventory.normalBadge")}
-                              </Badge>
+                              </span>
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center justify-end gap-1">
+                            <div className="flex items-center justify-center gap-1">
                               <ActionBtn
                                 title={t("merchant.inventory.actionSafety")}
                                 onClick={() =>

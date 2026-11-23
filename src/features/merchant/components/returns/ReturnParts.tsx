@@ -1,12 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import {
-  CheckCircle2,
-  XCircle,
-  PackageCheck,
-  ExternalLink,
-} from "lucide-react";
+import { Check, Eye, ExternalLink, PackageCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, Modal } from "@/shared/ui";
 import { orderReturnService } from "@/lib/services";
@@ -17,7 +12,7 @@ import {
   returnReasonBadgeClass,
   returnReasonLabelKey,
 } from "@/lib/domain/return-reasons";
-import type { OrderReturn, ReturnStatus } from "@/types";
+import type { OrderReturn, ReturnReasonType, ReturnStatus } from "@/types";
 
 const statusVariant: Record<
   ReturnStatus,
@@ -31,6 +26,27 @@ const statusVariant: Record<
   CANCELLED: "default",
 };
 
+const statusBadgeClass: Record<ReturnStatus, string> = {
+  REQUESTED: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  APPROVED: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  ITEM_RECEIVED: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+  REJECTED: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+  REFUNDED: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+  CANCELLED: "border-slate-500/40 bg-white/5 text-slate-300",
+};
+
+const reasonBadgeClass: Record<ReturnReasonType, string> = {
+  WRONG_ITEM: "border-blue-400/30 bg-blue-400/10 text-blue-300",
+  DAMAGED: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+  DEFECTIVE: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+  NOT_AS_DESCRIBED: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  MISSING_PARTS: "border-purple-400/30 bg-purple-400/10 text-purple-300",
+  WRONG_SIZE: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300",
+  LATE_DELIVERY: "border-orange-400/30 bg-orange-400/10 text-orange-300",
+  CHANGED_MIND: "border-slate-500/40 bg-white/5 text-slate-300",
+  OTHER: "border-slate-500/40 bg-white/5 text-slate-300",
+};
+
 const statusLabelKey: Record<ReturnStatus, string> = {
   REQUESTED: "merchant.returns.status.requested",
   APPROVED: "merchant.returns.status.approved",
@@ -39,111 +55,72 @@ const statusLabelKey: Record<ReturnStatus, string> = {
   REFUNDED: "merchant.returns.status.refunded",
   CANCELLED: "merchant.returns.status.cancelled",
 };
-export function ReturnCard({
+export function ReturnRow({
   rtn,
   onApprove,
   onReject,
   onReceive,
+  onDetail,
 }: {
   rtn: OrderReturn;
   onApprove: () => void;
   onReject: () => void;
   onReceive: () => void;
+  onDetail: () => void;
 }) {
   const { t } = useTranslation();
-  const variant = statusVariant[rtn.status];
   const statusLabel = t(statusLabelKey[rtn.status]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">
-      <div className="flex items-start justify-between gap-4 p-5">
-        <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-center gap-2">
-            <Badge variant={variant}>{statusLabel}</Badge>
-            <span className="text-xs text-slate-400">
-              {formatDateTime(rtn.requestedAt)}
-            </span>
-          </div>
-          <p className="mb-2 font-mono text-xs text-slate-400">
-            {t("merchant.returns.returnLabel")}: {rtn.returnId}
-          </p>
-          <div className="mb-1.5">
-            <Badge
-              variant="info"
-              className={returnReasonBadgeClass(rtn.reasonType)}
-            >
-              {t(returnReasonLabelKey(rtn.reasonType))}
-            </Badge>
-          </div>
-          <p className="mb-2 text-sm text-slate-200">
-            <span className="text-slate-400">
-              {t("merchant.returns.customerReason")}
-            </span>{" "}
-            {rtn.reason}
-          </p>
-          {(rtn.evidenceUrls?.length
-            ? rtn.evidenceUrls
-            : rtn.evidenceUrl
-              ? [rtn.evidenceUrl]
-              : []
-          ).map((url, index) => (
-            <a
-              key={`${url}-${index}`}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mr-3 mb-2 inline-flex items-center gap-1 text-xs text-purple-300 hover:underline"
-            >
-              {t("merchant.returns.viewEvidence")}
-              <ExternalLink size={12} />
-            </a>
-          ))}
-          {rtn.rejectionReason && (
-            <p className="mt-2 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
-              <span className="font-medium">
-                {t("merchant.returns.rejectReasonLabel")}
-              </span>{" "}
-              {rtn.rejectionReason}
-            </p>
-          )}
-          {rtn.refundAmount != null && rtn.currency && (
-            <p className="mt-2 text-sm text-slate-300">
-              {t("merchant.returns.refundAmountLabel")}{" "}
-              <span className="font-semibold text-white">
-                {formatCurrency(rtn.refundAmount, rtn.currency)}
-              </span>
-            </p>
-          )}
-          {rtn.itemCondition && (
-            <p className="mt-2 text-sm text-slate-300">
-              <span className="text-slate-400">
-                {t("merchant.returns.itemConditionLabel")}
-              </span>{" "}
-              {rtn.itemCondition}
-            </p>
-          )}
-          <p className="mt-3 font-mono text-xs text-slate-400">
-            {t("merchant.returns.orderLabel")}: {rtn.orderId}
-          </p>
-        </div>
-        <div className="flex flex-shrink-0 flex-col gap-2">
+    <tr className="border-b border-slate-600/60 transition-colors last:border-0 hover:bg-white/[0.04]">
+      <td className="px-4 py-3 text-center">
+        <p className="font-mono text-xs font-semibold text-slate-200">
+          {rtn.returnId}
+        </p>
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 text-center text-xs text-slate-300">
+        {formatDateTime(rtn.requestedAt)}
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 text-center">
+        <span
+          className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${reasonBadgeClass[rtn.reasonType]}`}
+        >
+          {t(returnReasonLabelKey(rtn.reasonType))}
+        </span>
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-white">
+        {rtn.refundAmount != null && rtn.currency
+          ? formatCurrency(rtn.refundAmount, rtn.currency)
+          : "—"}
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 text-center">
+        <span
+          className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass[rtn.status]}`}
+        >
+          {statusLabel}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-center gap-1">
           {rtn.status === "REQUESTED" && (
             <>
               <button
                 type="button"
                 onClick={onApprove}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
+                className="rounded-lg p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-300"
+                title={t("merchant.returns.btnApprove")}
+                aria-label={t("merchant.returns.btnApprove")}
               >
-                <CheckCircle2 size={14} />
-                {t("merchant.returns.btnApprove")}
+                <Check size={15} />
               </button>
               <button
                 type="button"
                 onClick={onReject}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-400/30 px-3 py-2 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-500/10"
+                className="rounded-lg p-1.5 text-rose-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300"
+                title={t("merchant.returns.btnReject")}
+                aria-label={t("merchant.returns.btnReject")}
               >
-                <XCircle size={14} />
-                {t("merchant.returns.btnReject")}
+                <X size={15} />
               </button>
             </>
           )}
@@ -151,15 +128,159 @@ export function ReturnCard({
             <button
               type="button"
               onClick={onReceive}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
+              className="rounded-lg p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-300"
+              title={t("merchant.returns.btnItemReceived")}
+              aria-label={t("merchant.returns.btnItemReceived")}
             >
-              <PackageCheck size={14} />
-              {t("merchant.returns.btnItemReceived")}
+              <PackageCheck size={15} />
             </button>
           )}
+          <button
+            type="button"
+            onClick={onDetail}
+            className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+            title={t("merchant.returns.btnDetail")}
+            aria-label={t("merchant.returns.btnDetail")}
+          >
+            <Eye size={15} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+export function ReturnDetailModal({
+  rtn,
+  onClose,
+}: {
+  rtn: OrderReturn;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const evidence = rtn.evidenceUrls?.length
+    ? rtn.evidenceUrls
+    : rtn.evidenceUrl
+      ? [rtn.evidenceUrl]
+      : [];
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("merchant.returns.detailTitle")}
+      size="lg"
+    >
+      <div className="space-y-4 text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={statusVariant[rtn.status]}>
+            {t(statusLabelKey[rtn.status])}
+          </Badge>
+          <span className="text-xs text-gray-500">
+            {formatDateTime(rtn.requestedAt)}
+          </span>
+        </div>
+
+        <div className="space-y-2 rounded-lg bg-gray-50 p-4">
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-500">
+              {t("merchant.returns.returnLabel")}
+            </span>
+            <span className="break-all text-right font-mono text-xs text-gray-900">
+              {rtn.returnId}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-500">
+              {t("merchant.returns.orderLabel")}
+            </span>
+            <span className="break-all text-right font-mono text-xs text-gray-900">
+              {rtn.orderId}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-500">
+              {t("merchant.returns.detailCustomer")}
+            </span>
+            <span className="break-all text-right font-mono text-xs text-gray-900">
+              {rtn.userId}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-500">
+              {t("merchant.returns.detailReasonType")}
+            </span>
+            <Badge
+              variant="info"
+              className={returnReasonBadgeClass(rtn.reasonType)}
+            >
+              {t(returnReasonLabelKey(rtn.reasonType))}
+            </Badge>
+          </div>
+          <div>
+            <p className="text-gray-500">
+              {t("merchant.returns.customerReason")}
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-gray-900">
+              {rtn.reason}
+            </p>
+          </div>
+          {evidence.length > 0 && (
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.detailEvidence")}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-3">
+                {evidence.map((url, index) => (
+                  <a
+                    key={`${url}-${index}`}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                  >
+                    {t("merchant.returns.viewEvidence")}
+                    <ExternalLink size={12} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {rtn.refundAmount != null && rtn.currency && (
+            <div className="flex justify-between gap-3">
+              <span className="text-gray-500">
+                {t("merchant.returns.refundAmountLabel")}
+              </span>
+              <span className="font-semibold text-gray-900">
+                {formatCurrency(rtn.refundAmount, rtn.currency)}
+              </span>
+            </div>
+          )}
+          {rtn.itemCondition && (
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.itemConditionLabel")}
+              </p>
+              <p className="mt-1 text-gray-900">{rtn.itemCondition}</p>
+            </div>
+          )}
+          {rtn.rejectionReason && (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-800">
+              <span className="font-medium">
+                {t("merchant.returns.rejectReasonLabel")}
+              </span>{" "}
+              {rtn.rejectionReason}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            {t("merchant.returns.btnCancel")}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

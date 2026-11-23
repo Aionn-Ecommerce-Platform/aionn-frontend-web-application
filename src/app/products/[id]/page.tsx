@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProductDetailView } from "@/features/catalog";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { productIdFromParam, productPath } from "@/shared/lib/product-url";
 
 const API_URL =
@@ -10,7 +11,7 @@ type ProductMetadata = {
   productId: string;
   name: string;
   slug?: string | null;
-  aiDescription?: string | null;
+  description?: string | null;
   imageList?: string[];
 };
 
@@ -42,9 +43,9 @@ export async function generateMetadata({
 
   const canonical = productPath(product);
   const description =
-    product.aiDescription?.replace(/\s+/g, " ").trim().slice(0, 160) ||
+    product.description?.replace(/\s+/g, " ").trim().slice(0, 160) ||
     `Mua ${product.name} chính hãng trên Aionn.`;
-  const images = product.imageList?.filter(Boolean).slice(0, 1) ?? [];
+  const images = [getProductCoverImage(product.imageList)];
 
   return {
     title: product.name,

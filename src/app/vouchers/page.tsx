@@ -138,7 +138,8 @@ function VoucherCard({
 }) {
   const expired = voucher.status === "EXPIRED";
   const used = voucher.status === "APPLIED" || voucher.status === "RESERVED";
-  const available = voucher.status === "CLAIMED" || voucher.status === "RELEASED";
+  const available =
+    voucher.status === "CLAIMED" || voucher.status === "RELEASED";
 
   const upperCode = voucher.voucherCode.toUpperCase();
   const isFreeship = voucher.voucherType === "FREE_SHIPPING";
@@ -271,33 +272,36 @@ function VoucherCard({
   );
 }
 
-const isAvailable = (v: UserVoucher) =>
-  v.status === "CLAIMED" || v.status === "RELEASED";
-const isUsed = (v: UserVoucher) =>
-  v.status === "APPLIED" || v.status === "RESERVED";
-const isExpired = (v: UserVoucher) => v.status === "EXPIRED";
-
-const getVoucherRank = (v: UserVoucher): number => {
-  if (isAvailable(v)) return 0;
-  if (isUsed(v)) return 1;
-  return 2;
-};
-
 function VouchersInner() {
   const router = useRouter();
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabFilter>("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
+  const [pageState, setPageState] = useState({ key: activeTab, page: 1 });
+  const currentPage = pageState.key === activeTab ? pageState.page : 1;
+  const setCurrentPage = (next: number) =>
+    setPageState({ key: activeTab, page: next });
   const [inputCode, setInputCode] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  const statusesByTab: Record<TabFilter, string[] | undefined> = {
+    ALL: undefined,
+    AVAILABLE: ["CLAIMED", "RELEASED"],
+    USED: ["APPLIED", "RESERVED"],
+    EXPIRED: ["EXPIRED"],
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: qk.myVouchers(),
-    queryFn: () => voucherService.listMine(50),
+    queryKey: [...qk.myVouchers(), activeTab, currentPage],
+    queryFn: () =>
+      voucherService.listMinePaged({
+        statuses: statusesByTab[activeTab],
+        page: currentPage - 1,
+        limit: PAGE_SIZE,
+      }),
   });
-  const vouchers = useMemo(() => data ?? [], [data]);
+  const vouchers = useMemo(() => data?.content ?? [], [data]);
 
   const claimMutation = useMutation({
     mutationFn: (code: string) => voucherService.claim(code),
@@ -329,36 +333,11 @@ function VouchersInner() {
 
   const handleTabChange = (tab: TabFilter) => {
     setActiveTab(tab);
-    setCurrentPage(1);
   };
 
-  const filteredVouchers = useMemo(() => {
-    const list = vouchers.filter((v) => {
-      if (activeTab === "AVAILABLE") return isAvailable(v);
-      if (activeTab === "USED") return isUsed(v);
-      if (activeTab === "EXPIRED") return isExpired(v);
-      return true;
-    });
-
-    return [...list].sort((a, b) => {
-      const aRank = getVoucherRank(a);
-      const bRank = getVoucherRank(b);
-      if (aRank !== bRank) return aRank - bRank;
-
-      const aTime = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
-      const bTime = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
-      return bTime - aTime;
-    });
-  }, [vouchers, activeTab]);
-
-  const totalItems = filteredVouchers.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
   const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const paginatedVouchers = useMemo(() => {
-    const start = (safeCurrentPage - 1) * PAGE_SIZE;
-    return filteredVouchers.slice(start, start + PAGE_SIZE);
-  }, [filteredVouchers, safeCurrentPage]);
+  const paginatedVouchers = vouchers;
 
   const renderVoucherList = () => {
     if (isLoading) {
@@ -368,7 +347,7 @@ function VouchersInner() {
         </div>
       );
     }
-    if (filteredVouchers.length === 0) {
+    if (vouchers.length === 0) {
       return (
         <div className="bg-white rounded-2xl border border-gray-400 p-8 shadow-xs">
           <EmptyState

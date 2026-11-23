@@ -17,7 +17,7 @@ import {
   ShoppingBag,
   TrendingUp,
 } from "lucide-react";
-import { Badge } from "@/shared/ui";
+import { Badge, Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   categoryService,
@@ -26,6 +26,7 @@ import {
 } from "@/lib/services";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { formatCurrency } from "@/shared/lib/utils";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
 import type { CategoryTreeNode, ProductStatus } from "@/types";
@@ -49,14 +50,6 @@ function MerchantProductsInner() {
     staleTime: 60_000,
   });
   const merchantId = merchant?.merchantId;
-
-  const { data: allProducts, isLoading } = useQuery({
-    queryKey: ["merchant-products", merchantId],
-    queryFn: () =>
-      merchantId ? productService.listAllMine() : Promise.resolve([]),
-    enabled: !!merchantId,
-  });
-  const products = useMemo(() => allProducts ?? [], [allProducts]);
 
   const { data: categoryTree } = useQuery({
     queryKey: ["category-tree"],
@@ -86,61 +79,60 @@ function MerchantProductsInner() {
       }
     };
     walkTree(categoryTree ?? [], 0);
-    const counts = new Map<string, number>();
-    for (const option of options) {
-      const categoryIds = descendants.get(option.id);
-      if (!categoryIds) continue;
-      counts.set(
-        option.id,
-        products.reduce(
-          (sum, product) =>
-            sum +
-            (product.categoryIds.some((id) => categoryIds.has(id)) ? 1 : 0),
-          0,
-        ),
-      );
-    }
-    return {
-      options: options.filter((option) => (counts.get(option.id) ?? 0) > 0),
-      descendants,
-    };
-  }, [categoryTree, products]);
-  const visibleProducts = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const minimum = priceMin ? Number(priceMin) : null;
-    const maximum = priceMax ? Number(priceMax) : null;
-    const categoryIds = categoryId
-      ? (categoryData.descendants.get(categoryId) ?? new Set([categoryId]))
-      : null;
-    return products.filter((product) => {
-      const prices = product.variants.map((variant) => variant.price);
-      const lowest = prices.length ? Math.min(...prices) : null;
-      return (
-        (!query || product.name.toLowerCase().includes(query)) &&
-        (!status || product.status === status) &&
-        (!categoryIds ||
-          product.categoryIds.some((id) => categoryIds.has(id))) &&
-        (minimum === null || (lowest !== null && lowest >= minimum)) &&
-        (maximum === null || (lowest !== null && lowest <= maximum))
-      );
-    });
-  }, [categoryData, categoryId, priceMax, priceMin, products, search, status]);
+    return { options, descendants };
+  }, [categoryTree]);
+
+  const PAGE_SIZE = 20;
+  const filterKey = [search, status, categoryId, priceMin, priceMax].join("|");
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const page = pageState.key === filterKey ? pageState.page : 1;
+  const categoryFilterIds = categoryId
+    ? Array.from(
+        categoryData.descendants.get(categoryId) ?? new Set([categoryId]),
+      )
+    : [];
+
+  const { data: productPage, isLoading } = useQuery({
+    queryKey: [
+      "merchant-products",
+      merchantId,
+      page,
+      search.trim(),
+      status,
+      categoryId,
+      priceMin,
+      priceMax,
+    ],
+    queryFn: () =>
+      merchantId
+        ? productService.listMineFiltered({
+            page: page - 1,
+            size: PAGE_SIZE,
+            search: search.trim() || undefined,
+            status: status ?? undefined,
+            categoryIds: categoryFilterIds,
+            minPrice: priceMin ?? undefined,
+            maxPrice: priceMax ?? undefined,
+          })
+        : Promise.resolve(undefined),
+    enabled: !!merchantId,
+  });
+  const products = productPage?.content ?? [];
+  const totalPages = productPage?.totalPages ?? 1;
+  const safePage = Math.min(page, totalPages);
+  const setPage = (next: number) =>
+    setPageState({ key: filterKey, page: next });
+
+  const { data: statsData } = useQuery({
+    queryKey: ["merchant-product-stats", merchantId],
+    queryFn: () => productService.merchantStats(),
+    enabled: !!merchantId,
+  });
 
   const hasFilters = Boolean(
     search || status || categoryId || priceMin || priceMax,
   );
 
-  const publishedCount = products.filter(
-    (product) => product.status === "PUBLISHED",
-  ).length;
-  const variantCount = products.reduce(
-    (sum, product) => sum + product.variants.length,
-    0,
-  );
-  const soldCount = products.reduce(
-    (sum, product) => sum + (product.soldCount ?? 0),
-    0,
-  );
   const numberFormat = new Intl.NumberFormat(
     locale === "vi" ? "vi-VN" : "en-US",
   );
@@ -148,25 +140,25 @@ function MerchantProductsInner() {
   const stats = [
     {
       label: t("merchant.productList.statTotal"),
-      value: numberFormat.format(products.length),
+      value: numberFormat.format(statsData?.total ?? 0),
       icon: Package,
       iconClass: "text-purple-300",
     },
     {
       label: t("merchant.productList.statPublished"),
-      value: numberFormat.format(publishedCount),
+      value: numberFormat.format(statsData?.published ?? 0),
       icon: BadgeCheck,
       iconClass: "text-emerald-300",
     },
     {
       label: t("merchant.productList.statVariants"),
-      value: numberFormat.format(variantCount),
+      value: numberFormat.format(statsData?.variants ?? 0),
       icon: Boxes,
       iconClass: "text-amber-300",
     },
     {
       label: t("merchant.productList.statSold"),
-      value: numberFormat.format(soldCount),
+      value: numberFormat.format(statsData?.sold ?? 0),
       icon: ShoppingBag,
       iconClass: "text-indigo-300",
     },
@@ -278,7 +270,7 @@ function MerchantProductsInner() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-purple-400" size={28} />
           </div>
-        ) : visibleProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
               <PackageSearch size={34} />
@@ -306,124 +298,131 @@ function MerchantProductsInner() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {visibleProducts.map((product) => {
-              const cfg = getProductStatus(product.status);
-              const cheapest = product.variants.reduce<
-                (typeof product.variants)[number] | undefined
-              >(
-                (best, variant) =>
-                  !best || variant.price < best.price ? variant : best,
-                undefined,
-              );
-              const displayPrice = cheapest?.price ?? null;
-              const originalPrice = cheapest?.originalPrice ?? null;
-              const discount =
-                originalPrice && displayPrice && originalPrice > displayPrice
-                  ? Math.round((1 - displayPrice / originalPrice) * 100)
-                  : 0;
-              const currency = cheapest?.currency ?? "VND";
-              const image = product.imageList?.[0] ?? "/images/logo.png";
-              return (
-                <div
-                  key={product.productId}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04] transition-all duration-300 hover:-translate-y-1 hover:border-gray-400 hover:bg-white/[0.06] hover:shadow-xl hover:shadow-purple-950/20"
-                >
-                  <div className="relative aspect-square overflow-hidden bg-white/5">
-                    <Image
-                      src={image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 20vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-console-panel/80 via-transparent to-transparent" />
-                    <div className="absolute left-2.5 top-2.5">
-                      {cfg ? (
-                        <Badge
-                          variant={cfg.variant}
-                          className="!rounded-full !px-2.5 !py-0.5 !text-[11px]"
-                        >
-                          {t(cfg.labelKey)}
-                        </Badge>
-                      ) : (
-                        <Badge className="!rounded-full !px-2.5 !py-0.5 !text-[11px]">
-                          {product.status}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1">
-                      {(product.soldCount ?? 0) > 0 && (
-                        <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
-                          {numberFormat.format(product.soldCount ?? 0)}{" "}
-                          {t("merchant.productList.soldSuffix")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-3.5">
-                    <h3 className="line-clamp-2 min-h-[2.5rem] text-[15px] font-semibold text-white transition-colors group-hover:text-purple-200">
-                      {product.name}
-                    </h3>
-
-                    <div className="mt-2">
-                      <div className="flex flex-nowrap items-baseline gap-1.5">
-                        <span
-                          className={`min-w-0 truncate text-lg font-extrabold tracking-tight ${
-                            discount > 0
-                              ? "bg-gradient-to-r from-purple-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent"
-                              : "text-purple-200"
-                          }`}
-                        >
-                          {displayPrice !== null
-                            ? formatCurrency(displayPrice, currency)
-                            : "—"}
-                        </span>
-                        {discount > 0 && (
-                          <span className="shrink-0 rounded-md bg-fuchsia-500/15 px-1.5 py-0.5 text-[11px] font-bold text-fuchsia-300">
-                            -{discount}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1 flex items-baseline justify-between gap-2">
-                        {originalPrice !== null &&
-                        displayPrice !== null &&
-                        originalPrice > displayPrice ? (
-                          <span className="text-[13px] font-normal text-slate-500 line-through">
-                            {formatCurrency(originalPrice, currency)}
-                          </span>
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              {products.map((product) => {
+                const cfg = getProductStatus(product.status);
+                const cheapest = product.variants.reduce<
+                  (typeof product.variants)[number] | undefined
+                >(
+                  (best, variant) =>
+                    !best || variant.price < best.price ? variant : best,
+                  undefined,
+                );
+                const displayPrice = cheapest?.price ?? null;
+                const originalPrice = cheapest?.originalPrice ?? null;
+                const discount =
+                  originalPrice && displayPrice && originalPrice > displayPrice
+                    ? Math.round((1 - displayPrice / originalPrice) * 100)
+                    : 0;
+                const currency = cheapest?.currency ?? "VND";
+                const image = getProductCoverImage(product.imageList);
+                return (
+                  <div
+                    key={product.productId}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04] transition-all duration-300 hover:-translate-y-1 hover:border-gray-400 hover:bg-white/[0.06] hover:shadow-xl hover:shadow-purple-950/20"
+                  >
+                    <div className="relative aspect-square overflow-hidden bg-white/5">
+                      <Image
+                        src={image}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 20vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-console-panel/80 via-transparent to-transparent" />
+                      <div className="absolute left-2.5 top-2.5">
+                        {cfg ? (
+                          <Badge
+                            variant={cfg.variant}
+                            className="!rounded-full !px-3 !py-1 !text-[13px]"
+                          >
+                            {t(cfg.labelKey)}
+                          </Badge>
                         ) : (
-                          <span />
+                          <Badge className="!rounded-full !px-3 !py-1 !text-[13px]">
+                            {product.status}
+                          </Badge>
                         )}
-                        <span className="shrink-0 text-xs text-slate-400">
-                          {numberFormat.format(product.variants.length)}{" "}
-                          {t("merchant.productList.variantSuffix")}
-                        </span>
+                      </div>
+                      <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1">
+                        {(product.soldCount ?? 0) > 0 && (
+                          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                            {numberFormat.format(product.soldCount ?? 0)}{" "}
+                            {t("merchant.productList.soldSuffix")}
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="mt-auto grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
-                      <Link
-                        href={productPath(product)}
-                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-gray-600 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                      >
-                        <Eye size={14} />
-                        {t("merchant.productList.viewAction")}
-                      </Link>
-                      <Link
-                        href={`/merchant/products/${product.productId}/edit`}
-                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
-                      >
-                        <Edit2 size={14} />
-                        {t("merchant.productList.editAction")}
-                      </Link>
+                    <div className="flex flex-1 flex-col p-3.5">
+                      <h3 className="line-clamp-2 min-h-[2.5rem] text-[15px] font-semibold text-white transition-colors group-hover:text-purple-200">
+                        {product.name}
+                      </h3>
+
+                      <div className="mt-2">
+                        <div className="flex flex-nowrap items-baseline gap-1.5">
+                          <span
+                            className={`min-w-0 truncate text-lg font-extrabold tracking-tight ${
+                              discount > 0
+                                ? "bg-gradient-to-r from-purple-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent"
+                                : "text-purple-200"
+                            }`}
+                          >
+                            {displayPrice !== null
+                              ? formatCurrency(displayPrice, currency)
+                              : "—"}
+                          </span>
+                          {discount > 0 && (
+                            <span className="shrink-0 rounded-md bg-fuchsia-500/15 px-1.5 py-0.5 text-[11px] font-bold text-fuchsia-300">
+                              -{discount}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-baseline justify-between gap-2">
+                          {originalPrice !== null &&
+                          displayPrice !== null &&
+                          originalPrice > displayPrice ? (
+                            <span className="text-[13px] font-normal text-slate-500 line-through">
+                              {formatCurrency(originalPrice, currency)}
+                            </span>
+                          ) : (
+                            <span />
+                          )}
+                          <span className="shrink-0 text-xs text-slate-400">
+                            {numberFormat.format(product.variants.length)}{" "}
+                            {t("merchant.productList.variantSuffix")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
+                        <Link
+                          href={productPath(product)}
+                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-gray-600 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                        >
+                          <Eye size={14} />
+                          {t("merchant.productList.viewAction")}
+                        </Link>
+                        <Link
+                          href={`/merchant/products/${product.productId}/edit`}
+                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
+                        >
+                          <Edit2 size={14} />
+                          {t("merchant.productList.editAction")}
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+            <Pagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
         )}
       </div>
     </div>

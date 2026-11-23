@@ -104,13 +104,12 @@ export default function Sidebar() {
     (role) => role.replace(/^ROLE_/, "") === "MERCHANT",
   );
   const visibleMenuItems = menuItems.filter(
-    (item) =>
-      !("merchantOnly" in item) || !item.merchantOnly || isMerchant,
+    (item) => !("merchantOnly" in item) || !item.merchantOnly || isMerchant,
   );
 
   const { data: notifications } = useQuery({
     queryKey: qk.notifications(),
-    queryFn: () => notificationService.listMine(50),
+    queryFn: () => notificationService.listMine({ limit: 50 }),
     enabled: isAuthenticated,
     refetchInterval: (query) => (query.state.error ? false : 60_000),
   });
@@ -164,7 +163,7 @@ export default function Sidebar() {
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeHref === item.href;
-            const badgeCount = item.badgeKey ? badges[item.badgeKey] ?? 0 : 0;
+            const badgeCount = item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0;
 
             return (
               <Link

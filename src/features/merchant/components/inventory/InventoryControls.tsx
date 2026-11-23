@@ -14,7 +14,7 @@ export function ActionBtn({
     <button
       title={title}
       onClick={onClick}
-      className="p-1.5 rounded-md text-gray-500 hover:bg-brand/10 hover:text-brand transition-colors"
+      className="p-1.5 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
     >
       {children}
     </button>

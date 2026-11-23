@@ -22,8 +22,6 @@ export { stockAlertService } from "./stock-alert.service";
 export { recommendationService } from "./recommendation.service";
 export { searchHistoryService } from "./search-history.service";
 export { categoryService } from "./category.service";
-export { collectionService } from "./collection.service";
-export type { Collection } from "./collection.service";
 export { merchantService } from "./merchant.service";
 export { presenceService } from "./presence.service";
 export { brandService } from "./brand.service";

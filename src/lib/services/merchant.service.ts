@@ -29,10 +29,26 @@ export const merchantService = {
   unfollow(merchantId: string) {
     return api.delete<void>(`/catalog/merchants/${merchantId}/follow`);
   },
-  list(page = 0, size = 20) {
-    return api.get<Merchant[]>("/catalog/merchants", {
+  list(
+    page = 0,
+    size = 20,
+    params: { search?: string; provinceCode?: string } = {},
+  ) {
+    return this.listPaged(page, size, params).then((page) => page.content);
+  },
+  listPaged(
+    page = 0,
+    size = 20,
+    params: { search?: string; provinceCode?: string } = {},
+  ) {
+    return api.page<Merchant>("/catalog/merchants", {
       anonymous: true,
-      query: { page, size },
+      query: {
+        page,
+        size,
+        search: params.search,
+        provinceCode: params.provinceCode,
+      },
     });
   },
   async getMine() {
