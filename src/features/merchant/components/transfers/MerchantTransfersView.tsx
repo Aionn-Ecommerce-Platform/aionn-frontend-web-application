@@ -25,9 +25,9 @@ function MerchantTransfersInner() {
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
-  const { data: warehouses } = useQuery({
-    queryKey: ["merchant-warehouses"],
-    queryFn: () => warehouseService.listMine(),
+  const { data: warehousePage } = useQuery({
+    queryKey: ["merchant-warehouses", "transfer-options"],
+    queryFn: () => warehouseService.listMine({ limit: 100 }),
   });
 
   const lookupMutation = useMutation({
@@ -110,7 +110,7 @@ function MerchantTransfersInner() {
 
       {creating && (
         <CreateTransferModal
-          warehouses={warehouses ?? []}
+          warehouses={warehousePage?.content ?? []}
           onClose={() => setCreating(false)}
           onSuccess={(saved) => {
             setTransfer(saved);

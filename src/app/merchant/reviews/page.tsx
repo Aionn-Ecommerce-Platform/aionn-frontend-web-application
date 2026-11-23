@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { MessageSquare, Star, Reply, Loader2, Flag } from "lucide-react";
+import {
+  MessageSquare,
+  Star,
+  Reply,
+  Loader2,
+  Flag,
+  Search,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Modal, Textarea, Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
-import { reviewService } from "@/lib/services";
+import { productService, reviewService } from "@/lib/services";
 import { getReviewStatus } from "@/lib/domain/status/review";
 import { getErrorMessage, isNotImplemented } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
@@ -18,6 +25,7 @@ function MerchantReviewsInner() {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "REPLIED">("ALL");
+  const [search, setSearch] = useState("");
   const qc = useQueryClient();
   const listParams = {
     page,
@@ -42,6 +50,34 @@ function MerchantReviewsInner() {
 
   const reviews = data?.content ?? [];
   const backendUnavailable = isNotImplemented(error);
+
+  const productIds = [...new Set(reviews.map((review) => review.productId))];
+  const { data: reviewProducts } = useQuery({
+    queryKey: ["merchant-review-products", productIds.join(",")],
+    queryFn: async () => {
+      const products = await Promise.all(
+        productIds.map((id) => productService.get(id).catch(() => null)),
+      );
+      return new Map(
+        products
+          .filter((product): product is NonNullable<typeof product> =>
+            Boolean(product),
+          )
+          .map((product) => [product.productId, product]),
+      );
+    },
+    enabled: productIds.length > 0,
+  });
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleReviews = reviews.filter((review) => {
+    if (!normalizedSearch) return true;
+    const product = reviewProducts?.get(review.productId);
+    return (
+      review.productId.toLowerCase().includes(normalizedSearch) ||
+      (product?.name ?? "").toLowerCase().includes(normalizedSearch) ||
+      (review.content ?? "").toLowerCase().includes(normalizedSearch)
+    );
+  });
 
   async function handleReply(reviewId: string) {
     setSaving(true);
@@ -80,26 +116,35 @@ function MerchantReviewsInner() {
           {t("merchant.reviews.title")}
         </h1>
 
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex gap-2">
-            {(["ALL", "PENDING", "REPLIED"] as const).map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? "primary" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setFilter(f);
-                  setPage(0);
-                }}
-              >
-                {f === "ALL"
-                  ? t("merchant.reviews.filterAll")
-                  : f === "PENDING"
-                    ? t("merchant.reviews.filterPending")
-                    : t("merchant.reviews.filterReplied")}
-              </Button>
-            ))}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t("merchant.reviews.searchPlaceholder")}
+              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
           </div>
+          <select
+            value={filter}
+            onChange={(event) => {
+              setFilter(event.target.value as "ALL" | "PENDING" | "REPLIED");
+              setPage(0);
+            }}
+            className="rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          >
+            <option value="ALL">{t("merchant.reviews.filterAll")}</option>
+            <option value="PENDING">
+              {t("merchant.reviews.filterPending")}
+            </option>
+            <option value="REPLIED">
+              {t("merchant.reviews.filterReplied")}
+            </option>
+          </select>
         </div>
 
         {loading ? (
@@ -116,9 +161,9 @@ function MerchantReviewsInner() {
               {t("merchant.reviews.unavailableDescription")}
             </p>
           </div>
-        ) : reviews.length > 0 ? (
+        ) : visibleReviews.length > 0 ? (
           <div className="space-y-4">
-            {reviews.map((review) => {
+            {visibleReviews.map((review) => {
               const isHidden = review.status === "HIDDEN";
               return (
                 <div

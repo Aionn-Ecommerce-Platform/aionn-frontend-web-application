@@ -46,7 +46,6 @@ function MerchantProductsInner() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [priceMin, setPriceMin] = useState<string | null>(null);
   const [priceMax, setPriceMax] = useState<string | null>(null);
-
   const { data: merchant } = useQuery({
     queryKey: ["merchant", "me"],
     queryFn: () => merchantService.getMine(),
@@ -411,14 +410,14 @@ function MerchantProductsInner() {
                       <div className="mt-auto grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
                         <Link
                           href={productPath(product)}
-                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-gray-600 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-gray-600 px-2 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                         >
                           <Eye size={14} />
                           {t("merchant.productList.viewAction")}
                         </Link>
                         <Link
                           href={`/merchant/products/${product.productId}/edit`}
-                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
+                          className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-purple-600 px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500"
                         >
                           <Edit2 size={14} />
                           {t("merchant.productList.editAction")}

@@ -241,11 +241,13 @@ export default function ConsoleLayout({
 
   const isMerchantConsole =
     kind === "merchant" && !pathname.startsWith("/merchant/register");
-  const isLegacyMerchantPage =
-    isMerchantConsole &&
-    !["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
+  const isConsoleBoardPage =
+    ["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
       (base) => pathname === base || pathname.startsWith(`${base}/`),
-    );
+    ) ||
+    pathname === "/merchant/warehouses" ||
+    pathname === "/merchant/inventory";
+  const isLegacyMerchantPage = isMerchantConsole && !isConsoleBoardPage;
   const {
     data: merchantContext,
     isError: merchantContextFailed,
@@ -277,6 +279,27 @@ export default function ConsoleLayout({
   const Icon = kind === "merchant" ? Store : ShieldCheck;
   const displayName =
     user?.displayName || user?.username || t("common.account");
+
+  const consoleMain =
+    isMerchantConsole && isAuthenticated && merchantContextFailed ? (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-6 py-12 text-center">
+        <p className="text-base font-semibold text-rose-300">
+          {t("common.error")}
+        </p>
+        <p className="mt-1 text-sm text-slate-400">{t("common.tryAgain")}</p>
+        <button
+          type="button"
+          onClick={() => void retryMerchantContext()}
+          className="mt-5 rounded-xl border border-gray-500 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+        >
+          {t("common.retry")}
+        </button>
+      </div>
+    ) : awaitingMerchantContext ? (
+      <PageLoading />
+    ) : (
+      children
+    );
 
   return (
     <div className="console-page member-page min-h-screen bg-transparent">
@@ -340,29 +363,27 @@ export default function ConsoleLayout({
           <section
             className={cn(
               "console-content flex-1 min-w-0",
-              (isLegacyMerchantPage || kind === "admin") && "console-dark",
+              kind === "admin" && "console-dark",
             )}
           >
-            {isMerchantConsole && isAuthenticated && merchantContextFailed ? (
-              <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-6 py-12 text-center">
-                <p className="text-base font-semibold text-rose-300">
-                  {t("common.error")}
-                </p>
-                <p className="mt-1 text-sm text-slate-400">
-                  {t("common.tryAgain")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void retryMerchantContext()}
-                  className="mt-5 rounded-xl border border-gray-500 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
-                >
-                  {t("common.retry")}
-                </button>
+            {isLegacyMerchantPage ? (
+              <div className="console-dark console-legacy-board relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+                <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+                  <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+                  <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
+                  <div
+                    className="absolute inset-0 opacity-[0.06]"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                      backgroundSize: "36px 36px",
+                    }}
+                  />
+                </div>
+                <div className="relative">{consoleMain}</div>
               </div>
-            ) : awaitingMerchantContext ? (
-              <PageLoading />
             ) : (
-              children
+              consoleMain
             )}
           </section>
         </div>

@@ -12,6 +12,7 @@ export {
 } from "./components/product-edit/ProductEditCards";
 export { useProductMediaUpload } from "./components/product-edit/useProductMediaUpload";
 export { ConsoleFilterDropdown } from "./components/shared/ConsoleFilterDropdown";
+export { ConsoleStatGrid } from "./components/shared/ConsoleStatGrid";
 export {
   ConsolePanel,
   ConsoleEmptyState,

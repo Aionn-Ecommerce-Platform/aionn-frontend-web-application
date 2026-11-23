@@ -119,4 +119,6 @@ export interface OrderReturn {
   requestedAt: string;
   decidedAt: string | null;
   receivedAt: string | null;
+  recipientName?: string | null;
+  recipientPhone?: string | null;
 }

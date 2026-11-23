@@ -42,7 +42,7 @@ const securityHeaders = [
 
       `script-src ${scriptPolicy}`,
       "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://js.stripe.com https://hooks.stripe.com https://www.google.com",
-      `connect-src 'self' ${API_ORIGIN} https://api.cloudinary.com https://res.cloudinary.com https://accounts.google.com https://graph.facebook.com https://api.stripe.com`,
+      `connect-src 'self' ${API_ORIGIN} https://api.cloudinary.com https://res.cloudinary.com https://accounts.google.com https://graph.facebook.com https://api.stripe.com https://nominatim.openstreetmap.org`,
       "media-src 'self' https:",
       "worker-src 'self' blob:",
     ].join("; "),

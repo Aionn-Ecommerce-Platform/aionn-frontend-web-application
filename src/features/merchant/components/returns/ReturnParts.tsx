@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Check, Eye, ExternalLink, PackageCheck, X } from "lucide-react";
+import Image from "next/image";
+import { Check, Eye, PackageCheck, Play, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Modal } from "@/shared/ui";
+import { Button, Badge, ImageLightbox, Modal } from "@/shared/ui";
 import { orderReturnService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime, formatCurrency } from "@/shared/lib/utils";
+import { isVideoUrl } from "@/shared/lib/media";
 import { useTranslation } from "@/hooks";
 import {
   returnReasonBadgeClass,
@@ -73,13 +75,13 @@ export function ReturnRow({
 
   return (
     <tr className="border-b border-slate-600/60 transition-colors last:border-0 hover:bg-white/[0.04]">
-      <td className="px-4 py-3 text-center">
-        <p className="font-mono text-xs font-semibold text-slate-200">
+      <td className="whitespace-nowrap px-4 py-3 text-center">
+        <p className="font-mono text-[13px] font-semibold text-white">
           {rtn.returnId}
         </p>
-      </td>
-      <td className="whitespace-nowrap px-4 py-3 text-center text-xs text-slate-300">
-        {formatDateTime(rtn.requestedAt, locale)}
+        <p className="text-xs text-slate-400">
+          {formatDateTime(rtn.requestedAt, locale)}
+        </p>
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-center">
         <span
@@ -157,7 +159,8 @@ export function ReturnDetailModal({
   rtn: OrderReturn;
   onClose: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const [preview, setPreview] = useState<string | null>(null);
   const evidence = rtn.evidenceUrls?.length
     ? rtn.evidenceUrls
     : rtn.evidenceUrl
@@ -165,122 +168,171 @@ export function ReturnDetailModal({
       : [];
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title={t("merchant.returns.detailTitle")}
-      size="lg"
-    >
-      <div className="space-y-4 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={statusVariant[rtn.status]}>
-            {t(statusLabelKey[rtn.status])}
-          </Badge>
-          <span className="text-xs text-gray-500">
-            {formatDateTime(rtn.requestedAt)}
-          </span>
-        </div>
+    <>
+      <Modal
+        isOpen
+        onClose={onClose}
+        title={t("merchant.returns.detailTitle")}
+        size="full"
+      >
+        <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2 text-sm">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.returnLabel")}
+              </p>
+              <p className="mt-1 break-all font-mono text-sm font-semibold text-gray-900">
+                {rtn.returnId}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.detailRequestedAt")}
+              </p>
+              <p className="mt-1 font-medium text-gray-900">
+                {formatDateTime(rtn.requestedAt, locale)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.detailCustomer")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-gray-900">
+                {rtn.recipientName ?? rtn.userId}
+              </p>
+              {rtn.recipientPhone && (
+                <p className="text-sm text-gray-500">{rtn.recipientPhone}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.detailStatus")}
+              </p>
+              <Badge
+                variant={statusVariant[rtn.status]}
+                className="!mt-1 !rounded-full !px-3 !py-1 !text-xs"
+              >
+                {t(statusLabelKey[rtn.status])}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.orderLabel")}
+              </p>
+              <p className="mt-1 break-all font-mono text-sm font-semibold text-gray-900">
+                {rtn.orderId}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">
+                {t("merchant.returns.detailReasonType")}
+              </p>
+              <Badge
+                variant="info"
+                className={`!mt-1 !rounded-full !px-3 !py-1 !text-xs ${returnReasonBadgeClass(rtn.reasonType)}`}
+              >
+                {t(returnReasonLabelKey(rtn.reasonType))}
+              </Badge>
+            </div>
+          </div>
 
-        <div className="space-y-2 rounded-lg bg-gray-50 p-4">
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-500">
-              {t("merchant.returns.returnLabel")}
-            </span>
-            <span className="break-all text-right font-mono text-xs text-gray-900">
-              {rtn.returnId}
-            </span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-500">
-              {t("merchant.returns.orderLabel")}
-            </span>
-            <span className="break-all text-right font-mono text-xs text-gray-900">
-              {rtn.orderId}
-            </span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-500">
-              {t("merchant.returns.detailCustomer")}
-            </span>
-            <span className="break-all text-right font-mono text-xs text-gray-900">
-              {rtn.userId}
-            </span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-500">
-              {t("merchant.returns.detailReasonType")}
-            </span>
-            <Badge
-              variant="info"
-              className={returnReasonBadgeClass(rtn.reasonType)}
-            >
-              {t(returnReasonLabelKey(rtn.reasonType))}
-            </Badge>
-          </div>
           <div>
-            <p className="text-gray-500">
-              {t("merchant.returns.customerReason")}
+            <h4 className="mb-2 font-semibold text-gray-900">
+              {t("merchant.returns.itemConditionLabel")}
+            </h4>
+            <p className="whitespace-pre-wrap text-sm text-gray-700">
+              {rtn.itemCondition || t("merchant.returns.itemConditionEmpty")}
             </p>
-            <p className="mt-1 whitespace-pre-wrap text-gray-900">
+          </div>
+
+          <div>
+            <h4 className="mb-2 font-semibold text-gray-900">
+              {t("merchant.returns.customerReason")}
+            </h4>
+            <p className="whitespace-pre-wrap text-sm text-gray-700">
               {rtn.reason}
             </p>
           </div>
+
           {evidence.length > 0 && (
             <div>
-              <p className="text-gray-500">
+              <h4 className="mb-2 font-semibold text-gray-900">
                 {t("merchant.returns.detailEvidence")}
-              </p>
-              <div className="mt-1 flex flex-wrap gap-3">
+              </h4>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {evidence.map((url, index) => (
-                  <a
+                  <button
                     key={`${url}-${index}`}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                    type="button"
+                    onClick={() => setPreview(url)}
+                    className="group relative block aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    aria-label={t("merchant.returns.viewEvidence")}
                   >
-                    {t("merchant.returns.viewEvidence")}
-                    <ExternalLink size={12} />
-                  </a>
+                    {isVideoUrl(url) ? (
+                      <>
+                        <video
+                          src={url}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="pointer-events-none h-full w-full object-cover"
+                        >
+                          <track kind="captions" />
+                        </video>
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white transition-colors group-hover:bg-black/40">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">
+                            <Play size={18} className="fill-current" />
+                          </span>
+                        </span>
+                      </>
+                    ) : (
+                      <Image
+                        src={url}
+                        alt={t("merchant.returns.viewEvidence")}
+                        fill
+                        sizes="120px"
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    )}
+                  </button>
                 ))}
               </div>
             </div>
           )}
-          {rtn.refundAmount != null && rtn.currency && (
-            <div className="flex justify-between gap-3">
-              <span className="text-gray-500">
-                {t("merchant.returns.refundAmountLabel")}
-              </span>
-              <span className="font-semibold text-gray-900">
-                {formatCurrency(rtn.refundAmount, rtn.currency)}
-              </span>
-            </div>
-          )}
-          {rtn.itemCondition && (
-            <div>
-              <p className="text-gray-500">
-                {t("merchant.returns.itemConditionLabel")}
-              </p>
-              <p className="mt-1 text-gray-900">{rtn.itemCondition}</p>
-            </div>
-          )}
+
           {rtn.rejectionReason && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-800">
-              <span className="font-medium">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+              <span className="font-semibold">
                 {t("merchant.returns.rejectReasonLabel")}
               </span>{" "}
               {rtn.rejectionReason}
             </div>
           )}
-        </div>
 
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={onClose}>
-            {t("merchant.returns.btnCancel")}
-          </Button>
+          <div className="flex items-center justify-between">
+            <span className="text-base font-bold text-gray-900">
+              {t("merchant.returns.refundAmountLabel")}
+            </span>
+            <span className="text-base font-bold text-brand">
+              {rtn.refundAmount != null && rtn.currency
+                ? formatCurrency(rtn.refundAmount, rtn.currency, locale)
+                : "—"}
+            </span>
+          </div>
+
+          <div className="flex justify-end border-t border-gray-300 pt-4">
+            <Button variant="outline" onClick={onClose}>
+              {t("merchant.returns.btnClose")}
+            </Button>
+          </div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
+      <ImageLightbox
+        src={preview}
+        alt={t("merchant.returns.viewEvidence")}
+        onClose={() => setPreview(null)}
+      />
+    </>
   );
 }
 

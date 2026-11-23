@@ -525,6 +525,12 @@ export const productService = {
   restore(productId: string) {
     return api.post<Product>(`/catalog/products/${productId}/restore`);
   },
+  deleteProduct(productId: string) {
+    return api.post<Product>(`/catalog/products/${productId}/delete`);
+  },
+  undeleteProduct(productId: string) {
+    return api.post<Product>(`/catalog/products/${productId}/undelete`);
+  },
   publish(productId: string) {
     return api.post<Product>(`/catalog/products/${productId}/publish`);
   },

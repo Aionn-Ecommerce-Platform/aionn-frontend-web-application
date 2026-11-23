@@ -124,36 +124,39 @@ function MerchantPayoutsInner() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <Clock size={14} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 p-5 text-white shadow-lg">
+            <Clock size={26} className="absolute right-4 top-4 text-white/80" />
+            <p className="text-sm font-medium text-white/85">
               {t("merchant.payouts.pendingLabel")}
-            </div>
+            </p>
             {loadingBalance ? (
-              <Loader2 className="animate-spin text-gray-400" size={20} />
+              <Loader2 className="mt-2 animate-spin text-white/80" size={22} />
             ) : (
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="mt-1 truncate text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {formatCurrency(pending, balance?.currency ?? "VND")}
               </p>
             )}
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="mt-1 text-xs text-white/75">
               {t("merchant.payouts.pendingHint")}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-            <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
-              <CheckCircle2 size={14} />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-5 text-white shadow-lg">
+            <CheckCircle2
+              size={26}
+              className="absolute right-4 top-4 text-white/80"
+            />
+            <p className="text-sm font-medium text-white/85">
               {t("merchant.payouts.availableLabel")}
-            </div>
+            </p>
             {loadingBalance ? (
-              <Loader2 className="animate-spin text-gray-400" size={20} />
+              <Loader2 className="mt-2 animate-spin text-white/80" size={22} />
             ) : (
-              <p className="text-2xl font-bold text-green-700">
+              <p className="mt-1 truncate text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {formatCurrency(available, balance?.currency ?? "VND")}
               </p>
             )}
-            <p className="text-xs text-green-700/70 mt-1">
+            <p className="mt-1 text-xs text-white/75">
               {t("merchant.payouts.availableHint")}
             </p>
           </div>

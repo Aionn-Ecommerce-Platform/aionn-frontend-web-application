@@ -81,7 +81,8 @@ export function ByWarehouseTab({
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-inventory-by-warehouse", submittedId, page],
-    queryFn: () => inventoryService.listByWarehouse(submittedId, page, size),
+    queryFn: () =>
+      inventoryService.listByWarehouse(submittedId, { page, size }),
     enabled: submittedId.length > 0,
   });
 

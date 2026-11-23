@@ -25,7 +25,7 @@ import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
 import { ConsoleEmptyState } from "../shared/ConsoleShell";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
-import { formatCurrency } from "@/shared/lib/utils";
+import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { Order } from "@/types";
@@ -415,12 +415,10 @@ function MerchantOrdersInner() {
                         >
                           <td className="whitespace-nowrap px-6 py-4 text-center">
                             <p className="font-mono text-[13px] font-semibold text-white">
-                              #{order.orderId}
+                              {order.orderId}
                             </p>
                             <p className="text-xs text-slate-400">
-                              {new Date(order.createdAt).toLocaleDateString(
-                                "vi-VN",
-                              )}
+                              {formatDateTime(order.createdAt, locale)}
                             </p>
                           </td>
                           <td className="max-w-[220px] px-6 py-4 text-center">

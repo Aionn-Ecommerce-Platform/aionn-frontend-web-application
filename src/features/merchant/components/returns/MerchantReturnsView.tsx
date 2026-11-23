@@ -224,9 +224,6 @@ function MerchantReturnsInner() {
                   {t("merchant.returns.colReturn")}
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {t("merchant.returns.colRequestedAt")}
-                </th>
-                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   {t("merchant.returns.colReason")}
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -282,9 +279,6 @@ function MerchantReturnsInner() {
                 {t("merchant.returns.title")}
               </span>
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
-              {t("merchant.returns.subtitle")}
-            </p>
           </div>
         </div>
 

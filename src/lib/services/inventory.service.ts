@@ -24,10 +24,25 @@ export const inventoryService = {
     });
   },
 
-  listByWarehouse(warehouseId: string, page = 0, size = 50) {
+  listByWarehouse(
+    warehouseId: string,
+    params: {
+      page?: number;
+      size?: number;
+      search?: string;
+      stockStatus?: "low" | "locked";
+    } = {},
+  ) {
     return api.page<InventoryItem>(
       `/inventory/items/by-warehouse/${warehouseId}`,
-      { query: { page, size } },
+      {
+        query: {
+          page: params.page ?? 0,
+          size: params.size ?? 50,
+          search: params.search,
+          stockStatus: params.stockStatus,
+        },
+      },
     );
   },
 

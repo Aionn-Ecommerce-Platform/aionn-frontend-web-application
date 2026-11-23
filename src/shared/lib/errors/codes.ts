@@ -17,6 +17,8 @@ const ERROR_CODE_MESSAGE_KEYS: Record<string, string> = {
   PRM_206: "myVouchers.dailyClaimLimitReached",
   PRM_207: "myVouchers.walletLimitReached",
   CATALOG_310: "merchant.productEdit.errorLastVariant",
+  CATALOG_311: "merchant.productList.errorHasOpenOrders",
+  CATALOG_312: "merchant.productList.errorFlashSale",
   ORD_111: "merchant.orders.errorShippingQuote",
 };
 

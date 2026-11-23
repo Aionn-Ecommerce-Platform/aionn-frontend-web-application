@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTranslation } from "@/hooks";
+import { isVideoUrl } from "@/shared/lib/media";
 import AppImage from "./AppImage";
 
 interface ImageLightboxProps {
@@ -76,14 +77,26 @@ export default function ImageLightbox({
       aria-label={alt}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
     >
-      <AppImage
-        src={src}
-        alt={alt}
-        width={1600}
-        height={1600}
-        unoptimized
-        className="h-auto w-auto min-w-[320px] max-h-[85vh] max-w-[90vw] object-contain"
-      />
+      {isVideoUrl(src) ? (
+        <video
+          src={src}
+          controls
+          autoPlay
+          playsInline
+          className="max-h-[85vh] max-w-[90vw] rounded-lg bg-black"
+        >
+          <track kind="captions" />
+        </video>
+      ) : (
+        <AppImage
+          src={src}
+          alt={alt}
+          width={1600}
+          height={1600}
+          unoptimized
+          className="h-auto w-auto min-w-[320px] max-h-[85vh] max-w-[90vw] object-contain"
+        />
+      )}
       <button
         ref={closeRef}
         type="button"

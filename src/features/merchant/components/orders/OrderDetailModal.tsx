@@ -19,38 +19,6 @@ import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { Order } from "@/types";
-const SIMULATION_ACTIONS = [
-  {
-    when: "REGISTERED",
-    type: "PICKED_UP",
-    labelKey: "merchant.orders.simBtnPickedUp",
-    variant: "outline",
-  },
-  {
-    when: "PICKED_UP",
-    type: "IN_TRANSIT",
-    labelKey: "merchant.orders.simBtnInTransit",
-    variant: "outline",
-  },
-  {
-    when: "IN_TRANSIT",
-    type: "OUT_FOR_DELIVERY",
-    labelKey: "merchant.orders.simBtnOutForDelivery",
-    variant: "outline",
-  },
-  {
-    when: "OUT_FOR_DELIVERY",
-    type: "DELIVERED",
-    labelKey: "merchant.orders.simBtnDelivered",
-    variant: "primary",
-  },
-  {
-    when: "OUT_FOR_DELIVERY",
-    type: "DELIVERY_FAILED",
-    labelKey: "merchant.orders.simBtnDeliveryFailed",
-    variant: "danger",
-  },
-] as const;
 
 export function OrderDetailModal({
   order,
@@ -143,32 +111,6 @@ export function OrderDetailModal({
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const simulateWebhookMutation = useMutation({
-    mutationFn: (payload: { trackingCode: string; type: string }) => {
-      return shippingService.applyCarrierWebhook({
-        trackingCode: payload.trackingCode,
-        type: payload.type,
-        currentLocation: payload.type === "IN_TRANSIT" ? "Hà Nội" : undefined,
-        shipperName:
-          payload.type === "OUT_FOR_DELIVERY"
-            ? "Nguyễn Văn Shipper"
-            : undefined,
-        shipperPhone:
-          payload.type === "OUT_FOR_DELIVERY" ? "0987654321" : undefined,
-        signatureUrl:
-          payload.type === "DELIVERED"
-            ? "http://example.com/signature.png"
-            : undefined,
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: qk.shipments(order.orderId) });
-      qc.invalidateQueries({ queryKey: ["orders"] });
-      toast.success(t("merchant.orders.toastWebhookSent"));
-    },
-    onError: (err) => toast.error(getErrorMessage(err)),
-  });
-
   const completeOrderMutation = useMutation({
     mutationFn: () => orderService.complete(order.orderId),
     onSuccess: () => {
@@ -183,9 +125,7 @@ export function OrderDetailModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={t("merchant.orders.detailTitle", {
-        id: order.orderId,
-      })}
+      title={t("merchant.orders.detailTitle")}
       size="full"
     >
       <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
@@ -459,39 +399,6 @@ export function OrderDetailModal({
                   </Button>
                 )}
               </div>
-
-              {shipment.trackingCode &&
-                shipment.status !== "DELIVERED" &&
-                shipment.status !== "CANCELLED" && (
-                  <div className="border border-brand/20 bg-brand/5 rounded-md p-4 space-y-3">
-                    <p className="text-xs font-bold text-brand-strong uppercase tracking-wider">
-                      {t("merchant.orders.simulatorTitle")}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {t("merchant.orders.simulatorDesc")}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {SIMULATION_ACTIONS.filter(
-                        (action) => action.when === shipment.status,
-                      ).map((action) => (
-                        <Button
-                          key={action.type}
-                          size="sm"
-                          variant={action.variant}
-                          loading={simulateWebhookMutation.isPending}
-                          onClick={() =>
-                            simulateWebhookMutation.mutate({
-                              trackingCode: shipment.trackingCode!,
-                              type: action.type,
-                            })
-                          }
-                        >
-                          {t(action.labelKey)}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
             </div>
           ) : (
             <div className="space-y-2">
