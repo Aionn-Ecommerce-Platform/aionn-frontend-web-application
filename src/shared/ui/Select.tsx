@@ -27,6 +27,7 @@ interface DropdownPosition {
   width: number;
   top?: number;
   bottom?: number;
+  maxHeight: number;
 }
 
 const DROPDOWN_MIN_WIDTH = 220;
@@ -94,9 +95,13 @@ export default function Select({
       Math.max(rect.width, DROPDOWN_MIN_WIDTH),
       window.innerWidth - viewportPadding * 2,
     );
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openUp =
-      spaceBelow < DROPDOWN_MAX_HEIGHT + 40 && rect.top > spaceBelow;
+    const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+    const spaceAbove = rect.top - viewportPadding;
+    const openUp = spaceBelow < DROPDOWN_MAX_HEIGHT && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(
+      120,
+      Math.min(DROPDOWN_MAX_HEIGHT, openUp ? spaceAbove : spaceBelow),
+    );
     const left = Math.max(
       viewportPadding,
       Math.min(rect.left, window.innerWidth - width - viewportPadding),
@@ -106,9 +111,15 @@ export default function Select({
         ? {
             left,
             width,
+            maxHeight,
             bottom: window.innerHeight - rect.top + viewportPadding - 2,
           }
-        : { left, width, top: rect.bottom + viewportPadding - 2 },
+        : {
+            left,
+            width,
+            maxHeight,
+            top: rect.bottom + viewportPadding - 2,
+          },
     );
   };
 
@@ -169,8 +180,9 @@ export default function Select({
               width: position.width,
               top: position.top,
               bottom: position.bottom,
+              maxHeight: position.maxHeight,
             }}
-            className="z-[100] max-h-60 overflow-y-auto rounded-2xl border border-gray-300 bg-white py-1 shadow-lg"
+            className="z-[100] overflow-y-auto rounded-2xl border border-gray-300 bg-white py-1 shadow-lg"
           >
             {options.map((opt) => {
               const isActive = opt.value === value;

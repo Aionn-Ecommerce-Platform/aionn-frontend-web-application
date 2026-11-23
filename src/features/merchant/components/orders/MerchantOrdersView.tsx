@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Check,
   CheckCircle2,
-  ChevronDown,
   Clock3,
   Eye,
   Loader2,
@@ -20,6 +19,9 @@ import toast from "react-hot-toast";
 import { Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { orderService } from "@/lib/services";
+import { ConsoleFilterDropdown } from "../shared/ConsoleFilterDropdown";
+import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
+import { ConsoleEmptyState } from "../shared/ConsoleShell";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatCurrency } from "@/shared/lib/utils";
@@ -47,157 +49,6 @@ function filterLabelKey(key: OrderFilterKey) {
   return `merchant.orders.tabs.${key}`;
 }
 
-function OrderStatusDropdown({
-  value,
-  onChange,
-}: {
-  value: OrderFilterKey;
-  onChange: (value: OrderFilterKey) => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  return (
-    <div className="relative inline-block text-left" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-        aria-expanded={open}
-      >
-        <span className="text-slate-400">
-          {t("merchant.orders.statusFilterLabel")}:
-        </span>
-        <span>{t(filterLabelKey(value))}</span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 z-50 mt-2 w-52 overflow-hidden rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
-          {ORDER_FILTERS.map((filter) => {
-            const active = value === filter.key;
-            return (
-              <button
-                key={filter.key}
-                type="button"
-                onClick={() => {
-                  onChange(filter.key);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${
-                  active
-                    ? "bg-purple-500/20 font-semibold text-purple-200"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                <span className="truncate">
-                  {t(filterLabelKey(filter.key))}
-                </span>
-                {active && (
-                  <Check size={14} className="ml-2 shrink-0 text-purple-300" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FilterDropdown({
-  label,
-  value,
-  options,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  const current =
-    options.find((option) => option.value === value) ?? options[0];
-
-  return (
-    <div className="relative inline-block text-left" ref={ref}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40"
-        aria-expanded={open}
-      >
-        <span className="text-slate-400">{label}:</span>
-        <span>{current?.label}</span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && !disabled && (
-        <div className="absolute left-0 z-50 mt-2 max-h-72 w-48 overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
-          {options.map((option) => {
-            const active = value === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${
-                  active
-                    ? "bg-purple-500/20 font-semibold text-purple-200"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                <span className="truncate">{option.label}</span>
-                {active && (
-                  <Check size={14} className="ml-2 shrink-0 text-purple-300" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const ORDER_BADGE_CLASS: Record<string, string> = {
   default: "border-slate-500/40 bg-white/5 text-slate-300",
   info: "border-sky-400/30 bg-sky-400/10 text-sky-300",
@@ -221,6 +72,7 @@ function MerchantOrdersInner() {
   const filterKey = [activeTab, search, year, month, day].join("|");
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
+  const resetPage = () => setPageState((prev) => ({ ...prev, page: 1 }));
   const setPage = (next: number) =>
     setPageState({ key: filterKey, page: next });
 
@@ -264,7 +116,7 @@ function MerchantOrdersInner() {
   const totalPages = orderPage?.totalPages ?? 1;
   const safePage = Math.min(page, totalPages);
 
-  const { data: statsData } = useQuery({
+  const { data: statsData, isError: statsError } = useQuery({
     queryKey: ["merchant-order-stats"],
     queryFn: () => orderService.merchantOrderStats(),
   });
@@ -315,6 +167,7 @@ function MerchantOrdersInner() {
     setYear(0);
     setMonth(0);
     setDay(0);
+    resetPage();
   }
 
   const countStatus = (...statuses: string[]) =>
@@ -324,40 +177,43 @@ function MerchantOrdersInner() {
     0,
   );
 
+  const formatStat = (value: number) =>
+    statsError ? "—" : numberFormat.format(value);
+
   const orderStats = [
     {
       label: t("merchant.orders.stats.total"),
-      value: numberFormat.format(totalOrders),
+      value: formatStat(totalOrders),
       icon: ShoppingBag,
       iconClass: "text-purple-300",
     },
     {
       label: t("merchant.orders.stats.placed"),
-      value: numberFormat.format(countStatus("PENDING", "APPROVED")),
+      value: formatStat(countStatus("PENDING", "APPROVED")),
       icon: Clock3,
       iconClass: "text-amber-300",
     },
     {
       label: t("merchant.orders.stats.preparing"),
-      value: numberFormat.format(countStatus("PREPARING")),
+      value: formatStat(countStatus("PREPARING")),
       icon: Package,
       iconClass: "text-fuchsia-300",
     },
     {
       label: t("merchant.orders.stats.shipped"),
-      value: numberFormat.format(countStatus("SHIPPED")),
+      value: formatStat(countStatus("SHIPPED")),
       icon: Truck,
       iconClass: "text-sky-300",
     },
     {
       label: t("merchant.orders.stats.completed"),
-      value: numberFormat.format(countStatus("COMPLETED")),
+      value: formatStat(countStatus("COMPLETED")),
       icon: CheckCircle2,
       iconClass: "text-emerald-300",
     },
     {
       label: t("merchant.orders.stats.cancelled"),
-      value: numberFormat.format(countStatus("CANCELLED", "REJECTED")),
+      value: formatStat(countStatus("CANCELLED", "REJECTED")),
       icon: XCircle,
       iconClass: "text-rose-300",
     },
@@ -388,31 +244,7 @@ function MerchantOrdersInner() {
           </h1>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {orderStats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center gap-3 rounded-2xl border border-gray-600 bg-white/[0.04] p-3.5"
-              >
-                <Icon
-                  size={24}
-                  strokeWidth={2.2}
-                  className={`shrink-0 ${stat.iconClass}`}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    {stat.label}
-                  </p>
-                  <p className="truncate text-xl font-extrabold text-white">
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ConsoleStatGrid stats={orderStats} />
 
         <div className="relative z-30 mb-5 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -423,15 +255,29 @@ function MerchantOrdersInner() {
               />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  resetPage();
+                }}
                 placeholder={t("merchant.orders.searchPlaceholder")}
                 className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
               />
             </div>
-            <OrderStatusDropdown value={activeTab} onChange={setActiveTab} />
+            <ConsoleFilterDropdown
+              label={t("merchant.orders.statusFilterLabel")}
+              value={activeTab}
+              options={ORDER_FILTERS.map((filter) => ({
+                value: filter.key,
+                label: t(filterLabelKey(filter.key)),
+              }))}
+              onChange={(value) => {
+                setActiveTab(value);
+                resetPage();
+              }}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <FilterDropdown
+            <ConsoleFilterDropdown
               label={t("merchant.orders.filterYearLabel")}
               value={String(year)}
               options={[
@@ -445,9 +291,10 @@ function MerchantOrdersInner() {
                 setYear(Number(value));
                 setMonth(0);
                 setDay(0);
+                resetPage();
               }}
             />
-            <FilterDropdown
+            <ConsoleFilterDropdown
               label={t("merchant.orders.filterMonthLabel")}
               value={String(month)}
               disabled={!year}
@@ -461,9 +308,10 @@ function MerchantOrdersInner() {
               onChange={(value) => {
                 setMonth(Number(value));
                 setDay(0);
+                resetPage();
               }}
             />
-            <FilterDropdown
+            <ConsoleFilterDropdown
               label={t("merchant.orders.filterDayLabel")}
               value={String(day)}
               disabled={!year || !month}
@@ -474,7 +322,10 @@ function MerchantOrdersInner() {
                   label: String(index + 1),
                 })),
               ]}
-              onChange={(value) => setDay(Number(value))}
+              onChange={(value) => {
+                setDay(Number(value));
+                resetPage();
+              }}
             />
           </div>
         </div>
@@ -484,24 +335,19 @@ function MerchantOrdersInner() {
             <Loader2 className="animate-spin text-purple-400" size={28} />
           </div>
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
-              <Package size={34} />
-            </div>
-            <h3 className="text-lg font-semibold text-white">
-              {t(
-                hasFilters
-                  ? "merchant.orders.emptyFilteredTitle"
-                  : "merchant.orders.emptyTitle",
-              )}
-            </h3>
-            <p className="mt-1 max-w-sm text-sm text-slate-400">
-              {t(
-                hasFilters
-                  ? "merchant.orders.emptyFilteredDesc"
-                  : "merchant.orders.emptyDesc",
-              )}
-            </p>
+          <ConsoleEmptyState
+            icon={<Package size={34} />}
+            title={t(
+              hasFilters
+                ? "merchant.orders.emptyFilteredTitle"
+                : "merchant.orders.emptyTitle",
+            )}
+            description={t(
+              hasFilters
+                ? "merchant.orders.emptyFilteredDesc"
+                : "merchant.orders.emptyDesc",
+            )}
+          >
             {hasFilters && (
               <button
                 type="button"
@@ -511,7 +357,7 @@ function MerchantOrdersInner() {
                 {t("merchant.orders.clearFilters")}
               </button>
             )}
-          </div>
+          </ConsoleEmptyState>
         ) : (
           <>
             <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">

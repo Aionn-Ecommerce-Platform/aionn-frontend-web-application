@@ -549,7 +549,7 @@
       "HOURS": "within hours",
       "DAYS": "within days",
       "WEEKS": "over a week",
-      "UNKNOWN": "within minutes"
+      "UNKNOWN": "no data yet"
     }
   },
   "adminProductApproval": {

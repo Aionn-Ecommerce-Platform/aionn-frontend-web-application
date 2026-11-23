@@ -19,10 +19,6 @@ const PRODUCT_STATUS: Record<ProductStatus, ProductStatusConfig> = {
     labelKey: "merchant.productStatus.HIDDEN",
     variant: "warning",
   },
-  DEACTIVATED: {
-    labelKey: "merchant.productStatus.DEACTIVATED",
-    variant: "warning",
-  },
   TAKEN_DOWN: {
     labelKey: "merchant.productStatus.TAKEN_DOWN",
     variant: "danger",

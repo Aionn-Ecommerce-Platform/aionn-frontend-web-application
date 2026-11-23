@@ -522,7 +522,7 @@ export default function ProductDetailPage({
           <span>/</span>
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push("/products")}
             className="hover:text-blue-600"
           >
             {t("products.title")}

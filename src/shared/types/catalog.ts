@@ -5,7 +5,6 @@ export type ProductStatus =
   | "PENDING_REVIEW"
   | "PUBLISHED"
   | "HIDDEN"
-  | "DEACTIVATED"
   | "TAKEN_DOWN"
   | "REJECTED";
 

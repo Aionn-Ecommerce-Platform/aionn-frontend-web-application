@@ -23,7 +23,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { notificationService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getErrorMessage } from "@/shared/lib/errors";
-import type { NotificationItem } from "@/types";
+import type { NotificationItem, PageResult } from "@/types";
 import { useTranslation } from "@/hooks";
 import { formatDate, formatDateTime } from "@/shared/lib/utils";
 
@@ -45,6 +45,7 @@ function NotificationsInner() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
+  const pageQueryKey = [...qk.notifications(), currentPage] as const;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -55,7 +56,7 @@ function NotificationsInner() {
     error,
     refetch,
   } = useQuery({
-    queryKey: [...qk.notifications(), currentPage],
+    queryKey: pageQueryKey,
     queryFn: () =>
       notificationService.listMinePaged({
         page: currentPage - 1,
@@ -73,6 +74,10 @@ function NotificationsInner() {
   const totalPages = Math.max(1, notificationPage?.totalPages ?? 1);
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedList = list;
+
+  if (notificationPage && currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["notifications", "unread-count"],
@@ -112,24 +117,35 @@ function NotificationsInner() {
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
+      const prevPage =
+        qc.getQueryData<PageResult<NotificationItem>>(pageQueryKey);
+      const markReadItem = (n: NotificationItem): NotificationItem =>
+        n.notiId === notiId
+          ? {
+              ...n,
+              status: "READ",
+              readAt: n.readAt ?? new Date().toISOString(),
+            }
+          : n;
       if (prev) {
-        qc.setQueryData(
-          qk.notifications(),
-          prev.map((n) =>
-            n.notiId === notiId
-              ? {
-                  ...n,
-                  status: "READ",
-                  readAt: n.readAt ?? new Date().toISOString(),
-                }
-              : n,
-          ),
-        );
+        qc.setQueryData(qk.notifications(), prev.map(markReadItem));
       }
-      return { prev };
+      if (prevPage) {
+        qc.setQueryData(pageQueryKey, {
+          ...prevPage,
+          content: prevPage.content.map(markReadItem),
+        });
+      }
+      return { prev, prevPage };
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
     },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
+      if (ctx?.prevPage) qc.setQueryData(pageQueryKey, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });
@@ -139,17 +155,37 @@ function NotificationsInner() {
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
+      const prevPage =
+        qc.getQueryData<PageResult<NotificationItem>>(pageQueryKey);
       if (prev) {
         qc.setQueryData(
           qk.notifications(),
           prev.filter((n) => n.notiId !== notiId),
         );
       }
-      return { prev };
+      if (prevPage) {
+        const removed = prevPage.content.some((n) => n.notiId === notiId);
+        qc.setQueryData(pageQueryKey, {
+          ...prevPage,
+          content: prevPage.content.filter((n) => n.notiId !== notiId),
+          totalElements: Math.max(
+            0,
+            prevPage.totalElements - (removed ? 1 : 0),
+          ),
+        });
+      }
+      return { prev, prevPage };
     },
-    onSuccess: () => toast.success(t("notifications.deletedToast")),
+    onSuccess: () => {
+      toast.success(t("notifications.deletedToast"));
+      void qc.invalidateQueries({ queryKey: qk.notifications() });
+      void qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
+    },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
+      if (ctx?.prevPage) qc.setQueryData(pageQueryKey, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });
@@ -163,6 +199,9 @@ function NotificationsInner() {
         ids.map((id) => notificationService.markRead(id).catch(() => null)),
       );
       await qc.invalidateQueries({ queryKey: qk.notifications() });
+      await qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
       setSelectedIds(new Set());
       toast.success(
         t("notifications.selectedMarkedReadToast").replace(
@@ -184,6 +223,9 @@ function NotificationsInner() {
         ids.map((id) => notificationService.delete(id).catch(() => null)),
       );
       await qc.invalidateQueries({ queryKey: qk.notifications() });
+      await qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
       setSelectedIds(new Set());
       toast.success(
         t("notifications.selectedDeletedToast").replace(

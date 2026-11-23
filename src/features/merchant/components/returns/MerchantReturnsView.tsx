@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
-  Check,
   CheckCircle2,
-  ChevronDown,
   Clock3,
   Loader2,
   PackageX,
@@ -18,6 +16,9 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
 import { Pagination } from "@/shared/ui";
 import { orderReturnService } from "@/lib/services";
+import { ConsoleFilterDropdown } from "../shared/ConsoleFilterDropdown";
+import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
+import { ConsoleEmptyState } from "../shared/ConsoleShell";
 import {
   RETURN_REASON_TYPES,
   returnReasonLabelKey,
@@ -48,169 +49,6 @@ const TAB_MESSAGE_KEYS = {
 
 type ReturnTabKey = (typeof TAB_KEYS)[number];
 
-function ReturnStatusDropdown({
-  value,
-  counts,
-  onChange,
-}: {
-  value: ReturnTabKey;
-  counts: Record<ReturnTabKey, number>;
-  onChange: (value: ReturnTabKey) => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  return (
-    <div className="relative inline-block text-left" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-        aria-expanded={open}
-      >
-        <span className="text-slate-400">
-          {t("merchant.returns.statusFilterLabel")}:
-        </span>
-        <span>{t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[value]}`)}</span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
-          {TAB_KEYS.map((key) => {
-            const active = value === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  onChange(key);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-sm transition-colors ${
-                  active
-                    ? "bg-purple-500/20 font-semibold text-purple-200"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                <span className="truncate">
-                  {t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`)}
-                </span>
-                <span className="flex shrink-0 items-center gap-1.5">
-                  <span
-                    className={active ? "text-purple-200" : "text-slate-500"}
-                  >
-                    ({counts[key] ?? 0})
-                  </span>
-                  {active && (
-                    <Check size={14} className="shrink-0 text-purple-300" />
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ReasonDropdown({
-  value,
-  onChange,
-}: {
-  value: "all" | ReturnReasonType;
-  onChange: (value: "all" | ReturnReasonType) => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  const options: Array<{ value: "all" | ReturnReasonType; label: string }> = [
-    { value: "all", label: t("orders.returns.allReasonTypes") },
-    ...RETURN_REASON_TYPES.map((type) => ({
-      value: type,
-      label: t(returnReasonLabelKey(type)),
-    })),
-  ];
-
-  return (
-    <div className="relative inline-block text-left" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-xl border border-gray-500 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-sm transition-all hover:border-gray-400 hover:bg-white/10 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-        aria-expanded={open}
-      >
-        <span className="text-slate-400">
-          {t("orders.returns.reasonType")}:
-        </span>
-        <span className="max-w-[180px] truncate">
-          {options.find((option) => option.value === value)?.label}
-        </span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 z-50 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-gray-500 bg-console-panel-raised py-1 shadow-2xl shadow-black/40">
-          {options.map((option) => {
-            const active = value === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${
-                  active
-                    ? "bg-purple-500/20 font-semibold text-purple-200"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                <span className="truncate">{option.label}</span>
-                {active && (
-                  <Check size={14} className="ml-2 shrink-0 text-purple-300" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function MerchantReturnsInner() {
   const { t, locale } = useTranslation();
   const queryClient = useQueryClient();
@@ -227,6 +65,7 @@ function MerchantReturnsInner() {
   const filterKey = [search, tab, reasonFilter].join("|");
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
+  const resetPage = () => setPageState((prev) => ({ ...prev, page: 1 }));
   const setPage = (next: number) =>
     setPageState({ key: filterKey, page: next });
 
@@ -251,7 +90,7 @@ function MerchantReturnsInner() {
   const totalPages = returnPage?.totalPages ?? 1;
   const safePage = Math.min(page, totalPages);
 
-  const { data: statsData } = useQuery({
+  const { data: statsData, isError: statsError } = useQuery({
     queryKey: ["merchant-return-stats"],
     queryFn: () => orderReturnService.merchantReturnStats(),
   });
@@ -264,44 +103,47 @@ function MerchantReturnsInner() {
     (sum, value) => sum + value,
     0,
   );
+  const formatStat = (value: number) =>
+    statsError ? "—" : numberFormat.format(value);
+
   const returnStats = [
     {
       label: t("merchant.returns.stats.total"),
-      value: numberFormat.format(totalReturns),
+      value: formatStat(totalReturns),
       icon: RotateCcw,
       iconClass: "text-rose-300",
     },
     {
       label: t("merchant.returns.stats.requested"),
-      value: numberFormat.format(countStatus("REQUESTED")),
+      value: formatStat(countStatus("REQUESTED")),
       icon: Clock3,
       iconClass: "text-amber-300",
     },
     {
       label: t("merchant.returns.stats.approved"),
-      value: numberFormat.format(countStatus("APPROVED")),
+      value: formatStat(countStatus("APPROVED")),
       icon: CheckCircle2,
       iconClass: "text-emerald-300",
     },
     {
       label: t("merchant.returns.stats.itemReceived"),
-      value: numberFormat.format(countStatus("ITEM_RECEIVED")),
+      value: formatStat(countStatus("ITEM_RECEIVED")),
       icon: PackageX,
       iconClass: "text-sky-300",
     },
     {
       label: t("merchant.returns.stats.rejected"),
-      value: numberFormat.format(countStatus("REJECTED")),
+      value: formatStat(countStatus("REJECTED")),
       icon: XCircle,
       iconClass: "text-slate-300",
     },
   ];
-  const returnCounts: Record<ReturnTabKey, number> = {
+  const returnCounts: Record<ReturnTabKey, number | undefined> = {
     all: totalReturns,
-    REQUESTED: statsData?.REQUESTED ?? 0,
-    APPROVED: statsData?.APPROVED ?? 0,
-    ITEM_RECEIVED: statsData?.ITEM_RECEIVED ?? 0,
-    REJECTED: statsData?.REJECTED ?? 0,
+    REQUESTED: statsError ? undefined : (statsData?.REQUESTED ?? 0),
+    APPROVED: statsError ? undefined : (statsData?.APPROVED ?? 0),
+    ITEM_RECEIVED: statsError ? undefined : (statsData?.ITEM_RECEIVED ?? 0),
+    REJECTED: statsError ? undefined : (statsData?.REJECTED ?? 0),
   };
   const hasFilters = Boolean(search || tab !== "all" || reasonFilter !== "all");
   const refresh = () => {
@@ -337,26 +179,21 @@ function MerchantReturnsInner() {
     );
   } else if (returns.length === 0) {
     content = (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
-          <PackageX size={34} />
-        </div>
-        <h3 className="text-lg font-semibold text-white">
-          {t(
-            hasFilters
-              ? "merchant.returns.emptyFilteredTitle"
-              : "merchant.returns.emptyTitle",
-          )}
-        </h3>
-        <p className="mt-1 max-w-sm text-sm text-slate-400">
-          {t(
-            hasFilters
-              ? "merchant.returns.emptyFilteredDesc"
-              : tab === "REQUESTED"
-                ? "merchant.returns.emptyDescRequested"
-                : "merchant.returns.emptyDescOther",
-          )}
-        </p>
+      <ConsoleEmptyState
+        icon={<PackageX size={34} />}
+        title={t(
+          hasFilters
+            ? "merchant.returns.emptyFilteredTitle"
+            : "merchant.returns.emptyTitle",
+        )}
+        description={t(
+          hasFilters
+            ? "merchant.returns.emptyFilteredDesc"
+            : tab === "REQUESTED"
+              ? "merchant.returns.emptyDescRequested"
+              : "merchant.returns.emptyDescOther",
+        )}
+      >
         {hasFilters && (
           <button
             type="button"
@@ -364,13 +201,14 @@ function MerchantReturnsInner() {
               setSearch("");
               setTab("all");
               setReasonFilter("all");
+              resetPage();
             }}
             className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
           >
             {t("merchant.returns.clearFilters")}
           </button>
         )}
-      </div>
+      </ConsoleEmptyState>
     );
   } else {
     content = (
@@ -447,31 +285,10 @@ function MerchantReturnsInner() {
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {returnStats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center gap-3 rounded-2xl border border-gray-600 bg-white/[0.04] p-3.5"
-              >
-                <Icon
-                  size={24}
-                  strokeWidth={2.2}
-                  className={`shrink-0 ${stat.iconClass}`}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    {stat.label}
-                  </p>
-                  <p className="truncate text-xl font-extrabold text-white">
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ConsoleStatGrid
+          stats={returnStats}
+          columnsClassName="lg:grid-cols-5"
+        />
 
         {!isError && (
           <div className="relative z-30 mb-5 flex flex-wrap items-center gap-2.5">
@@ -482,17 +299,44 @@ function MerchantReturnsInner() {
               />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  resetPage();
+                }}
                 placeholder={t("merchant.returns.searchPlaceholder")}
                 className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
               />
             </div>
-            <ReturnStatusDropdown
+            <ConsoleFilterDropdown
+              label={t("merchant.returns.statusFilterLabel")}
               value={tab}
-              counts={returnCounts}
-              onChange={setTab}
+              options={TAB_KEYS.map((key) => ({
+                value: key,
+                label: t(`merchant.returns.tabs.${TAB_MESSAGE_KEYS[key]}`),
+                count: returnCounts[key],
+              }))}
+              onChange={(value) => {
+                setTab(value);
+                resetPage();
+              }}
+              menuClassName="w-56"
             />
-            <ReasonDropdown value={reasonFilter} onChange={setReasonFilter} />
+            <ConsoleFilterDropdown
+              label={t("orders.returns.reasonType")}
+              value={reasonFilter}
+              options={[
+                { value: "all", label: t("orders.returns.allReasonTypes") },
+                ...RETURN_REASON_TYPES.map((type) => ({
+                  value: type,
+                  label: t(returnReasonLabelKey(type)),
+                })),
+              ]}
+              onChange={(value) => {
+                setReasonFilter(value);
+                resetPage();
+              }}
+              menuClassName="w-48"
+            />
           </div>
         )}
         {content}

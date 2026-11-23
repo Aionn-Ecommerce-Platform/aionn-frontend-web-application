@@ -19,6 +19,39 @@ import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { Order } from "@/types";
+const SIMULATION_ACTIONS = [
+  {
+    when: "REGISTERED",
+    type: "PICKED_UP",
+    labelKey: "merchant.orders.simBtnPickedUp",
+    variant: "outline",
+  },
+  {
+    when: "PICKED_UP",
+    type: "IN_TRANSIT",
+    labelKey: "merchant.orders.simBtnInTransit",
+    variant: "outline",
+  },
+  {
+    when: "IN_TRANSIT",
+    type: "OUT_FOR_DELIVERY",
+    labelKey: "merchant.orders.simBtnOutForDelivery",
+    variant: "outline",
+  },
+  {
+    when: "OUT_FOR_DELIVERY",
+    type: "DELIVERED",
+    labelKey: "merchant.orders.simBtnDelivered",
+    variant: "primary",
+  },
+  {
+    when: "OUT_FOR_DELIVERY",
+    type: "DELIVERY_FAILED",
+    labelKey: "merchant.orders.simBtnDeliveryFailed",
+    variant: "danger",
+  },
+] as const;
+
 export function OrderDetailModal({
   order,
   onClose,
@@ -255,13 +288,14 @@ export function OrderDetailModal({
                       )}
                       <p className="mt-0.5 text-xs text-gray-400">
                         x{item.qty} ·{" "}
-                        {formatCurrency(item.unitPrice, order.currency)}
+                        {formatCurrency(item.unitPrice, order.currency, locale)}
                       </p>
                     </div>
                     <span className="ml-2 shrink-0 text-sm font-semibold text-gray-900">
                       {formatCurrency(
                         item.unitPrice * item.qty,
                         order.currency,
+                        locale,
                       )}
                     </span>
                   </div>
@@ -272,12 +306,14 @@ export function OrderDetailModal({
               <span className="text-gray-900">
                 {t("merchant.orders.detailShippingFee")}
               </span>
-              <span>{formatCurrency(order.shippingFee, order.currency)}</span>
+              <span>
+                {formatCurrency(order.shippingFee, order.currency, locale)}
+              </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 text-gray-900">
               <span>{t("merchant.orders.detailGrandTotal")}</span>
               <span className="text-brand">
-                {formatCurrency(order.totalAmount, order.currency)}
+                {formatCurrency(order.totalAmount, order.currency, locale)}
               </span>
             </div>
           </div>
@@ -287,12 +323,12 @@ export function OrderDetailModal({
           <h4 className="font-semibold text-gray-900 mb-2">
             {t("merchant.orders.detailPayment")}
           </h4>
-          {loadingPayments ? (
+          {loadingPayments && !payment ? (
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Loader2 size={16} className="animate-spin" />{" "}
               {t("merchant.orders.loadingPayment")}
             </div>
-          ) : paymentsError ? (
+          ) : paymentsError && !payment ? (
             <p className="text-sm text-rose-600">
               {t("merchant.orders.paymentLoadFailed")}
             </p>
@@ -332,7 +368,7 @@ export function OrderDetailModal({
                   {t("merchant.orders.paymentAmount")}
                 </span>
                 <span className="font-semibold text-gray-900">
-                  {formatCurrency(payment.amount, payment.currency)}
+                  {formatCurrency(payment.amount, payment.currency, locale)}
                 </span>
               </div>
               {payment.paidAt ? (
@@ -435,81 +471,24 @@ export function OrderDetailModal({
                       {t("merchant.orders.simulatorDesc")}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {shipment.status === "REGISTERED" && (
+                      {SIMULATION_ACTIONS.filter(
+                        (action) => action.when === shipment.status,
+                      ).map((action) => (
                         <Button
+                          key={action.type}
                           size="sm"
-                          variant="outline"
+                          variant={action.variant}
                           loading={simulateWebhookMutation.isPending}
                           onClick={() =>
                             simulateWebhookMutation.mutate({
                               trackingCode: shipment.trackingCode!,
-                              type: "PICKED_UP",
+                              type: action.type,
                             })
                           }
                         >
-                          {t("merchant.orders.simBtnPickedUp")}
+                          {t(action.labelKey)}
                         </Button>
-                      )}
-                      {shipment.status === "PICKED_UP" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          loading={simulateWebhookMutation.isPending}
-                          onClick={() =>
-                            simulateWebhookMutation.mutate({
-                              trackingCode: shipment.trackingCode!,
-                              type: "IN_TRANSIT",
-                            })
-                          }
-                        >
-                          {t("merchant.orders.simBtnInTransit")}
-                        </Button>
-                      )}
-                      {shipment.status === "IN_TRANSIT" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          loading={simulateWebhookMutation.isPending}
-                          onClick={() =>
-                            simulateWebhookMutation.mutate({
-                              trackingCode: shipment.trackingCode!,
-                              type: "OUT_FOR_DELIVERY",
-                            })
-                          }
-                        >
-                          {t("merchant.orders.simBtnOutForDelivery")}
-                        </Button>
-                      )}
-                      {shipment.status === "OUT_FOR_DELIVERY" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            loading={simulateWebhookMutation.isPending}
-                            onClick={() =>
-                              simulateWebhookMutation.mutate({
-                                trackingCode: shipment.trackingCode!,
-                                type: "DELIVERED",
-                              })
-                            }
-                          >
-                            {t("merchant.orders.simBtnDelivered")}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            loading={simulateWebhookMutation.isPending}
-                            onClick={() =>
-                              simulateWebhookMutation.mutate({
-                                trackingCode: shipment.trackingCode!,
-                                type: "DELIVERY_FAILED",
-                              })
-                            }
-                          >
-                            {t("merchant.orders.simBtnDeliveryFailed")}
-                          </Button>
-                        </>
-                      )}
+                      ))}
                     </div>
                   </div>
                 )}

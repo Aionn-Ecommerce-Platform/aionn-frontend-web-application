@@ -91,7 +91,7 @@ export default function ProductDetailExtras(props: Props) {
     }).format(value);
 
   const responseTimeLabel = t(
-    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "MINUTES"}`,
+    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "UNKNOWN"}`,
   );
 
   const storeMetrics = [

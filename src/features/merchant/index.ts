@@ -6,3 +6,13 @@ export { default as MerchantInventoryView } from "./components/inventory/Merchan
 export { default as MerchantTransfersView } from "./components/transfers/MerchantTransfersView";
 export { default as MerchantProductsView } from "./components/products/MerchantProductsView";
 export { default as MerchantProductEditView } from "./components/product-edit/MerchantProductEditView";
+export {
+  ProductImagesCard,
+  VariantsCard,
+} from "./components/product-edit/ProductEditCards";
+export { useProductMediaUpload } from "./components/product-edit/useProductMediaUpload";
+export { ConsoleFilterDropdown } from "./components/shared/ConsoleFilterDropdown";
+export {
+  ConsolePanel,
+  ConsoleEmptyState,
+} from "./components/shared/ConsoleShell";

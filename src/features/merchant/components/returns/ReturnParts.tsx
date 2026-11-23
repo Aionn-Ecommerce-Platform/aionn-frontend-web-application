@@ -68,7 +68,7 @@ export function ReturnRow({
   onReceive: () => void;
   onDetail: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const statusLabel = t(statusLabelKey[rtn.status]);
 
   return (
@@ -79,7 +79,7 @@ export function ReturnRow({
         </p>
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-center text-xs text-slate-300">
-        {formatDateTime(rtn.requestedAt)}
+        {formatDateTime(rtn.requestedAt, locale)}
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-center">
         <span
@@ -90,7 +90,7 @@ export function ReturnRow({
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-white">
         {rtn.refundAmount != null && rtn.currency
-          ? formatCurrency(rtn.refundAmount, rtn.currency)
+          ? formatCurrency(rtn.refundAmount, rtn.currency, locale)
           : "—"}
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-center">

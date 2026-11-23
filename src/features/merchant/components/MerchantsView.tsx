@@ -199,7 +199,7 @@ export default function MerchantsPage() {
               <div className="mt-8 flex w-full items-center justify-center gap-12">
                 <div className="text-center">
                   <div className="text-4xl font-black text-brand sm:text-5xl">
-                    <CountUp value={merchants?.length ?? 0} suffix="+" />
+                    <CountUp value={totalMerchants} suffix="+" />
                   </div>
                   <div className="mt-1 text-sm font-medium text-gray-500">
                     {t("merchants.heroMerchants")}
@@ -276,7 +276,7 @@ export default function MerchantsPage() {
                     >
                       <span>{t("merchants.allProvinces")}</span>
                       <span className="text-[11px] opacity-60">
-                        {merchants?.length ?? 0}
+                        {totalMerchants}
                       </span>
                     </button>
                   </li>

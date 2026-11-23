@@ -26,6 +26,7 @@ import {
 } from "@/lib/services";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { formatCurrency } from "@/shared/lib/utils";
+import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
 import { getProductCoverImage } from "@/shared/lib/media";
 import { productPath } from "@/shared/lib/product-url";
 import { useTranslation } from "@/hooks";
@@ -86,6 +87,7 @@ function MerchantProductsInner() {
   const filterKey = [search, status, categoryId, priceMin, priceMax].join("|");
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
+  const resetPage = () => setPageState((prev) => ({ ...prev, page: 1 }));
   const categoryFilterIds = categoryId
     ? Array.from(
         categoryData.descendants.get(categoryId) ?? new Set([categoryId]),
@@ -207,31 +209,7 @@ function MerchantProductsInner() {
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center gap-3 rounded-2xl border border-gray-600 bg-white/[0.04] p-3.5"
-              >
-                <Icon
-                  size={24}
-                  strokeWidth={2.2}
-                  className={`shrink-0 ${stat.iconClass}`}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    {stat.label}
-                  </p>
-                  <p className="truncate text-xl font-extrabold text-white">
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ConsoleStatGrid stats={stats} />
 
         <div className="relative z-30 mb-5 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -242,18 +220,30 @@ function MerchantProductsInner() {
               />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  resetPage();
+                }}
                 placeholder={t("merchant.productList.searchPlaceholder")}
                 className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
               />
             </div>
-            <StatusDropdown value={status} onChange={setStatus} />
+            <StatusDropdown
+              value={status}
+              onChange={(value) => {
+                setStatus(value);
+                resetPage();
+              }}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <CategoryDropdown
               value={categoryId}
               options={categoryData.options}
-              onChange={setCategoryId}
+              onChange={(value) => {
+                setCategoryId(value);
+                resetPage();
+              }}
             />
             <PricePopover
               priceMin={priceMin}
@@ -261,6 +251,7 @@ function MerchantProductsInner() {
               onApply={(minimum, maximum) => {
                 setPriceMin(minimum ?? null);
                 setPriceMax(maximum ?? null);
+                resetPage();
               }}
             />
           </div>

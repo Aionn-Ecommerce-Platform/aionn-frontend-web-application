@@ -8,15 +8,12 @@ import toast from "react-hot-toast";
 import { Badge, Button, Modal } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
-import {
-  mediaService,
-  productService,
-  uploadToCloudinary,
-} from "@/lib/services";
+import { useProductMediaUpload } from "./useProductMediaUpload";
+import { productService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { MEDIA_LIMITS, isVideoUrl } from "@/shared/lib/media";
+import { isVideoUrl } from "@/shared/lib/media";
 import type { Product } from "@/types";
 import { ProductImagesCard, VariantsCard } from "./ProductEditCards";
 
@@ -58,7 +55,6 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   });
 
   const [savingAll, setSavingAll] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [removingVariant, setRemovingVariant] = useState<string | null>(null);
   const [addingVariant, setAddingVariant] = useState(false);
   const [statusBusy, setStatusBusy] = useState<
@@ -105,66 +101,17 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     qc.setQueryData(qk.product(productId), next);
   }
 
-  async function handleAddMedia(file: File) {
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
-    if (!isImage && !isVideo) {
-      toast.error(t("merchant.productEdit.errorOnlyMedia"));
-      return;
-    }
-    if (images.length >= MEDIA_LIMITS.productFiles) {
-      toast.error(
-        t("merchant.productEdit.errorMediaLimit", {
-          count: MEDIA_LIMITS.productFiles,
-        }),
-      );
-      return;
-    }
-    if (isVideo) {
-      if (
-        images.filter((url) => isVideoUrl(url)).length >=
-        MEDIA_LIMITS.productVideos
-      ) {
-        toast.error(
-          t("merchant.productEdit.errorVideoLimit", {
-            count: MEDIA_LIMITS.productVideos,
-          }),
-        );
-        return;
-      }
-      if (file.size > MEDIA_LIMITS.videoBytes) {
-        toast.error(t("merchant.productEdit.errorVideoTooLarge"));
-        return;
-      }
-    } else if (file.size > MEDIA_LIMITS.imageBytes) {
-      toast.error(t("merchant.productEdit.errorImageTooLarge"));
-      return;
-    }
-    setUploading(true);
-    try {
-      const sig = await mediaService.generateProductImageSignature();
-      const url = await uploadToCloudinary(file, sig);
-      setImages((prev) => [...prev, url]);
-      toast.success(t("merchant.productEdit.uploadSuccessRemember"));
-    } catch (err) {
-      toast.error(getErrorMessage(err, t("merchant.productEdit.uploadFailed")));
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function handleRemoveImage(url: string) {
-    setImages((prev) => prev.filter((u) => u !== url));
-  }
-
-  function handleReorderImages(from: number, to: number) {
-    setImages((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      if (moved) next.splice(to, 0, moved);
-      return next;
-    });
-  }
+  const {
+    uploading,
+    addMedia: handleAddMedia,
+    removeImage: handleRemoveImage,
+    reorderImages: handleReorderImages,
+  } = useProductMediaUpload({
+    images,
+    setImages,
+    messagePrefix: "merchant.productEdit",
+    successMessageKey: "merchant.productEdit.uploadSuccessRemember",
+  });
 
   async function handleSaveAll() {
     const media = [...images];
@@ -331,7 +278,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   }
 
   function requestSubmitForReview() {
-    if (isDirty) {
+    if (isDirty || uploading) {
       toast.error(t("merchant.productEdit.saveBeforeSubmit"));
       return;
     }
@@ -339,6 +286,10 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   }
 
   function confirmSubmitForReview() {
+    if (isDirty || uploading) {
+      toast.error(t("merchant.productEdit.saveBeforeSubmit"));
+      return;
+    }
     setConfirmAction(null);
     void handleSubmitForReview();
   }
@@ -449,7 +400,10 @@ function MerchantProductEditForm({ product }: { product: Product }) {
           />
           <div className="pt-6">
             <div className="mb-4">
-              <h2 className="font-semibold text-gray-900">
+              <h2
+                id="product-description-heading"
+                className="font-semibold text-gray-900"
+              >
                 {t("merchant.productEdit.descriptionTitle")}
               </h2>
               <p className="mt-0.5 text-xs text-gray-500">
@@ -457,6 +411,8 @@ function MerchantProductEditForm({ product }: { product: Product }) {
               </p>
             </div>
             <textarea
+              name="description"
+              aria-labelledby="product-description-heading"
               rows={15}
               className="w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               placeholder={t("merchant.productEdit.descriptionPlaceholder")}
@@ -574,10 +530,15 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         <p className="text-sm text-gray-600">
           {t("merchant.productEdit.deactivateConfirmMessage")}
         </p>
-        <label className="mt-4 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="deactivate-reason"
+          className="mt-4 block text-sm font-medium text-gray-700"
+        >
           {t("merchant.productEdit.deactivateReasonLabel")}
         </label>
         <textarea
+          id="deactivate-reason"
+          name="deactivateReason"
           rows={3}
           maxLength={500}
           value={deactivateReason}

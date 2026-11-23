@@ -107,6 +107,19 @@ function OrdersInner() {
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   useEffect(() => {
+    if (!orderPage || currentPage <= totalPages) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("focus");
+    if (totalPages <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(totalPages));
+    }
+    const query = params.toString();
+    router.replace(query ? `/orders?${query}` : "/orders", { scroll: false });
+  }, [orderPage, currentPage, totalPages, router, searchParams]);
+
+  useEffect(() => {
     if (!focusOrderId || !orders) {
       return;
     }

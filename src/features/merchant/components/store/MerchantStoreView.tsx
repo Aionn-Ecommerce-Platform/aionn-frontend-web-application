@@ -341,7 +341,7 @@ export default function MerchantStorePage({
     }).format(value);
 
   const responseTimeLabel = t(
-    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "MINUTES"}`,
+    `merchantStore.responseTime.${storefrontStats?.responseTimeBucket ?? "UNKNOWN"}`,
   );
 
   const displayProvince = merchant.provinceCode

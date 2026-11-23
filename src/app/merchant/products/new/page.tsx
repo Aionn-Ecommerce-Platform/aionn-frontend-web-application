@@ -7,17 +7,14 @@ import toast from "react-hot-toast";
 import { Button, Input } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
-import {
-  mediaService,
-  productService,
-  uploadToCloudinary,
-} from "@/lib/services";
+import { productService } from "@/lib/services";
 import { getErrorMessage, getFieldErrors } from "@/shared/lib/errors";
-import { MEDIA_LIMITS, isVideoUrl } from "@/shared/lib/media";
+import { isVideoUrl } from "@/shared/lib/media";
 import {
   ProductImagesCard,
   VariantsCard,
-} from "@/features/merchant/components/product-edit/ProductEditCards";
+  useProductMediaUpload,
+} from "@/features/merchant";
 import type { ProductVariant } from "@/types";
 
 interface VariantDraft {
@@ -48,70 +45,20 @@ function NewProductInner() {
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [newVariant, setNewVariant] = useState<VariantDraft>(EMPTY_VARIANT);
   const [images, setImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function handleAddImage(file: File) {
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
-    if (!isImage && !isVideo) {
-      toast.error(t("merchant.productNew.errorOnlyMedia"));
-      return;
-    }
-    if (images.length >= MEDIA_LIMITS.productFiles) {
-      toast.error(
-        t("merchant.productNew.errorMediaLimit", {
-          count: MEDIA_LIMITS.productFiles,
-        }),
-      );
-      return;
-    }
-    if (isVideo) {
-      if (
-        images.filter((url) => isVideoUrl(url)).length >=
-        MEDIA_LIMITS.productVideos
-      ) {
-        toast.error(
-          t("merchant.productNew.errorVideoLimit", {
-            count: MEDIA_LIMITS.productVideos,
-          }),
-        );
-        return;
-      }
-      if (file.size > MEDIA_LIMITS.videoBytes) {
-        toast.error(t("merchant.productNew.errorVideoTooLarge"));
-        return;
-      }
-    } else if (file.size > MEDIA_LIMITS.imageBytes) {
-      toast.error(t("merchant.productNew.errorImageTooLarge"));
-      return;
-    }
-    setUploading(true);
-    try {
-      const sig = await mediaService.generateProductImageSignature();
-      const url = await uploadToCloudinary(file, sig);
-      setImages((prev) => [...prev, url]);
-      toast.success(t("merchant.productNew.uploadSuccess"));
-    } catch (err) {
-      toast.error(getErrorMessage(err, t("merchant.productNew.uploadFailed")));
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function handleRemoveImage(url: string) {
-    setImages((prev) => prev.filter((item) => item !== url));
-  }
-
-  function handleReorderImages(from: number, to: number) {
-    setImages((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      if (moved) next.splice(to, 0, moved);
-      return next;
-    });
-  }
+  const {
+    uploading,
+    addMedia: handleAddImage,
+    removeImage: handleRemoveImage,
+    reorderImages: handleReorderImages,
+  } = useProductMediaUpload({
+    images,
+    setImages,
+    messagePrefix: "merchant.productNew",
+    successMessageKey: "merchant.productNew.uploadSuccess",
+  });
 
   function handleRemoveVariantDraft(skuId: string) {
     const index = Number(skuId.replace("draft-", ""));
@@ -137,6 +84,11 @@ function NewProductInner() {
     const dims = [newVariant.lengthCm, newVariant.widthCm, newVariant.heightCm];
     if (dims.some((dim) => dim !== "" && !Number.isFinite(Number(dim)))) {
       toast.error(t("merchant.productNew.errorDimensionsInvalid"));
+      return false;
+    }
+    const filledDims = dims.filter((dim) => dim !== "");
+    if (filledDims.length > 0 && filledDims.length < dims.length) {
+      toast.error(t("merchant.productNew.errorDimensionsIncomplete"));
       return false;
     }
     setVariants((prev) => [...prev, { ...newVariant, value }]);
@@ -249,7 +201,7 @@ function NewProductInner() {
     <div className="w-full">
       <button
         type="button"
-        onClick={() => router.back()}
+        onClick={() => router.push("/merchant/products")}
         className="group mb-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-gray-950"
       >
         <ArrowLeft
@@ -339,7 +291,7 @@ function NewProductInner() {
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => router.back()}
+            onClick={() => router.push("/merchant/products")}
             disabled={loading}
           >
             {t("merchant.productNew.cancel")}
