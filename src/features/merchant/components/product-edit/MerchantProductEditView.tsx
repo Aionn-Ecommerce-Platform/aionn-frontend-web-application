@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, type ComponentProps, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, Copy, CopyPlus, Loader2 } from "lucide-react";
@@ -16,6 +16,32 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { isVideoUrl } from "@/shared/lib/media";
 import type { Product } from "@/types";
 import { ProductImagesCard, VariantsCard } from "./ProductEditCards";
+
+function ConfirmActions({
+  onCancel,
+  onConfirm,
+  loading,
+  variant,
+  children,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+  loading?: boolean;
+  variant?: ComponentProps<typeof Button>["variant"];
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="mt-6 flex justify-end gap-3">
+      <Button variant="outline" onClick={onCancel}>
+        {t("common.cancel")}
+      </Button>
+      <Button variant={variant} onClick={onConfirm} loading={loading}>
+        {children}
+      </Button>
+    </div>
+  );
+}
 
 function MerchantProductEditInner({ productId }: { productId: string }) {
   const { data: product, isLoading } = useQuery({
@@ -546,18 +572,14 @@ function MerchantProductEditForm({ product }: { product: Product }) {
           placeholder={t("merchant.productEdit.deactivateReasonPlaceholder")}
           className="mt-1 w-full rounded-lg border border-gray-400 px-4 py-2.5 text-sm focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
         />
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setConfirmAction(null)}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="warning"
-            onClick={confirmDeactivate}
-            loading={statusBusy === "deactivate"}
-          >
-            {t("merchant.productEdit.deactivate")}
-          </Button>
-        </div>
+        <ConfirmActions
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={confirmDeactivate}
+          loading={statusBusy === "deactivate"}
+          variant="warning"
+        >
+          {t("merchant.productEdit.deactivate")}
+        </ConfirmActions>
       </Modal>
 
       <Modal
@@ -569,20 +591,16 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         <p className="text-sm text-gray-600">
           {t("merchant.productEdit.submitConfirmMessage")}
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setConfirmAction(null)}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="success"
-            onClick={confirmSubmitForReview}
-            loading={statusBusy === "submit"}
-          >
-            {product.status === "REJECTED"
-              ? t("merchant.productEdit.resubmitForReview")
-              : t("merchant.productEdit.submitForReview")}
-          </Button>
-        </div>
+        <ConfirmActions
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={confirmSubmitForReview}
+          loading={statusBusy === "submit"}
+          variant="success"
+        >
+          {product.status === "REJECTED"
+            ? t("merchant.productEdit.resubmitForReview")
+            : t("merchant.productEdit.submitForReview")}
+        </ConfirmActions>
       </Modal>
 
       <Modal
@@ -594,18 +612,14 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         <p className="text-sm text-gray-600">
           {t("merchant.productEdit.withdrawConfirmMessage")}
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setConfirmAction(null)}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="warning"
-            onClick={confirmWithdrawReview}
-            loading={statusBusy === "withdraw"}
-          >
-            {t("merchant.productEdit.withdrawReview")}
-          </Button>
-        </div>
+        <ConfirmActions
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={confirmWithdrawReview}
+          loading={statusBusy === "withdraw"}
+          variant="warning"
+        >
+          {t("merchant.productEdit.withdrawReview")}
+        </ConfirmActions>
       </Modal>
 
       <Modal
