@@ -225,7 +225,7 @@ export default function MerchantsPage() {
           </div>
         </section>
 
-        {!isLoading && !error && (merchants?.length ?? 0) > 0 && (
+        {!isLoading && !error && (
           <div
             id="merchant-list"
             className="flex flex-col gap-3 scroll-mt-24 sm:flex-row sm:items-center"

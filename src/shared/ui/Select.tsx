@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -45,6 +50,7 @@ export default function Select({
   required = false,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [position, setPosition] = useState<DropdownPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -124,8 +130,43 @@ export default function Select({
   };
 
   const toggle = () => {
-    if (!isOpen) updatePosition();
+    if (!isOpen) {
+      updatePosition();
+      const selectedIndex = options.findIndex((opt) => opt.value === value);
+      setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    }
     setIsOpen((prev) => !prev);
+  };
+
+  const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!isOpen) {
+        updatePosition();
+        setActiveIndex(event.key === "ArrowDown" ? 0 : options.length - 1);
+        setIsOpen(true);
+        return;
+      }
+      setActiveIndex((prev) => {
+        const delta = event.key === "ArrowDown" ? 1 : -1;
+        return (prev + delta + options.length) % options.length;
+      });
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      if (!isOpen) return;
+      event.preventDefault();
+      const option = options[activeIndex];
+      if (option) {
+        onChange(option.value);
+        setIsOpen(false);
+      }
+      return;
+    }
+    if (event.key === "Escape" && isOpen) {
+      event.preventDefault();
+      setIsOpen(false);
+    }
   };
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -144,6 +185,9 @@ export default function Select({
           type="button"
           disabled={disabled}
           onClick={toggle}
+          onKeyDown={handleTriggerKeyDown}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
           className={cn(
             "w-full flex items-center justify-between rounded-xl border border-gray-400 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none transition-all cursor-pointer font-medium text-left shadow-sm min-w-0",
             disabled && "bg-gray-50 opacity-50 cursor-not-allowed",
@@ -174,6 +218,7 @@ export default function Select({
         createPortal(
           <div
             ref={dropdownRef}
+            role="listbox"
             style={{
               position: "fixed",
               left: position.left,
@@ -184,18 +229,22 @@ export default function Select({
             }}
             className="z-[100] overflow-y-auto rounded-2xl border border-gray-300 bg-white py-1 shadow-lg"
           >
-            {options.map((opt) => {
+            {options.map((opt, index) => {
               const isActive = opt.value === value;
               return (
                 <button
                   key={opt.value}
                   type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => {
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left truncate",
+                    "w-full flex items-center px-4 py-2.5 text-sm text-gray-700 transition-colors text-left truncate",
+                    index === activeIndex && "bg-gray-50",
                     isActive && "bg-blue-50 text-blue-700 font-semibold",
                   )}
                 >

@@ -2452,7 +2452,8 @@
       "editSelectProvince": "Select province/city",
       "editSelectDistrict": "Select district",
       "editSelectWard": "Select ward",
-      "editDomesticOnly": "Delivery is only available within Vietnam."
+      "editDomesticOnly": "Delivery is only available within Vietnam.",
+      "editAddressLoadFailed": "Could not load address options. Close and reopen the form."
     },
     "returns": {
       "title": "Return requests",
@@ -2749,7 +2750,9 @@
       "createSuccess": "Product created",
       "createFailed": "Failed to create product",
       "errorVariantRequired": "Add at least one variant",
-      "errorDimensionsInvalid": "Invalid parcel dimensions (length, width and height must be filled together)"
+      "errorDimensionsInvalid": "Invalid parcel dimensions (length, width and height must be filled together)",
+      "errorUploadInProgress": "Files are still uploading. Wait for the upload to finish before creating the product.",
+      "retryIncomplete": "Some setup steps did not finish. Your inputs are kept; submit again to continue."
     },
     "productEdit": {
       "backToList": "Back to list",

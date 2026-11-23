@@ -2452,7 +2452,8 @@
       "editSelectProvince": "Chọn tỉnh/thành phố",
       "editSelectDistrict": "Chọn quận/huyện",
       "editSelectWard": "Chọn phường/xã",
-      "editDomesticOnly": "Chỉ hỗ trợ giao hàng trong lãnh thổ Việt Nam."
+      "editDomesticOnly": "Chỉ hỗ trợ giao hàng trong lãnh thổ Việt Nam.",
+      "editAddressLoadFailed": "Không tải được danh sách địa chỉ. Vui lòng đóng và mở lại form."
     },
     "returns": {
       "title": "Yêu cầu trả hàng",
@@ -2749,7 +2750,9 @@
       "createSuccess": "Tạo sản phẩm thành công",
       "createFailed": "Không tạo được sản phẩm",
       "errorVariantRequired": "Vui lòng thêm ít nhất 1 biến thể",
-      "errorDimensionsInvalid": "Kích thước kiện hàng không hợp lệ (cần đủ dài, rộng, cao)"
+      "errorDimensionsInvalid": "Kích thước kiện hàng không hợp lệ (cần đủ dài, rộng, cao)",
+      "errorUploadInProgress": "Đang tải tệp lên, vui lòng đợi hoàn tất rồi tạo sản phẩm.",
+      "retryIncomplete": "Một số bước chưa hoàn tất. Dữ liệu đã nhập vẫn được giữ, bấm tạo lại để tiếp tục."
     },
     "productEdit": {
       "backToList": "Quay lại danh sách",

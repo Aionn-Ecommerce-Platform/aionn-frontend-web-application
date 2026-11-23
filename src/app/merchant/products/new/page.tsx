@@ -47,6 +47,9 @@ function NewProductInner() {
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
+  const [savedVariantValues, setSavedVariantValues] = useState<string[]>([]);
+  const [contentSaved, setContentSaved] = useState(false);
 
   const {
     uploading,
@@ -115,6 +118,10 @@ function NewProductInner() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (uploading) {
+      toast.error(t("merchant.productNew.errorUploadInProgress"));
+      return;
+    }
     if (!name.trim()) {
       setFieldErrors({ name: t("merchant.productNew.errorNameRequired") });
       return;
@@ -129,30 +136,39 @@ function NewProductInner() {
     }
     setLoading(true);
     setFieldErrors({});
-    let product;
-    try {
-      product = await productService.create({ name: name.trim() });
-    } catch (err) {
-      setFieldErrors(getFieldErrors(err));
-      toast.error(getErrorMessage(err, t("merchant.productNew.createFailed")));
-      setLoading(false);
-      return;
+    let productId = createdProductId;
+    if (!productId) {
+      try {
+        const product = await productService.create({ name: name.trim() });
+        productId = product.productId;
+        setCreatedProductId(productId);
+      } catch (err) {
+        setFieldErrors(getFieldErrors(err));
+        toast.error(
+          getErrorMessage(err, t("merchant.productNew.createFailed")),
+        );
+        setLoading(false);
+        return;
+      }
     }
 
     let failures = 0;
+    const newlySaved: string[] = [];
     for (const v of variants) {
+      if (savedVariantValues.includes(v.value)) continue;
       const lengthCm = v.lengthCm === "" ? null : Number(v.lengthCm);
       const widthCm = v.widthCm === "" ? null : Number(v.widthCm);
       const heightCm = v.heightCm === "" ? null : Number(v.heightCm);
       const hasBox = lengthCm != null && widthCm != null && heightCm != null;
       try {
-        await productService.defineVariant(product.productId, {
+        await productService.defineVariant(productId, {
           attributeValues: { [v.attribute]: v.value },
           price: Number(v.price),
           currency: "VND",
           weightGram: Number(v.weightGram),
           ...(hasBox ? { lengthCm, widthCm, heightCm } : {}),
         });
+        newlySaved.push(v.value);
       } catch (err) {
         failures += 1;
         toast.error(
@@ -163,9 +179,13 @@ function NewProductInner() {
         );
       }
     }
+    if (newlySaved.length > 0) {
+      setSavedVariantValues((prev) => [...prev, ...newlySaved]);
+    }
 
+    let savedContent = contentSaved;
     const trimmedDescription = description.trim();
-    if (trimmedDescription || images.length > 0) {
+    if (!contentSaved && (trimmedDescription || images.length > 0)) {
       try {
         const ordered = [...images];
         const coverIndex = ordered.findIndex((url) => !isVideoUrl(url));
@@ -173,11 +193,13 @@ function NewProductInner() {
           const [cover] = ordered.splice(coverIndex, 1);
           if (cover) ordered.unshift(cover);
         }
-        await productService.updateContent(product.productId, {
+        await productService.updateContent(productId, {
           images: ordered,
           description: trimmedDescription,
           tags: [],
         });
+        savedContent = true;
+        setContentSaved(true);
       } catch (err) {
         failures += 1;
         toast.error(
@@ -188,13 +210,15 @@ function NewProductInner() {
       }
     }
 
-    if (failures) {
-      toast.error(t("merchant.productNew.createFailed"));
-    } else {
-      toast.success(t("merchant.productNew.createSuccess"));
+    if (failures || !savedContent) {
+      toast.error(t("merchant.productNew.retryIncomplete"));
+      setLoading(false);
+      return;
     }
+
+    toast.success(t("merchant.productNew.createSuccess"));
     setLoading(false);
-    router.push(`/merchant/products/${product.productId}/edit`);
+    router.push(`/merchant/products/${productId}/edit`);
   }
 
   return (
@@ -277,7 +301,12 @@ function NewProductInner() {
         </div>
 
         <div className="flex flex-wrap justify-end gap-3 pt-6">
-          <Button type="submit" size="lg" loading={loading}>
+          <Button
+            type="submit"
+            size="lg"
+            loading={loading}
+            disabled={uploading}
+          >
             {loading ? (
               <>
                 <Loader2 size={16} className="mr-2 animate-spin" />

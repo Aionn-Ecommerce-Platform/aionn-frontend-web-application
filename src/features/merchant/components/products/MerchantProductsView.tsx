@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertCircle,
   BadgeCheck,
   Boxes,
   Edit2,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Badge, Pagination } from "@/shared/ui";
+import { ConsoleEmptyState } from "../shared/ConsoleShell";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   categoryService,
@@ -94,7 +96,12 @@ function MerchantProductsInner() {
       )
     : [];
 
-  const { data: productPage, isLoading } = useQuery({
+  const {
+    data: productPage,
+    isLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useQuery({
     queryKey: [
       "merchant-products",
       merchantId,
@@ -261,6 +268,20 @@ function MerchantProductsInner() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-purple-400" size={28} />
           </div>
+        ) : productsError ? (
+          <ConsoleEmptyState
+            icon={<AlertCircle size={34} />}
+            title={t("common.error")}
+            description={t("common.tryAgain")}
+          >
+            <button
+              type="button"
+              onClick={() => void refetchProducts()}
+              className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+            >
+              {t("common.retry")}
+            </button>
+          </ConsoleEmptyState>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">

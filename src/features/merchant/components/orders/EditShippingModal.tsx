@@ -51,16 +51,16 @@ export function EditShippingModal({
     order.recipientProvinceCode ?? "",
   );
 
-  const { data: provinces = [] } = useQuery({
+  const { data: provinces = [], isError: provincesError } = useQuery({
     queryKey: qk.provinces(),
     queryFn: () => geographyService.listProvinces(),
   });
-  const { data: districts = [] } = useQuery({
+  const { data: districts = [], isError: districtsError } = useQuery({
     queryKey: qk.districts(provinceCode),
     queryFn: () => geographyService.listDistricts(provinceCode),
     enabled: Boolean(provinceCode),
   });
-  const { data: wards = [] } = useQuery({
+  const { data: wards = [], isError: wardsError } = useQuery({
     queryKey: qk.wards(districtCode),
     queryFn: () => geographyService.listWards(districtCode),
     enabled: Boolean(districtCode),
@@ -213,6 +213,11 @@ export function EditShippingModal({
         <p className="text-xs text-gray-500">
           {t("merchant.orders.editDomesticOnly")}
         </p>
+        {(provincesError || districtsError || wardsError) && (
+          <p className="text-xs text-rose-600">
+            {t("merchant.orders.editAddressLoadFailed")}
+          </p>
+        )}
         <div className="flex justify-end gap-2 pt-2">
           <Button
             variant="outline"

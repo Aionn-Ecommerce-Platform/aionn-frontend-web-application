@@ -116,9 +116,9 @@ function NotificationsInner() {
     mutationFn: (notiId: string) => notificationService.markRead(notiId),
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
+      const key = pageQueryKey;
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
-      const prevPage =
-        qc.getQueryData<PageResult<NotificationItem>>(pageQueryKey);
+      const prevPage = qc.getQueryData<PageResult<NotificationItem>>(key);
       const markReadItem = (n: NotificationItem): NotificationItem =>
         n.notiId === notiId
           ? {
@@ -131,12 +131,12 @@ function NotificationsInner() {
         qc.setQueryData(qk.notifications(), prev.map(markReadItem));
       }
       if (prevPage) {
-        qc.setQueryData(pageQueryKey, {
+        qc.setQueryData(key, {
           ...prevPage,
           content: prevPage.content.map(markReadItem),
         });
       }
-      return { prev, prevPage };
+      return { prev, prevPage, key };
     },
     onSuccess: () => {
       void qc.invalidateQueries({
@@ -145,7 +145,7 @@ function NotificationsInner() {
     },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
-      if (ctx?.prevPage) qc.setQueryData(pageQueryKey, ctx.prevPage);
+      if (ctx?.prevPage) qc.setQueryData(ctx.key, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });
@@ -154,9 +154,9 @@ function NotificationsInner() {
     mutationFn: (notiId: string) => notificationService.delete(notiId),
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
+      const key = pageQueryKey;
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
-      const prevPage =
-        qc.getQueryData<PageResult<NotificationItem>>(pageQueryKey);
+      const prevPage = qc.getQueryData<PageResult<NotificationItem>>(key);
       if (prev) {
         qc.setQueryData(
           qk.notifications(),
@@ -165,7 +165,7 @@ function NotificationsInner() {
       }
       if (prevPage) {
         const removed = prevPage.content.some((n) => n.notiId === notiId);
-        qc.setQueryData(pageQueryKey, {
+        qc.setQueryData(key, {
           ...prevPage,
           content: prevPage.content.filter((n) => n.notiId !== notiId),
           totalElements: Math.max(
@@ -174,7 +174,7 @@ function NotificationsInner() {
           ),
         });
       }
-      return { prev, prevPage };
+      return { prev, prevPage, key };
     },
     onSuccess: () => {
       toast.success(t("notifications.deletedToast"));
@@ -185,7 +185,7 @@ function NotificationsInner() {
     },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
-      if (ctx?.prevPage) qc.setQueryData(pageQueryKey, ctx.prevPage);
+      if (ctx?.prevPage) qc.setQueryData(ctx.key, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });

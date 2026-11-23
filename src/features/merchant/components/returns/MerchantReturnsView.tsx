@@ -89,6 +89,9 @@ function MerchantReturnsInner() {
   const returns = returnPage?.content ?? [];
   const totalPages = returnPage?.totalPages ?? 1;
   const safePage = Math.min(page, totalPages);
+  if (returnPage && page > safePage) {
+    setPageState({ key: filterKey, page: safePage });
+  }
 
   const { data: statsData, isError: statsError } = useQuery({
     queryKey: ["merchant-return-stats"],

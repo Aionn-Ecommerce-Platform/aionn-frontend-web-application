@@ -520,13 +520,9 @@ export default function ProductDetailPage({
             {t("common.home")}
           </Link>
           <span>/</span>
-          <button
-            type="button"
-            onClick={() => router.push("/products")}
-            className="hover:text-blue-600"
-          >
+          <Link href="/products" className="hover:text-blue-600">
             {t("products.title")}
-          </button>
+          </Link>
           <span>/</span>
           <span className="text-gray-900 font-medium truncate max-w-[60vw]">
             {product.name}

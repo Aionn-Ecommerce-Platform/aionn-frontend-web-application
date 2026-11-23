@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertCircle,
   Check,
   CheckCircle2,
   Clock3,
@@ -92,7 +93,12 @@ function MerchantOrdersInner() {
 
   const statusParam = statusesForFilter(activeTab)?.join(",") ?? undefined;
 
-  const { data: orderPage, isLoading } = useQuery({
+  const {
+    data: orderPage,
+    isLoading,
+    isError: ordersError,
+    refetch: refetchOrders,
+  } = useQuery({
     queryKey: qk.merchantOrders({
       page,
       activeTab,
@@ -115,19 +121,20 @@ function MerchantOrdersInner() {
   const orders = useMemo(() => orderPage?.content ?? [], [orderPage]);
   const totalPages = orderPage?.totalPages ?? 1;
   const safePage = Math.min(page, totalPages);
+  if (orderPage && page > safePage) {
+    setPageState({ key: filterKey, page: safePage });
+  }
 
   const { data: statsData, isError: statsError } = useQuery({
     queryKey: ["merchant-order-stats"],
     queryFn: () => orderService.merchantOrderStats(),
   });
 
-  const years = useMemo(
-    () =>
-      Array.from(
-        new Set(orders.map((order) => new Date(order.createdAt).getFullYear())),
-      ).sort((a, b) => b - a),
-    [orders],
-  );
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(() => {
+    const recent = Array.from({ length: 5 }, (_, index) => currentYear - index);
+    return year && !recent.includes(year) ? [year, ...recent] : recent;
+  }, [currentYear, year]);
   const daysInMonth = year && month ? new Date(year, month, 0).getDate() : 31;
 
   const confirmMutation = useMutation({
@@ -334,6 +341,20 @@ function MerchantOrdersInner() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-purple-400" size={28} />
           </div>
+        ) : ordersError ? (
+          <ConsoleEmptyState
+            icon={<AlertCircle size={34} />}
+            title={t("common.error")}
+            description={t("common.tryAgain")}
+          >
+            <button
+              type="button"
+              onClick={() => void refetchOrders()}
+              className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+            >
+              {t("common.retry")}
+            </button>
+          </ConsoleEmptyState>
         ) : orders.length === 0 ? (
           <ConsoleEmptyState
             icon={<Package size={34} />}

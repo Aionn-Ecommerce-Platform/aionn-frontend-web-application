@@ -155,6 +155,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     }
 
     setSavingAll(true);
+    const mediaAtSave = [...media];
     try {
       const trimmedDescription = description.trim();
       const updated = await productService.updateContent(productId, {
@@ -163,7 +164,12 @@ function MerchantProductEditForm({ product }: { product: Product }) {
         tags: product.tags ?? [],
       });
       applyOptimistic(updated);
-      if (updated.imageList) setImages(updated.imageList);
+      setImages((current) =>
+        current.length === mediaAtSave.length &&
+        current.every((url, index) => url === mediaAtSave[index])
+          ? (updated.imageList ?? current)
+          : current,
+      );
       toast.success(t("merchant.productEdit.changesSaved"));
     } catch (err) {
       toast.error(
@@ -345,7 +351,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
       <div className="w-full">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={requestClose}
           className="group mb-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-gray-950"
         >
           <ArrowLeft
@@ -635,7 +641,7 @@ function MerchantProductEditForm({ product }: { product: Product }) {
           <Button variant="outline" onClick={() => setConfirmAction(null)}>
             {t("merchant.productEdit.stay")}
           </Button>
-          <Button onClick={() => router.back()}>
+          <Button onClick={() => router.push("/merchant/products")}>
             {t("merchant.productEdit.closeConfirmAction")}
           </Button>
         </div>
