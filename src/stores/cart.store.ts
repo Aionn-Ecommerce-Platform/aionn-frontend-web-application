@@ -4,6 +4,7 @@ import type { CartItem, Product, ServerCart } from "@/types";
 import { cartService } from "@/lib/services/cart.service";
 import { productService } from "@/lib/services/product.service";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { t } from "@/i18n/translate";
 import { useLocaleStore } from "@/stores/locale.store";
 
@@ -102,7 +103,9 @@ function mergeServerCart(
       productId: product?.productId ?? cached?.productId ?? srv.skuId,
       slug: product?.slug ?? cached?.slug,
       productName: product?.name ?? cached?.productName ?? srv.skuId,
-      imageUrl: product?.imageList[0] ?? cached?.imageUrl ?? "/images/logo.png",
+      imageUrl: product
+        ? getProductCoverImage(product.imageList)
+        : (cached?.imageUrl ?? "/images/logo.png"),
       price: effectivePrice,
       qty: srv.qty,
       currency: effectiveCurrency,
@@ -149,9 +152,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const existing = previous.find((i) => i.skuId === newItem.skuId);
     const next = existing
       ? previous.map((i) =>
-          i.skuId === newItem.skuId
-            ? { ...i, qty: i.qty + newItem.qty }
-            : i,
+          i.skuId === newItem.skuId ? { ...i, qty: i.qty + newItem.qty } : i,
         )
       : [...previous, newItem];
     set({ items: next });
@@ -170,9 +171,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
         const updatedQty = (cur[idx]?.qty ?? newItem.qty) - newItem.qty;
         const items =
           existing && updatedQty > 0
-            ? cur.map((i, j) =>
-                j === idx ? { ...i, qty: updatedQty } : i,
-              )
+            ? cur.map((i, j) => (j === idx ? { ...i, qty: updatedQty } : i))
             : cur.filter((_, j) => j !== idx);
         return { items };
       });
@@ -204,9 +203,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const next =
       safeQty === 0
         ? previous.filter((i) => i.skuId !== skuId)
-        : previous.map((i) =>
-            i.skuId === skuId ? { ...i, qty: safeQty } : i,
-          );
+        : previous.map((i) => (i.skuId === skuId ? { ...i, qty: safeQty } : i));
     set({ items: next });
 
     try {

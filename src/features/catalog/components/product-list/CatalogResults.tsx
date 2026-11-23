@@ -9,9 +9,15 @@ import {
   Zap,
 } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
-import { Button, EmptyState, ProductCardSkeleton, RatingStars } from "@/shared/ui";
+import {
+  Button,
+  EmptyState,
+  ProductCardSkeleton,
+  RatingStars,
+} from "@/shared/ui";
 import { useTranslation } from "@/hooks";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { getPaginationRange } from "@/shared/lib/pagination";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { Product } from "@/types";
@@ -88,11 +94,13 @@ export default function CatalogResults(props: Props) {
               lowestVariant = v;
             }
           }
-          const basePrice = lowestVariant?.price ?? (product.variants.length
-            ? Math.min(...product.variants.map((variant) => variant.price))
-            : 0);
+          const basePrice =
+            lowestVariant?.price ??
+            (product.variants.length
+              ? Math.min(...product.variants.map((variant) => variant.price))
+              : 0);
           const originalPrice = lowestVariant?.originalPrice;
-          const image = product.imageList[0] ?? "/images/logo.png";
+          const image = getProductCoverImage(product.imageList);
           const province =
             (product.provinceCode
               ? props.provinces.get(product.provinceCode)
@@ -159,12 +167,18 @@ export default function CatalogResults(props: Props) {
                   <div>
                     {product.flashSale ? (
                       <span className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
-                        <Zap size={10} className="fill-purple-200 text-purple-100" />
+                        <Zap
+                          size={10}
+                          className="fill-purple-200 text-purple-100"
+                        />
                         FLASH SALE
                       </span>
                     ) : isSale ? (
                       <span className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                        <Zap size={10} className="fill-pink-200 text-pink-100" />
+                        <Zap
+                          size={10}
+                          className="fill-pink-200 text-pink-100"
+                        />
                         SALE
                       </span>
                     ) : product.isBestSeller ? (
@@ -203,11 +217,12 @@ export default function CatalogResults(props: Props) {
                         emptyClassName="fill-gray-200 text-gray-200"
                       />
                     </div>
-                    {product.reviewCount !== undefined && product.reviewCount > 0 && (
-                      <span className="text-[11px] text-gray-400">
-                        ({product.reviewCount})
-                      </span>
-                    )}
+                    {product.reviewCount !== undefined &&
+                      product.reviewCount > 0 && (
+                        <span className="text-[11px] text-gray-400">
+                          ({product.reviewCount})
+                        </span>
+                      )}
                   </div>
                   {province && (
                     <div className="mt-1 flex min-w-0 items-center gap-1 text-[10px] font-medium text-gray-500">
@@ -239,14 +254,17 @@ export default function CatalogResults(props: Props) {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-gray-400">
-                    {product.soldCount !== undefined && product.soldCount > 0 && (
-                      <span className="whitespace-nowrap">
-                        {t("home.soldCount").replace(
-                          "{count}",
-                          product.soldCount >= 1000 ? "1k+" : String(product.soldCount),
-                        )}
-                      </span>
-                    )}
+                    {product.soldCount !== undefined &&
+                      product.soldCount > 0 && (
+                        <span className="whitespace-nowrap">
+                          {t("home.soldCount").replace(
+                            "{count}",
+                            product.soldCount >= 1000
+                              ? "1k+"
+                              : String(product.soldCount),
+                          )}
+                        </span>
+                      )}
                   </div>
                 </div>
               </div>

@@ -11,6 +11,7 @@ import { EmptyState, Pagination } from "@/shared/ui";
 import { wishlistService } from "@/lib/services";
 import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { getProductCoverImage } from "@/shared/lib/media";
 
 function WishlistInner() {
   const { t } = useTranslation();
@@ -62,9 +63,7 @@ function WishlistInner() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {products.map((product) => {
             const variants = product.variants ?? [];
-            const lowest = [...variants].sort(
-              (a, b) => a.price - b.price,
-            )[0];
+            const lowest = [...variants].sort((a, b) => a.price - b.price)[0];
             const originalPrice = lowest?.originalPrice ?? undefined;
             return (
               <div key={product.productId} className="relative group">
@@ -74,7 +73,7 @@ function WishlistInner() {
                   name={product.name}
                   price={lowest?.price ?? 0}
                   originalPrice={originalPrice}
-                  image={product.imageList?.[0] ?? ""}
+                  image={getProductCoverImage(product.imageList)}
                   rating={product.rating}
                   reviewCount={product.reviewCount}
                   sold={product.soldCount}
@@ -93,7 +92,8 @@ function WishlistInner() {
                   className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 border border-rose-200 text-rose-600 shadow-sm hover:bg-rose-50 disabled:opacity-50 cursor-pointer"
                   aria-label={t("wishlist.removed")}
                 >
-                  {remove.isPending && remove.variables === product.productId ? (
+                  {remove.isPending &&
+                  remove.variables === product.productId ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
                     <Heart size={14} className="fill-rose-500 text-rose-500" />

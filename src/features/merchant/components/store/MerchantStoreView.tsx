@@ -38,6 +38,7 @@ import {
 } from "@/lib/services";
 import { useAuthStore } from "@/stores/auth.store";
 import { formatMonthYear } from "@/shared/lib/utils";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { useTranslation, useDebounce } from "@/hooks";
 import { qk } from "@/lib/query-keys";
 import { cleanProvinceName } from "@/shared/lib/address-utils";
@@ -251,7 +252,7 @@ export default function MerchantStorePage({
 
   const { data: myVouchers } = useQuery({
     queryKey: qk.myVouchers(),
-    queryFn: () => voucherService.listMine(100),
+    queryFn: () => voucherService.listMine({ limit: 100 }),
     enabled: isAuthenticated,
   });
 
@@ -356,7 +357,11 @@ export default function MerchantStorePage({
   const merchantOnline = presence?.online === true;
   let merchantPresenceText: string = merchant.status;
   if (presence) {
-    merchantPresenceText = presenceLabel(presence.online, presence.lastSeenAt, t);
+    merchantPresenceText = presenceLabel(
+      presence.online,
+      presence.lastSeenAt,
+      t,
+    );
   } else if (merchant.status === "ACTIVE") {
     merchantPresenceText = t("merchantStore.active");
   }
@@ -488,7 +493,9 @@ export default function MerchantStorePage({
               <StatItem
                 icon={<Package size={16} />}
                 label={t("merchantStore.products")}
-                value={compactNumber(storefrontStats?.productCount ?? totalElements)}
+                value={compactNumber(
+                  storefrontStats?.productCount ?? totalElements,
+                )}
               />
               <StatItem
                 icon={<MessageCircle size={16} />}
@@ -570,237 +577,238 @@ export default function MerchantStorePage({
           />
         ) : (
           <div ref={productsRef} className="flex flex-col lg:flex-row gap-8">
-          <aside className="w-full lg:w-64 shrink-0">
-            <div className="relative overflow-hidden rounded-2xl border border-purple-800/60 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-5 text-white shadow-xl shadow-purple-950/20">
-              <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-purple-600/25 blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-fuchsia-600/20 blur-2xl" />
+            <aside className="w-full lg:w-64 shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-purple-800/60 bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 p-5 text-white shadow-xl shadow-purple-950/20">
+                <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-purple-600/25 blur-2xl" />
+                <div className="pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-fuchsia-600/20 blur-2xl" />
 
-              <h3 className="relative z-10 flex items-center gap-2 border-b border-amber-400/70 pb-3 text-base font-bold tracking-wide text-white">
-                <Store size={18} className="text-purple-200" />
-                <span>
-                  {t("merchants.shopCategories") || t("merchantStore.categories")}
-                </span>
-              </h3>
+                <h3 className="relative z-10 flex items-center gap-2 border-b border-amber-400/70 pb-3 text-base font-bold tracking-wide text-white">
+                  <Store size={18} className="text-purple-200" />
+                  <span>
+                    {t("merchants.shopCategories") ||
+                      t("merchantStore.categories")}
+                  </span>
+                </h3>
 
-              <ul className="relative z-10 mt-4 max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
-                <li>
-                  <button
-                    onClick={() => {
-                      setSelectedCategory(null);
-                      setPage(0);
-                      scrollToProducts();
-                    }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm transition-all ${
-                      selectedCategory === null
-                        ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
-                        : "font-medium text-purple-200 hover:bg-purple-800/40 hover:text-white"
-                    }`}
-                  >
-                    <span>
-                      {t("merchants.allProducts") ||
-                        t("merchantStore.allProducts")}
-                    </span>
-                  </button>
-                </li>
-                {Object.entries(categoryFacets)
-                  .filter(
-                    ([, count]) =>
-                      storeProductCount === 0 || count < storeProductCount,
-                  )
-                  .map(([catId, count]) => {
-                  const label = categoryNameById.get(catId) ?? catId;
-                  const isActive = selectedCategory === catId;
-                  return (
-                    <li key={catId}>
-                      <button
-                        onClick={() => {
-                          setSelectedCategory(catId);
-                          setPage(0);
-                          scrollToProducts();
-                        }}
-                        className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm transition-all ${
-                          isActive
-                            ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
-                            : "font-medium text-purple-200 hover:bg-purple-800/40 hover:text-white"
-                        }`}
-                      >
-                        <span className="mr-2 truncate">{label}</span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            isActive
-                              ? "bg-white/20 text-white"
-                              : "bg-purple-950/60 text-purple-200"
-                          }`}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
-
-          <div className="flex-1 min-w-0">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-lg font-bold text-gray-900">
-                {selectedCategory
-                  ? categoryNameById.get(selectedCategory) ||
-                    t("common.allProducts")
-                  : t("merchants.allShopProducts") ||
-                    (locale === "en"
-                      ? "All products in this store"
-                      : t("merchantStore.allStoreProducts"))}
-              </h2>
-              <div className="relative w-full sm:max-w-xs">
-                <Search
-                  size={16}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => {
-                    setSearchQuery(event.target.value);
-                    setPage(0);
-                  }}
-                  placeholder={t("merchantStore.searchProducts")}
-                  aria-label={t("merchantStore.searchProducts")}
-                  className="h-10 w-full rounded-xl border border-gray-400 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10 [&::-webkit-search-cancel-button]:hidden"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setPage(0);
-                    }}
-                    aria-label={t("common.clearSearch")}
-                    className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {loadingP ? (
-              <div className="py-20 flex justify-center">
-                <Loader2 className="animate-spin text-gray-700" size={28} />
-              </div>
-            ) : !searchResult || searchResult.page.content.length === 0 ? (
-              <EmptyState
-                icon={Store}
-                title={
-                  debouncedSearch
-                    ? t("products.noProducts")
-                    : t("merchantStore.categoryEmpty")
-                }
-                description={
-                  debouncedSearch
-                    ? t("products.noProductsDesc")
-                    : t("merchantStore.categoryEmptyDescription")
-                }
-              />
-            ) : (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {searchResult.page.content.map((product) => {
-                    const lowestVariant = product.variants?.reduce<
-                      Product["variants"][number] | null
-                    >(
-                      (lowest, curr) =>
-                        !lowest || curr.price < lowest.price ? curr : lowest,
-                      null,
-                    );
-                    const price = lowestVariant?.price ?? 0;
-                    const originalPrice = lowestVariant?.originalPrice;
-                    const image = product.imageList?.[0] ?? "/images/logo.png";
-                    return (
-                      <ProductCard
-                        key={product.productId}
-                        id={product.productId}
-                        slug={product.slug}
-                        name={product.name}
-                        price={price}
-                        originalPrice={originalPrice}
-                        image={image}
-                        rating={product.rating}
-                        reviewCount={product.reviewCount}
-                        sold={product.soldCount}
-                        flashSale={product.flashSale}
-                        isBestSeller={product.isBestSeller}
-                        provinceName={displayProvince}
-                        currency={lowestVariant?.currency ?? "VND"}
-                      />
-                    );
-                  })}
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="mt-12 flex items-center justify-center gap-2">
+                <ul className="relative z-10 mt-4 max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
+                  <li>
                     <button
                       onClick={() => {
-                        if (page <= 0) return;
-                        setPage(page - 1);
+                        setSelectedCategory(null);
+                        setPage(0);
                         scrollToProducts();
                       }}
-                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-400 bg-white text-gray-600 shadow-xs transition-colors hover:border-gray-950 hover:bg-gray-50 hover:text-gray-900"
-                      aria-label="Previous page"
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm transition-all ${
+                        selectedCategory === null
+                          ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
+                          : "font-medium text-purple-200 hover:bg-purple-800/40 hover:text-white"
+                      }`}
                     >
-                      <ChevronLeft size={16} />
+                      <span>
+                        {t("merchants.allProducts") ||
+                          t("merchantStore.allProducts")}
+                      </span>
                     </button>
-
-                    {getPaginationRange(page, totalPages).map((p, idx) => {
-                      if (p === "...") {
-                        return (
-                          <span
-                            key={`dots-${idx}`}
-                            className="px-2 py-1.5 text-sm text-gray-400 select-none font-medium"
-                          >
-                            ...
-                          </span>
-                        );
-                      }
-
-                      const pageNum = p as number;
-                      const isCurrent = pageNum - 1 === page;
-
+                  </li>
+                  {Object.entries(categoryFacets)
+                    .filter(
+                      ([, count]) =>
+                        storeProductCount === 0 || count < storeProductCount,
+                    )
+                    .map(([catId, count]) => {
+                      const label = categoryNameById.get(catId) ?? catId;
+                      const isActive = selectedCategory === catId;
                       return (
-                        <button
-                          key={pageNum}
-                          onClick={() => {
-                            setPage(pageNum - 1);
-                            scrollToProducts();
-                          }}
-                          className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
-                            isCurrent
-                              ? "bg-gray-950 text-white shadow-xs border border-gray-950"
-                              : "border border-gray-400 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-950 hover:text-gray-900 shadow-xs"
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
+                        <li key={catId}>
+                          <button
+                            onClick={() => {
+                              setSelectedCategory(catId);
+                              setPage(0);
+                              scrollToProducts();
+                            }}
+                            className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm transition-all ${
+                              isActive
+                                ? "bg-purple-600 font-bold text-white shadow-md shadow-purple-600/40"
+                                : "font-medium text-purple-200 hover:bg-purple-800/40 hover:text-white"
+                            }`}
+                          >
+                            <span className="mr-2 truncate">{label}</span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                isActive
+                                  ? "bg-white/20 text-white"
+                                  : "bg-purple-950/60 text-purple-200"
+                              }`}
+                            >
+                              {count}
+                            </span>
+                          </button>
+                        </li>
                       );
                     })}
+                </ul>
+              </div>
+            </aside>
 
+            <div className="flex-1 min-w-0">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-bold text-gray-900">
+                  {selectedCategory
+                    ? categoryNameById.get(selectedCategory) ||
+                      t("common.allProducts")
+                    : t("merchants.allShopProducts") ||
+                      (locale === "en"
+                        ? "All products in this store"
+                        : t("merchantStore.allStoreProducts"))}
+                </h2>
+                <div className="relative w-full sm:max-w-xs">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => {
+                      setSearchQuery(event.target.value);
+                      setPage(0);
+                    }}
+                    placeholder={t("merchantStore.searchProducts")}
+                    aria-label={t("merchantStore.searchProducts")}
+                    className="h-10 w-full rounded-xl border border-gray-400 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10 [&::-webkit-search-cancel-button]:hidden"
+                  />
+                  {searchQuery && (
                     <button
+                      type="button"
                       onClick={() => {
-                        if (page + 1 >= totalPages) return;
-                        setPage(page + 1);
-                        scrollToProducts();
+                        setSearchQuery("");
+                        setPage(0);
                       }}
-                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-400 bg-white text-gray-600 shadow-xs transition-colors hover:border-gray-950 hover:bg-gray-50 hover:text-gray-900"
-                      aria-label="Next page"
+                      aria-label={t("common.clearSearch")}
+                      className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                     >
-                      <ChevronRight size={16} />
+                      <X size={14} />
                     </button>
+                  )}
+                </div>
+              </div>
+
+              {loadingP ? (
+                <div className="py-20 flex justify-center">
+                  <Loader2 className="animate-spin text-gray-700" size={28} />
+                </div>
+              ) : !searchResult || searchResult.page.content.length === 0 ? (
+                <EmptyState
+                  icon={Store}
+                  title={
+                    debouncedSearch
+                      ? t("products.noProducts")
+                      : t("merchantStore.categoryEmpty")
+                  }
+                  description={
+                    debouncedSearch
+                      ? t("products.noProductsDesc")
+                      : t("merchantStore.categoryEmptyDescription")
+                  }
+                />
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {searchResult.page.content.map((product) => {
+                      const lowestVariant = product.variants?.reduce<
+                        Product["variants"][number] | null
+                      >(
+                        (lowest, curr) =>
+                          !lowest || curr.price < lowest.price ? curr : lowest,
+                        null,
+                      );
+                      const price = lowestVariant?.price ?? 0;
+                      const originalPrice = lowestVariant?.originalPrice;
+                      const image = getProductCoverImage(product.imageList);
+                      return (
+                        <ProductCard
+                          key={product.productId}
+                          id={product.productId}
+                          slug={product.slug}
+                          name={product.name}
+                          price={price}
+                          originalPrice={originalPrice}
+                          image={image}
+                          rating={product.rating}
+                          reviewCount={product.reviewCount}
+                          sold={product.soldCount}
+                          flashSale={product.flashSale}
+                          isBestSeller={product.isBestSeller}
+                          provinceName={displayProvince}
+                          currency={lowestVariant?.currency ?? "VND"}
+                        />
+                      );
+                    })}
                   </div>
-                )}
-              </>
-            )}
-          </div>
+
+                  {totalPages > 1 && (
+                    <div className="mt-12 flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (page <= 0) return;
+                          setPage(page - 1);
+                          scrollToProducts();
+                        }}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-400 bg-white text-gray-600 shadow-xs transition-colors hover:border-gray-950 hover:bg-gray-50 hover:text-gray-900"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+
+                      {getPaginationRange(page, totalPages).map((p, idx) => {
+                        if (p === "...") {
+                          return (
+                            <span
+                              key={`dots-${idx}`}
+                              className="px-2 py-1.5 text-sm text-gray-400 select-none font-medium"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+
+                        const pageNum = p as number;
+                        const isCurrent = pageNum - 1 === page;
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => {
+                              setPage(pageNum - 1);
+                              scrollToProducts();
+                            }}
+                            className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                              isCurrent
+                                ? "bg-gray-950 text-white shadow-xs border border-gray-950"
+                                : "border border-gray-400 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-950 hover:text-gray-900 shadow-xs"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        onClick={() => {
+                          if (page + 1 >= totalPages) return;
+                          setPage(page + 1);
+                          scrollToProducts();
+                        }}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-400 bg-white text-gray-600 shadow-xs transition-colors hover:border-gray-950 hover:bg-gray-50 hover:text-gray-900"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

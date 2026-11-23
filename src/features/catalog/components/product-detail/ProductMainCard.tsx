@@ -11,6 +11,7 @@ import {
   Gift,
   Minus,
   Package,
+  Play,
   Plus,
   ShieldCheck,
   ShoppingCart,
@@ -19,7 +20,9 @@ import {
 } from "lucide-react";
 import { Badge, RatingStars } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
+import { isVideoUrl } from "@/shared/lib/media";
 import { formatCurrency } from "@/shared/lib/utils";
+import { getProductStatus } from "@/lib/domain/status/product";
 import type { Address, Product, ProductVariant } from "@/types";
 import type { Locale } from "@/stores/locale.store";
 import { formatVariantKey, formatVariantValue } from "./product-detail-utils";
@@ -146,6 +149,7 @@ export default function ProductMainCard(props: Props) {
     selectionState.productId === product.productId ? selectionState.values : {};
   const [isProtectionExpanded, setIsProtectionExpanded] = useState(false);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
+  const statusConfig = getProductStatus(product.status);
 
   let flashSaleStrike: string | null = strikeLabel ?? null;
   let regularStrike: string | null = null;
@@ -255,6 +259,9 @@ export default function ProductMainCard(props: Props) {
     });
   };
 
+  const activeImage = images[selectedImage] ?? "/images/logo.png";
+  const activeIsVideo = isVideoUrl(activeImage);
+
   return (
     <>
       {" "}
@@ -262,13 +269,25 @@ export default function ProductMainCard(props: Props) {
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-8">
           <div>
             <div className="aspect-square relative bg-gray-50/70 rounded-2xl overflow-hidden mb-4 border border-gray-400 shadow-xs group">
-              <Image
-                src={images[selectedImage] ?? "/images/logo.png"}
-                alt={product.name}
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-contain p-8"
-              />
+              {activeIsVideo ? (
+                // Merchant-uploaded demo videos do not ship caption tracks.
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <video
+                  key={activeImage}
+                  src={activeImage}
+                  controls
+                  playsInline
+                  className="h-full w-full object-contain bg-black"
+                />
+              ) : (
+                <Image
+                  src={activeImage}
+                  alt={product.name}
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-contain p-8"
+                />
+              )}
             </div>
             {images.length > 0 && (
               <div className="flex items-center gap-2">
@@ -297,12 +316,18 @@ export default function ProductMainCard(props: Props) {
                           : "border-gray-400 hover:border-gray-400"
                       }`}
                     >
-                      <Image
-                        src={img}
-                        alt=""
-                        fill
-                        className="object-contain p-2"
-                      />
+                      {isVideoUrl(img) ? (
+                        <span className="flex h-full w-full items-center justify-center bg-black/80">
+                          <Play size={18} className="fill-white text-white" />
+                        </span>
+                      ) : (
+                        <Image
+                          src={img}
+                          alt=""
+                          fill
+                          className="object-contain p-2"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -321,9 +346,11 @@ export default function ProductMainCard(props: Props) {
 
           <div className="lg:py-1 flex flex-col justify-between lg:aspect-square">
             <div>
-              {product.status !== "PUBLISHED" && (
+              {product.status !== "PUBLISHED" && statusConfig && (
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <Badge variant="warning">{product.status}</Badge>
+                  <Badge variant={statusConfig.variant}>
+                    {t(statusConfig.labelKey)}
+                  </Badge>
                 </div>
               )}
 
@@ -558,9 +585,7 @@ export default function ProductMainCard(props: Props) {
                             href="/policy/returns"
                             className="text-xs font-semibold text-red-500 hover:text-red-600 inline-flex items-center gap-0.5 cursor-pointer transition-colors"
                           >
-                            <span>
-                              {t("productDetail.learnMore")}
-                            </span>
+                            <span>{t("productDetail.learnMore")}</span>
                             <ChevronRight size={13} />
                           </Link>
                         </div>

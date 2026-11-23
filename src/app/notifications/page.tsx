@@ -23,7 +23,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { notificationService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getErrorMessage } from "@/shared/lib/errors";
-import type { NotificationItem } from "@/types";
+import type { NotificationItem, PageResult } from "@/types";
 import { useTranslation } from "@/hooks";
 import { formatDate, formatDateTime } from "@/shared/lib/utils";
 
@@ -39,34 +39,50 @@ function NotificationsInner() {
   const router = useRouter();
   const qc = useQueryClient();
   const { t, locale } = useTranslation();
-  const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
+  const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(
+    null,
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+  const pageQueryKey = [...qk.notifications(), currentPage] as const;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
   const {
-    data: notifications,
+    data: notificationPage,
     isLoading,
     isError,
     error,
     refetch,
   } = useQuery({
-    queryKey: qk.notifications(),
-    queryFn: () => notificationService.listMine(50),
+    queryKey: pageQueryKey,
+    queryFn: () =>
+      notificationService.listMinePaged({
+        page: currentPage - 1,
+        limit: PAGE_SIZE,
+      }),
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
+  const list = useMemo(
+    () => notificationPage?.content ?? [],
+    [notificationPage],
+  );
+  const isNotificationRead = (n: NotificationItem) =>
+    n.status === "READ" || !!n.readAt;
 
-  const list = useMemo(() => notifications ?? [], [notifications]);
-  const isNotificationRead = (n: NotificationItem) => n.status === "READ" || !!n.readAt;
-  const unreadCount = list.filter((n) => !isNotificationRead(n)).length;
-
-  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const totalPages = Math.max(1, notificationPage?.totalPages ?? 1);
   const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedList = list;
 
-  const paginatedList = useMemo(() => {
-    const start = (safeCurrentPage - 1) * PAGE_SIZE;
-    return list.slice(start, start + PAGE_SIZE);
-  }, [list, safeCurrentPage]);
+  if (notificationPage && currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () => notificationService.unreadCount(),
+  });
 
   const pageIds = useMemo(
     () => paginatedList.map((item) => item.notiId),
@@ -100,21 +116,36 @@ function NotificationsInner() {
     mutationFn: (notiId: string) => notificationService.markRead(notiId),
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
+      const key = pageQueryKey;
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
+      const prevPage = qc.getQueryData<PageResult<NotificationItem>>(key);
+      const markReadItem = (n: NotificationItem): NotificationItem =>
+        n.notiId === notiId
+          ? {
+              ...n,
+              status: "READ",
+              readAt: n.readAt ?? new Date().toISOString(),
+            }
+          : n;
       if (prev) {
-        qc.setQueryData(
-          qk.notifications(),
-          prev.map((n) =>
-            n.notiId === notiId
-              ? { ...n, status: "READ", readAt: n.readAt ?? new Date().toISOString() }
-              : n,
-          ),
-        );
+        qc.setQueryData(qk.notifications(), prev.map(markReadItem));
       }
-      return { prev };
+      if (prevPage) {
+        qc.setQueryData(key, {
+          ...prevPage,
+          content: prevPage.content.map(markReadItem),
+        });
+      }
+      return { prev, prevPage, key };
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
     },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
+      if (ctx?.prevPage) qc.setQueryData(ctx.key, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });
@@ -123,18 +154,38 @@ function NotificationsInner() {
     mutationFn: (notiId: string) => notificationService.delete(notiId),
     onMutate: async (notiId) => {
       await qc.cancelQueries({ queryKey: qk.notifications() });
+      const key = pageQueryKey;
       const prev = qc.getQueryData<NotificationItem[]>(qk.notifications());
+      const prevPage = qc.getQueryData<PageResult<NotificationItem>>(key);
       if (prev) {
         qc.setQueryData(
           qk.notifications(),
           prev.filter((n) => n.notiId !== notiId),
         );
       }
-      return { prev };
+      if (prevPage) {
+        const removed = prevPage.content.some((n) => n.notiId === notiId);
+        qc.setQueryData(key, {
+          ...prevPage,
+          content: prevPage.content.filter((n) => n.notiId !== notiId),
+          totalElements: Math.max(
+            0,
+            prevPage.totalElements - (removed ? 1 : 0),
+          ),
+        });
+      }
+      return { prev, prevPage, key };
     },
-    onSuccess: () => toast.success(t("notifications.deletedToast")),
+    onSuccess: () => {
+      toast.success(t("notifications.deletedToast"));
+      void qc.invalidateQueries({ queryKey: qk.notifications() });
+      void qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
+    },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(qk.notifications(), ctx.prev);
+      if (ctx?.prevPage) qc.setQueryData(ctx.key, ctx.prevPage);
       toast.error(getErrorMessage(err));
     },
   });
@@ -148,6 +199,9 @@ function NotificationsInner() {
         ids.map((id) => notificationService.markRead(id).catch(() => null)),
       );
       await qc.invalidateQueries({ queryKey: qk.notifications() });
+      await qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
       setSelectedIds(new Set());
       toast.success(
         t("notifications.selectedMarkedReadToast").replace(
@@ -169,6 +223,9 @@ function NotificationsInner() {
         ids.map((id) => notificationService.delete(id).catch(() => null)),
       );
       await qc.invalidateQueries({ queryKey: qk.notifications() });
+      await qc.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
       setSelectedIds(new Set());
       toast.success(
         t("notifications.selectedDeletedToast").replace(
@@ -273,96 +330,100 @@ function NotificationsInner() {
               )}
             </div>
             <div className="divide-y divide-gray-300">
-            <AnimatePresence initial={false}>
-              {paginatedList.map((notif) => {
-                const read = isNotificationRead(notif);
-                return (
-                  <motion.div
-                    key={notif.notiId}
-                    layout
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.18 }}
-                    onClick={() => {
-                      if (!read) markRead.mutate(notif.notiId);
-                      setSelectedNotif(notif);
-                    }}
-                    className={`p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-colors ${
-                      read
-                        ? "bg-white hover:bg-gray-50/70"
-                        : "bg-gray-50/80 hover:bg-gray-100/80"
-                    }`}
-                  >
-                    {/* Unread indicator dot slot with balanced width so content stays aligned */}
-                    <div className="shrink-0 self-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(notif.notiId)}
-                        onChange={() => toggleSelect(notif.notiId)}
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={notif.subject ?? t("notifications.defaultSubject")}
-                        className="h-4 w-4 rounded border-gray-400 accent-gray-950 cursor-pointer"
-                      />
-                    </div>
-                    <div className="w-2.5 h-10 flex items-center justify-center shrink-0">
-                      {!read && (
-                        <span className="w-2 h-2 rounded-full bg-brand shadow-xs shrink-0" />
-                      )}
-                    </div>
-
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              <AnimatePresence initial={false}>
+                {paginatedList.map((notif) => {
+                  const read = isNotificationRead(notif);
+                  return (
+                    <motion.div
+                      key={notif.notiId}
+                      layout
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.18 }}
+                      onClick={() => {
+                        if (!read) markRead.mutate(notif.notiId);
+                        setSelectedNotif(notif);
+                      }}
+                      className={`p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-colors ${
                         read
-                          ? "bg-gray-100/60 border-gray-400 opacity-60"
-                          : "bg-white border-gray-400 shadow-xs"
+                          ? "bg-white hover:bg-gray-50/70"
+                          : "bg-gray-50/80 hover:bg-gray-100/80"
                       }`}
                     >
-                      {categoryIcons[notif.category] ?? (
-                        <Bell size={16} className="text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3
-                          className={`text-base ${
-                            read
-                              ? "text-gray-500 font-normal"
-                              : "font-bold text-gray-950"
-                          }`}
-                        >
-                          {notif.subject ?? t("notifications.defaultSubject")}
-                        </h3>
-                        <span
-                          className={`text-sm shrink-0 ${
-                            read ? "text-gray-400" : "text-gray-600 font-semibold"
-                          }`}
-                        >
-                          {formatDate(notif.createdAt, locale)}
-                        </span>
+                      {/* Unread indicator dot slot with balanced width so content stays aligned */}
+                      <div className="shrink-0 self-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(notif.notiId)}
+                          onChange={() => toggleSelect(notif.notiId)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={
+                            notif.subject ?? t("notifications.defaultSubject")
+                          }
+                          className="h-4 w-4 rounded border-gray-400 accent-gray-950 cursor-pointer"
+                        />
                       </div>
-                      <p
-                        className={`text-sm mt-1 line-clamp-2 leading-relaxed ${
-                          read ? "text-gray-400" : "text-gray-700 font-medium"
+                      <div className="w-2.5 h-10 flex items-center justify-center shrink-0">
+                        {!read && (
+                          <span className="w-2 h-2 rounded-full bg-brand shadow-xs shrink-0" />
+                        )}
+                      </div>
+
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                          read
+                            ? "bg-gray-100/60 border-gray-400 opacity-60"
+                            : "bg-white border-gray-400 shadow-xs"
                         }`}
                       >
-                        {(notif.content ?? "").replace(/\\n/g, " ")}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeMutation.mutate(notif.notiId);
-                      }}
-                      className="self-center p-1.5 text-red-500 hover:text-red-600 bg-transparent transition-colors shrink-0 cursor-pointer"
-                      aria-label={t("notifications.deleteLabel")}
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                        {categoryIcons[notif.category] ?? (
+                          <Bell size={16} className="text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3
+                            className={`text-base ${
+                              read
+                                ? "text-gray-500 font-normal"
+                                : "font-bold text-gray-950"
+                            }`}
+                          >
+                            {notif.subject ?? t("notifications.defaultSubject")}
+                          </h3>
+                          <span
+                            className={`text-sm shrink-0 ${
+                              read
+                                ? "text-gray-400"
+                                : "text-gray-600 font-semibold"
+                            }`}
+                          >
+                            {formatDate(notif.createdAt, locale)}
+                          </span>
+                        </div>
+                        <p
+                          className={`text-sm mt-1 line-clamp-2 leading-relaxed ${
+                            read ? "text-gray-400" : "text-gray-700 font-medium"
+                          }`}
+                        >
+                          {(notif.content ?? "").replace(/\\n/g, " ")}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeMutation.mutate(notif.notiId);
+                        }}
+                        className="self-center p-1.5 text-red-500 hover:text-red-600 bg-transparent transition-colors shrink-0 cursor-pointer"
+                        aria-label={t("notifications.deleteLabel")}
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </>
         )}
@@ -384,84 +445,86 @@ function NotificationsInner() {
         title={t("notifications.detailTitle")}
         size="md"
       >
-        {selectedNotif && (() => {
-          const content = `${selectedNotif.subject ?? ""} ${selectedNotif.content ?? ""}`;
-          const orderMatch = /ORD_[a-z0-9]+/i.exec(content);
-          const orderId = orderMatch ? orderMatch[0] : null;
+        {selectedNotif &&
+          (() => {
+            const content = `${selectedNotif.subject ?? ""} ${selectedNotif.content ?? ""}`;
+            const orderMatch = /ORD_[a-z0-9]+/i.exec(content);
+            const orderId = orderMatch ? orderMatch[0] : null;
 
-          let actionLabel: string | null = null;
-          let actionUrl: string | null = null;
+            let actionLabel: string | null = null;
+            let actionUrl: string | null = null;
 
-          if (orderId) {
-            actionLabel = `${t("notifications.viewOrder")} (${orderId})`;
-            actionUrl = `/orders/${orderId}`;
-          } else if (selectedNotif.category === "SECURITY") {
-            actionLabel = t("notifications.viewSecurity");
-            actionUrl = "/account/security";
-          } else if (selectedNotif.category === "PROMOTION") {
-            actionLabel = t("notifications.viewVouchers");
-            actionUrl = "/vouchers";
-          } else if (selectedNotif.category === "CHAT") {
-            actionLabel = t("notifications.openChat");
-            actionUrl = "/chat";
-          } else if (/security|auth|login/i.test(content)) {
-            actionLabel = t("notifications.viewSecurity");
-            actionUrl = "/account/security";
-          } else if (/voucher|promo|discount/i.test(content)) {
-            actionLabel = t("notifications.viewVouchers");
-            actionUrl = "/vouchers";
-          } else if (/chat|message/i.test(content)) {
-            actionLabel = t("notifications.openChat");
-            actionUrl = "/chat";
-          }
+            if (orderId) {
+              actionLabel = `${t("notifications.viewOrder")} (${orderId})`;
+              actionUrl = `/orders/${orderId}`;
+            } else if (selectedNotif.category === "SECURITY") {
+              actionLabel = t("notifications.viewSecurity");
+              actionUrl = "/account/security";
+            } else if (selectedNotif.category === "PROMOTION") {
+              actionLabel = t("notifications.viewVouchers");
+              actionUrl = "/vouchers";
+            } else if (selectedNotif.category === "CHAT") {
+              actionLabel = t("notifications.openChat");
+              actionUrl = "/chat";
+            } else if (/security|auth|login/i.test(content)) {
+              actionLabel = t("notifications.viewSecurity");
+              actionUrl = "/account/security";
+            } else if (/voucher|promo|discount/i.test(content)) {
+              actionLabel = t("notifications.viewVouchers");
+              actionUrl = "/vouchers";
+            } else if (/chat|message/i.test(content)) {
+              actionLabel = t("notifications.openChat");
+              actionUrl = "/chat";
+            }
 
-          return (
-            <div className="space-y-5">
-              <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-gray-50 border border-gray-400 flex items-center justify-center shrink-0">
-                  {categoryIcons[selectedNotif.category] ?? (
-                    <Bell size={20} className="text-gray-500" />
+            return (
+              <div className="space-y-5">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-gray-50 border border-gray-400 flex items-center justify-center shrink-0">
+                    {categoryIcons[selectedNotif.category] ?? (
+                      <Bell size={20} className="text-gray-500" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-bold text-gray-950 leading-snug">
+                      {selectedNotif.subject ??
+                        t("notifications.defaultSubject")}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {formatDateTime(selectedNotif.createdAt, locale)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-gray-50/70 border border-gray-100 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">
+                  {(selectedNotif.content ?? "").replace(/\\n/g, "\n")}
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    onClick={() => setSelectedNotif(null)}
+                    className="px-4 py-2 rounded-full border-2 border-gray-900 bg-white text-gray-800 hover:bg-gray-100 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    {t("common.close")}
+                  </button>
+
+                  {actionUrl && actionLabel && (
+                    <button
+                      onClick={() => {
+                        const url = actionUrl!;
+                        setSelectedNotif(null);
+                        router.push(url);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-gray-950 bg-gray-950 text-white hover:bg-black text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <span>{actionLabel}</span>
+                      <ArrowRight size={14} />
+                    </button>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold text-gray-950 leading-snug">
-                    {selectedNotif.subject ?? t("notifications.defaultSubject")}
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {formatDateTime(selectedNotif.createdAt, locale)}
-                  </p>
-                </div>
               </div>
-
-              <div className="p-4 rounded-2xl bg-gray-50/70 border border-gray-100 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">
-                {(selectedNotif.content ?? "").replace(/\\n/g, "\n")}
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-2">
-                <button
-                  onClick={() => setSelectedNotif(null)}
-                  className="px-4 py-2 rounded-full border-2 border-gray-900 bg-white text-gray-800 hover:bg-gray-100 text-xs font-bold transition-all cursor-pointer"
-                >
-                  {t("common.close")}
-                </button>
-
-                {actionUrl && actionLabel && (
-                  <button
-                    onClick={() => {
-                      const url = actionUrl!;
-                      setSelectedNotif(null);
-                      router.push(url);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-gray-950 bg-gray-950 text-white hover:bg-black text-xs font-bold transition-all shadow-xs cursor-pointer"
-                  >
-                    <span>{actionLabel}</span>
-                    <ArrowRight size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
       </Modal>
     </MemberPageLayout>
   );

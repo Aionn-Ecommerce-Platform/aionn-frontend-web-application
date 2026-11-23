@@ -2,10 +2,16 @@ import api from "@/shared/api";
 import type { NotificationItem } from "@/types";
 
 export const notificationService = {
-  listMine(limit = 50) {
-    return api.get<NotificationItem[]>("/notifications", {
-      query: { limit },
+  listMine(params: { page?: number; limit?: number } = {}) {
+    return this.listMinePaged(params).then((page) => page.content);
+  },
+  listMinePaged(params: { page?: number; limit?: number } = {}) {
+    return api.page<NotificationItem>("/notifications", {
+      query: { page: params.page ?? 0, limit: params.limit ?? 20 },
     });
+  },
+  unreadCount() {
+    return api.get<number>("/notifications/unread-count");
   },
 
   get(notiId: string) {

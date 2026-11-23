@@ -168,12 +168,6 @@ const adminItems: ConsoleMenuItem[] = [
     roles: ["SYSTEM_ADMIN", "CS_ADMIN"],
   },
   {
-    labelKey: "console.admin.collections",
-    href: "/admin/collections",
-    icon: Folder,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
     labelKey: "console.admin.attributes",
     href: "/admin/attribute-templates",
     icon: PackageSearch,

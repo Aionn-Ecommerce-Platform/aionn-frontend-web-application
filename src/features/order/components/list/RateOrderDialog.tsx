@@ -8,6 +8,7 @@ import { Button, Modal } from "@/shared/ui";
 import { SubmitReviewForm } from "@/components/review/SubmitReviewForm";
 import { reviewService } from "@/lib/services";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { useTranslation } from "@/hooks";
 import type { Order, Product } from "@/types";
 
@@ -144,7 +145,7 @@ export default function RateOrderDialog({
                 item.variantLabel ??
                 formatVariantLabel(variant?.attributeValues);
               const image =
-                item.imageUrl ?? product.imageList?.[0] ?? "/images/logo.png";
+                item.imageUrl ?? getProductCoverImage(product.imageList);
               return (
                 <div
                   key={item.skuId}

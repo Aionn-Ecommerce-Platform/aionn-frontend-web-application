@@ -8,6 +8,7 @@ import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import { promotionService, productService } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import ProductCard from "@/components/product/ProductCard";
+import { getProductCoverImage } from "@/shared/lib/media";
 import type { Product } from "@/types";
 
 function lowestPrice(p: Product): number | null {
@@ -136,14 +137,20 @@ export default function FlashSaleSection() {
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
 
               {/* Lightning Bolt with strike motion */}
-              <Zap size={20} className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+              <Zap
+                size={20}
+                className="fill-purple-200 text-purple-100 animate-lightning drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]"
+              />
 
               <span className="font-extrabold text-lg uppercase tracking-wider drop-shadow-sm">
                 {t("home.flashSale")}
               </span>
 
               {/* Secondary micro bolt on right */}
-              <Zap size={14} className="fill-white text-purple-200 animate-lightning opacity-80" />
+              <Zap
+                size={14}
+                className="fill-white text-purple-200 animate-lightning opacity-80"
+              />
             </div>
 
             <span className="hidden sm:inline text-sm font-semibold text-purple-200/90">
@@ -161,7 +168,7 @@ export default function FlashSaleSection() {
               (i) => i.productId === product.productId,
             );
             const regularPrice = lowestPrice(product) ?? 0;
-            const image = product.imageList?.[0] ?? "/images/logo.png";
+            const image = getProductCoverImage(product.imageList);
             const flashSale = item
               ? {
                   campaignId: campaign.campaignId,

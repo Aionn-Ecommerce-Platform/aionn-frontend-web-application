@@ -3,6 +3,7 @@ import type {
   Product,
   ProductSearchParams,
   ProductSearchResult,
+  ProductStatus,
 } from "@/types";
 import { promotionService } from "./promotion.service";
 
@@ -23,18 +24,64 @@ interface DefineVariantInput {
 }
 
 interface UpdateMediaInput {
-  imageList: string[];
-}
-
-interface UpdateAiMetadataInput {
-  tags?: string[];
-  aiDescription?: string;
+  images: string[];
 }
 
 interface BulkPriceUpdateResult {
   updated: number;
   skipped: number;
   failedSkus: string[];
+}
+
+type FlashSaleMatch = {
+  campaign: { campaignId: string; endDate: string };
+  item: {
+    skuId: string;
+    salePrice: number;
+    currency: string;
+    saleStock: number;
+    soldCount: number;
+  };
+};
+
+function attachFlashSale(product: Product, matches: FlashSaleMatch[]): Product {
+  const cheapest = matches.reduce((best, current) =>
+    current.item.salePrice < best.item.salePrice ? current : best,
+  );
+  const skuOffersMap = new Map<
+    string,
+    {
+      skuId: string;
+      salePrice: number;
+      currency: string;
+      saleStock: number;
+      soldCount: number;
+    }
+  >();
+  for (const { item } of matches) {
+    const existing = skuOffersMap.get(item.skuId);
+    if (!existing || item.salePrice < existing.salePrice) {
+      skuOffersMap.set(item.skuId, {
+        skuId: item.skuId,
+        salePrice: item.salePrice,
+        currency: item.currency,
+        saleStock: item.saleStock,
+        soldCount: item.soldCount,
+      });
+    }
+  }
+  return {
+    ...product,
+    flashSale: {
+      campaignId: cheapest.campaign.campaignId,
+      endAt: cheapest.campaign.endDate,
+      salePrice: cheapest.item.salePrice,
+      currency: cheapest.item.currency,
+      saleStock: cheapest.item.saleStock,
+      soldCount: cheapest.item.soldCount,
+      skuOffers: Array.from(skuOffersMap.values()),
+    },
+  } satisfies Product;
 }
 
 export const productService = {
@@ -55,44 +102,7 @@ export const productService = {
     );
     if (matches.length === 0) return product;
 
-    const cheapest = matches.reduce((best, current) =>
-      current.item.salePrice < best.item.salePrice ? current : best,
-    );
-    const skuOffersMap = new Map<
-      string,
-      {
-        skuId: string;
-        salePrice: number;
-        currency: string;
-        saleStock: number;
-        soldCount: number;
-      }
-    >();
-    for (const { item } of matches) {
-      const existing = skuOffersMap.get(item.skuId);
-      if (!existing || item.salePrice < existing.salePrice) {
-        skuOffersMap.set(item.skuId, {
-          skuId: item.skuId,
-          salePrice: item.salePrice,
-          currency: item.currency,
-          saleStock: item.saleStock,
-          soldCount: item.soldCount,
-        });
-      }
-    }
-
-    return {
-      ...product,
-      flashSale: {
-        campaignId: cheapest.campaign.campaignId,
-        endAt: cheapest.campaign.endDate,
-        salePrice: cheapest.item.salePrice,
-        currency: cheapest.item.currency,
-        saleStock: cheapest.item.saleStock,
-        soldCount: cheapest.item.soldCount,
-        skuOffers: Array.from(skuOffersMap.values()),
-      },
-    } satisfies Product;
+    return attachFlashSale(product, matches);
   },
   resolveBySkuIds(skuIds: string[]) {
     return api.get<Product[]>("/catalog/products/by-skus", {
@@ -110,6 +120,37 @@ export const productService = {
     return api.page<Product>("/catalog/products/merchant", {
       query: { page, size },
     });
+  },
+  listMineFiltered(params: {
+    page: number;
+    size: number;
+    search?: string;
+    status?: ProductStatus;
+    categoryIds?: string[];
+    minPrice?: string;
+    maxPrice?: string;
+  }) {
+    return api.page<Product>("/catalog/products/merchant", {
+      query: {
+        page: params.page,
+        size: params.size,
+        search: params.search,
+        status: params.status,
+        categoryIds: params.categoryIds?.length
+          ? params.categoryIds.join(",")
+          : undefined,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+      },
+    });
+  },
+  merchantStats() {
+    return api.get<{
+      total: number;
+      published: number;
+      variants: number;
+      sold: number;
+    }>("/catalog/products/merchant/stats");
   },
 
   async listAllMine() {
@@ -144,44 +185,7 @@ export const productService = {
         const matches = saleItems.filter(
           ({ item }) => item.productId === product.productId,
         );
-        const cheapest = matches.reduce((best, current) =>
-          current.item.salePrice < best.item.salePrice ? current : best,
-        );
-        const skuOffersMap = new Map<
-          string,
-          {
-            skuId: string;
-            salePrice: number;
-            currency: string;
-            saleStock: number;
-            soldCount: number;
-          }
-        >();
-        for (const { item } of matches) {
-          const existing = skuOffersMap.get(item.skuId);
-          if (!existing || item.salePrice < existing.salePrice) {
-            skuOffersMap.set(item.skuId, {
-              skuId: item.skuId,
-              salePrice: item.salePrice,
-              currency: item.currency,
-              saleStock: item.saleStock,
-              soldCount: item.soldCount,
-            });
-          }
-        }
-
-        return {
-          ...product,
-          flashSale: {
-            campaignId: cheapest.campaign.campaignId,
-            endAt: cheapest.campaign.endDate,
-            salePrice: cheapest.item.salePrice,
-            currency: cheapest.item.currency,
-            saleStock: cheapest.item.saleStock,
-            soldCount: cheapest.item.soldCount,
-            skuOffers: Array.from(skuOffersMap.values()),
-          },
-        } satisfies Product;
+        return attachFlashSale(product, matches);
       });
 
       const byId = new Map<string, Product>(
@@ -450,6 +454,21 @@ export const productService = {
   updateMedia(productId: string, body: UpdateMediaInput) {
     return api.put<Product>(`/catalog/products/${productId}/media`, body);
   },
+  updateContent(
+    productId: string,
+    body: {
+      images: string[];
+      description: string;
+      tags: string[];
+    },
+  ) {
+    return api.put<Product>(`/catalog/products/${productId}/content`, body);
+  },
+  updateDescription(productId: string, description: string) {
+    return api.put<Product>(`/catalog/products/${productId}/description`, {
+      description,
+    });
+  },
   assignBrand(productId: string, brandId: string) {
     return api.put<Product>(`/catalog/products/${productId}/brand`, {
       brandId,
@@ -492,11 +511,11 @@ export const productService = {
       parcel,
     );
   },
-  updateAiMetadata(productId: string, body: UpdateAiMetadataInput) {
-    return api.put<Product>(`/catalog/products/${productId}/ai-metadata`, body);
-  },
   submitForReview(productId: string) {
     return api.post<Product>(`/catalog/products/${productId}/submit-review`);
+  },
+  withdrawReview(productId: string) {
+    return api.post<Product>(`/catalog/products/${productId}/withdraw-review`);
   },
   deactivate(productId: string, reason: string) {
     return api.post<Product>(`/catalog/products/${productId}/deactivate`, {
@@ -511,9 +530,6 @@ export const productService = {
   },
   reject(productId: string, body: { reasonCode: string; feedback?: string }) {
     return api.post<Product>(`/catalog/products/${productId}/reject`, body);
-  },
-  assignCollections(productId: string, body: { collectionIds: string[] }) {
-    return api.put<Product>(`/catalog/products/${productId}/collections`, body);
   },
   async bulkPriceUpdate(body: {
     skuIds: string[];

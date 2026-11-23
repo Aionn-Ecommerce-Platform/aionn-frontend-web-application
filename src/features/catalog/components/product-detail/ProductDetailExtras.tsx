@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import type { Merchant, Product, RecommendationItem } from "@/types";
 import type { Locale } from "@/stores/locale.store";
 import { translate } from "@/i18n/translate";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { DESCRIPTION_HEADING_PATTERN } from "./product-detail-utils";
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
@@ -43,12 +44,14 @@ export default function ProductDetailExtras(props: Props) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const qc = useQueryClient();
 
-  const { data: storefrontStats, isLoading: storefrontStatsLoading } = useQuery({
-    queryKey: ["merchant-storefront-stats", product.merchantId],
-    queryFn: () => merchantService.getStorefrontStats(product.merchantId),
-    enabled: Boolean(product.merchantId),
-    staleTime: 5 * 60_000,
-  });
+  const { data: storefrontStats, isLoading: storefrontStatsLoading } = useQuery(
+    {
+      queryKey: ["merchant-storefront-stats", product.merchantId],
+      queryFn: () => merchantService.getStorefrontStats(product.merchantId),
+      enabled: Boolean(product.merchantId),
+      staleTime: 5 * 60_000,
+    },
+  );
 
   const followMutation = useMutation({
     mutationFn: () =>
@@ -191,7 +194,11 @@ export default function ProductDetailExtras(props: Props) {
               <button
                 type="button"
                 onClick={handleFollow}
-                disabled={followMutation.isPending || storefrontStatsLoading || !storefrontStats}
+                disabled={
+                  followMutation.isPending ||
+                  storefrontStatsLoading ||
+                  !storefrontStats
+                }
                 className={`h-9 px-4 text-xs font-semibold border transition-all rounded-xl shadow-xs cursor-pointer inline-flex items-center justify-center select-none disabled:opacity-50 ${
                   storefrontStats?.following
                     ? "border-brand/30 bg-brand/10 text-brand hover:bg-brand/15"
@@ -233,14 +240,14 @@ export default function ProductDetailExtras(props: Props) {
           ))}
         </div>
       </div>
-      {product.aiDescription && (
+      {product.description ? (
         <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t("products.descriptionLabel")}
           </h2>
-          <ProductDescription text={product.aiDescription} />
+          <ProductDescription text={product.description} />
         </div>
-      )}
+      ) : null}
       <div className="bg-white rounded-2xl border border-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 lg:p-8 mt-6 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -293,7 +300,7 @@ export default function ProductDetailExtras(props: Props) {
                 : lowestVariant?.originalPrice;
               const image = isRec
                 ? p.imageUrl || "/images/logo.png"
-                : (p.imageList?.[0] ?? "/images/logo.png");
+                : getProductCoverImage(p.imageList);
               const recommendationReason = isRec ? p.reason : undefined;
               const rating = p.rating ?? undefined;
               const reviewCount = p.reviewCount ?? undefined;

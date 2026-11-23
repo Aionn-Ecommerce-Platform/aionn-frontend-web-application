@@ -23,6 +23,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGuestRecommendationStore } from "@/stores/guest-recommendation.store";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { logger } from "@/shared/lib/logger";
 import { getErrorMessage } from "@/shared/lib/errors";
 import type { Address } from "@/types";
@@ -198,10 +199,10 @@ export default function ProductDetailPage({
     if (!isAuthenticated) {
       toast.error(t("wishlist.loginRequired"));
       router.push(
-      `/auth/login?redirect=${encodeURIComponent(
-        product ? productPath(product) : `/products/${id}`,
-      )}`,
-    );
+        `/auth/login?redirect=${encodeURIComponent(
+          product ? productPath(product) : `/products/${id}`,
+        )}`,
+      );
       return;
     }
     if (!alertSkuId) {
@@ -450,9 +451,7 @@ export default function ProductDetailPage({
       return false;
     }
     if (!currentVariant) {
-      toast.error(
-        t("products.selectVariantNotice"),
-      );
+      toast.error(t("products.selectVariantNotice"));
       return false;
     }
     setAdding(true);
@@ -467,7 +466,7 @@ export default function ProductDetailPage({
         productId: product.productId,
         slug: product.slug,
         productName: product.name,
-        imageUrl: images[0] ?? "/images/logo.png",
+        imageUrl: getProductCoverImage(product.imageList),
         price: displayPrice,
         qty: quantity,
         currency: currentVariant.currency,
@@ -494,9 +493,7 @@ export default function ProductDetailPage({
       return;
     }
     if (!currentVariant) {
-      toast.error(
-        t("products.selectVariantNotice"),
-      );
+      toast.error(t("products.selectVariantNotice"));
       return;
     }
     const added = await handleAddToCart();

@@ -30,10 +30,7 @@ export default function MerchantVouchers({
     <div className="space-y-4">
       {vouchers.map((voucher) => {
         const claimed = claimedCodes.has(voucher.voucherCode);
-        const remaining = Math.max(
-          voucher.usageLimit - voucher.usedCount,
-          0,
-        );
+        const remaining = Math.max(voucher.usageLimit - voucher.usedCount, 0);
         const progress =
           voucher.usageLimit > 0
             ? (voucher.usedCount / voucher.usageLimit) * 100

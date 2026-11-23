@@ -27,6 +27,7 @@ import { qk } from "@/lib/query-keys";
 import { getProductStatus } from "@/lib/domain/status/product";
 import { productService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { getProductCoverImage } from "@/shared/lib/media";
 import { useTranslation } from "@/hooks";
 import type { Product } from "@/types";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
@@ -157,7 +158,7 @@ function AdminProductApprovalInner() {
                   <div className="flex-shrink-0">
                     {product.imageList && product.imageList.length > 0 ? (
                       <AppImage
-                        src={product.imageList[0]!}
+                        src={getProductCoverImage(product.imageList)}
                         alt={product.name}
                         className="w-24 h-24 object-cover rounded-lg"
                       />
@@ -184,9 +185,9 @@ function AdminProductApprovalInner() {
                       </Badge>
                     </div>
 
-                    {product.aiDescription && (
+                    {product.description && (
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                        {product.aiDescription}
+                        {product.description}
                       </p>
                     )}
 
@@ -412,10 +413,10 @@ function AdminProductApprovalInner() {
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">
-                {t("adminProductApproval.aiDescription")}
+                {t("adminProductApproval.description")}
               </h4>
               <p className="text-sm text-gray-600">
-                {viewProduct.aiDescription || "—"}
+                {viewProduct.description || "—"}
               </p>
             </div>
             <div>

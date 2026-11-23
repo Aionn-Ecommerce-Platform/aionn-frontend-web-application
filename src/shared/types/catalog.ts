@@ -4,7 +4,7 @@ export type ProductStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
   | "PUBLISHED"
-  | "DEACTIVATED"
+  | "HIDDEN"
   | "TAKEN_DOWN"
   | "REJECTED";
 
@@ -74,10 +74,9 @@ export interface Product {
   categoryIds: string[];
   imageList: string[];
   tags: string[];
-  collectionIds: string[];
   attributes: Record<string, string>;
   variants: ProductVariant[];
-  aiDescription: string | null;
+  description?: string | null;
   status: ProductStatus;
   createdAt: string;
   updatedAt: string;
@@ -135,7 +134,13 @@ export interface MerchantStorefrontStats {
   respondedConversations: number;
   medianFirstResponseSeconds: number | null;
   responseRatePercent: number;
-  responseTimeBucket: "MINUTES" | "HOUR" | "HOURS" | "DAYS" | "WEEKS" | "UNKNOWN";
+  responseTimeBucket:
+    | "MINUTES"
+    | "HOUR"
+    | "HOURS"
+    | "DAYS"
+    | "WEEKS"
+    | "UNKNOWN";
   following: boolean;
 }
 

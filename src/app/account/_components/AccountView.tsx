@@ -253,6 +253,7 @@ function AccountInner() {
                       {roleCodes.map((code) => {
                         const isAdmin =
                           code === "CS_ADMIN" || code === "SYSTEM_ADMIN";
+                        const isBuyer = code === "BUYER";
                         const labelKey = `account.roles.${code}`;
                         const label = t(labelKey);
                         return (
@@ -261,7 +262,9 @@ function AccountInner() {
                             className={
                               isAdmin
                                 ? "inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700"
-                                : "inline-flex items-center rounded-full border border-brand/20 bg-brand/10 px-2.5 py-0.5 text-[11px] font-bold text-brand"
+                                : isBuyer
+                                  ? "inline-flex items-center rounded-full border border-sky-300 bg-sky-50 px-2.5 py-0.5 text-[11px] font-bold text-sky-700"
+                                  : "inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700"
                             }
                           >
                             {label === labelKey ? code : label}

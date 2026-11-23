@@ -21,9 +21,28 @@ export const voucherService = {
     );
   },
 
-  listMine(limit = 50) {
-    return api.get<UserVoucher[]>("/promotions/vouchers/me", {
-      query: { limit },
+  listMine(
+    params: {
+      page?: number;
+      limit?: number;
+      statuses?: string[];
+    } = {},
+  ) {
+    return this.listMinePaged(params).then((page) => page.content);
+  },
+  listMinePaged(
+    params: {
+      page?: number;
+      limit?: number;
+      statuses?: string[];
+    } = {},
+  ) {
+    return api.page<UserVoucher>("/promotions/vouchers/me", {
+      query: {
+        page: params.page ?? 0,
+        limit: params.limit ?? 20,
+        status: params.statuses?.length ? params.statuses.join(",") : undefined,
+      },
     });
   },
 

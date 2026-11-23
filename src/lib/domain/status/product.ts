@@ -15,8 +15,8 @@ const PRODUCT_STATUS: Record<ProductStatus, ProductStatusConfig> = {
     labelKey: "merchant.productStatus.PUBLISHED",
     variant: "success",
   },
-  DEACTIVATED: {
-    labelKey: "merchant.productStatus.DEACTIVATED",
+  HIDDEN: {
+    labelKey: "merchant.productStatus.HIDDEN",
     variant: "warning",
   },
   TAKEN_DOWN: {

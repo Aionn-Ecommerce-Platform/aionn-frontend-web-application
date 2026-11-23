@@ -11,6 +11,7 @@ import { qk } from "@/lib/query-keys";
 import { useCartStore } from "@/stores";
 import { useTranslation } from "@/hooks";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { getProductCoverImage } from "@/shared/lib/media";
 import type { Order, OrderReturn } from "@/types";
 import { getOrderCardActions } from "../../lib/order-card-actions";
 import RateOrderDialog, { type OrderSkuLookup } from "./RateOrderDialog";
@@ -78,8 +79,7 @@ export default function OrderCardActions({
             productId: product.productId,
             slug: product.slug ?? undefined,
             productName: item.productName ?? product.name,
-            imageUrl:
-              item.imageUrl ?? product.imageList?.[0] ?? "/images/logo.png",
+            imageUrl: item.imageUrl ?? getProductCoverImage(product.imageList),
             price: variant?.price ?? item.unitPrice,
             qty: item.qty,
             currency: variant?.currency ?? order.currency,
@@ -98,12 +98,8 @@ export default function OrderCardActions({
         toast.error(t("orders.buyAgainUnavailable"));
         return;
       }
-      toast.success(
-        t("orders.buyAgainSuccess", { count: addedSkuIds.length }),
-      );
-      router.push(
-        `/cart?select=${encodeURIComponent(addedSkuIds.join(","))}`,
-      );
+      toast.success(t("orders.buyAgainSuccess", { count: addedSkuIds.length }));
+      router.push(`/cart?select=${encodeURIComponent(addedSkuIds.join(","))}`);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });

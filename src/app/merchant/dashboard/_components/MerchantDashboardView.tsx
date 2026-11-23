@@ -188,7 +188,8 @@ function MerchantDashboardInner() {
 
   const { data: orders } = useQuery({
     queryKey: qk.merchantOrders({ limit: 100 }),
-    queryFn: () => orderService.listForMerchant({ limit: 100 }),
+    queryFn: () =>
+      orderService.listForMerchant({ limit: 100 }).then((page) => page.content),
   });
 
   const { data: returnSummary } = useQuery({

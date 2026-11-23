@@ -1,4 +1,5 @@
 import type { Product } from "@/types";
+import { getProductCoverImage } from "@/shared/lib/media";
 
 export function getProductCardSummary(product: Product) {
   const lowestVariant = product.variants?.reduce<
@@ -12,7 +13,7 @@ export function getProductCardSummary(product: Product) {
   return {
     price: lowestVariant?.price ?? 0,
     originalPrice: lowestVariant?.originalPrice,
-    image: product.imageList?.[0] ?? "/images/logo.png",
+    image: getProductCoverImage(product.imageList),
   };
 }
 

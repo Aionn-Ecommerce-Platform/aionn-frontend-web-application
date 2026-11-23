@@ -7,6 +7,7 @@ import { EmptyState } from "@/shared/ui";
 import { productService, promotionService } from "@/lib/services";
 import { useTranslation, useMerchantProvinceMap } from "@/hooks";
 import ProductCard from "@/components/product/ProductCard";
+import { getProductCoverImage } from "@/shared/lib/media";
 import type { ActiveFlashSale } from "@/types";
 
 const SLOT_TIME_FORMAT = new Intl.DateTimeFormat("vi-VN", {
@@ -133,7 +134,7 @@ export default function FlashSalesPage() {
           merchantId: product.merchantId,
           name: product.name,
           slug: product.slug,
-          image: product.imageList?.[0],
+          image: getProductCoverImage(product.imageList),
           variantPrice: variant.price,
           currency: variant.currency,
           rating: product.rating,
@@ -177,90 +178,90 @@ export default function FlashSalesPage() {
   } else {
     content = (
       <section key={selected.campaignId} className="space-y-4">
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
-                  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
-                  <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
-                  <div
-                    className="absolute inset-0 opacity-[0.12] pointer-events-none"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
-                      backgroundSize: "28px 28px",
-                    }}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 via-indigo-950 to-purple-950 px-5 py-5 sm:px-7 text-white">
+          <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 -right-20 h-72 w-72 rounded-full bg-fuchsia-600/25 blur-3xl pointer-events-none" />
+          <div
+            className="absolute inset-0 opacity-[0.12] pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, #c084fc 1px, transparent 0)",
+              backgroundSize: "28px 28px",
+            }}
+          />
+
+          <div className="relative z-10">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="relative overflow-hidden inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider shadow-lg shadow-purple-600/30 border border-purple-400/30 sm:text-base">
+                  <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
+                  <Zap
+                    size={16}
+                    className="shrink-0 fill-purple-100 text-purple-50 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
                   />
+                  {t("home.flashSale")}
+                </span>
+                <span className="whitespace-nowrap rounded-full border-2 border-yellow-300/80 bg-purple-950/60 px-3.5 py-1.5 text-lg font-extrabold tracking-wide text-yellow-50 tabular-nums sm:text-xl">
+                  {slotRange(selected)}
+                </span>
+              </div>
 
-                  <div className="relative z-10">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="relative overflow-hidden inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider shadow-lg shadow-purple-600/30 border border-purple-400/30 sm:text-base">
-                          <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-electric-glimmer" />
-                          <Zap
-                            size={16}
-                            className="shrink-0 fill-purple-100 text-purple-50 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
-                          />
-                          {t("home.flashSale")}
-                        </span>
-                        <span className="whitespace-nowrap rounded-full border-2 border-yellow-300/80 bg-purple-950/60 px-3.5 py-1.5 text-lg font-extrabold tracking-wide text-yellow-50 tabular-nums sm:text-xl">
-                          {slotRange(selected)}
-                        </span>
-                      </div>
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm">
+                <span className="whitespace-nowrap text-sm font-bold text-purple-200 sm:text-base">
+                  {isUpcoming
+                    ? t("flashSales.startsIn")
+                    : t("flashSales.endsIn")}
+                </span>
+                <Countdown remainingMs={remaining} />
+              </div>
+            </div>
+          </div>
+        </div>
 
-                      <div className="flex items-center gap-2.5 text-xs sm:text-sm">
-                        <span className="whitespace-nowrap text-sm font-bold text-purple-200 sm:text-base">
-                          {isUpcoming
-                            ? t("flashSales.startsIn")
-                            : t("flashSales.endsIn")}
-                        </span>
-                        <Countdown remainingMs={remaining} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                  {items.map((item) => {
-                    const info = productBySku.get(item.skuId);
-                    return (
-                      <ProductCard
-                        key={item.registrationId}
-                        id={item.productId}
-                        slug={info?.slug}
-                        name={info?.name ?? item.skuId}
-                        price={info?.variantPrice ?? item.salePrice}
-                        image={info?.image ?? "/images/logo.png"}
-                        rating={info?.rating}
-                        reviewCount={info?.reviewCount}
-                        sold={item.soldCount}
-                        currency={info?.currency ?? item.currency}
-                        provinceName={
-                          info?.provinceName ??
-                          (info?.merchantId
-                            ? merchantProvinceById.get(info.merchantId)
-                            : undefined)
-                        }
-                        provinceCode={info?.provinceCode}
-                        flashSale={{
-                          campaignId: selected.campaignId,
-                          endAt: selected.endDate,
-                          salePrice: item.salePrice,
-                          currency: item.currency,
-                          saleStock: item.saleStock,
-                          soldCount: item.soldCount,
-                          skuOffers: [
-                            {
-                              skuId: item.skuId,
-                              salePrice: item.salePrice,
-                              currency: item.currency,
-                              saleStock: item.saleStock,
-                              soldCount: item.soldCount,
-                            },
-                          ],
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </section>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {items.map((item) => {
+            const info = productBySku.get(item.skuId);
+            return (
+              <ProductCard
+                key={item.registrationId}
+                id={item.productId}
+                slug={info?.slug}
+                name={info?.name ?? item.skuId}
+                price={info?.variantPrice ?? item.salePrice}
+                image={info?.image ?? "/images/logo.png"}
+                rating={info?.rating}
+                reviewCount={info?.reviewCount}
+                sold={item.soldCount}
+                currency={info?.currency ?? item.currency}
+                provinceName={
+                  info?.provinceName ??
+                  (info?.merchantId
+                    ? merchantProvinceById.get(info.merchantId)
+                    : undefined)
+                }
+                provinceCode={info?.provinceCode}
+                flashSale={{
+                  campaignId: selected.campaignId,
+                  endAt: selected.endDate,
+                  salePrice: item.salePrice,
+                  currency: item.currency,
+                  saleStock: item.saleStock,
+                  soldCount: item.soldCount,
+                  skuOffers: [
+                    {
+                      skuId: item.skuId,
+                      salePrice: item.salePrice,
+                      currency: item.currency,
+                      saleStock: item.saleStock,
+                      soldCount: item.soldCount,
+                    },
+                  ],
+                }}
+              />
+            );
+          })}
+        </div>
+      </section>
     );
   }
 

@@ -4,7 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -109,7 +113,11 @@ function SearchDropdown({
         )}
 
         {displayedTrending.length > 0 && (
-          <div className={historyItems.length > 0 ? "pt-2 border-t border-gray-100" : "py-1"}>
+          <div
+            className={
+              historyItems.length > 0 ? "pt-2 border-t border-gray-100" : "py-1"
+            }
+          >
             <p className="px-4 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400 flex items-center gap-1.5">
               <Sparkles size={13} className="text-amber-500" />
               <span>{t("common.suggestedForYou")}</span>
@@ -198,10 +206,7 @@ export default function Header() {
 
   const { data: trendingRecommendations = [] } = useQuery({
     // Key by user so another account on the same browser can't reuse this feed.
-    queryKey: [
-      "search-trending-recommendations",
-      user?.userId ?? "guest",
-    ],
+    queryKey: ["search-trending-recommendations", user?.userId ?? "guest"],
     queryFn: () => recommendationService.getHomeFeed(5),
     enabled: searchOpen && !debouncedSearchQuery,
     staleTime: 5 * 60 * 1000,
@@ -241,7 +246,7 @@ export default function Header() {
 
   const { data: notifications } = useQuery({
     queryKey: qk.notifications(),
-    queryFn: () => notificationService.listMine(50),
+    queryFn: () => notificationService.listMine({ limit: 50 }),
     enabled: isAuthenticated,
     refetchInterval: (query) => (query.state.error ? false : 60_000),
   });
@@ -489,14 +494,18 @@ export default function Header() {
                                   </h4>
                                   <p
                                     className={`text-[11px] mt-0.5 line-clamp-2 leading-relaxed ${
-                                      isUnread ? "text-gray-700 font-medium" : "text-gray-400"
+                                      isUnread
+                                        ? "text-gray-700 font-medium"
+                                        : "text-gray-400"
                                     }`}
                                   >
                                     {noti.content}
                                   </p>
                                   <span
                                     className={`text-[9px] mt-1 block ${
-                                      isUnread ? "text-gray-600 font-semibold" : "text-gray-400"
+                                      isUnread
+                                        ? "text-gray-600 font-semibold"
+                                        : "text-gray-400"
                                     }`}
                                   >
                                     {formatDateTime(noti.createdAt)}
