@@ -6,6 +6,7 @@ export { default as Avatar } from "./Avatar";
 export { default as Modal } from "./Modal";
 export { ProductCardSkeleton } from "./Skeleton";
 export { default as EmptyState } from "./EmptyState";
+export { default as StateView } from "./StateView";
 export { default as ConfirmDialog } from "./ConfirmDialog";
 export { default as Select } from "./Select";
 export { default as Textarea } from "./Textarea";

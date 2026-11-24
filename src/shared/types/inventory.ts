@@ -4,6 +4,11 @@ export interface Warehouse {
   warehouseId: string;
   merchantId: string;
   address: string | null;
+  pickupName: string | null;
+  pickupPhone: string | null;
+  provinceCode: string | null;
+  districtCode: string | null;
+  wardCode: string | null;
   priorityLevel: number;
   status: WarehouseStatus;
   createdAt: string;
@@ -22,6 +27,15 @@ export interface InventoryItem {
   expiryDate: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface InventoryStats {
+  totalSkus: number;
+  physicalQty: number;
+  availableQty: number;
+  reservedQty: number;
+  lowStockSkus: number;
+  lockedSkus: number;
 }
 
 type ReservationStatus = "RESERVED" | "COMMITTED" | "RELEASED" | "EXPIRED";

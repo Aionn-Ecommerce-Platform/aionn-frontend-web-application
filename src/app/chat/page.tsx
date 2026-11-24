@@ -1,6 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +25,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AppImage, Avatar, EmptyState, Modal } from "@/shared/ui";
+import StateView from "@/shared/ui/StateView";
 import AuthGuard from "@/components/auth/AuthGuard";
 import Sidebar from "@/components/layout/Sidebar";
 import {
@@ -37,6 +45,7 @@ export function ChatInner({
   variant = "member",
 }: { variant?: "member" | "console" } = {}) {
   const { t, locale } = useTranslation();
+  const isConsole = variant === "console";
   const searchParams = useSearchParams();
   const presetConversationId = searchParams.get("conversationId");
   const { isAuthenticated, isInitializing, user } = useAuthStore();
@@ -49,6 +58,7 @@ export function ChatInner({
   const [tab, setTab] = useState<"active" | "archived">("active");
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const lastMessageCountRef = useRef(0);
@@ -69,9 +79,17 @@ export function ChatInner({
   });
 
   const { data: conversations, isLoading: loadingConvs } = useQuery({
-    queryKey: qk.conversations({ includeArchived: true, limit: 50 }),
+    queryKey: qk.conversations({
+      includeArchived: true,
+      limit: 50,
+      search: deferredSearch.trim(),
+    }),
     queryFn: () =>
-      conversationService.listMine({ includeArchived: true, limit: 50 }),
+      conversationService.listMine({
+        includeArchived: true,
+        limit: 50,
+        search: deferredSearch.trim() || undefined,
+      }),
     enabled: !isInitializing && isAuthenticated,
     refetchInterval: isConnected ? false : 10000,
   });
@@ -86,17 +104,10 @@ export function ChatInner({
   );
 
   const filtered = useMemo(() => {
-    const list = (conversations ?? []).filter((c) =>
+    return (conversations ?? []).filter((c) =>
       tab === "archived" ? c.archived : !c.archived,
     );
-    const q = search.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((c) =>
-      c.participants.some((p) =>
-        (p.displayName ?? "").toLowerCase().includes(q),
-      ),
-    );
-  }, [conversations, tab, search]);
+  }, [conversations, tab]);
 
   const activeConv = useMemo(() => {
     if (!effectiveSelectedId) return null;
@@ -112,7 +123,9 @@ export function ChatInner({
     if (!wasConnectedRef.current && isConnected) {
       void qc.invalidateQueries({ queryKey: ["chat", "conversations"] });
       if (effectiveSelectedId) {
-        void qc.invalidateQueries({ queryKey: qk.messages(effectiveSelectedId) });
+        void qc.invalidateQueries({
+          queryKey: qk.messages(effectiveSelectedId),
+        });
       }
     }
     wasConnectedRef.current = isConnected;
@@ -192,9 +205,8 @@ export function ChatInner({
 
   const handleMessageSent = (msg: ChatMessage) => {
     const targetConversationId = msg.conversationId || effectiveSelectedId!;
-    qc.setQueryData<ChatMessage[]>(
-      qk.messages(targetConversationId),
-      (prev) => (prev ? [...prev, msg] : [msg]),
+    qc.setQueryData<ChatMessage[]>(qk.messages(targetConversationId), (prev) =>
+      prev ? [...prev, msg] : [msg],
     );
     void qc.invalidateQueries({ queryKey: qk.messages(targetConversationId) });
     void conversationService.markRead(targetConversationId).then(() => {
@@ -322,17 +334,12 @@ export function ChatInner({
 
   const renderMessageBody = (msg: (typeof sortedMessages)[number]) => {
     if (msg.recalled) {
-      return (
-        <p className="italic opacity-70">
-          {t("chat.messageRecalled")}
-        </p>
-      );
+      return <p className="italic opacity-70">{t("chat.messageRecalled")}</p>;
     }
     const imageUrl = (msg.metadata?.imageUrl as string) || msg.body;
     if (
       imageUrl &&
-      (msg.type === "IMAGE" ||
-        (msg.type === "FILE" && isVideoUrl(imageUrl)))
+      (msg.type === "IMAGE" || (msg.type === "FILE" && isVideoUrl(imageUrl)))
     ) {
       if (isVideoUrl(imageUrl)) {
         return (
@@ -369,7 +376,11 @@ export function ChatInner({
     }
     if (!sortedMessages || sortedMessages.length === 0) {
       return (
-        <p className="text-xs sm:text-sm text-center text-gray-400 py-12 font-medium">
+        <p
+          className={`text-xs sm:text-sm text-center py-12 font-medium ${
+            isConsole ? "text-slate-500" : "text-gray-400"
+          }`}
+        >
           {t("chat.firstMessage")}
         </p>
       );
@@ -401,15 +412,25 @@ export function ChatInner({
                 title={fullDateTime}
                 className={`max-w-[72%] px-4 py-2.5 text-xs sm:text-sm break-words shadow-2xs leading-relaxed ${
                   isMe
-                    ? "bg-gray-950 text-white rounded-2xl rounded-br-xs font-medium"
-                    : "bg-white text-gray-900 border border-gray-200/90 rounded-2xl rounded-bl-xs font-medium"
+                    ? isConsole
+                      ? "bg-purple-600 text-white rounded-2xl rounded-br-xs font-medium"
+                      : "bg-gray-950 text-white rounded-2xl rounded-br-xs font-medium"
+                    : isConsole
+                      ? "bg-white/[0.06] text-slate-100 border border-slate-600 rounded-2xl rounded-bl-xs font-medium"
+                      : "bg-white text-gray-900 border border-gray-200/90 rounded-2xl rounded-bl-xs font-medium"
                 }`}
               >
                 {renderMessageBody(msg)}
                 <p
                   title={fullDateTime}
                   className={`text-[10px] mt-1 text-right font-medium cursor-default ${
-                    isMe ? "text-gray-400" : "text-gray-500"
+                    isMe
+                      ? isConsole
+                        ? "text-purple-100"
+                        : "text-gray-400"
+                      : isConsole
+                        ? "text-slate-400"
+                        : "text-gray-500"
                   }`}
                 >
                   {formatMessageTime(msg.sentAt, locale)}
@@ -447,20 +468,38 @@ export function ChatInner({
           {variant === "member" && <Sidebar />}
           <div className="flex-1 min-w-0">
             <div
-              className={`bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden flex ${
-                variant === "console"
-                  ? "min-h-[600px] h-[calc(100vh-12rem)]"
-                  : "min-h-[560px] h-[calc(100vh-19rem)] lg:h-[620px] lg:min-h-[620px]"
+              className={`rounded-2xl overflow-hidden flex ${
+                isConsole
+                  ? "bg-console-panel text-white border border-gray-600 shadow-2xl shadow-purple-950/30 min-h-[560px] h-[calc(100vh-19rem)] lg:h-[620px] lg:min-h-[620px]"
+                  : "bg-white border border-gray-400 shadow-xs min-h-[560px] h-[calc(100vh-19rem)] lg:h-[620px] lg:min-h-[620px]"
               }`}
             >
-              <div className="w-80 border-r border-gray-100 flex flex-col flex-shrink-0 bg-gray-50/40">
-                <div className="p-4 border-b border-gray-100 bg-white space-y-3">
-                  <h2 className="text-base font-bold text-gray-950">
+              <div
+                className={`w-80 border-r flex flex-col flex-shrink-0 ${
+                  isConsole
+                    ? "border-slate-600/60 bg-white/[0.03]"
+                    : "border-gray-100 bg-gray-50/40"
+                }`}
+              >
+                <div
+                  className={`p-4 border-b space-y-3 ${
+                    isConsole
+                      ? "border-slate-600/60 bg-white/[0.04]"
+                      : "border-gray-100 bg-white"
+                  }`}
+                >
+                  <h2
+                    className={`text-base font-bold ${
+                      isConsole ? "text-white" : "text-gray-950"
+                    }`}
+                  >
                     {t("chat.title")}
                   </h2>
                   <div className="relative">
                     <Search
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                        isConsole ? "text-slate-500" : "text-gray-400"
+                      }`}
                       size={15}
                     />
                     <input
@@ -468,18 +507,30 @@ export function ChatInner({
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder={t("chat.searchPlaceholder")}
-                      className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-gray-200 bg-gray-50/60 text-xs sm:text-sm focus:border-gray-900 focus:bg-white focus:outline-none transition-all placeholder:text-gray-400"
+                      className={`w-full pl-9 pr-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all ${
+                        isConsole
+                          ? "border-gray-500 bg-white/5 text-white placeholder:text-slate-500 focus:border-purple-400/70"
+                          : "border-gray-200 bg-gray-50/60 focus:border-gray-900 focus:bg-white placeholder:text-gray-400"
+                      }`}
                     />
                   </div>
 
-                  <div className="flex p-1 bg-gray-100/90 rounded-xl gap-1">
+                  <div
+                    className={`flex p-1 rounded-xl gap-1 ${
+                      isConsole ? "bg-white/5" : "bg-gray-100/90"
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => setTab("active")}
                       className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         tab === "active"
-                          ? "bg-white text-gray-950 shadow-xs"
-                          : "text-gray-500 hover:text-gray-900"
+                          ? isConsole
+                            ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                            : "bg-white text-gray-950 shadow-xs"
+                          : isConsole
+                            ? "text-slate-400 hover:text-white"
+                            : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       <span>{t("chat.tabActive")}</span>
@@ -487,8 +538,12 @@ export function ChatInner({
                         <span
                           className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                             tab === "active"
-                              ? "bg-gray-100 text-gray-700"
-                              : "bg-gray-200/80 text-gray-600"
+                              ? isConsole
+                                ? "bg-purple-500/30 text-purple-100"
+                                : "bg-gray-100 text-gray-700"
+                              : isConsole
+                                ? "bg-white/10 text-slate-400"
+                                : "bg-gray-200/80 text-gray-600"
                           }`}
                         >
                           {activeCount}
@@ -500,8 +555,12 @@ export function ChatInner({
                       onClick={() => setTab("archived")}
                       className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         tab === "archived"
-                          ? "bg-white text-gray-950 shadow-xs"
-                          : "text-gray-500 hover:text-gray-900"
+                          ? isConsole
+                            ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                            : "bg-white text-gray-950 shadow-xs"
+                          : isConsole
+                            ? "text-slate-400 hover:text-white"
+                            : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       <Archive size={12} />
@@ -510,8 +569,12 @@ export function ChatInner({
                         <span
                           className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                             tab === "archived"
-                              ? "bg-gray-100 text-gray-700"
-                              : "bg-gray-200/80 text-gray-600"
+                              ? isConsole
+                                ? "bg-purple-500/30 text-purple-100"
+                                : "bg-gray-100 text-gray-700"
+                              : isConsole
+                                ? "bg-white/10 text-slate-400"
+                                : "bg-gray-200/80 text-gray-600"
                           }`}
                         >
                           {archivedCount}
@@ -523,13 +586,14 @@ export function ChatInner({
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                   {loadingConvs ? (
                     <div className="p-8 flex justify-center">
-                      <Loader2
-                        className="animate-spin text-brand"
-                        size={22}
-                      />
+                      <Loader2 className="animate-spin text-brand" size={22} />
                     </div>
                   ) : filtered.length === 0 ? (
-                    <div className="p-8 text-center text-xs sm:text-sm text-gray-400 font-medium">
+                    <div
+                      className={`p-8 text-center text-xs sm:text-sm font-medium ${
+                        isConsole ? "text-slate-500" : "text-gray-400"
+                      }`}
+                    >
                       {tab === "archived"
                         ? t("chat.noArchivedConversations")
                         : t("chat.noConversations")}
@@ -544,8 +608,12 @@ export function ChatInner({
                         (other?.role === "MERCHANT"
                           ? t("chat.merchantFallback")
                           : t("chat.userFallback"));
-                      const isSelected = effectiveSelectedId === conv.conversationId;
-                      const senderPrefix = conv.lastMessageSenderId === userId ? `${t("chat.you")}: ` : "";
+                      const isSelected =
+                        effectiveSelectedId === conv.conversationId;
+                      const senderPrefix =
+                        conv.lastMessageSenderId === userId
+                          ? `${t("chat.you")}: `
+                          : "";
                       const previewText = conv.lastMessagePreview
                         ? `${senderPrefix}${conv.lastMessagePreview}`
                         : t("chat.startConversation");
@@ -558,8 +626,12 @@ export function ChatInner({
                           }}
                           className={`w-full p-3 flex items-center gap-3 rounded-xl transition-all text-left cursor-pointer ${
                             isSelected
-                              ? "bg-brand/10"
-                              : "hover:bg-gray-100/70"
+                              ? isConsole
+                                ? "bg-purple-500/20"
+                                : "bg-brand/10"
+                              : isConsole
+                                ? "hover:bg-white/5"
+                                : "hover:bg-gray-100/70"
                           }`}
                         >
                           <Avatar
@@ -572,20 +644,34 @@ export function ChatInner({
                               <span
                                 className={`text-sm truncate ${
                                   isSelected
-                                    ? "font-bold text-brand"
-                                    : "font-semibold text-gray-800"
+                                    ? isConsole
+                                      ? "font-bold text-purple-200"
+                                      : "font-bold text-brand"
+                                    : isConsole
+                                      ? "font-semibold text-slate-100"
+                                      : "font-semibold text-gray-800"
                                 }`}
                               >
                                 {name}
                               </span>
                               {conv.lastMessageAt && (
-                                <span className="text-[11px] text-gray-400 flex-shrink-0 ml-2 font-medium">
+                                <span
+                                  className={`text-[11px] flex-shrink-0 ml-2 font-medium ${
+                                    isConsole
+                                      ? "text-slate-500"
+                                      : "text-gray-400"
+                                  }`}
+                                >
                                   {formatTime(conv.lastMessageAt, locale)}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center justify-between mt-0.5">
-                              <p className="text-xs text-gray-500 truncate">
+                              <p
+                                className={`text-xs truncate ${
+                                  isConsole ? "text-slate-400" : "text-gray-500"
+                                }`}
+                              >
                                 {previewText}
                               </p>
                               {conv.unreadCount > 0 && (
@@ -604,15 +690,31 @@ export function ChatInner({
 
               <div className="flex-1 flex flex-col min-w-0">
                 {!activeConv ? (
-                  <EmptyState
-                    icon={MessageCircle}
-                    title={t("chat.selectConversation")}
-                    description={t("chat.selectConversationDesc")}
-                    className="flex-1"
-                  />
+                  isConsole ? (
+                    <StateView
+                      tone="dark"
+                      icon={MessageCircle}
+                      title={t("chat.selectConversation")}
+                      description={t("chat.selectConversationDesc")}
+                      className="flex-1"
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={MessageCircle}
+                      title={t("chat.selectConversation")}
+                      description={t("chat.selectConversationDesc")}
+                      className="flex-1"
+                    />
+                  )
                 ) : (
                   <>
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <div
+                      className={`p-4 border-b flex items-center justify-between ${
+                        isConsole
+                          ? "border-slate-600/60 bg-white/[0.04]"
+                          : "border-gray-100"
+                      }`}
+                    >
                       <div className="flex items-center gap-3 min-w-0">
                         {(() => {
                           const other = activeConv.participants.find(
@@ -631,11 +733,21 @@ export function ChatInner({
                                 size="sm"
                               />
                               <div className="min-w-0">
-                                <h3 className="text-sm font-bold text-gray-950 truncate">
+                                <h3
+                                  className={`text-sm font-bold truncate ${
+                                    isConsole ? "text-white" : "text-gray-950"
+                                  }`}
+                                >
                                   {name}
                                 </h3>
                                 {activeConv.archived && (
-                                  <p className="text-xs text-gray-400">
+                                  <p
+                                    className={`text-xs ${
+                                      isConsole
+                                        ? "text-slate-500"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
                                     {t("chat.archived")}
                                   </p>
                                 )}
@@ -644,17 +756,39 @@ export function ChatInner({
                           );
                         })()}
                       </div>
-                      <div className="flex items-center gap-1.5 relative" ref={moreMenuRef}>
+                      <div
+                        className="flex items-center gap-1.5 relative"
+                        ref={moreMenuRef}
+                      >
                         <button
                           onClick={() =>
                             activeConv.archived
-                              ? unarchiveMutation.mutate(activeConv.conversationId)
-                              : archiveMutation.mutate(activeConv.conversationId)
+                              ? unarchiveMutation.mutate(
+                                  activeConv.conversationId,
+                                )
+                              : archiveMutation.mutate(
+                                  activeConv.conversationId,
+                                )
                           }
-                          className="p-2 text-gray-400 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
-                          aria-label={activeConv.archived ? t("chat.unarchive") : t("chat.archive")}
-                          title={activeConv.archived ? t("chat.unarchive") : t("chat.archive")}
-                          disabled={archiveMutation.isPending || unarchiveMutation.isPending}
+                          className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                            isConsole
+                              ? "text-slate-400 hover:text-white hover:bg-white/10"
+                              : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                          }`}
+                          aria-label={
+                            activeConv.archived
+                              ? t("chat.unarchive")
+                              : t("chat.archive")
+                          }
+                          title={
+                            activeConv.archived
+                              ? t("chat.unarchive")
+                              : t("chat.archive")
+                          }
+                          disabled={
+                            archiveMutation.isPending ||
+                            unarchiveMutation.isPending
+                          }
                         >
                           <Archive size={17} />
                         </button>
@@ -662,8 +796,12 @@ export function ChatInner({
                           onClick={() => setMoreMenuOpen((prev) => !prev)}
                           className={`p-2 rounded-xl transition-colors cursor-pointer ${
                             moreMenuOpen
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                              ? isConsole
+                                ? "bg-white/10 text-white"
+                                : "bg-gray-100 text-gray-900"
+                              : isConsole
+                                ? "text-slate-400 hover:text-white hover:bg-white/10"
+                                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
                           }`}
                           aria-label={t("chat.more")}
                           title={t("chat.more")}
@@ -678,15 +816,30 @@ export function ChatInner({
                               animate={{ opacity: 1, scale: 1, y: 0 }}
                               exit={{ opacity: 0, scale: 0.95, y: -4 }}
                               transition={{ duration: 0.12 }}
-                              className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 p-1.5 z-30"
+                              className={`absolute right-0 top-full mt-1.5 w-52 rounded-2xl p-1.5 z-30 ${
+                                isConsole
+                                  ? "bg-console-panel-raised border border-gray-600 shadow-2xl shadow-black/40"
+                                  : "bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100"
+                              }`}
                             >
                               {activeConv.merchantId && (
                                 <Link
                                   href={`/merchants/${activeConv.merchantId}`}
                                   onClick={() => setMoreMenuOpen(false)}
-                                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 hover:text-gray-950 hover:bg-gray-50 rounded-xl transition-colors"
+                                  className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium rounded-xl transition-colors ${
+                                    isConsole
+                                      ? "text-slate-200 hover:text-white hover:bg-white/10"
+                                      : "text-gray-700 hover:text-gray-950 hover:bg-gray-50"
+                                  }`}
                                 >
-                                  <Store size={15} className="text-gray-400" />
+                                  <Store
+                                    size={15}
+                                    className={
+                                      isConsole
+                                        ? "text-slate-400"
+                                        : "text-gray-400"
+                                    }
+                                  />
                                   <span>{t("chat.visitStore")}</span>
                                 </Link>
                               )}
@@ -695,15 +848,33 @@ export function ChatInner({
                                 onClick={() => {
                                   setMoreMenuOpen(false);
                                   if (activeConv.archived) {
-                                    unarchiveMutation.mutate(activeConv.conversationId);
+                                    unarchiveMutation.mutate(
+                                      activeConv.conversationId,
+                                    );
                                   } else {
-                                    archiveMutation.mutate(activeConv.conversationId);
+                                    archiveMutation.mutate(
+                                      activeConv.conversationId,
+                                    );
                                   }
                                 }}
-                                disabled={archiveMutation.isPending || unarchiveMutation.isPending}
-                                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 hover:text-gray-950 hover:bg-gray-50 rounded-xl transition-colors text-left cursor-pointer"
+                                disabled={
+                                  archiveMutation.isPending ||
+                                  unarchiveMutation.isPending
+                                }
+                                className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium rounded-xl transition-colors text-left cursor-pointer ${
+                                  isConsole
+                                    ? "text-slate-200 hover:text-white hover:bg-white/10"
+                                    : "text-gray-700 hover:text-gray-950 hover:bg-gray-50"
+                                }`}
                               >
-                                <Archive size={15} className="text-gray-400" />
+                                <Archive
+                                  size={15}
+                                  className={
+                                    isConsole
+                                      ? "text-slate-400"
+                                      : "text-gray-400"
+                                  }
+                                />
                                 <span>
                                   {activeConv.archived
                                     ? t("chat.unarchive")
@@ -736,16 +907,33 @@ export function ChatInner({
                     </div>
 
                     {activeConv.archived && (
-                      <div className="px-4 py-2 bg-amber-50/90 border-b border-amber-200/60 flex items-center justify-between text-xs text-amber-900 shrink-0">
+                      <div
+                        className={`px-4 py-2 border-b flex items-center justify-between text-xs shrink-0 ${
+                          isConsole
+                            ? "bg-amber-400/10 border-amber-400/30 text-amber-200"
+                            : "bg-amber-50/90 border-amber-200/60 text-amber-900"
+                        }`}
+                      >
                         <div className="flex items-center gap-2">
-                          <Archive size={14} className="text-amber-600 shrink-0" />
+                          <Archive
+                            size={14}
+                            className={
+                              isConsole
+                                ? "text-amber-300 shrink-0"
+                                : "text-amber-600 shrink-0"
+                            }
+                          />
                           <span>{t("chat.archivedBanner")}</span>
                         </div>
                         <button
                           type="button"
-                          onClick={() => unarchiveMutation.mutate(activeConv.conversationId)}
+                          onClick={() =>
+                            unarchiveMutation.mutate(activeConv.conversationId)
+                          }
                           disabled={unarchiveMutation.isPending}
-                          className="font-bold text-amber-900 hover:underline ml-3 shrink-0 cursor-pointer"
+                          className={`font-bold hover:underline ml-3 shrink-0 cursor-pointer ${
+                            isConsole ? "text-amber-100" : "text-amber-900"
+                          }`}
                         >
                           {t("chat.unarchiveButton")}
                         </button>
@@ -754,11 +942,17 @@ export function ChatInner({
 
                     <div
                       ref={messagesContainerRef}
-                      className="flex-1 overflow-y-auto p-5 space-y-3.5 bg-gray-50/20"
+                      className={`flex-1 overflow-y-auto p-5 space-y-3.5 ${
+                        isConsole ? "bg-black/10" : "bg-gray-50/20"
+                      }`}
                     >
                       {renderMessages()}
                       {isPartnerTyping && (
-                        <div className="flex items-center gap-2 px-1 text-xs text-gray-500 font-medium italic animate-pulse">
+                        <div
+                          className={`flex items-center gap-2 px-1 text-xs font-medium italic animate-pulse ${
+                            isConsole ? "text-slate-400" : "text-gray-500"
+                          }`}
+                        >
                           <span className="inline-flex gap-1 items-center">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.3s]" />
                             <span className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.15s]" />
@@ -770,17 +964,28 @@ export function ChatInner({
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <div className="p-3.5 sm:p-4 border-t border-gray-100 bg-white">
+                    <div
+                      className={`p-3.5 sm:p-4 border-t ${
+                        isConsole
+                          ? "border-slate-600/60 bg-white/[0.04]"
+                          : "border-gray-100 bg-white"
+                      }`}
+                    >
                       <div className="flex items-center gap-2.5">
                         <label
-                          className={`w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:border-gray-900 hover:bg-gray-50 transition-all cursor-pointer shrink-0 ${
-                            sendImageMutation.isPending ? "opacity-50" : ""
-                          }`}
+                          className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                            isConsole
+                              ? "border-gray-500 text-slate-400 hover:text-white hover:border-gray-400 hover:bg-white/10"
+                              : "border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-900 hover:bg-gray-50"
+                          } ${sendImageMutation.isPending ? "opacity-50" : ""}`}
                           aria-label="Upload image"
                           title={t("chat.uploadImage")}
                         >
                           {sendImageMutation.isPending ? (
-                            <Loader2 size={16} className="animate-spin text-brand" />
+                            <Loader2
+                              size={16}
+                              className="animate-spin text-brand"
+                            />
                           ) : (
                             <ImagePlus size={16} />
                           )}
@@ -815,7 +1020,11 @@ export function ChatInner({
                           value={draft}
                           onChange={handleDraftChange}
                           placeholder={t("chat.messagePlaceholder")}
-                          className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-xs sm:text-sm focus:border-gray-900 focus:outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
+                          className={`flex-1 px-4 py-2.5 rounded-full border text-xs sm:text-sm focus:outline-none transition-all ${
+                            isConsole
+                              ? "border-gray-500 bg-white/5 text-white placeholder:text-slate-500 focus:border-purple-400/70 focus:bg-white/5"
+                              : "border-gray-200 placeholder:text-gray-400 bg-gray-50/50 focus:border-gray-900 focus:bg-white"
+                          }`}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault();
@@ -826,7 +1035,11 @@ export function ChatInner({
                         <button
                           onClick={handleSend}
                           disabled={!draft.trim() || sendMutation.isPending}
-                          className="w-10 h-10 bg-gray-950 text-white rounded-full flex items-center justify-center hover:bg-black transition-all disabled:opacity-30 shadow-xs cursor-pointer disabled:cursor-not-allowed shrink-0"
+                          className={`w-10 h-10 text-white rounded-full flex items-center justify-center transition-all disabled:opacity-30 shadow-xs cursor-pointer disabled:cursor-not-allowed shrink-0 ${
+                            isConsole
+                              ? "bg-purple-600 hover:bg-purple-500"
+                              : "bg-gray-950 hover:bg-black"
+                          }`}
                           aria-label={t("chat.sendMessage")}
                         >
                           {sendMutation.isPending ? (
@@ -930,8 +1143,11 @@ export function ChatInner({
                   (p) => p.userId !== userId,
                 );
                 const targetId = other?.userId || activeConv?.conversationId;
-                const baseName = other?.displayName?.trim() || t("chat.merchantFallback");
-                const targetName = targetId ? `${baseName} [ID: ${targetId}]` : baseName;
+                const baseName =
+                  other?.displayName?.trim() || t("chat.merchantFallback");
+                const targetName = targetId
+                  ? `${baseName} [ID: ${targetId}]`
+                  : baseName;
                 const reasonLabel =
                   t(`chat.${reportReasonKey}`) || reportReasonKey;
                 reportMutation.mutate({

@@ -2,12 +2,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Button, Modal } from "@/shared/ui";
+import { Button, Modal, Select } from "@/shared/ui";
 import { inventoryService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { InventoryItem } from "@/types";
-import { ItemHeader } from "./InventoryControls";
 export function AdjustModal({
   item,
   onClose,
@@ -42,31 +41,34 @@ export function AdjustModal({
       title={t("merchant.inventory.adjustModalTitle")}
     >
       <div className="space-y-4">
-        <ItemHeader item={item} />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {t("merchant.inventory.adjustTypeLabel")}
             </label>
-            <select
+            <Select
               value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            >
-              <option value="INBOUND">
-                {t("merchant.inventory.adjustInbound")}
-              </option>
-              <option value="OUTBOUND">
-                {t("merchant.inventory.adjustOutbound")}
-              </option>
-              <option value="DAMAGED">
-                {t("merchant.inventory.adjustDamaged")}
-              </option>
-              <option value="LOST">{t("merchant.inventory.adjustLost")}</option>
-              <option value="RETURN_RESTOCK">
-                {t("merchant.inventory.adjustReturnRestock")}
-              </option>
-            </select>
+              onChange={setType}
+              options={[
+                {
+                  value: "INBOUND",
+                  label: t("merchant.inventory.adjustInbound"),
+                },
+                {
+                  value: "OUTBOUND",
+                  label: t("merchant.inventory.adjustOutbound"),
+                },
+                {
+                  value: "DAMAGED",
+                  label: t("merchant.inventory.adjustDamaged"),
+                },
+                { value: "LOST", label: t("merchant.inventory.adjustLost") },
+                {
+                  value: "RETURN_RESTOCK",
+                  label: t("merchant.inventory.adjustReturnRestock"),
+                },
+              ]}
+            />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -146,7 +148,6 @@ export function AuditModal({
       title={t("merchant.inventory.auditModalTitle")}
     >
       <div className="space-y-4">
-        <ItemHeader item={item} />
         <p className="text-xs text-gray-500">
           {t("merchant.inventory.auditHelp")}
         </p>

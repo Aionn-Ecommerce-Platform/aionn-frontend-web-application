@@ -1,9 +1,11 @@
 import api from "@/shared/api";
 import type {
   InventoryItem,
+  InventoryStats,
   PageResult,
   Reservation,
   StockTransfer,
+  StockTransferStatus,
 } from "@/types";
 
 export const inventoryService = {
@@ -43,6 +45,12 @@ export const inventoryService = {
           stockStatus: params.stockStatus,
         },
       },
+    );
+  },
+
+  statsByWarehouse(warehouseId: string) {
+    return api.get<InventoryStats>(
+      `/inventory/items/by-warehouse/${warehouseId}/stats`,
     );
   },
 
@@ -140,6 +148,22 @@ export const stockTransferService = {
 
   get(transferId: string) {
     return api.get<StockTransfer>(`/inventory/transfers/${transferId}`);
+  },
+
+  list(
+    params: {
+      page?: number;
+      size?: number;
+      status?: StockTransferStatus;
+    } = {},
+  ) {
+    return api.page<StockTransfer>("/inventory/transfers", {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        status: params.status,
+      },
+    });
   },
 };
 

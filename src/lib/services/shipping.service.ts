@@ -71,6 +71,14 @@ export const shippingService = {
     return api.get<Shipment[]>(`/shipping/shipments/by-order/${orderId}`);
   },
 
+  createReturnPickup(returnId: string) {
+    return api.post<Shipment>(`/shipping/shipments/returns/${returnId}`);
+  },
+
+  listByReturn(returnId: string) {
+    return api.get<Shipment[]>(`/shipping/shipments/by-return/${returnId}`);
+  },
+
   listEvents(shipmentId: string) {
     return api.get<ShipmentEvent[]>(
       `/shipping/shipments/${shipmentId}/events`,

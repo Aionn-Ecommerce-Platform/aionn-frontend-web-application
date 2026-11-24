@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { Check, Eye, PackageCheck, Play, X } from "lucide-react";
+import { Check, Eye, PackageCheck, Play, Truck, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, ImageLightbox, Modal } from "@/shared/ui";
-import { orderReturnService } from "@/lib/services";
+import { orderReturnService, shippingService, warehouseService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime, formatCurrency } from "@/shared/lib/utils";
 import { isVideoUrl } from "@/shared/lib/media";
@@ -14,7 +14,12 @@ import {
   returnReasonBadgeClass,
   returnReasonLabelKey,
 } from "@/lib/domain/return-reasons";
-import type { OrderReturn, ReturnReasonType, ReturnStatus } from "@/types";
+import type {
+  OrderReturn,
+  ReturnReasonType,
+  ReturnStatus,
+  Shipment,
+} from "@/types";
 
 const statusVariant: Record<
   ReturnStatus,
@@ -57,17 +62,225 @@ const statusLabelKey: Record<ReturnStatus, string> = {
   REFUNDED: "merchant.returns.status.refunded",
   CANCELLED: "merchant.returns.status.cancelled",
 };
+
+const pickupStatusKey: Record<string, string> = {
+  REQUESTED: "merchant.returns.pickupStatusRequested",
+  REGISTERED: "merchant.returns.pickupStatusRegistered",
+  PICKED_UP: "merchant.returns.pickupStatusPickedUp",
+  IN_TRANSIT: "merchant.returns.pickupStatusInTransit",
+  OUT_FOR_DELIVERY: "merchant.returns.pickupStatusInTransit",
+  DELIVERED: "merchant.returns.pickupStatusDelivered",
+  DELIVERY_FAILED: "merchant.returns.pickupStatusFailed",
+  RETURNED: "merchant.returns.pickupStatusFailed",
+  CANCELLED: "merchant.returns.pickupStatusCancelled",
+};
+
+function pickupBadgeClass(status: string) {
+  if (status === "DELIVERED") {
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  }
+  if (status === "DELIVERY_FAILED" || status === "RETURNED") {
+    return "border-rose-400/30 bg-rose-400/10 text-rose-300";
+  }
+  if (status === "CANCELLED") {
+    return "border-slate-500/40 bg-white/5 text-slate-300";
+  }
+  if (status === "REQUESTED") {
+    return "border-amber-400/30 bg-amber-400/10 text-amber-300";
+  }
+  return "border-sky-400/30 bg-sky-400/10 text-sky-300";
+}
+
+export function ReturnPickupPanel({
+  rtn,
+  onChanged,
+}: {
+  rtn: OrderReturn;
+  onChanged?: () => void;
+}) {
+  const { t, locale } = useTranslation();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const { data: pickups, isLoading } = useQuery({
+    queryKey: ["return-pickups", rtn.returnId],
+    queryFn: () => shippingService.listByReturn(rtn.returnId),
+  });
+  const pickup: Shipment | undefined = pickups?.find(
+    (item) => item.status !== "CANCELLED",
+  );
+
+  const refresh = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["return-pickups", rtn.returnId],
+    });
+    onChanged?.();
+  };
+
+  async function book() {
+    setBusy(true);
+    try {
+      const created =
+        pickup ?? (await shippingService.createReturnPickup(rtn.returnId));
+      toast.success(t("merchant.returns.pickupCreated"));
+      if (created.status === "REQUESTED") {
+        try {
+          await shippingService.register(created.shipmentId);
+          toast.success(t("merchant.returns.pickupRegistered"));
+        } catch {
+          toast.error(t("merchant.returns.pickupRegisterFailed"));
+        }
+      }
+      refresh();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function register() {
+    if (!pickup) return;
+    setBusy(true);
+    try {
+      await shippingService.register(pickup.shipmentId);
+      toast.success(t("merchant.returns.pickupRegistered"));
+      refresh();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function cancel() {
+    if (!pickup) return;
+    setBusy(true);
+    try {
+      await shippingService.cancel(
+        pickup.shipmentId,
+        "Merchant cancelled return pickup",
+      );
+      toast.success(t("merchant.returns.pickupStatusCancelled"));
+      refresh();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (isLoading) {
+    return <p className="text-sm text-gray-500">…</p>;
+  }
+
+  if (!pickup) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-600">
+          {t("merchant.returns.pickupEmpty")}
+        </p>
+        {rtn.status === "APPROVED" && (
+          <Button onClick={book} loading={busy}>
+            {t("merchant.returns.pickupConfirm")}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const cancellable =
+    pickup.status === "REQUESTED" || pickup.status === "REGISTERED";
+  const canRegister = pickup.status === "REQUESTED";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${pickupBadgeClass(pickup.status)}`}
+        >
+          {t(pickupStatusKey[pickup.status] ?? "merchant.returns.pickupStatus")}
+        </span>
+        {pickup.shippingFee > 0 && (
+          <span className="text-xs text-gray-500">
+            {t("merchant.returns.pickupFee")}:{" "}
+            {formatCurrency(pickup.shippingFee, pickup.currency, locale)}
+          </span>
+        )}
+      </div>
+      {pickup.trackingCode && (
+        <p className="text-sm text-gray-700">
+          {t("merchant.returns.pickupTracking")}:{" "}
+          <span className="font-mono font-semibold">{pickup.trackingCode}</span>
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {canRegister && (
+          <Button size="sm" onClick={register} loading={busy}>
+            {t("merchant.returns.pickupRegister")}
+          </Button>
+        )}
+        {cancellable && (
+          <Button size="sm" variant="outline" onClick={cancel} loading={busy}>
+            {t("merchant.returns.pickupCancel")}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ReturnPickupModal({
+  rtn,
+  onClose,
+  onSuccess,
+}: {
+  rtn: OrderReturn;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("merchant.returns.pickupTitle")}
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600">
+          {t("merchant.returns.pickupDesc")}
+        </p>
+        <div className="rounded-lg bg-gray-50 p-3 text-sm">
+          <p className="text-gray-500">
+            {t("merchant.returns.pickupWarehouse")}
+          </p>
+          <p className="mt-1 font-mono font-semibold text-gray-900">
+            {rtn.returnWarehouseId ?? t("merchant.returns.pickupMissingWarehouse")}
+          </p>
+        </div>
+        <ReturnPickupPanel rtn={rtn} onChanged={onSuccess} />
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            {t("merchant.returns.btnClose")}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
 export function ReturnRow({
   rtn,
   onApprove,
   onReject,
   onReceive,
+  onPickup,
   onDetail,
 }: {
   rtn: OrderReturn;
   onApprove: () => void;
   onReject: () => void;
   onReceive: () => void;
+  onPickup: () => void;
   onDetail: () => void;
 }) {
   const { t, locale } = useTranslation();
@@ -127,15 +340,26 @@ export function ReturnRow({
             </>
           )}
           {rtn.status === "APPROVED" && (
-            <button
-              type="button"
-              onClick={onReceive}
-              className="rounded-lg p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-300"
-              title={t("merchant.returns.btnItemReceived")}
-              aria-label={t("merchant.returns.btnItemReceived")}
-            >
-              <PackageCheck size={15} />
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onPickup}
+                className="rounded-lg p-1.5 text-sky-400 transition-colors hover:bg-sky-500/10 hover:text-sky-300"
+                title={t("merchant.returns.btnBookPickup")}
+                aria-label={t("merchant.returns.btnBookPickup")}
+              >
+                <Truck size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onReceive}
+                className="rounded-lg p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-300"
+                title={t("merchant.returns.btnItemReceived")}
+                aria-label={t("merchant.returns.btnItemReceived")}
+              >
+                <PackageCheck size={15} />
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -320,6 +544,13 @@ export function ReturnDetailModal({
             </span>
           </div>
 
+          <div>
+            <h4 className="mb-2 font-semibold text-gray-900">
+              {t("merchant.returns.pickupStatus")}
+            </h4>
+            <ReturnPickupPanel rtn={rtn} />
+          </div>
+
           <div className="flex justify-end border-t border-gray-300 pt-4">
             <Button variant="outline" onClick={onClose}>
               {t("merchant.returns.btnClose")}
@@ -348,7 +579,15 @@ export function ApproveModal({
   const { t } = useTranslation();
   const [refundAmount, setRefundAmount] = useState("");
   const [currency, setCurrency] = useState("VND");
-  const [warehouseId, setWarehouseId] = useState("");
+  const [warehouseId, setWarehouseId] = useState(
+    rtn.returnWarehouseId ?? "",
+  );
+
+  const { data: warehousePage, isLoading: warehousesLoading } = useQuery({
+    queryKey: ["warehouse-options"],
+    queryFn: () => warehouseService.listMine({ status: "ACTIVE", limit: 100 }),
+  });
+  const warehouses = warehousePage?.content ?? [];
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -424,13 +663,24 @@ export function ApproveModal({
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.returns.fieldWarehouse")}
           </label>
-          <input
-            type="text"
+          <select
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
-            placeholder="WH_..."
-            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
+            disabled={warehousesLoading}
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          >
+            <option value="">
+              {warehousesLoading
+                ? "…"
+                : t("merchant.returns.pickupMissingWarehouse")}
+            </option>
+            {warehouses.map((warehouse) => (
+              <option key={warehouse.warehouseId} value={warehouse.warehouseId}>
+                {warehouse.address ?? warehouse.warehouseId}
+                {warehouse.pickupName ? ` · ${warehouse.pickupName}` : ""}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-gray-400 mt-1">
             {t("merchant.returns.warehouseHint")}
           </p>

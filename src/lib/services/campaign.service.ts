@@ -104,9 +104,23 @@ export type IssueVoucherInput = {
 };
 
 export const shopVoucherService = {
-  listMine(limit = 50) {
+  listMine(
+    params: {
+      limit?: number;
+      search?: string;
+      active?: boolean;
+      discountMin?: number;
+      discountMax?: number;
+    } = {},
+  ) {
     return api.get<Voucher[]>("/promotions/shop-vouchers/mine", {
-      query: { limit },
+      query: {
+        limit: params.limit ?? 50,
+        search: params.search,
+        active: params.active,
+        discountMin: params.discountMin,
+        discountMax: params.discountMax,
+      },
     });
   },
   listByMerchant(
@@ -122,5 +136,11 @@ export const shopVoucherService = {
   },
   issue(body: IssueVoucherInput) {
     return api.post<Voucher>("/promotions/shop-vouchers", body);
+  },
+  setActive(voucherCode: string, active: boolean) {
+    return api.post<Voucher>(
+      `/promotions/shop-vouchers/${encodeURIComponent(voucherCode)}/status`,
+      { active },
+    );
   },
 };

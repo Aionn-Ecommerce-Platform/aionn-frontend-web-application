@@ -20,11 +20,14 @@ export const conversationService = {
     return api.post<ChatConversation>("/chat/conversations", body);
   },
 
-  listMine(params: { includeArchived?: boolean; limit?: number } = {}) {
+  listMine(
+    params: { includeArchived?: boolean; limit?: number; search?: string } = {},
+  ) {
     return api.get<ChatConversation[]>("/chat/conversations", {
       query: {
         includeArchived: params.includeArchived ?? false,
         limit: params.limit ?? 50,
+        search: params.search,
       },
     });
   },

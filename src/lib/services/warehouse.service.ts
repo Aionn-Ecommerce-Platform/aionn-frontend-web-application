@@ -36,6 +36,11 @@ export const warehouseService = {
     address?: string;
     merchantId: string;
     priorityLevel: number;
+    pickupName?: string;
+    pickupPhone?: string;
+    provinceCode?: string;
+    districtCode?: string;
+    wardCode?: string;
   }) {
     return api.post<Warehouse>("/inventory/warehouses", body);
   },

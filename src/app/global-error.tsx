@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import StateView from "@/shared/ui/StateView";
 import { logger } from "@/shared/lib/logger";
 import { useTranslation } from "@/hooks";
 
@@ -18,28 +20,28 @@ export default function GlobalError({
 
   return (
     <html lang={locale}>
-      <body className="bg-gray-50 antialiased">
-        <div className="min-h-screen flex items-center justify-center px-4">
-          <div className="max-w-md w-full text-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {t("globalError.title")}
-            </h1>
-            <p className="mt-3 text-sm text-gray-500">
-              {t("globalError.description")}
-            </p>
-            {error.digest && (
-              <p className="mt-3 text-xs font-mono text-gray-400">
-                {t("globalError.code", { code: error.digest })}
-              </p>
-            )}
+      <body className="bg-white antialiased">
+        <StateView
+          icon={AlertTriangle}
+          iconClassName="text-rose-500"
+          title={t("globalError.title")}
+          description={t("globalError.description")}
+          meta={
+            error.digest
+              ? t("globalError.code", { code: error.digest })
+              : undefined
+          }
+          className="min-h-screen"
+          action={
             <button
               onClick={reset}
-              className="mt-8 inline-flex items-center px-6 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-strong"
+              className="inline-flex items-center gap-2 rounded-xl bg-gray-950 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
             >
+              <RefreshCw size={16} />
               {t("globalError.reload")}
             </button>
-          </div>
-        </div>
+          }
+        />
       </body>
     </html>
   );

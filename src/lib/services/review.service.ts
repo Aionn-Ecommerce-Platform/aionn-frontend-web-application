@@ -150,9 +150,19 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/hide`);
   },
 
-  listForMerchant(params: { page: number; size: number; replied?: boolean }) {
+  listForMerchant(params: {
+    page: number;
+    size: number;
+    replied?: boolean;
+    search?: string;
+  }) {
     return api.page<Review>("/catalog/merchant/reviews", {
-      query: { page: params.page, size: params.size, replied: params.replied },
+      query: {
+        page: params.page,
+        size: params.size,
+        replied: params.replied,
+        search: params.search,
+      },
     });
   },
 
@@ -160,4 +170,3 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/restore`);
   },
 };
-

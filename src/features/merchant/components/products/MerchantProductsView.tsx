@@ -269,45 +269,41 @@ function MerchantProductsInner() {
           </div>
         ) : productsError ? (
           <ConsoleEmptyState
-            icon={<AlertCircle size={34} />}
+            icon={AlertCircle}
+            iconClassName="text-rose-300"
             title={t("common.error")}
             description={t("common.tryAgain")}
           >
             <button
               type="button"
               onClick={() => void refetchProducts()}
-              className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+              className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
             >
               {t("common.retry")}
             </button>
           </ConsoleEmptyState>
         ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
-              <PackageSearch size={34} />
-            </div>
-            <h3 className="text-lg font-semibold text-white">
-              {t(
-                hasFilters
-                  ? "merchant.productList.emptyFilteredTitle"
-                  : "merchant.productList.emptyTitle",
-              )}
-            </h3>
-            <p className="mt-1 max-w-sm text-sm text-slate-400">
-              {t(
-                hasFilters
-                  ? "merchant.productList.emptyFilteredDesc"
-                  : "merchant.productList.emptyDesc",
-              )}
-            </p>
+          <ConsoleEmptyState
+            icon={PackageSearch}
+            title={t(
+              hasFilters
+                ? "merchant.productList.emptyFilteredTitle"
+                : "merchant.productList.emptyTitle",
+            )}
+            description={t(
+              hasFilters
+                ? "merchant.productList.emptyFilteredDesc"
+                : "merchant.productList.emptyDesc",
+            )}
+          >
             <Link
               href="/merchant/products/new"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-900/40 transition-all hover:from-purple-500 hover:to-fuchsia-500"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-900/40 transition-all hover:from-purple-500 hover:to-fuchsia-500"
             >
               <Plus size={16} />
               {t("merchant.productList.addProductBtn")}
             </Link>
-          </div>
+          </ConsoleEmptyState>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">

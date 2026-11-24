@@ -1,13 +1,16 @@
 "use client";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
+
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Button, Modal } from "@/shared/ui";
+import { Button, Modal, Select } from "@/shared/ui";
 import { flashSaleService } from "@/lib/services/flash-sale.service";
-import { campaignService } from "@/lib/services";
+import { campaignService, productService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { formatDateTime } from "@/shared/lib/utils";
+import { formatVariantLabel } from "@/shared/lib/product-utils";
 import { useTranslation } from "@/hooks";
+
 export function RegisterModal({
   onClose,
   onSuccess,
@@ -15,45 +18,49 @@ export function RegisterModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [campaignId, setCampaignId] = useState("");
   const [productId, setProductId] = useState("");
   const [skuId, setSkuId] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [currency, setCurrency] = useState("VND");
   const [saleStock, setSaleStock] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const validateMutation = useMutation({
-    mutationFn: (id: string) => campaignService.get(id.trim()),
-    onSuccess: (campaign) => {
-      if (campaign.type !== "FLASH_SALE") {
-        setValidationError(
-          t("merchant.flashSales.register.wrongType", { type: campaign.type }),
-        );
-      } else if (
-        campaign.status !== "RUNNING" &&
-        campaign.status !== "SCHEDULED"
-      ) {
-        setValidationError(
-          t("merchant.flashSales.register.wrongStatus", {
-            status: campaign.status,
-          }),
-        );
-      } else {
-        setValidationError(null);
-      }
+  const { data: campaigns = [], isLoading: loadingCampaigns } = useQuery({
+    queryKey: ["flash-sale-campaigns-for-register"],
+    queryFn: async () => {
+      const [running, scheduled] = await Promise.all([
+        campaignService.listByStatus("RUNNING", 50),
+        campaignService.listByStatus("SCHEDULED", 50),
+      ]);
+      return [...running, ...scheduled].filter(
+        (campaign) => campaign.type === "FLASH_SALE",
+      );
     },
-    onError: () =>
-      setValidationError(t("merchant.flashSales.register.notFound")),
   });
+
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ["merchant-products-for-flash-sale"],
+    queryFn: () => productService.listAllMine(),
+  });
+
+  const availableProducts = useMemo(
+    () => products.filter((product) => product.variants.length > 0),
+    [products],
+  );
+  const selectedProduct = products.find(
+    (product) => product.productId === productId,
+  );
+  const selectedCampaign = campaigns.find(
+    (campaign) => campaign.campaignId === campaignId,
+  );
 
   const registerMutation = useMutation({
     mutationFn: () =>
       flashSaleService.register({
-        campaignId: campaignId.trim(),
-        productId: productId.trim(),
-        skuId: skuId.trim(),
+        campaignId,
+        productId,
+        skuId,
         salePrice: Number(salePrice),
         currency: currency.trim() || "VND",
         saleStock: Number(saleStock),
@@ -66,7 +73,7 @@ export function RegisterModal({
   });
 
   const submit = () => {
-    if (!campaignId.trim() || !productId.trim() || !skuId.trim()) {
+    if (!campaignId || !productId || !skuId) {
       toast.error(t("merchant.flashSales.register.missingFields"));
       return;
     }
@@ -90,73 +97,83 @@ export function RegisterModal({
       title={t("merchant.flashSales.register.title")}
     >
       <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            {t("merchant.flashSales.register.campaignId")}
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={campaignId}
-              onChange={(e) => {
-                setCampaignId(e.target.value);
-                setValidationError(null);
-              }}
-              placeholder="CMP_..."
-              className="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => validateMutation.mutate(campaignId)}
-              loading={validateMutation.isPending}
-              disabled={!campaignId.trim()}
-            >
-              {t("merchant.flashSales.register.check")}
-            </Button>
-          </div>
-          {validateMutation.data && !validationError && (
-            <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
-              <ExternalLink size={12} />
-              {validateMutation.data.name} · {validateMutation.data.type} ·{" "}
-              {validateMutation.data.status}
-            </p>
-          )}
-          {validationError && (
-            <p className="text-xs text-red-600 mt-1.5">{validationError}</p>
-          )}
-        </div>
+        <Select
+          label={t("merchant.flashSales.register.campaignSelectLabel")}
+          value={campaignId}
+          onChange={(value) => setCampaignId(value)}
+          options={campaigns.map((campaign) => ({
+            value: campaign.campaignId,
+            label: `${campaign.name} (${campaign.status})`,
+          }))}
+          placeholder={
+            loadingCampaigns
+              ? t("common.loading")
+              : campaigns.length === 0
+                ? t("merchant.flashSales.register.noCampaigns")
+                : t("merchant.flashSales.register.campaignPlaceholder")
+          }
+          disabled={loadingCampaigns || campaigns.length === 0}
+        />
+        {selectedCampaign && (
+          <p className="text-xs text-gray-500">
+            {formatDateTime(selectedCampaign.startDate, locale)} →{" "}
+            {formatDateTime(selectedCampaign.endDate, locale)}
+          </p>
+        )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t("merchant.flashSales.register.productId")}
-            </label>
-            <input
-              type="text"
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              placeholder="PRD_..."
-              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t("merchant.flashSales.register.skuId")}
-            </label>
-            <input
-              type="text"
-              value={skuId}
-              onChange={(e) => setSkuId(e.target.value)}
-              placeholder="SKU_..."
-              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-          </div>
-        </div>
+        <Select
+          label={t("merchant.flashSales.register.productSelectLabel")}
+          value={productId}
+          onChange={(value) => {
+            setProductId(value);
+            setSkuId("");
+            setSalePrice("");
+            setCurrency("VND");
+          }}
+          options={availableProducts.map((product) => ({
+            value: product.productId,
+            label: `${product.name} (${product.status})`,
+          }))}
+          placeholder={
+            loadingProducts
+              ? t("common.loading")
+              : availableProducts.length === 0
+                ? t("merchant.flashSales.register.noProducts")
+                : t("merchant.flashSales.register.productPlaceholder")
+          }
+          disabled={loadingProducts || availableProducts.length === 0}
+        />
+
+        <Select
+          label={t("merchant.flashSales.register.variantSelectLabel")}
+          value={skuId}
+          onChange={(value) => {
+            setSkuId(value);
+            const variant = selectedProduct?.variants.find(
+              (item) => item.skuId === value,
+            );
+            if (variant) {
+              setSalePrice(String(variant.price));
+              setCurrency(variant.currency || "VND");
+            }
+          }}
+          options={(selectedProduct?.variants ?? []).map((variant) => ({
+            value: variant.skuId,
+            label:
+              formatVariantLabel(variant.attributeValues) ||
+              t("merchant.flashSales.register.defaultVariant"),
+          }))}
+          placeholder={
+            selectedProduct
+              ? t("merchant.flashSales.register.variantPlaceholder")
+              : t("merchant.flashSales.register.selectProductFirst")
+          }
+          disabled={!selectedProduct}
+        />
 
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-xs font-medium text-gray-700">
               {t("merchant.flashSales.register.salePrice")}
             </label>
             <input
@@ -164,25 +181,25 @@ export function RegisterModal({
               min="0"
               value={salePrice}
               onChange={(e) => setSalePrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-xs font-medium text-gray-700">
               {t("merchant.flashSales.register.currency")}
             </label>
             <input
               type="text"
               maxLength={3}
               value={currency}
-              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              readOnly
+              className="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2 text-sm uppercase text-gray-600 focus:outline-none"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-700">
             {t("merchant.flashSales.register.saleStock")}
           </label>
           <input
@@ -190,9 +207,9 @@ export function RegisterModal({
             min="1"
             value={saleStock}
             onChange={(e) => setSaleStock(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="mt-1 text-xs text-gray-400">
             {t("merchant.flashSales.register.saleStockHint")}
           </p>
         </div>
@@ -208,7 +225,9 @@ export function RegisterModal({
           <Button
             onClick={submit}
             loading={registerMutation.isPending}
-            disabled={!!validationError}
+            disabled={
+              !campaignId || !productId || !skuId || registerMutation.isPending
+            }
           >
             {t("merchant.flashSales.register.submit")}
           </Button>

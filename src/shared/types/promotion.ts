@@ -39,6 +39,7 @@ export interface Voucher {
   usageLimit: number;
   usedCount: number;
   reservedCount: number;
+  active?: boolean;
   validFrom: string | null;
   validUntil: string | null;
   createdAt: string;

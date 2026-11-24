@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertCircle,
   Warehouse as WarehouseIcon,
   Plus,
   Loader2,
@@ -17,9 +18,13 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, EmptyState, Pagination, Badge } from "@/shared/ui";
+import { Button, Modal, Pagination, Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { warehouseService, merchantService } from "@/lib/services";
+import {
+  warehouseService,
+  merchantService,
+  geographyService,
+} from "@/lib/services";
 import {
   ConsoleFilterDropdown,
   ConsoleEmptyState,
@@ -74,7 +79,12 @@ function MerchantWarehousesInner() {
     null,
   );
 
-  const { data: warehousePage, isLoading } = useQuery({
+  const {
+    data: warehousePage,
+    isLoading,
+    isError: warehousesError,
+    refetch: refetchWarehouses,
+  } = useQuery({
     queryKey: ["merchant-warehouses", page, statusFilter, search.trim()],
     queryFn: () =>
       warehouseService.listMine({
@@ -151,7 +161,7 @@ function MerchantWarehousesInner() {
 
   return (
     <ConsolePanel>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
           <WarehouseIcon size={22} className="text-purple-300" />
           <span className="text-purple-300">
@@ -219,15 +229,30 @@ function MerchantWarehousesInner() {
         <div className="flex justify-center py-20">
           <Loader2 className="animate-spin text-purple-400" size={28} />
         </div>
+      ) : warehousesError ? (
+        <ConsoleEmptyState
+          icon={AlertCircle}
+          iconClassName="text-rose-300"
+          title={t("common.error")}
+          description={t("common.tryAgain")}
+        >
+          <button
+            type="button"
+            onClick={() => void refetchWarehouses()}
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+          >
+            {t("common.retry")}
+          </button>
+        </ConsoleEmptyState>
       ) : warehouses.length === 0 && !hasFilters ? (
-        <EmptyState
+        <ConsoleEmptyState
           icon={WarehouseIcon}
           title={t("merchant.warehouses.emptyTitle")}
           description={t("merchant.warehouses.emptyDescription")}
         />
       ) : warehouses.length === 0 ? (
         <ConsoleEmptyState
-          icon={<WarehouseIcon size={30} />}
+          icon={WarehouseIcon}
           title={t("merchant.warehouses.emptyFilteredTitle")}
           description={t("merchant.warehouses.emptyFilteredDescription")}
         >
@@ -238,7 +263,7 @@ function MerchantWarehousesInner() {
               setStatusFilter("all");
               setPage(1);
             }}
-            className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
           >
             {t("merchant.warehouses.clearFilters")}
           </button>
@@ -366,6 +391,21 @@ function MerchantWarehousesInner() {
                   {selected.priorityLevel}
                 </p>
               </div>
+              {(selected.pickupName || selected.pickupPhone) && (
+                <div className="sm:col-span-2">
+                  <p className="text-gray-500">
+                    {t("merchant.warehouses.pickupNameLabel")}
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {selected.pickupName}
+                  </p>
+                  {selected.pickupPhone && (
+                    <p className="text-sm text-gray-500">
+                      {selected.pickupPhone}
+                    </p>
+                  )}
+                </div>
+              )}
               <div>
                 <p className="text-gray-500">
                   {t("merchant.warehouses.colCreatedAt")}
@@ -480,18 +520,54 @@ function CreateModal({
 }) {
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+  const [provinceCode, setProvinceCode] = useState("");
+  const [districtCode, setDistrictCode] = useState("");
+  const [wardCode, setWardCode] = useState("");
   const [priority, setPriority] = useState("1");
+
+  const { data: provinces } = useQuery({
+    queryKey: ["geography", "provinces", "VN"],
+    queryFn: () => geographyService.listProvinces("VN"),
+  });
+  const { data: districts } = useQuery({
+    queryKey: ["geography", "districts", provinceCode],
+    queryFn: () => geographyService.listDistricts(provinceCode),
+    enabled: Boolean(provinceCode),
+  });
+  const { data: wards } = useQuery({
+    queryKey: ["geography", "wards", districtCode],
+    queryFn: () => geographyService.listWards(districtCode),
+    enabled: Boolean(districtCode),
+  });
 
   const { data: merchant } = useQuery({
     queryKey: ["merchant", "me"],
     queryFn: () => merchantService.getMine(),
   });
 
+  const provinceName = provinces?.find(
+    (item) => item.code === provinceCode,
+  )?.name;
+  const districtName = districts?.find(
+    (item) => item.code === districtCode,
+  )?.name;
+  const wardName = wards?.find((item) => item.code === wardCode)?.name;
+  const fullAddress = [address.trim(), wardName, districtName, provinceName]
+    .filter(Boolean)
+    .join(", ");
+
   const mutation = useMutation({
     mutationFn: () =>
       warehouseService.create({
         merchantId: merchant!.merchantId,
-        address: address.trim() || undefined,
+        address: fullAddress || undefined,
+        pickupName: pickupName.trim() || undefined,
+        pickupPhone: pickupPhone.trim() || undefined,
+        provinceCode: provinceCode || undefined,
+        districtCode: districtCode || undefined,
+        wardCode: wardCode || undefined,
         priorityLevel: Number(priority) || 1,
       }),
     onSuccess: () => {
@@ -508,6 +584,98 @@ function CreateModal({
       title={t("merchant.warehouses.createTitle")}
     >
       <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.pickupNameLabel")}
+            </label>
+            <input
+              value={pickupName}
+              onChange={(e) => setPickupName(e.target.value)}
+              placeholder={t("merchant.warehouses.pickupNamePlaceholder")}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.pickupPhoneLabel")}
+            </label>
+            <input
+              value={pickupPhone}
+              onChange={(e) => setPickupPhone(e.target.value)}
+              placeholder={t("merchant.warehouses.pickupPhonePlaceholder")}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.provinceLabel")}
+            </label>
+            <select
+              value={provinceCode}
+              onChange={(e) => {
+                setProvinceCode(e.target.value);
+                setDistrictCode("");
+                setWardCode("");
+              }}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {provinces?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.districtLabel")}
+            </label>
+            <select
+              value={districtCode}
+              onChange={(e) => {
+                setDistrictCode(e.target.value);
+                setWardCode("");
+              }}
+              disabled={!provinceCode}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {districts?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.wardLabel")}
+            </label>
+            <select
+              value={wardCode}
+              onChange={(e) => setWardCode(e.target.value)}
+              disabled={!districtCode}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {wards?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.warehouses.addressLabel")}
@@ -521,7 +689,7 @@ function CreateModal({
           />
           <div className="mt-3">
             <WarehouseLocationPicker
-              address={address}
+              address={fullAddress || address}
               onAddressChange={setAddress}
             />
           </div>

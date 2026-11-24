@@ -372,9 +372,7 @@ export default function MerchantsPage() {
               icon={Search}
               title={t("merchants.noResultsTitle")}
               description={t("merchants.noResultsDesc")}
-              iconWrapperClassName="bg-transparent"
               iconClassName="text-gray-950"
-              iconSize={40}
             />
           )}
 

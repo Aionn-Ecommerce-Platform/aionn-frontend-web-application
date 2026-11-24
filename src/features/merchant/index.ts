@@ -5,6 +5,8 @@ export { default as MerchantReturnsView } from "./components/returns/MerchantRet
 export { default as MerchantInventoryView } from "./components/inventory/MerchantInventoryView";
 export { default as MerchantTransfersView } from "./components/transfers/MerchantTransfersView";
 export { default as MerchantProductsView } from "./components/products/MerchantProductsView";
+export { default as MerchantFeedbackView } from "./components/feedback/MerchantFeedbackView";
+export { default as MerchantAutoReplySection } from "./components/settings/MerchantAutoReplySection";
 export { default as MerchantProductEditView } from "./components/product-edit/MerchantProductEditView";
 export {
   ProductImagesCard,

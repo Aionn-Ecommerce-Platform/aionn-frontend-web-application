@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Warehouse as WarehouseIcon,
   Package,
+  Boxes,
+  CheckCircle2,
   AlertTriangle,
   Loader2,
   Shield,
@@ -15,18 +17,19 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
-import { EmptyState, Pagination } from "@/shared/ui";
+import { Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { warehouseService, inventoryService } from "@/lib/services";
 import type { InventoryItem } from "@/types";
 import { useTranslation } from "@/hooks";
-import { ConsolePanel } from "../shared/ConsoleShell";
+import { ConsolePanel, ConsoleEmptyState } from "../shared/ConsoleShell";
 import { ConsoleFilterDropdown } from "../shared/ConsoleFilterDropdown";
+import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
 
 type Action = "safety" | "batch" | "adjust" | "audit" | "init" | null;
 
 function MerchantInventoryInner() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const [activeWarehouseId, setActiveWarehouseId] = useState<string | null>(
     null,
@@ -36,7 +39,7 @@ function MerchantInventoryInner() {
     "all",
   );
   const [stockPage, setStockPage] = useState(1);
-  const INVENTORY_PAGE_SIZE = 10;
+  const INVENTORY_PAGE_SIZE = 30;
   const [action, setAction] = useState<{
     type: Action;
     item: InventoryItem | null;
@@ -47,12 +50,39 @@ function MerchantInventoryInner() {
     queryFn: () => warehouseService.listMine({ limit: 100 }),
   });
   const warehouses = warehousePage?.content ?? [];
+  const activeWarehouses = warehouses.filter((w) => w.status === "ACTIVE");
 
-  const effectiveWarehouseId =
-    activeWarehouseId ??
-    warehouses.find((w) => w.status === "ACTIVE")?.warehouseId ??
-    warehouses[0]?.warehouseId ??
-    null;
+  // Pick a warehouse that actually has stock so the page does not look empty
+  // just because the first active warehouse happens to be unused.
+  const stockProbes = useQueries({
+    queries: activeWarehouses.map((warehouse) => ({
+      queryKey: ["merchant-inventory-probe", warehouse.warehouseId],
+      queryFn: () =>
+        inventoryService.listByWarehouse(warehouse.warehouseId, {
+          page: 0,
+          size: 1,
+        }),
+      enabled: !activeWarehouseId && warehouses.length > 0,
+      staleTime: 30_000,
+    })),
+  });
+  const warehouseWithStockId = activeWarehouses.find(
+    (_warehouse, index) =>
+      (stockProbes[index]?.data?.totalElements ?? 0) > 0,
+  )?.warehouseId;
+  const resolvingWarehouse =
+    !activeWarehouseId &&
+    warehouses.length > 0 &&
+    stockProbes.some((probe) => probe.isPending);
+
+  const effectiveWarehouseId = activeWarehouseId
+    ? activeWarehouseId
+    : resolvingWarehouse
+      ? null
+      : (warehouseWithStockId ??
+        activeWarehouses[0]?.warehouseId ??
+        warehouses[0]?.warehouseId ??
+        null);
 
   const { data: inventoryPage, isLoading: loadingInv } = useQuery({
     queryKey: [
@@ -74,6 +104,15 @@ function MerchantInventoryInner() {
     enabled: !!effectiveWarehouseId,
   });
 
+  const { data: inventoryStats } = useQuery({
+    queryKey: ["merchant-inventory-stats", effectiveWarehouseId],
+    queryFn: () =>
+      effectiveWarehouseId
+        ? inventoryService.statsByWarehouse(effectiveWarehouseId)
+        : Promise.resolve(undefined),
+    enabled: !!effectiveWarehouseId,
+  });
+
   const inventory = inventoryPage?.content ?? [];
   const inventoryTotalPages = Math.max(1, inventoryPage?.totalPages ?? 1);
   const safeStockPage = Math.min(stockPage, inventoryTotalPages);
@@ -83,15 +122,48 @@ function MerchantInventoryInner() {
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["merchant-inventory"] });
+    qc.invalidateQueries({ queryKey: ["merchant-inventory-stats"] });
   }
 
   function close() {
     setAction({ type: null, item: null });
   }
 
+  const numberFormat = new Intl.NumberFormat(
+    locale === "vi" ? "vi-VN" : "en-US",
+  );
+  const formatStat = (value: number | undefined) =>
+    value == null ? "—" : numberFormat.format(value);
+  const inventorySummary = [
+    {
+      label: t("merchant.inventory.stats.skus"),
+      value: formatStat(inventoryStats?.totalSkus),
+      icon: Package,
+      iconClass: "text-purple-300",
+    },
+    {
+      label: t("merchant.inventory.stats.physical"),
+      value: formatStat(inventoryStats?.physicalQty),
+      icon: Boxes,
+      iconClass: "text-sky-300",
+    },
+    {
+      label: t("merchant.inventory.stats.available"),
+      value: formatStat(inventoryStats?.availableQty),
+      icon: CheckCircle2,
+      iconClass: "text-emerald-300",
+    },
+    {
+      label: t("merchant.inventory.stats.lowStock"),
+      value: formatStat(inventoryStats?.lowStockSkus),
+      icon: AlertTriangle,
+      iconClass: "text-amber-300",
+    },
+  ];
+
   return (
     <ConsolePanel>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
           <WarehouseIcon size={22} className="text-purple-300" />
           <span className="text-purple-300">
@@ -118,13 +190,20 @@ function MerchantInventoryInner() {
         </div>
       </div>
 
+      {effectiveWarehouseId && (
+        <ConsoleStatGrid
+          stats={inventorySummary}
+          columnsClassName="lg:grid-cols-4"
+        />
+      )}
+
       <section>
-        {loadingWh ? (
+        {loadingWh || resolvingWarehouse ? (
           <div className="py-12 flex justify-center">
             <Loader2 className="animate-spin text-purple-400" size={24} />
           </div>
         ) : warehouses.length === 0 ? (
-          <EmptyState
+          <ConsoleEmptyState
             icon={WarehouseIcon}
             title={t("merchant.inventory.noWarehouseTitle")}
             description={t("merchant.inventory.noWarehouseDescription")}
@@ -196,7 +275,7 @@ function MerchantInventoryInner() {
             <Loader2 className="animate-spin text-purple-400" size={24} />
           </div>
         ) : inventory.length === 0 ? (
-          <EmptyState
+          <ConsoleEmptyState
             icon={Package}
             title={t("merchant.inventory.emptyStockTitle")}
             description={t("merchant.inventory.emptyStockDescription")}
@@ -285,6 +364,7 @@ function MerchantInventoryInner() {
                           <div className="flex items-center justify-center gap-1">
                             <ActionBtn
                               title={t("merchant.inventory.actionSafety")}
+                              tone="amber"
                               onClick={() =>
                                 setAction({ type: "safety", item })
                               }
@@ -293,6 +373,7 @@ function MerchantInventoryInner() {
                             </ActionBtn>
                             <ActionBtn
                               title={t("merchant.inventory.actionAdjust")}
+                              tone="sky"
                               onClick={() =>
                                 setAction({ type: "adjust", item })
                               }
@@ -301,6 +382,7 @@ function MerchantInventoryInner() {
                             </ActionBtn>
                             <ActionBtn
                               title={t("merchant.inventory.actionAudit")}
+                              tone="purple"
                               onClick={() => setAction({ type: "audit", item })}
                             >
                               <ClipboardCheck size={14} />
