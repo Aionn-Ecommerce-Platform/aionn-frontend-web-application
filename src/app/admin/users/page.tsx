@@ -159,8 +159,12 @@ function AdminUsersInner() {
 
   const selectedRoles = roleDraft ?? userRoleSet;
   const rolesChanged =
-    Array.from(selectedRoles).sort().join(",") !==
-    Array.from(userRoleSet).sort().join(",");
+    Array.from(selectedRoles)
+      .sort((a, b) => a.localeCompare(b))
+      .join(",") !==
+    Array.from(userRoleSet)
+      .sort((a, b) => a.localeCompare(b))
+      .join(",");
 
   function openDetail(userId: string) {
     setSelectedId(userId);

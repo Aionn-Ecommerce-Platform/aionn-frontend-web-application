@@ -119,8 +119,10 @@ export default function MerchantAutoReplySection() {
       awayMessage !== (cfg.awayMessage ?? "") ||
       workingHourStart !== (cfg.workingHourStart ?? "") ||
       workingHourEnd !== (cfg.workingHourEnd ?? "") ||
-      JSON.stringify([...workingDays].sort()) !==
-        JSON.stringify([...(cfg.workingDays ?? [])].sort())
+      JSON.stringify([...workingDays].sort((a, b) => a.localeCompare(b))) !==
+        JSON.stringify(
+          [...(cfg.workingDays ?? [])].sort((a, b) => a.localeCompare(b)),
+        )
     );
   }, [
     cfg,
