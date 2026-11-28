@@ -65,4 +65,22 @@ export const warehouseService = {
       `/inventory/warehouses/${warehouseId}/lift-suspension`,
     );
   },
+  /** Admin console: paged warehouses across all merchants. */
+  adminList(
+    params: {
+      search?: string;
+      status?: WarehouseStatus;
+      page?: number;
+      size?: number;
+    } = {},
+  ) {
+    return api.page<Warehouse>("/inventory/warehouses/admin", {
+      query: {
+        search: params.search?.trim() || undefined,
+        status: params.status,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      },
+    });
+  },
 };

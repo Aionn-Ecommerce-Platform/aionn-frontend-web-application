@@ -2,6 +2,7 @@ export const qk = {
   me: ["me"] as const,
   sessions: ["me", "sessions"] as const,
   auditLogs: ["me", "audit-logs"] as const,
+  mfaState: ["me", "mfa-state"] as const,
   preferences: ["me", "preferences"] as const,
   consents: ["me", "consents"] as const,
   addresses: ["addresses"] as const,

@@ -5,6 +5,8 @@ const API_ORIGIN =
   (process.env.NEXT_PUBLIC_API_URL
     ? new URL(process.env.NEXT_PUBLIC_API_URL).origin
     : "http://localhost:8080");
+const WS_ORIGIN = API_ORIGIN.replace(/^http/, "ws");
+const WSS_ORIGIN = API_ORIGIN.replace(/^http/, "wss");
 const scriptPolicy = [
   "'self'",
   "'unsafe-inline'",
@@ -42,7 +44,7 @@ const securityHeaders = [
 
       `script-src ${scriptPolicy}`,
       "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://js.stripe.com https://hooks.stripe.com https://www.google.com",
-      `connect-src 'self' ${API_ORIGIN} https://api.cloudinary.com https://res.cloudinary.com https://accounts.google.com https://graph.facebook.com https://api.stripe.com https://nominatim.openstreetmap.org`,
+      `connect-src 'self' ${API_ORIGIN} ${WS_ORIGIN} ${WSS_ORIGIN} https://api.cloudinary.com https://res.cloudinary.com https://accounts.google.com https://graph.facebook.com https://api.stripe.com https://nominatim.openstreetmap.org`,
       "media-src 'self' https:",
       "worker-src 'self' blob:",
     ].join("; "),

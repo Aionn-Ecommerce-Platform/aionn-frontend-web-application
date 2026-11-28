@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Truck } from "lucide-react";
+import { Loader2, Truck } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, EmptyState } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -17,17 +17,16 @@ import {
   orderService,
   paymentService,
   shippingService,
-  recommendationService,
   voucherService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { getPaymentFailureMessage } from "@/lib/payment-i18n";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { formatDate } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import {
   calculateCheckoutPricing,
+  calculateShopVoucherDiscount,
   findAddress,
   getVerifiedPaymentMethods,
   resolveAddressId,
@@ -37,12 +36,20 @@ import {
 import type { StripeSetupIntent } from "@/lib/services";
 import CheckoutDeliveryPanel from "./CheckoutDeliveryPanel";
 import CheckoutVoucherPanel from "./CheckoutVoucherPanel";
+import CheckoutOrderItems from "./CheckoutOrderItems";
+import VoucherPickerModal from "@/components/promotion/VoucherPickerModal";
+import type { VoucherPickerMode } from "@/components/promotion/VoucherPickerModal";
+import { useMerchantNameMap } from "@/hooks/useMerchantNameMap";
 import CheckoutPaymentPanel from "./CheckoutPaymentPanel";
-import { CheckoutRecommendations, CheckoutSummary } from "./CheckoutSummary";
+import { CheckoutSummary } from "./CheckoutSummary";
 import {
   CHECKOUT_SELECTION_STORAGE_KEY,
   getStoredCheckoutSelection,
 } from "./checkout-storage";
+
+function ordersListWithFocus(orderId: string) {
+  return `/orders?tab=PENDING%2CAPPROVED&focus=${encodeURIComponent(orderId)}`;
+}
 
 function CheckoutInner() {
   const router = useRouter();
@@ -51,26 +58,42 @@ function CheckoutInner() {
   const { t, locale } = useTranslation();
   const items = useCartStore((s) => s.items);
   const hydrateFromServer = useCartStore((s) => s.hydrateFromServer);
-  const voucherCode = useCartStore((s) => s.voucherCode);
-  const applyVoucher = useCartStore((s) => s.applyVoucher);
-  const removeVoucher = useCartStore((s) => s.removeVoucher);
+  const platformVoucherCode = useCartStore((s) => s.platformVoucherCode);
+  const shopVoucherCode = useCartStore((s) => s.shopVoucherCode);
+  const shippingVoucherCode = useCartStore((s) => s.shippingVoucherCode);
+  const setVoucher = useCartStore((s) => s.setVoucher);
+  const clearVoucher = useCartStore((s) => s.clearVoucher);
+  const shopVoucherCodesState = useCartStore((s) => s.shopVoucherCodes);
+  const shopVoucherCodes = useMemo(
+    () => shopVoucherCodesState ?? {},
+    [shopVoucherCodesState],
+  );
+  const setShopVoucher = useCartStore((s) => s.setShopVoucher);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const userId = useAuthStore((s) => s.user?.userId);
   const selectedSkuParam = searchParams.get("items") ?? "";
   const [selectedSkuIds] = useState<string[]>(() =>
     getStoredCheckoutSelection(selectedSkuParam),
   );
   const [addressModalOpen, setAddressModalOpen] = useState(false);
-  const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [stripeCardModalOpen, setStripeCardModalOpen] = useState(false);
   const [stripeSetupIntent, setStripeSetupIntent] =
     useState<StripeSetupIntent | null>(null);
-  const [applyingVoucher, setApplyingVoucher] = useState(false);
+  const [applyingVoucher, setApplyingVoucher] =
+    useState<VoucherPickerMode | null>(null);
+  const [shopVoucherMerchant, setShopVoucherMerchant] = useState<string | null>(
+    null,
+  );
+  const [shopVoucherOpen, setShopVoucherOpen] = useState(false);
+  const openShopVoucher = (merchantId: string) => {
+    setShopVoucherMerchant(merchantId);
+    setShopVoucherOpen(true);
+  };
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<
     string | null
   >(null);
   const [savingPaymentPreference, setSavingPaymentPreference] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   useEffect(() => {
     if (selectedSkuParam) {
@@ -81,13 +104,34 @@ function CheckoutInner() {
     () => selectCheckoutItems(items, selectedSkuIds),
     [items, selectedSkuIds],
   );
+  const selectedMerchantIds = useMemo(
+    () =>
+      new Set(
+        checkoutItems
+          .map((item) => item.merchantId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [checkoutItems],
+  );
+  const isMultiShop = selectedMerchantIds.size > 1;
+  const checkoutShopVoucherCodes = useMemo(() => {
+    const codes: Record<string, string> = {};
+    for (const merchantId of selectedMerchantIds) {
+      const code = shopVoucherCodes[merchantId];
+      if (code) {
+        codes[merchantId] = code;
+      }
+    }
+    return codes;
+  }, [selectedMerchantIds, shopVoucherCodes]);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
   );
-  const [note, setNote] = useState("");
-  const [selectedShippingService, setSelectedShippingService] =
-    useState("STANDARD");
+  const [notesByMerchant, setNotesByMerchant] = useState<
+    Record<string, string>
+  >({});
+  const [selectedShippingService] = useState("STANDARD");
   const { data: addresses, isLoading: loadingAddr } = useQuery({
     queryKey: qk.addresses,
     queryFn: () => addressService.list(),
@@ -181,8 +225,29 @@ function CheckoutInner() {
     () => findAddress(addresses, effectiveAddressId),
     [addresses, effectiveAddressId],
   );
+  const merchantNames = useMerchantNameMap();
+  const merchantGroups = useMemo(() => {
+    const groups = new Map<string, typeof checkoutItems>();
+    for (const item of checkoutItems) {
+      const key = item.merchantId ?? "unknown";
+      groups.set(key, [...(groups.get(key) ?? []), item]);
+    }
+    return Array.from(groups.entries());
+  }, [checkoutItems]);
+  const quoteAddress = useMemo(() => {
+    if (!activeAddress) return null;
+    return {
+      fullName: activeAddress.contactName,
+      phone: activeAddress.phone,
+      addressLine: activeAddress.fullAddress ?? activeAddress.detailAddress,
+      wardCode: activeAddress.wardCode,
+      districtId: activeAddress.districtCode,
+      provinceCode: activeAddress.provinceCode,
+      countryCode: "VN",
+    };
+  }, [activeAddress]);
 
-  const { data: shippingQuote, isLoading: loadingQuote } = useQuery({
+  const { data: shippingQuote, isLoading: loadingSingleQuote } = useQuery({
     queryKey: [
       "shipping-quote",
       effectiveAddressId,
@@ -190,88 +255,190 @@ function CheckoutInner() {
       activeAddress?.wardCode,
       checkoutItems.map((item) => `${item.skuId}x${item.qty ?? 1}`).join(","),
       checkoutItems[0]?.currency,
-      // Goods subtotal drives the freeship threshold, so it belongs in the key.
-      checkoutItems.reduce((sum, item) => sum + item.price * (item.qty ?? 1), 0),
+      // Goods subtotal affects the quoted fee, so it belongs in the key.
+      checkoutItems.reduce(
+        (sum, item) => sum + item.price * (item.qty ?? 1),
+        0,
+      ),
     ],
     queryFn: async () => {
-      if (!activeAddress) return null;
+      if (!quoteAddress) return null;
       const items = checkoutItems.map((item) => ({
         skuId: item.skuId,
         qty: item.qty ?? 1,
       }));
-      const quoteAddr = {
-        fullName: activeAddress.contactName,
-        phone: activeAddress.phone,
-        addressLine: activeAddress.fullAddress ?? activeAddress.detailAddress,
-        wardCode: activeAddress.wardCode,
-        districtId: activeAddress.districtCode,
-        provinceCode: activeAddress.provinceCode,
-        countryCode: "VN",
-      };
       const goodsSubtotal = checkoutItems.reduce(
         (sum, item) => sum + item.price * (item.qty ?? 1),
         0,
       );
       return shippingService.quote(
-        quoteAddr,
+        quoteAddress,
         items,
         checkoutItems[0]?.currency ?? "VND",
         goodsSubtotal,
       );
     },
-    enabled: !!activeAddress && checkoutItems.length > 0,
+    enabled: !!activeAddress && checkoutItems.length > 0 && !isMultiShop,
+  });
+
+  const {
+    data: multiShopShipping = new Map<string, number>(),
+    isLoading: loadingMultiQuote,
+  } = useQuery({
+    queryKey: [
+      "shipping-quote-shops",
+      effectiveAddressId,
+      activeAddress?.districtCode,
+      activeAddress?.wardCode,
+      selectedShippingService,
+      merchantGroups
+        .map(
+          ([merchantId, groupItems]) =>
+            `${merchantId}:${groupItems
+              .map((item) => `${item.skuId}x${item.qty ?? 1}`)
+              .join(",")}`,
+        )
+        .join("|"),
+    ],
+    enabled:
+      !!activeAddress &&
+      isMultiShop &&
+      checkoutItems.length > 0 &&
+      merchantGroups.length > 0,
+    queryFn: async () => {
+      if (!quoteAddress) return new Map<string, number>();
+      const entries = await Promise.all(
+        merchantGroups.map(async ([merchantId, groupItems]) => {
+          const goodsSubtotal = groupItems.reduce(
+            (sum, item) => sum + item.price * (item.qty ?? 1),
+            0,
+          );
+          const quote = await shippingService.quote(
+            quoteAddress,
+            groupItems.map((item) => ({
+              skuId: item.skuId,
+              qty: item.qty ?? 1,
+            })),
+            groupItems[0]?.currency ?? "VND",
+            goodsSubtotal,
+          );
+          const option =
+            quote.options?.find(
+              (item) => item.code === selectedShippingService,
+            ) ?? quote.options?.[0];
+          return [merchantId, option?.fee ?? quote.fee ?? 0] as const;
+        }),
+      );
+      return new Map(entries);
+    },
   });
 
   const shippingOptions = shippingQuote?.options ?? [];
   const selectedShippingOption =
     shippingOptions.find((option) => option.code === selectedShippingService) ??
     shippingOptions[0];
-  const resolvedShippingFee =
-    selectedShippingOption?.fee ?? shippingQuote?.fee ?? 0;
-  const selectedVoucher = useMemo(
+  const multiShopShippingFee = Array.from(multiShopShipping.values()).reduce(
+    (sum, fee) => sum + fee,
+    0,
+  );
+  const loadingQuote = isMultiShop ? loadingMultiQuote : loadingSingleQuote;
+  const resolvedShippingFee = isMultiShop
+    ? multiShopShippingFee
+    : (selectedShippingOption?.fee ?? shippingQuote?.fee ?? 0);
+  const shippingByMerchant = useMemo(() => {
+    if (isMultiShop) return multiShopShipping;
+    const map = new Map<string, number>();
+    for (const merchantId of selectedMerchantIds) {
+      map.set(merchantId, resolvedShippingFee);
+    }
+    return map;
+  }, [
+    isMultiShop,
+    multiShopShipping,
+    resolvedShippingFee,
+    selectedMerchantIds,
+  ]);
+  const selectedPlatformVoucher = useMemo(
     () =>
-      userVouchers.find((voucher) => voucher.voucherCode === voucherCode) ??
+      userVouchers.find(
+        (voucher) => voucher.voucherCode === platformVoucherCode,
+      ) ?? null,
+    [userVouchers, platformVoucherCode],
+  );
+  const selectedShopVoucher = useMemo(
+    () =>
+      userVouchers.find((voucher) => voucher.voucherCode === shopVoucherCode) ??
       null,
-    [userVouchers, voucherCode],
+    [userVouchers, shopVoucherCode],
+  );
+  const selectedShippingVoucher = useMemo(
+    () =>
+      userVouchers.find(
+        (voucher) => voucher.voucherCode === shippingVoucherCode,
+      ) ?? null,
+    [userVouchers, shippingVoucherCode],
+  );
+  const shopDiscountsByMerchant = useMemo(() => {
+    const discounts = new Map<string, number>();
+    for (const [merchantId, groupItems] of merchantGroups) {
+      const code = shopVoucherCodes[merchantId];
+      if (!code) continue;
+      const voucher = userVouchers.find((item) => item.voucherCode === code);
+      if (!voucher) continue;
+      const goodsTotal = groupItems.reduce(
+        (sum, item) => sum + item.price * (item.qty ?? 1),
+        0,
+      );
+      discounts.set(
+        merchantId,
+        calculateShopVoucherDiscount(voucher, goodsTotal),
+      );
+    }
+    return discounts;
+  }, [merchantGroups, shopVoucherCodes, userVouchers]);
+  const shopDiscountTotal = useMemo(
+    () =>
+      Array.from(shopDiscountsByMerchant.values()).reduce(
+        (sum, value) => sum + value,
+        0,
+      ),
+    [shopDiscountsByMerchant],
   );
   const {
     subtotal: totalAmount,
-    meetsMinimum: voucherMeetsMinimum,
-    discount: voucherDiscount,
+    goodsDiscount: platformDiscount,
+    shippingDiscount,
   } = useMemo(
-    () => calculateCheckoutPricing(checkoutItems, selectedVoucher),
-    [checkoutItems, selectedVoucher],
+    () =>
+      calculateCheckoutPricing(
+        checkoutItems,
+        {
+          platform: selectedPlatformVoucher,
+          shop: null,
+          shipping: selectedShippingVoucher,
+        },
+        resolvedShippingFee,
+      ),
+    [
+      checkoutItems,
+      selectedPlatformVoucher,
+      selectedShippingVoucher,
+      resolvedShippingFee,
+    ],
   );
-  const deliveryDateLabel = (selectedShippingOption?.estimatedDeliveryAt ?? shippingQuote?.estimatedDeliveryAt)
-    ? `${t("checkout.estimatedDelivery")}: ${formatDate(selectedShippingOption?.estimatedDeliveryAt ?? shippingQuote!.estimatedDeliveryAt!, locale)}`
-    : null;
-
-  const { data: recommendedProducts } = useQuery({
-    queryKey: qk.recommendationsHome(12, userId),
-    queryFn: () => recommendationService.getHomeFeed(12),
-  });
-
-  const handleApplyVoucher = async (code: string) => {
-    setApplyingVoucher(true);
+  const handleApplyVoucher = (mode: VoucherPickerMode, code: string) => {
+    setApplyingVoucher(mode);
     try {
-      await applyVoucher(code);
-      setVoucherModalOpen(false);
+      setVoucher(mode, code);
       toast.success(t("checkout.voucherApplied"));
-    } catch (error) {
-      // Surface the rejection reason so a failed voucher apply isn't silent.
-      toast.error(getErrorMessage(error));
     } finally {
-      setApplyingVoucher(false);
+      setApplyingVoucher(null);
     }
   };
 
-  const handleRemoveVoucher = async () => {
-    setApplyingVoucher(true);
-    try {
-      await removeVoucher();
-    } finally {
-      setApplyingVoucher(false);
-    }
+  const handleRemoveVoucher = (mode: VoucherPickerMode) => {
+    clearVoucher(mode);
+    toast.success(t("cart.voucherRemoved"));
   };
 
   const openStripeCardModal = () => {
@@ -344,7 +511,7 @@ function CheckoutInner() {
         : isVnpay || String(method?.provider).toUpperCase().includes("VNPAY")
           ? "VNPAY"
           : "STRIPE";
-      const order = await orderService.place({
+      const body: Parameters<typeof orderService.place>[0] = {
         addressId: addr.addressId,
         paymentMethodId: method?.methodId ?? (isVnpay ? "VNPAY" : "COD"),
         currency: checkoutItems[0]?.currency ?? "VND",
@@ -361,9 +528,55 @@ function CheckoutInner() {
         },
         selectedSkuIds: checkoutItems.map((item) => item.skuId),
         gateway,
-        note: note.trim() || undefined,
-        shippingService: selectedShippingOption?.code,
-      });
+        shippingService:
+          selectedShippingService || selectedShippingOption?.code,
+        platformVoucherCode: platformVoucherCode ?? undefined,
+        shopVoucherCode: shopVoucherCode ?? undefined,
+        shippingVoucherCode: shippingVoucherCode ?? undefined,
+        shopVoucherCodes: checkoutShopVoucherCodes,
+        notesByMerchant: Object.fromEntries(
+          Object.entries(notesByMerchant)
+            .map(
+              ([merchantId, value]) =>
+                [merchantId, value?.trim() ?? ""] as const,
+            )
+            .filter(([, value]) => value.length > 0),
+        ),
+      };
+
+      if (isMultiShop) {
+        const group = await orderService.placeGroup(body);
+        const [order, ...rest] = group.orders;
+        if (!order) {
+          throw new Error(t("checkout.orderFailed"));
+        }
+        if (!method && !isVnpay) {
+          return { order, payment: null, groupId: group.groupId };
+        }
+        // The backend owns the group total: sum every persisted sub-order total.
+        const total = group.orders.reduce(
+          (sum, line) => sum + (line.totalAmount ?? 0),
+          0,
+        );
+        const payment = await paymentService.initiate({
+          orderId: group.groupId,
+          groupId: group.groupId,
+          orderIds: group.orders.map((line) => line.orderId),
+          paymentMethodId: method?.methodId ?? null,
+          amount: total,
+          currency: group.orders[0]?.currency ?? body.currency,
+          gateway,
+          idempotencyKey,
+        });
+        return {
+          order,
+          payment,
+          groupId: group.groupId,
+          orders: [order, ...rest],
+        };
+      }
+
+      const order = await orderService.place(body);
 
       if (!method && !isVnpay) {
         return { order, payment: null };
@@ -380,40 +593,35 @@ function CheckoutInner() {
       });
       return { order, payment };
     },
-    onSuccess: async ({ order, payment }) => {
-      try {
-        if (isAuthenticated) {
-          await hydrateFromServer();
-        }
-      } catch {}
+    onSuccess: ({ order, payment }) => {
+      // Navigate first and hydrate the now-empty cart afterwards, otherwise the
+      // emptied cart re-renders the checkout page as "cart is empty" before the
+      // order detail route takes over.
+      setOrderPlaced(true);
       window.sessionStorage.removeItem(CHECKOUT_SELECTION_STORAGE_KEY);
       qc.invalidateQueries({ queryKey: ["orders"] });
 
       if (!payment) {
         toast.success(t("checkout.orderSuccess"));
-        router.push(`/orders/${order.orderId}`);
-        return;
-      }
-
-      if (payment.status === "PAID") {
+        router.push(ordersListWithFocus(order.orderId));
+      } else if (payment.status === "PAID") {
         toast.success(t("checkout.paymentSuccess"));
-        router.push(`/orders/${order.orderId}`);
-        return;
-      }
-      if (payment.status === "FAILED") {
+        router.push(ordersListWithFocus(order.orderId));
+      } else if (payment.status === "FAILED") {
         toast.error(getPaymentFailureMessage(payment, t));
-        router.push(`/orders/${order.orderId}`);
-        return;
-      }
-      if (payment.redirectUrl) {
+        router.push(ordersListWithFocus(order.orderId));
+      } else if (payment.redirectUrl) {
         toast.success(t("checkout.redirectingToGateway"));
         window.location.href = payment.redirectUrl;
-        return;
+      } else {
+        router.push(
+          `/payments/return?paymentId=${encodeURIComponent(payment.paymentId)}&orderId=${encodeURIComponent(order.orderId)}`,
+        );
       }
 
-      router.push(
-        `/payments/return?paymentId=${encodeURIComponent(payment.paymentId)}&orderId=${encodeURIComponent(order.orderId)}`,
-      );
+      if (isAuthenticated) {
+        void hydrateFromServer().catch(() => {});
+      }
     },
     onError: (err) => {
       toast.error(getErrorMessage(err, t("checkout.orderFailed")));
@@ -422,6 +630,14 @@ function CheckoutInner() {
       placeIdempotencyKeyRef.current = null;
     },
   });
+
+  if (orderPlaced) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={28} />
+      </div>
+    );
+  }
 
   if (items.length === 0 || checkoutItems.length === 0) {
     return (
@@ -441,16 +657,12 @@ function CheckoutInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-end justify-between">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             {t("checkout.title")}
           </h1>
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
-            <Check size={14} className="text-green-600" />
-            {t("checkout.securedBy")}
-          </span>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -462,33 +674,46 @@ function CheckoutInner() {
               locale={locale}
               modalOpen={addressModalOpen}
               selectedId={effectiveAddressId}
-              quoteLoading={loadingQuote}
-              deliveryDate={deliveryDateLabel}
-              shippingFee={resolvedShippingFee}
-              currency={checkoutItems[0]?.currency}
               onModal={setAddressModalOpen}
               onAddress={setSelectedAddressId}
-              note={note}
-              onNote={setNote}
-              shippingOptions={shippingOptions}
-              selectedService={selectedShippingOption?.code ?? "STANDARD"}
-              onSelectService={setSelectedShippingService}
+              t={t}
+            />
+            <CheckoutOrderItems
+              items={checkoutItems}
+              merchantNames={merchantNames}
+              shippingByMerchant={shippingByMerchant}
+              shopVoucherCodes={shopVoucherCodes}
+              vouchers={userVouchers}
+              onChooseShopVoucher={openShopVoucher}
+              notesByMerchant={notesByMerchant}
+              onNote={(merchantId, value) =>
+                setNotesByMerchant((current) => ({
+                  ...current,
+                  [merchantId]: value,
+                }))
+              }
+              currency={checkoutItems[0]?.currency}
+              locale={locale}
               t={t}
             />
             <CheckoutVoucherPanel
               locale={locale}
-              code={voucherCode}
-              selected={selectedVoucher}
-              meetsMinimum={voucherMeetsMinimum}
+              platformCode={platformVoucherCode}
+              shopCode={shopVoucherCode}
+              shippingCode={shippingVoucherCode}
+              selected={{
+                platform: selectedPlatformVoucher,
+                shop: selectedShopVoucher,
+                shipping: selectedShippingVoucher,
+              }}
               applying={applyingVoucher}
-              modalOpen={voucherModalOpen}
               loading={loadingVouchers}
               vouchers={userVouchers}
               total={totalAmount}
+              shippingFee={resolvedShippingFee}
               currency={checkoutItems[0]?.currency}
-              onModal={setVoucherModalOpen}
-              onRemove={handleRemoveVoucher}
               onApply={handleApplyVoucher}
+              onClear={handleRemoveVoucher}
               t={t}
             />
             <CheckoutPaymentPanel
@@ -522,9 +747,9 @@ function CheckoutInner() {
             itemCount={checkoutItems.length}
             currency={checkoutItems[0]?.currency}
             total={totalAmount}
-            voucher={selectedVoucher}
-            voucherValid={voucherMeetsMinimum}
-            discount={voucherDiscount}
+            platformDiscount={platformDiscount}
+            shopDiscount={shopDiscountTotal}
+            shippingDiscount={shippingDiscount}
             address={activeAddress}
             quoteLoading={loadingQuote}
             shipping={resolvedShippingFee}
@@ -535,7 +760,28 @@ function CheckoutInner() {
           />
         </div>
 
-        <CheckoutRecommendations products={recommendedProducts} t={t} />
+        <VoucherPickerModal
+          open={shopVoucherOpen}
+          onClose={() => setShopVoucherOpen(false)}
+          locale={locale}
+          mode="shop"
+          merchantId={shopVoucherMerchant}
+          vouchers={userVouchers}
+          loading={loadingVouchers}
+          total={totalAmount}
+          currency={checkoutItems[0]?.currency}
+          selectedCode={
+            shopVoucherMerchant
+              ? (shopVoucherCodes[shopVoucherMerchant] ?? null)
+              : null
+          }
+          applying={applyingVoucher !== null}
+          onApply={(code) => {
+            if (shopVoucherMerchant) setShopVoucher(shopVoucherMerchant, code);
+            setShopVoucherOpen(false);
+          }}
+          t={t}
+        />
       </div>
     </div>
   );

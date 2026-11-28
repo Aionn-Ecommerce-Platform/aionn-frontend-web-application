@@ -13,7 +13,8 @@ import {
   Unlock,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Card, ConfirmDialog, Modal } from "@/shared/ui";
+import { Button, ConfirmDialog, Modal } from "@/shared/ui";
+import { AdminHeader, AdminPill } from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { adminUserService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -21,13 +22,7 @@ import { formatDateTime } from "@/shared/lib/utils";
 import type { UserStatus } from "@/types";
 import { useTranslation } from "@/hooks";
 
-const ALL_ROLES = [
-  "BUYER",
-  "MERCHANT",
-  "CS_ADMIN",
-  "SYSTEM_ADMIN",
-  "AGENT",
-] as const;
+const ALL_ROLES = ["BUYER", "MERCHANT", "CS_ADMIN", "SYSTEM_ADMIN"] as const;
 
 const STATUS_CFG: Record<
   UserStatus,
@@ -47,6 +42,13 @@ const STATUS_OPTIONS: UserStatus[] = [
   "SUSPENDED",
   "PENDING_DELETION",
 ];
+
+const STATUS_TONE = {
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+  default: "neutral",
+} as const;
 
 function AdminUserDetailInner() {
   const { t, locale } = useTranslation();
@@ -138,15 +140,15 @@ function AdminUserDetailInner() {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-50 min-h-screen py-20 flex justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+      <div className="flex min-h-screen justify-center py-20">
+        <Loader2 className="animate-spin text-purple-300" size={28} />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="bg-gray-50 min-h-screen py-20 text-center text-gray-500">
+      <div className="min-h-screen py-20 text-center text-slate-400">
         {t("adminUsers.emptyTitle")}
       </div>
     );
@@ -158,70 +160,70 @@ function AdminUserDetailInner() {
     Array.from(userRoleSet).sort().join(",");
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-4xl">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white"
         >
           <ArrowLeft size={16} /> {t("common.back")}
         </button>
 
-        <Card>
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {user.displayName ?? user.username ?? "—"}
-              </h1>
-              <p className="text-xs text-gray-400 font-mono mt-1">
-                {user.userId}
-              </p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mt-2">
-                {user.email && (
-                  <span className="inline-flex items-center gap-1">
-                    <Mail size={14} /> {user.email}
-                  </span>
-                )}
-                {user.phone && (
-                  <span className="inline-flex items-center gap-1">
-                    <Phone size={14} /> {user.phone}
-                  </span>
-                )}
-                {user.username && (
-                  <span className="inline-flex items-center gap-1">
-                    <User size={14} /> @{user.username}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-400 mt-3">
-                {t("adminUserDetail.registeredAt", {
-                  date: formatDateTime(user.createdAt, locale),
-                })}
-              </p>
-            </div>
-            <Badge variant={statusCfg.variant}>{t(statusCfg.labelKey)}</Badge>
-          </div>
-        </Card>
+        <AdminHeader
+          icon={User}
+          title={user.displayName ?? user.username ?? "—"}
+          badge={
+            <AdminPill tone={STATUS_TONE[statusCfg.variant]}>
+              {t(statusCfg.labelKey)}
+            </AdminPill>
+          }
+        />
 
-        <Card className="mt-4">
-          <h2 className="font-semibold text-gray-900 mb-3">
+        <div className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-6">
+          <p className="font-mono text-xs text-slate-400">{user.userId}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
+            {user.email && (
+              <span className="inline-flex items-center gap-1">
+                <Mail size={14} /> {user.email}
+              </span>
+            )}
+            {user.phone && (
+              <span className="inline-flex items-center gap-1">
+                <Phone size={14} /> {user.phone}
+              </span>
+            )}
+            {user.username && (
+              <span className="inline-flex items-center gap-1">
+                <User size={14} /> @{user.username}
+              </span>
+            )}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">
+            {t("adminUserDetail.registeredAt", {
+              date: formatDateTime(user.createdAt, locale),
+            })}
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-600/60 bg-white/[0.04] p-6">
+          <h2 className="mb-3 font-semibold text-white">
             {t("adminUsers.roles")}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {ALL_ROLES.map((role) => {
               const checked = selectedRoles.has(role);
               return (
                 <label
                   key={role}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors hover:bg-white/[0.05]"
                 >
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleRole(role)}
-                    className="rounded border-gray-400"
+                    className="h-4 w-4 rounded border-white/30 bg-white/5 accent-purple-600"
                   />
-                  <span className="text-sm">{role}</span>
+                  <span className="text-sm text-slate-200">{role}</span>
                 </label>
               );
             })}
@@ -236,10 +238,10 @@ function AdminUserDetailInner() {
               {t("adminUserDetail.saveRoles")}
             </Button>
           </div>
-        </Card>
+        </div>
 
-        <Card className="mt-4">
-          <h2 className="font-semibold text-gray-900 mb-3">
+        <div className="mt-4 rounded-2xl border border-slate-600/60 bg-white/[0.04] p-6">
+          <h2 className="mb-3 font-semibold text-white">
             {t("common.status")}
           </h2>
           <div className="flex flex-wrap items-center gap-2">
@@ -267,11 +269,11 @@ function AdminUserDetailInner() {
               </Button>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="mt-3 text-xs text-slate-400">
             <ShieldAlert size={12} className="inline mr-1" />
             {t("adminUserDetail.lockedHelp")}
           </p>
-        </Card>
+        </div>
       </div>
 
       <Modal
@@ -282,14 +284,14 @@ function AdminUserDetailInner() {
         })}
       >
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-300">
             {t("adminUserDetail.reasonHelp")}
           </p>
           <textarea
             value={statusReason}
             onChange={(e) => setStatusReason(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-gray-500 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <div className="flex justify-end gap-2">
             <Button

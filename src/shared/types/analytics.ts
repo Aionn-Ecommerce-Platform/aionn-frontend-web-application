@@ -54,6 +54,14 @@ export interface UserAnalytics {
   statusBreakdown: Array<{ status: string; count: number }>;
 }
 
+export interface MerchantAnalytics {
+  total: number;
+  active: number;
+  suspended: number;
+  closed: number;
+  signupTrend: Array<{ date: string; count: number }>;
+}
+
 export interface KycAnalytics {
   from: string;
   to: string;

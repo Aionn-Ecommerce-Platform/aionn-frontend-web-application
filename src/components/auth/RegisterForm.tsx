@@ -183,6 +183,7 @@ export default function RegisterForm({
         password,
         username: displayName.trim(),
         verificationToken,
+        acceptedTerms: agreed,
       });
       loginSuccess(tokens);
       try {
@@ -201,10 +202,6 @@ export default function RegisterForm({
 
   return (
     <>
-      <div className="mb-6">
-        <p className="text-sm text-gray-500">{t("auth.registerSubtitle")}</p>
-      </div>
-
       <div className="flex items-center justify-center gap-2 mb-6">
         {(["initiate", "verify", "complete"] as Step[]).map((s, i) => {
           const order = ["initiate", "verify", "complete"];

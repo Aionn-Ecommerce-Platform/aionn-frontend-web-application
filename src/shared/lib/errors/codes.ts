@@ -14,11 +14,14 @@ const ERROR_CODE_MESSAGE_KEYS: Record<string, string> = {
   IDENTITY_217: "auth.emailVerificationNotFound",
   IDENTITY_218: "auth.emailChangeNotFound",
   IDENTITY_219: "auth.phoneChangeNotFound",
+  IDENTITY_228: "auth.accountLinkRequired",
   PRM_206: "myVouchers.dailyClaimLimitReached",
   PRM_207: "myVouchers.walletLimitReached",
   CATALOG_310: "merchant.productEdit.errorLastVariant",
   CATALOG_311: "merchant.productList.errorHasOpenOrders",
   CATALOG_312: "merchant.productList.errorFlashSale",
+  CATALOG_502: "productDetail.alreadyReviewed",
+  CATALOG_603: "productQa.alreadyAsked",
   ORD_111: "merchant.orders.errorShippingQuote",
 };
 

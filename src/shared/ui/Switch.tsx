@@ -2,14 +2,20 @@ interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
-export default function Switch({ checked, onChange, disabled }: SwitchProps) {
+export default function Switch({
+  checked,
+  onChange,
+  disabled,
+  ariaLabel,
+}: SwitchProps) {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input
         type="checkbox"
-        aria-label="Toggle"
+        aria-label={ariaLabel ?? "Toggle"}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
         disabled={disabled}

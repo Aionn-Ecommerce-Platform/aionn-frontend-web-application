@@ -8,12 +8,22 @@ interface LocalizedAddress {
   fullAddress?: string | null;
 }
 
+const KNOWN_PROVINCE_EN: Record<string, string> = {
+  "ha noi": "Hanoi",
+  "ho chi minh": "Ho Chi Minh City",
+  "da nang": "Da Nang",
+  "hai phong": "Hai Phong",
+  "can tho": "Can Tho",
+  "hue": "Hue",
+};
+
 const ISO_PROVINCE_MAP: Record<string, { vi: string; en: string }> = {
   "VN-HN": { vi: "Thành phố Hà Nội", en: "Hanoi" },
   "VN-SG": { vi: "Thành phố Hồ Chí Minh", en: "Ho Chi Minh City" },
   "VN-HCM": { vi: "Thành phố Hồ Chí Minh", en: "Ho Chi Minh City" },
-  "VN-DN": { vi: "Tỉnh Đồng Nai", en: "Dong Nai Province" },
+  "VN-DN": { vi: "Thành phố Đà Nẵng", en: "Da Nang" },
   "VN-DAD": { vi: "Thành phố Đà Nẵng", en: "Da Nang" },
+  "VN-DG": { vi: "Tỉnh Đồng Nai", en: "Dong Nai Province" },
   "VN-HP": { vi: "Thành phố Hải Phòng", en: "Hai Phong" },
   "VN-HPH": { vi: "Thành phố Hải Phòng", en: "Hai Phong" },
   "VN-CT": { vi: "Thành phố Cần Thơ", en: "Can Tho" },
@@ -40,7 +50,20 @@ export function resolveProvinceName(
         p.code.toLowerCase() === normalized.replace(/^vn-/i, "").toLowerCase(),
     );
     if (match) {
-      return locale === "en" && match.nameEn ? match.nameEn : match.name;
+      if (locale === "en") {
+        const nameEn = match.nameEn?.trim();
+        // The seeded GSO rows store a plain transliteration (for example
+        // "thanh pho ha noi") in name_en, which is not display-ready English.
+        // Only trust a real translation; otherwise derive one from the name.
+        if (
+          nameEn &&
+          nameEn.toLowerCase() !== removeTones(match.name).trim().toLowerCase()
+        ) {
+          return nameEn;
+        }
+        return englishProvinceName(match.name);
+      }
+      return match.name;
     }
   }
 
@@ -65,6 +88,42 @@ export function cleanProvinceName(name: string): string {
     cleaned = cleaned.replace(pattern, "");
   }
   return toTitleCase(cleaned.trim());
+}
+
+export function englishProvinceName(name: string): string {
+  if (!name) return "";
+  const base = cleanProvinceName(name);
+  if (!base) return "";
+  const known = KNOWN_PROVINCE_EN[removeTones(base).toLowerCase()];
+  if (known) return known;
+  const isCity = /thành phố|thanh pho/i.test(name);
+  return `${removeTones(base)} ${isCity ? "City" : "Province"}`;
+}
+
+/**
+ * Checks whether an address line already ends with (or contains) the province,
+ * ignoring Vietnamese diacritics, case and administrative prefixes such as
+ * "Thành phố" / "Tỉnh". This prevents appending a duplicate province when the
+ * stored address snapshot already includes it.
+ */
+export function addressContainsProvince(
+  addressLine: string | null | undefined,
+  provinceName: string | null | undefined,
+): boolean {
+  if (!addressLine || !provinceName) return false;
+
+  const normalize = (value: string) =>
+    removeTones(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\b(thanh pho|tinh|tp|city|province)\b/g, " ")
+      .replace(/\s+/g, "");
+
+  const normalizedLine = normalize(addressLine);
+  const normalizedProvince = normalize(provinceName);
+  return (
+    normalizedProvince.length > 0 && normalizedLine.includes(normalizedProvince)
+  );
 }
 
 export function getLocalizedAddress(
@@ -103,11 +162,7 @@ function translateAdministrativeName(
   let cleaned = toTitleCase(name.trim());
 
   if (type === "province") {
-    cleaned = cleaned
-      .replace(/^(Thành Phố|Thanh Pho)\s+/i, "")
-      .replace(/^(Tỉnh|Tinh)\s+/i, "");
-    const suffix = /thành phố|thanh pho/i.test(name) ? "City" : "Province";
-    return `${removeTones(cleaned)} ${suffix}`;
+    return englishProvinceName(name);
   }
 
   if (type === "district") {

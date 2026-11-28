@@ -1,24 +1,21 @@
 "use client";
-import { Check, Ticket } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Ticket } from "lucide-react";
 import { Button } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import { getProductCardSummary } from "@/shared/lib/product-utils";
 import { formatCurrency } from "@/shared/lib/utils";
-import type {
-  Address,
-  Product,
-  RecommendationItem,
-  UserVoucher,
-} from "@/types";
+import { calculateCheckoutTotal } from "@/lib/domain/checkout";
+import type { Address, Product, RecommendationItem } from "@/types";
 type T = (key: string, values?: Record<string, string | number>) => string;
 
 interface SummaryProps {
   itemCount: number;
   currency?: string;
   total: number;
-  voucher?: UserVoucher | null;
-  voucherValid: boolean;
-  discount: number;
+  platformDiscount: number;
+  shopDiscount: number;
+  shippingDiscount: number;
   address?: Address | null;
   quoteLoading: boolean;
   shipping: number;
@@ -28,9 +25,15 @@ interface SummaryProps {
   t: T;
 }
 export function CheckoutSummary(props: SummaryProps) {
-  const finalTotal = props.total - props.discount + props.shipping;
+  const finalTotal = calculateCheckoutTotal({
+    subtotal: props.total,
+    platformDiscount: props.platformDiscount,
+    shopDiscount: props.shopDiscount,
+    shipping: props.shipping,
+    shippingDiscount: props.shippingDiscount,
+  });
   return (
-    <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6 h-fit lg:sticky lg:top-20">
+    <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6 h-fit lg:sticky lg:top-44">
       <h2 className="text-base font-semibold text-gray-900 mb-5 pb-4 border-b">
         {props.t("checkout.orderSummary")}
       </h2>
@@ -44,24 +47,29 @@ export function CheckoutSummary(props: SummaryProps) {
             {formatCurrency(props.total, props.currency)}
           </span>
         </div>
-        {props.voucher && props.voucherValid && (
+        {props.platformDiscount > 0 && (
           <div className="flex justify-between text-commerce">
-            <span className="flex gap-1">
+            <span className="flex items-center gap-1.5">
               <Ticket size={13} />
-              {props.voucher.voucherCode}
+              {props.t("checkout.voucher")}
             </span>
             <span>
-              -
-              {formatCurrency(
-                props.discount,
-                props.voucher.voucherCurrency ?? props.currency,
-              )}
+              -{formatCurrency(props.platformDiscount, props.currency)}
             </span>
           </div>
         )}
-        <div className="flex justify-between">
+        {props.shopDiscount > 0 && (
+          <div className="flex justify-between text-commerce">
+            <span className="flex items-center gap-1.5">
+              <Ticket size={13} />
+              {props.t("cart.voucherShop")}
+            </span>
+            <span>-{formatCurrency(props.shopDiscount, props.currency)}</span>
+          </div>
+        )}
+        <div className="flex justify-between gap-3">
           <span>{props.t("cart.shippingFee")}</span>
-          <span>
+          <span className="text-right">
             {!props.address
               ? props.t("checkout.shippingNeedsAddress")
               : props.quoteLoading
@@ -71,6 +79,17 @@ export function CheckoutSummary(props: SummaryProps) {
                   : formatCurrency(props.shipping, props.currency)}
           </span>
         </div>
+        {props.shippingDiscount > 0 && (
+          <div className="flex justify-between text-commerce">
+            <span className="flex items-center gap-1.5">
+              <Ticket size={13} />
+              {props.t("checkout.shippingVoucher")}
+            </span>
+            <span>
+              -{formatCurrency(props.shippingDiscount, props.currency)}
+            </span>
+          </div>
+        )}
         <div className="border-t pt-4 flex justify-between">
           <span className="font-semibold">{props.t("cart.total")}</span>
           <span className="text-2xl font-bold text-commerce">
@@ -92,10 +111,6 @@ export function CheckoutSummary(props: SummaryProps) {
       >
         {props.t("checkout.placeOrder")}
       </Button>
-      <p className="mt-3 flex justify-center gap-1 text-[11px] text-gray-400">
-        <Check size={11} className="text-green-600" />
-        {props.t("checkout.secureTransaction")}
-      </p>
     </div>
   );
 }
@@ -109,12 +124,21 @@ export function CheckoutRecommendations({
 }) {
   if (!products?.length) return null;
   return (
-    <section className="mt-8">
-      <h2 className="mb-6 text-lg font-semibold">
-        {t("cart.recommendations")}
-      </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {products.slice(0, 12).map((product) => {
+    <section className="mt-12">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-950">
+          {t("cart.recommendations")}
+        </h2>
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-strong"
+        >
+          {t("common.seeAll")}
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-4">
+        {products.slice(0, 10).map((product) => {
           const isRec = "priceFrom" in product;
           const price = isRec
             ? product.priceFrom

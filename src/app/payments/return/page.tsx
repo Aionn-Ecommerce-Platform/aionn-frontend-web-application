@@ -13,6 +13,11 @@ import { paymentService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import type { Payment } from "@/types";
 
+function ordersListPath(orderId?: string | null) {
+  const base = "/orders?tab=PENDING%2CAPPROVED";
+  return orderId ? `${base}&focus=${encodeURIComponent(orderId)}` : base;
+}
+
 function PaymentReturnInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -47,10 +52,11 @@ function PaymentReturnInner() {
         if (result.status === "PAID") {
           toast.success(tRef.current("paymentReturn.successTitle"));
 
-          timer = setTimeout(
-            () => router.replace(`/orders/${result.orderId}`),
-            1200,
-          );
+          timer = setTimeout(() => {
+            // Go straight to My Orders with the paid order highlighted instead
+            // of stopping on an intermediate order-detail screen.
+            router.replace(ordersListPath(orderIdHint ?? result.orderId));
+          }, 1200);
           return;
         }
         if (result.status === "FAILED" || result.status === "REFUNDED") {
@@ -70,7 +76,7 @@ function PaymentReturnInner() {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [paymentId, router]);
+  }, [paymentId, orderIdHint, router]);
 
   const orderId = payment?.orderId ?? orderIdHint;
 
@@ -120,7 +126,7 @@ function PaymentReturnInner() {
             </p>
             {orderId && (
               <Link
-                href={`/orders/${orderId}`}
+                href={ordersListPath(orderId)}
                 className="mt-5 inline-block text-sm text-brand hover:underline"
               >
                 {t("checkout.viewOrder")}
@@ -156,7 +162,7 @@ function PaymentReturnInner() {
             </p>
             <div className="mt-6 flex gap-3 justify-center">
               {orderId && (
-                <Link href={`/orders/${orderId}`}>
+                <Link href={ordersListPath(orderId)}>
                   <Button variant="outline">{t("checkout.viewOrder")}</Button>
                 </Link>
               )}

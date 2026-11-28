@@ -52,12 +52,12 @@ export default function Pagination({
           onClick={() => {
             if (safeCurrentPage > 1) handleSelect(safeCurrentPage - 1);
           }}
+          disabled={safeCurrentPage <= 1}
           aria-label={resolvedPrevLabel}
-          aria-disabled={safeCurrentPage <= 1 || undefined}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
             safeCurrentPage <= 1
-              ? "cursor-default"
-              : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+              ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+              : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
           }`}
         >
           <ChevronLeft size={16} />
@@ -101,12 +101,12 @@ export default function Pagination({
           onClick={() => {
             if (safeCurrentPage < totalPages) handleSelect(safeCurrentPage + 1);
           }}
+          disabled={safeCurrentPage >= totalPages}
           aria-label={resolvedNextLabel}
-          aria-disabled={safeCurrentPage >= totalPages || undefined}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
             safeCurrentPage >= totalPages
-              ? "cursor-default"
-              : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+              ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+              : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
           }`}
         >
           <ChevronRight size={16} />

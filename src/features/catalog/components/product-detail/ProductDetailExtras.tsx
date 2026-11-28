@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { merchantService } from "@/lib/services";
 import Link from "next/link";
-import { Heart, Loader2, Star, Store } from "lucide-react";
+import { Heart, Loader2, Star, Store, ArrowRight } from "lucide-react";
 import { AppImage, Modal } from "@/shared/ui";
 import ProductCard from "@/components/product/ProductCard";
 import ProductQA from "@/components/product/ProductQA";
@@ -40,6 +40,12 @@ export default function ProductDetailExtras(props: Props) {
     related: relatedProducts,
     t,
   } = props;
+
+  const seeAllRelatedHref = product.categoryIds?.[0]
+    ? `/products?categoryIds=${encodeURIComponent(product.categoryIds[0])}`
+    : product.brandId
+      ? `/products?brandIds=${encodeURIComponent(product.brandId)}`
+      : "/products";
 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const qc = useQueryClient();
@@ -281,11 +287,20 @@ export default function ProductDetailExtras(props: Props) {
       <ProductQA productId={id} authenticated={isAuthenticated} />
       {!relatedLoading && relatedProducts && relatedProducts.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            {t("products.relatedProducts")}
-          </h2>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t("products.relatedProducts")}
+            </h2>
+            <Link
+              href={seeAllRelatedHref}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-strong"
+            >
+              {t("common.seeAll")}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
-            {relatedProducts.map((p) => {
+            {relatedProducts.slice(0, 10).map((p) => {
               const isRec = "priceFrom" in p;
               const variants = !isRec ? (p.variants ?? []) : [];
               let lowestVariant: (typeof variants)[number] | undefined;

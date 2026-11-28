@@ -328,11 +328,33 @@ a {
 }
 
 .console-content.console-dark {
-  background: #100d24;
+  background-color: #100d24;
+  background-image:
+    radial-gradient(55% 40% at 0% 0%, rgb(147 51 234 / 0.22), transparent 70%),
+    radial-gradient(
+      45% 40% at 100% 30%,
+      rgb(217 70 239 / 0.12),
+      transparent 70%
+    ),
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    36px 36px,
+    36px 36px;
   border-radius: 1rem;
   padding: 1.25rem;
   color: #f8fafc;
   box-shadow: 0 24px 48px -24px rgb(76 29 149 / 0.35);
+}
+
+.console-dark h1 {
+  color: #d8b4fe;
+}
+
+.console-dark .bg-gray-50.min-h-screen {
+  background-color: transparent;
 }
 
 @media (min-width: 640px) {

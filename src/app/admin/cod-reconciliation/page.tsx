@@ -4,7 +4,18 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Coins, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Badge, Button, Input, Modal } from "@/shared/ui";
+import { Button, Input, Modal } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminTable,
+  AdminTabs,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
 import {
@@ -80,107 +91,100 @@ function AdminCodInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Coins size={22} className="text-blue-600" />
-            {t("adminCod.title")}
-          </h1>
-          <p className="text-sm text-gray-500">{t("adminCod.description")}</p>
-        </div>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Coins}
+        title={t("adminCod.title")}
+        description={t("adminCod.description")}
+      />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-1 inline-flex flex-wrap">
-          {TABS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                tab === key
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {key === "ALL"
-                ? t("adminCod.statusAll")
-                : t(statusLabelKey(key))}
-            </button>
-          ))}
-        </div>
+      <AdminTabs
+        tabs={TABS.map((key) => ({
+          value: key,
+          label:
+            key === "ALL" ? t("adminCod.statusAll") : t(statusLabelKey(key)),
+        }))}
+        value={tab}
+        onChange={setTab}
+      />
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {isLoading ? (
-            <div className="py-16 flex justify-center">
-              <Loader2 className="animate-spin text-blue-600" size={28} />
-            </div>
-          ) : !data || data.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-400">
-              {t("adminCod.empty")}
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {data.map((row) => (
-                <div
-                  key={row.codId}
-                  className="px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant={statusVariant(row.status)}>
-                        {t(statusLabelKey(row.status))}
-                      </Badge>
-                      <span className="font-mono text-xs text-gray-500">
-                        {row.orderId}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700">
-                      {t("adminCod.merchant")}:{" "}
-                      <span className="font-mono">{row.merchantId}</span>
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : !data || data.length === 0 ? (
+        <AdminEmpty
+          icon={Coins}
+          title={t("adminCod.empty")}
+          description={t("adminCod.description")}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+              <th className={adminTh}>{t("common.details")}</th>
+              <th className={adminTh}>{t("adminCod.expected")}</th>
+              <th className={adminTh}>{t("common.status")}</th>
+              <th className={`${adminTh} text-right`}>{t("common.actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row) => (
+              <tr key={row.codId} className={adminRow}>
+                <td className={adminTd}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs text-slate-400">
+                      {row.orderId}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-200">
+                    {t("adminCod.merchant")}:{" "}
+                    <span className="font-mono">{row.merchantId}</span>
+                  </p>
+                  {row.trackingCode && (
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      {t("adminCod.tracking")}: {row.trackingCode}
                     </p>
-                    {row.trackingCode && (
-                      <p className="text-xs text-gray-500">
-                        {t("adminCod.tracking")}: {row.trackingCode}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      {t("adminCod.expected")}:{" "}
+                  )}
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {formatDateTime(row.createdAt, locale)}
+                  </p>
+                </td>
+                <td className={`${adminTd} whitespace-nowrap`}>
+                  <p className="text-sm font-semibold text-white">
+                    {formatCurrency(row.expectedAmount, row.currency, locale)}
+                  </p>
+                  {row.collectedAmount != null && (
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      {t("adminCod.collected")}:{" "}
                       {formatCurrency(
-                        row.expectedAmount,
+                        row.collectedAmount,
                         row.currency,
                         locale,
                       )}
-                      {row.collectedAmount != null && (
-                        <>
-                          {" · "}
-                          {t("adminCod.collected")}:{" "}
-                          {formatCurrency(
-                            row.collectedAmount,
-                            row.currency,
-                            locale,
-                          )}
-                        </>
-                      )}
                     </p>
-                    <p className="text-xs text-gray-400">
-                      {formatDateTime(row.createdAt, locale)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openReconcile(row)}
-                    >
-                      {t("adminCod.reconcileAction")}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                  )}
+                </td>
+                <td className={adminTd}>
+                  <AdminPill tone={statusVariant(row.status)}>
+                    {t(statusLabelKey(row.status))}
+                  </AdminPill>
+                </td>
+                <td className={`${adminTd} text-right`}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-white/20 text-slate-200 hover:bg-white/10"
+                    onClick={() => openReconcile(row)}
+                  >
+                    {t("adminCod.reconcileAction")}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </AdminTable>
+      )}
 
       <Modal
         isOpen={target !== null}
@@ -195,9 +199,7 @@ function AdminCodInner() {
                 {target.orderId}
               </p>
               <p>
-                <span className="text-gray-500">
-                  {t("adminCod.expected")}:
-                </span>{" "}
+                <span className="text-gray-500">{t("adminCod.expected")}:</span>{" "}
                 <strong>
                   {formatCurrency(
                     target.expectedAmount,
@@ -237,6 +239,7 @@ function AdminCodInner() {
               {t("adminCod.cancel")}
             </Button>
             <Button
+              className={adminPrimaryClass}
               loading={mutation.isPending}
               disabled={!collected || Number(collected) < 0}
               onClick={() => mutation.mutate()}

@@ -61,10 +61,14 @@ export const flashSaleService = {
       { reason },
     );
   },
-  listByStatus(status: FlashSaleRegistrationStatus, limit = 100) {
+  listByStatus(
+    status: FlashSaleRegistrationStatus,
+    limit = 100,
+    search?: string,
+  ) {
     return api.get<FlashSaleRegistration[]>(
       "/promotions/flash-sales/registrations",
-      { query: { status, limit } },
+      { query: { status, limit, search } },
     );
   },
   get(registrationId: string) {

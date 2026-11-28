@@ -80,9 +80,7 @@ export const shippingService = {
   },
 
   listEvents(shipmentId: string) {
-    return api.get<ShipmentEvent[]>(
-      `/shipping/shipments/${shipmentId}/events`,
-    );
+    return api.get<ShipmentEvent[]>(`/shipping/shipments/${shipmentId}/events`);
   },
 
   applyCarrierWebhook(payload: CarrierWebhookInput) {
@@ -99,6 +97,17 @@ export const shippingService = {
   get(shipmentId: string) {
     return api.get<Shipment>(`/shipping/shipments/${shipmentId}`);
   },
+
+  /** Admin: paged shipping-rate configuration, optionally filtered by zone code. */
+  listRates(params: { page?: number; size?: number; zoneCode?: string } = {}) {
+    return api.page<ShippingRate>("/shipping/rates", {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        zoneCode: params.zoneCode?.trim() || undefined,
+      },
+    });
+  },
 };
 
 export interface ShippingRate {
@@ -111,7 +120,6 @@ export interface ShippingRate {
   stepWeightGram: number;
   stepFee: number;
   maxFee: number | null;
-  freeShippingThreshold: number | null;
   expressExtraFee: number;
   expressEtaDays: number | null;
   createdAt: string;
@@ -125,7 +133,6 @@ interface ShippingRateInput {
   stepWeightGram?: number;
   stepFee?: number;
   maxFee?: number | null;
-  freeShippingThreshold?: number | null;
   expressExtraFee?: number;
   expressEtaDays?: number | null;
 }

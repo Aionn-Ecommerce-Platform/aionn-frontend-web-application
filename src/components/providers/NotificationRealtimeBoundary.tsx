@@ -46,15 +46,33 @@ export default function NotificationRealtimeBoundary() {
       },
       onConnect: () => {
         // Reconcile events missed while offline before listening for new ones.
-        void queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+        void queryClient.invalidateQueries({
+          queryKey: ["notifications", "list"],
+        });
         client.subscribe("/user/queue/notifications", (frame: IMessage) => {
           try {
             const event = JSON.parse(frame.body) as NotificationCreatedEvent;
             if (event.type !== "NOTIFICATION_CREATED" || !event.notiId) return;
-            void queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+            void queryClient.invalidateQueries({
+              queryKey: ["notifications", "list"],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ["chat", "unread-counts"],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ["chat", "conversations"],
+            });
           } catch (error) {
             logger.error("Failed to parse notification realtime event", error);
           }
+        });
+        client.subscribe("/user/queue/messages", () => {
+          void queryClient.invalidateQueries({
+            queryKey: ["chat", "unread-counts"],
+          });
+          void queryClient.invalidateQueries({
+            queryKey: ["chat", "conversations"],
+          });
         });
       },
       onStompError: (frame) => {

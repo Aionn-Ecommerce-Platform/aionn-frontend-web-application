@@ -21,7 +21,7 @@ function AgentIdentitiesInner() {
   const [createdAgent, setCreatedAgent] =
     useState<AgentIdentityResponse | null>(null);
   const [editing, setEditing] = useState<AgentIdentityResponse | null>(null);
-  const [auditFor, setAuditFor] = useState<AgentIdentityResponse | null>(null);
+  const [detailFor, setDetailFor] = useState<AgentIdentityResponse | null>(null);
   const [revoking, setRevoking] = useState<AgentIdentityResponse | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -55,10 +55,7 @@ function AgentIdentitiesInner() {
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-                <Bot size={22} />
-              </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
               {t("agentIdentities.title")}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
@@ -74,7 +71,7 @@ function AgentIdentitiesInner() {
           </Button>
         </div>
 
-        <div className="bg-amber-500/10 border border-amber-300/60 rounded-2xl p-4 sm:p-5 mb-6 flex items-start gap-3.5 shadow-2xs">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 mb-6 flex items-start gap-3.5 shadow-2xs">
           <AlertTriangle
             className="text-amber-600 flex-shrink-0 mt-0.5"
             size={20}
@@ -95,21 +92,43 @@ function AgentIdentitiesInner() {
             description={t("agentIdentities.emptyDescription")}
           />
         ) : (
-          <div className="space-y-3">
-            {agents.map((a) => (
-              <AgentRow
-                key={a.agentId}
-                agent={a}
-                onEditPermissions={() => setEditing(a)}
-                onSuspend={() => suspendMutation.mutate(a.agentId)}
-                onRevoke={() => setRevoking(a)}
-                onAudit={() => setAuditFor(a)}
-                suspendPending={
-                  suspendMutation.isPending &&
-                  suspendMutation.variables === a.agentId
-                }
-              />
-            ))}
+          <div className="overflow-hidden rounded-2xl border border-gray-400 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[680px]">
+                <thead>
+                  <tr className="border-b border-gray-300 bg-gray-50">
+                    <th className="whitespace-nowrap px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                      {t("agentIdentities.tableAgent")}
+                    </th>
+                    <th className="whitespace-nowrap px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                      {t("agentIdentities.tableStatus")}
+                    </th>
+                    <th className="whitespace-nowrap px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                      {t("agentIdentities.tableCreated")}
+                    </th>
+                    <th className="whitespace-nowrap px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                      {t("agentIdentities.tableActions")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {agents.map((a) => (
+                    <AgentRow
+                      key={a.agentId}
+                      agent={a}
+                      onEditPermissions={() => setEditing(a)}
+                      onSuspend={() => suspendMutation.mutate(a.agentId)}
+                      onRevoke={() => setRevoking(a)}
+                      onDetail={() => setDetailFor(a)}
+                      suspendPending={
+                        suspendMutation.isPending &&
+                        suspendMutation.variables === a.agentId
+                      }
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
@@ -143,8 +162,11 @@ function AgentIdentitiesInner() {
         />
       )}
 
-      {auditFor && (
-        <AuditModal agent={auditFor} onClose={() => setAuditFor(null)} />
+      {detailFor && (
+        <AgentDetailModal
+          agent={detailFor}
+          onClose={() => setDetailFor(null)}
+        />
       )}
 
       <Modal
@@ -190,10 +212,10 @@ function AgentIdentitiesInner() {
 }
 import {
   AgentRow,
+  AgentDetailModal,
   CreateModal,
   ApiKeyModal,
   PermissionsModal,
-  AuditModal,
 } from "./AgentIdentityParts";
 
 export default function AccountAgentIdentitiesPage() {

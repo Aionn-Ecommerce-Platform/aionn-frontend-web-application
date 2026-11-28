@@ -13,6 +13,7 @@ export const adminUserService = {
   list(params: {
     status?: UserStatus;
     role?: string;
+    search?: string;
     page?: number;
     size?: number;
   }) {
@@ -20,6 +21,7 @@ export const adminUserService = {
       query: {
         status: params.status,
         role: params.role,
+        search: params.search,
         page: params.page ?? 0,
         size: params.size ?? 20,
       },

@@ -9,7 +9,6 @@ import {
   XCircle,
   AlertTriangle,
   Loader2,
-  Search,
   Eye,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -17,10 +16,21 @@ import {
   Button,
   Modal,
   Textarea,
-  Badge,
   Input,
   ConfirmDialog,
+  Pagination,
 } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
@@ -28,16 +38,29 @@ import { getProductStatus } from "@/lib/domain/status/product";
 import { productService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { getProductCoverImage } from "@/shared/lib/media";
-import { useTranslation } from "@/hooks";
+import { useDebounce, useTranslation } from "@/hooks";
 import type { Product } from "@/types";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
+
+const TONE = {
+  default: "neutral",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+} as const;
 
 function AdminProductApprovalInner() {
   const { t, locale } = useTranslation();
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const qc = useQueryClient();
-  const query = { page, size: 20 };
+  const query = {
+    page,
+    size: 20,
+    search: debouncedSearch.trim() || undefined,
+  };
   const { data, isLoading: loading } = useQuery({
     queryKey: qk.adminPendingReviews(query),
     queryFn: () => productService.listPendingReviews(query),
@@ -53,9 +76,6 @@ function AdminProductApprovalInner() {
   const [saving, setSaving] = useState(false);
 
   const products = data?.content || [];
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()),
-  );
   const totalPages = data?.totalElements
     ? Math.ceil(data.totalElements / data.size)
     : 1;
@@ -119,79 +139,69 @@ function AdminProductApprovalInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          {t("adminProductApproval.title")}
-        </h1>
+    <div className="min-h-screen">
+      <AdminHeader icon={Package} title={t("adminProductApproval.title")} />
 
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative max-w-md">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder={t("adminProductApproval.searchPlaceholder")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(0);
+          }}
+          placeholder={t("adminProductApproval.searchPlaceholder")}
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
         </div>
-
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="space-y-4">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.productId}
-                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
-              >
-                <div className="flex gap-6">
-                  <div className="flex-shrink-0">
+      ) : products.length > 0 ? (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>{t("common.image")}</th>
+                <th className={adminTh}>{t("common.details")}</th>
+                <th className={adminTh}>{t("common.status")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.productId} className={adminRow}>
+                  <td className={adminTd}>
                     {product.imageList && product.imageList.length > 0 ? (
                       <AppImage
                         src={getProductCoverImage(product.imageList)}
                         alt={product.name}
-                        className="w-24 h-24 object-cover rounded-lg"
+                        className="w-16 h-16 object-cover rounded-lg"
                       />
                     ) : (
-                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Package className="text-gray-400" size={32} />
+                      <div className="flex w-16 h-16 items-center justify-center rounded-lg bg-white/5">
+                        <Package className="text-slate-500" size={24} />
                       </div>
                     )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {product.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {product.productId.slice(0, 24)}... •{" "}
-                          {formatDateTime(product.createdAt, locale)}
-                        </p>
-                      </div>
-                      <Badge variant={getProductStatus(product.status).variant}>
-                        {t(getProductStatus(product.status).labelKey)}
-                      </Badge>
-                    </div>
+                  </td>
+                  <td className={adminTd}>
+                    <h3 className="text-base font-semibold text-white">
+                      {product.name}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {product.productId.slice(0, 24)}... •{" "}
+                      {formatDateTime(product.createdAt, locale)}
+                    </p>
 
                     {product.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                      <p className="mt-2 line-clamp-2 text-sm text-slate-300">
                         {product.description}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
                       <span>
                         Merchant: {product.merchantId.slice(0, 12)}...
                       </span>
@@ -211,11 +221,20 @@ function AdminProductApprovalInner() {
                         })}
                       </span>
                     </div>
-
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill
+                      tone={TONE[getProductStatus(product.status).variant]}
+                    >
+                      {t(getProductStatus(product.status).labelKey)}
+                    </AdminPill>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
                     {product.status === "PENDING_REVIEW" && (
-                      <div className="flex items-center gap-2 mt-4">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <Button
                           size="sm"
+                          className={adminPrimaryClass}
                           onClick={() =>
                             setActionModal({
                               action: "approve",
@@ -223,7 +242,7 @@ function AdminProductApprovalInner() {
                             })
                           }
                         >
-                          <CheckCircle2 size={14} className="mr-1" />
+                          <CheckCircle2 size={14} />
                           {t("adminProductApproval.approve")}
                         </Button>
                         <Button
@@ -251,7 +270,7 @@ function AdminProductApprovalInner() {
                     )}
 
                     {product.status === "PUBLISHED" && (
-                      <div className="flex items-center gap-2 mt-4">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <Button
                           variant="danger"
                           size="sm"
@@ -267,45 +286,27 @@ function AdminProductApprovalInner() {
                         </Button>
                       </div>
                     )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
 
-            {data && totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => page > 0 && setPage(page - 1)}
-                >
-                  {t("common.previous")}
-                </Button>
-                <span className="text-sm text-gray-600">
-                  {t("common.pageOf", { page: page + 1, total: totalPages })}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => page < totalPages - 1 && setPage(page + 1)}
-                >
-                  {t("common.next")}
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <Package className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t("adminProductApproval.emptyTitle")}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {t("adminProductApproval.emptyPending")}
-            </p>
-          </div>
-        )}
-      </div>
+          {data && (
+            <Pagination
+              currentPage={page + 1}
+              totalPages={totalPages}
+              onPageChange={(nextPage) => setPage(nextPage - 1)}
+            />
+          )}
+        </>
+      ) : (
+        <AdminEmpty
+          icon={Package}
+          title={t("adminProductApproval.emptyTitle")}
+          description={t("adminProductApproval.emptyPending")}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={actionModal?.action === "approve"}
@@ -362,11 +363,11 @@ function AdminProductApprovalInner() {
         size="md"
       >
         <div className="space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-900 font-medium">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-900">
               {t("adminProductApproval.takedownWarning")}
             </p>
-            <p className="text-xs text-red-700 mt-1">
+            <p className="mt-1 text-xs text-red-700">
               {t("adminProductApproval.takedownHelp")}
             </p>
           </div>
@@ -397,7 +398,7 @@ function AdminProductApprovalInner() {
         >
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">
+              <h4 className="mb-2 text-sm font-medium text-gray-900">
                 {t("common.images")}
               </h4>
               <div className="flex gap-2">
@@ -412,7 +413,7 @@ function AdminProductApprovalInner() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">
+              <h4 className="mb-2 text-sm font-medium text-gray-900">
                 {t("adminProductApproval.description")}
               </h4>
               <p className="text-sm text-gray-600">
@@ -420,7 +421,7 @@ function AdminProductApprovalInner() {
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">
+              <h4 className="mb-2 text-sm font-medium text-gray-900">
                 {t("adminProductApproval.variantCount", {
                   count: viewProduct.variants.length,
                 })}
@@ -429,7 +430,7 @@ function AdminProductApprovalInner() {
                 {viewProduct.variants.map((v, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                    className="flex items-center justify-between rounded bg-gray-50 p-2"
                   >
                     <span className="text-sm text-gray-700">
                       {Object.entries(v.attributeValues)

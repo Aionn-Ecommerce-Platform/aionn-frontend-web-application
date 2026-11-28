@@ -11,7 +11,7 @@ import type {
   TopProduct,
 } from "@/types";
 
-interface PlaceOrderInput {
+export interface PlaceOrderInput {
   addressId: string;
   paymentMethodId: string;
   currency: string;
@@ -21,11 +21,28 @@ interface PlaceOrderInput {
   gateway: "STRIPE" | "VNPAY" | "COD";
   note?: string;
   shippingService?: string;
+  platformVoucherCode?: string;
+  shopVoucherCode?: string;
+  shippingVoucherCode?: string;
+  shopVoucherCodes?: Record<string, string>;
+  notesByMerchant?: Record<string, string>;
+  shippingServicesByMerchant?: Record<string, string>;
+}
+
+export interface PlaceOrderGroupResult {
+  groupId: string;
+  orders: Order[];
 }
 
 export const orderService = {
   place(body: PlaceOrderInput) {
     return api.post<Order>("/ordering/orders", body, { idempotent: true });
+  },
+
+  placeGroup(body: PlaceOrderInput) {
+    return api.post<PlaceOrderGroupResult>("/ordering/orders/group", body, {
+      idempotent: true,
+    });
   },
 
   cancel(orderId: string, reason: string) {
@@ -85,6 +102,24 @@ export const orderService = {
   },
   merchantOrderStats() {
     return api.get<Record<string, number>>("/ordering/orders/merchant/stats");
+  },
+
+  adminList(
+    params: {
+      status?: string;
+      search?: string;
+      page?: number;
+      size?: number;
+    } = {},
+  ) {
+    return api.page<Order>("/ordering/orders/admin", {
+      query: {
+        status: params.status,
+        search: params.search,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      },
+    });
   },
 
   merchantAnalytics(params: { from?: string; to?: string } = {}) {

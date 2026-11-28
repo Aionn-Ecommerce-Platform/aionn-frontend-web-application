@@ -71,6 +71,7 @@ export interface UserVoucher {
   voucherCurrency: string | null;
   voucherScope: "PLATFORM" | "SHOP" | null;
   voucherType: VoucherType | null;
+  merchantId: string | null;
   voucherValidUntil: string | null;
   minOrderValue: number | null;
   voucherUsageLimit: number;

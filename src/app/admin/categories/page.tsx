@@ -12,7 +12,8 @@ import {
   Move,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, Input, ConfirmDialog, Badge } from "@/shared/ui";
+import { Button, Modal, Input, ConfirmDialog } from "@/shared/ui";
+import { AdminEmpty, AdminHeader, AdminPill } from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
@@ -52,41 +53,41 @@ function CategoryTreeItem({
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg group ${level > 0 ? "ml-6" : ""}`}
+        className={`group flex items-center justify-between rounded-xl p-3 transition-colors hover:bg-white/[0.05] ${level > 0 ? "ml-6" : ""}`}
       >
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex flex-1 items-center gap-2">
           {hasChildren ? (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               {expanded ? (
-                <ChevronDown size={16} className="text-gray-600" />
+                <ChevronDown size={16} />
               ) : (
-                <ChevronRight size={16} className="text-gray-600" />
+                <ChevronRight size={16} />
               )}
             </button>
           ) : (
             <div className="w-6" />
           )}
-          <FolderTree size={16} className="text-blue-600" />
-          <span className="text-sm font-medium text-gray-900">
+          <FolderTree size={16} className="text-purple-300" />
+          <span className="text-sm font-medium text-white">
             {node.category.name}
           </span>
-          <span className="text-xs text-gray-500">({node.category.slug})</span>
+          <span className="text-xs text-slate-400">({node.category.slug})</span>
           {!node.category.active && (
-            <Badge variant="warning" className="text-xs">
+            <AdminPill tone="warning" className="text-xs">
               {t("common.inactive")}
-            </Badge>
+            </AdminPill>
           )}
         </div>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onEdit(node.category)}
           >
-            <Edit2 size={14} />
+            <Edit2 size={14} className="text-slate-300" />
           </Button>
           {canDelete && (
             <Button
@@ -94,7 +95,7 @@ function CategoryTreeItem({
               size="sm"
               onClick={() => onMove(node.category)}
             >
-              <Move size={14} className="text-blue-600" />
+              <Move size={14} className="text-purple-300" />
             </Button>
           )}
           {canDelete && (
@@ -103,7 +104,7 @@ function CategoryTreeItem({
               size="sm"
               onClick={() => onDelete(node.category.categoryId)}
             >
-              <Trash2 size={14} className="text-red-600" />
+              <Trash2 size={14} className="text-rose-300" />
             </Button>
           )}
         </div>
@@ -229,54 +230,51 @@ function AdminCategoriesInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("adminCategories.title")}
-          </h1>
-          {canManageCategoryStructure && (
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={FolderTree}
+        title={t("adminCategories.title")}
+        actions={
+          canManageCategoryStructure ? (
             <Button onClick={handleCreate}>
               <Plus size={16} className="mr-2" />
               {t("adminCategories.create")}
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : tree && tree.length > 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
-            {tree.map((node) => (
-              <CategoryTreeItem
-                key={node.category.categoryId}
-                node={node}
-                onEdit={handleEdit}
-                onDelete={setDeleteId}
-                onMove={setMoveTarget}
-                canDelete={canManageCategoryStructure}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <FolderTree className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t("adminCategories.emptyTitle")}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {t("adminCategories.emptyDescription")}
-            </p>
-            {canManageCategoryStructure && (
+      {loading ? (
+        <div className="flex justify-center rounded-2xl border border-slate-600/60 bg-white/[0.04] p-12">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : tree && tree.length > 0 ? (
+        <div className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-4">
+          {tree.map((node) => (
+            <CategoryTreeItem
+              key={node.category.categoryId}
+              node={node}
+              onEdit={handleEdit}
+              onDelete={setDeleteId}
+              onMove={setMoveTarget}
+              canDelete={canManageCategoryStructure}
+            />
+          ))}
+        </div>
+      ) : (
+        <AdminEmpty
+          icon={FolderTree}
+          title={t("adminCategories.emptyTitle")}
+          description={t("adminCategories.emptyDescription")}
+          action={
+            canManageCategoryStructure ? (
               <Button onClick={handleCreate}>
                 {t("adminCategories.create")}
               </Button>
-            )}
-          </div>
-        )}
-      </div>
+            ) : undefined
+          }
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -339,13 +337,13 @@ function AdminCategoriesInner() {
       >
         <div className="space-y-4">
           {moveTarget && (
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
-              <p className="text-gray-500 text-xs">
+            <div className="rounded-xl border border-slate-600/60 bg-white/[0.04] p-3 text-sm">
+              <p className="text-xs text-slate-400">
                 {t("adminCategories.moving")}
               </p>
-              <p className="font-semibold text-gray-900 mt-1">
+              <p className="mt-1 font-semibold text-white">
                 {moveTarget.name}{" "}
-                <span className="text-xs text-gray-500 font-mono">
+                <span className="font-mono text-xs text-slate-400">
                   ({moveTarget.categoryId})
                 </span>
               </p>
@@ -357,7 +355,7 @@ function AdminCategoriesInner() {
             onChange={(e) => setNewParentId(e.target.value)}
             placeholder={t("adminCategories.parentPlaceholder")}
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-400">
             {t("adminCategories.parentHelp")}
           </p>
           <div className="flex justify-end gap-2">

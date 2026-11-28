@@ -15,7 +15,13 @@ import {
   ArrowDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, EmptyState, Modal, ConfirmDialog } from "@/shared/ui";
+import { Button, Modal, ConfirmDialog } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  adminPrimaryClass,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   adminPromotionBannerService,
@@ -196,98 +202,94 @@ function AdminBannersInner() {
   const isMutating = createMu.isPending || updateMu.isPending;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t("adminBanners.title")}
-            </h1>
-            <p className="text-gray-500 text-sm mt-1">
-              {t("adminBanners.description")}
-            </p>
-          </div>
-          <Button onClick={openCreate}>
-            <Plus size={16} className="mr-2" /> {t("adminBanners.create")}
-          </Button>
-        </div>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={ImageIcon}
+        title={t("adminBanners.title")}
+        description={t("adminBanners.description")}
+        actions={
+          <button
+            type="button"
+            onClick={openCreate}
+            className={adminPrimaryClass}
+          >
+            <Plus size={16} />
+            {t("adminBanners.create")}
+          </button>
+        }
+      />
 
-        {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : banners.length === 0 ? (
-          <EmptyState
-            icon={ImageIcon}
-            title={t("adminBanners.emptyTitle")}
-            description={t("adminBanners.emptyDescription")}
-            action={
-              <Button onClick={openCreate}>{t("adminBanners.create")}</Button>
-            }
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {banners.map((b, index) => (
-              <div
-                key={b.bannerId}
-                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden"
-              >
-                <div className="aspect-[16/6] bg-gray-100 relative overflow-hidden">
-                  <AppImage
-                    src={b.imageUrl}
-                    alt={b.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Badge variant="info">#{b.displayOrder}</Badge>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    {b.title}
-                  </h3>
-                  <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={index === 0 || reorderMu.isPending}
-                      onClick={() => reorderMu.mutate({ index, direction: -1 })}
-                      aria-label={t("adminBanners.moveUp")}
-                    >
-                      <ArrowUp size={14} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={
-                        index === banners.length - 1 || reorderMu.isPending
-                      }
-                      onClick={() => reorderMu.mutate({ index, direction: 1 })}
-                      aria-label={t("adminBanners.moveDown")}
-                    >
-                      <ArrowDown size={14} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEdit(b)}
-                    >
-                      <Edit2 size={14} className="mr-1" /> {t("common.edit")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDeleteId(b.bannerId)}
-                    >
-                      <Trash2 size={14} className="text-red-600" />
-                    </Button>
-                  </div>
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : banners.length === 0 ? (
+        <AdminEmpty
+          icon={ImageIcon}
+          title={t("adminBanners.emptyTitle")}
+          description={t("adminBanners.emptyDescription")}
+          action={
+            <button
+              type="button"
+              onClick={openCreate}
+              className={adminPrimaryClass}
+            >
+              {t("adminBanners.create")}
+            </button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {banners.map((b, index) => (
+            <div
+              key={b.bannerId}
+              className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-5"
+            >
+              <div className="relative aspect-[16/6] overflow-hidden rounded-xl bg-white/5">
+                <AppImage
+                  src={b.imageUrl}
+                  alt={b.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <AdminPill tone="info">#{b.displayOrder}</AdminPill>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <h3 className="mt-3 font-semibold text-white">{b.title}</h3>
+              <div className="mt-3 flex items-center justify-end gap-2 border-t border-slate-600/60 pt-3">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={index === 0 || reorderMu.isPending}
+                  onClick={() => reorderMu.mutate({ index, direction: -1 })}
+                  aria-label={t("adminBanners.moveUp")}
+                >
+                  <ArrowUp size={14} />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={index === banners.length - 1 || reorderMu.isPending}
+                  onClick={() => reorderMu.mutate({ index, direction: 1 })}
+                  aria-label={t("adminBanners.moveDown")}
+                >
+                  <ArrowDown size={14} />
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => openEdit(b)}>
+                  <Edit2 size={14} className="mr-1" /> {t("common.edit")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setDeleteId(b.bannerId)}
+                >
+                  <Trash2 size={14} className="text-rose-400" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Modal
         isOpen={modalOpen}

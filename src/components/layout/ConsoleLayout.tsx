@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
+  BarChart3,
   Bell,
   Boxes,
   Coins,
@@ -35,7 +36,7 @@ import StateView from "@/shared/ui/StateView";
 import PageLoading from "@/shared/ui/PageLoading";
 import { cn } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
-import { merchantService } from "@/lib/services";
+import { merchantService, conversationService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 
 const EMPTY_ROLES: string[] = [];
@@ -125,17 +126,38 @@ const adminItems: ConsoleMenuItem[] = [
     icon: Home,
     exact: true,
   },
+  {
+    labelKey: "console.admin.analytics",
+    href: "/admin/analytics",
+    icon: BarChart3,
+    roles: ["SYSTEM_ADMIN"],
+  },
   { labelKey: "console.admin.users", href: "/admin/users", icon: Users },
   { labelKey: "console.admin.kyc", href: "/admin/kyc", icon: ShieldCheck },
+  {
+    labelKey: "console.admin.orders",
+    href: "/admin/orders",
+    icon: ShoppingBag,
+  },
+  {
+    labelKey: "console.admin.returns",
+    href: "/admin/orders/returns",
+    icon: PackageX,
+  },
   {
     labelKey: "console.admin.feedbacks",
     href: "/admin/feedbacks",
     icon: MessageSquare,
   },
   {
-    labelKey: "console.admin.returns",
-    href: "/admin/orders/returns",
-    icon: PackageX,
+    labelKey: "console.admin.reviews",
+    href: "/admin/reviews",
+    icon: MessageCircle,
+  },
+  {
+    labelKey: "console.admin.chat",
+    href: "/admin/chat",
+    icon: MessageCircle,
   },
   {
     labelKey: "console.admin.productReview",
@@ -169,6 +191,17 @@ const adminItems: ConsoleMenuItem[] = [
     labelKey: "console.admin.inventory",
     href: "/admin/inventory",
     icon: Boxes,
+  },
+  {
+    labelKey: "console.admin.reservations",
+    href: "/admin/inventory/reservations",
+    icon: PackageSearch,
+    roles: ["SYSTEM_ADMIN"],
+  },
+  {
+    labelKey: "console.admin.warehouses",
+    href: "/admin/warehouses",
+    icon: Warehouse,
   },
   {
     labelKey: "console.admin.payments",
@@ -222,6 +255,12 @@ const adminItems: ConsoleMenuItem[] = [
     icon: Settings,
     roles: ["SYSTEM_ADMIN"],
   },
+  {
+    labelKey: "console.admin.notificationDispatch",
+    href: "/admin/notifications/dispatch",
+    icon: Bell,
+    roles: ["SYSTEM_ADMIN"],
+  },
 ];
 
 export default function ConsoleLayout({
@@ -236,6 +275,17 @@ export default function ConsoleLayout({
   const userRoles = useAuthStore((s) => s.user?.roles ?? EMPTY_ROLES);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { t } = useTranslation();
+
+  const { data: unreadCounts } = useQuery({
+    queryKey: ["chat", "unread-counts"],
+    queryFn: () => conversationService.unreadCounts(),
+    enabled: isAuthenticated,
+    refetchInterval: 10000,
+  });
+  const unreadChatTotal = Object.values(unreadCounts ?? {}).reduce(
+    (sum, count) => sum + (count ?? 0),
+    0,
+  );
 
   const isMerchantConsole =
     kind === "merchant" && !pathname.startsWith("/merchant/register");
@@ -369,6 +419,11 @@ export default function ConsoleLayout({
                         )}
                       />
                       <span className="truncate">{t(item.labelKey)}</span>
+                      {item.href.endsWith("/chat") && unreadChatTotal > 0 && (
+                        <span className="ml-auto rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                          {unreadChatTotal}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

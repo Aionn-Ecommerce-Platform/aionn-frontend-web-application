@@ -13,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { StatCard } from "@/shared/ui";
+import { AdminHeader, AdminTabs } from "@/features/admin";
 import {
   SimpleBarChart,
   SimplePieChart,
@@ -28,9 +28,35 @@ import { formatCurrency, formatNumber } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTranslation } from "@/hooks";
 import { returnReasonLabelKey } from "@/lib/domain/return-reasons";
+import type { LucideIcon } from "lucide-react";
 import type { ReturnReasonType } from "@/types";
 
 const EMPTY_ROLES: string[] = [];
+
+function MetricCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+}: {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-4">
+      <Icon size={22} className="mb-2.5 text-purple-300" />
+      <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        {title}
+      </p>
+      <p className="mt-1 truncate text-xl font-extrabold text-white">{value}</p>
+      {subtitle && (
+        <p className="mt-0.5 truncate text-xs text-slate-400">{subtitle}</p>
+      )}
+    </div>
+  );
+}
 
 function PeriodTabs({
   period,
@@ -40,27 +66,20 @@ function PeriodTabs({
   onChange: (p: AnalyticsPeriod) => void;
 }) {
   const { t } = useTranslation();
-  const items: Array<{ key: AnalyticsPeriod; labelKey: string }> = [
-    { key: "7d", labelKey: "adminAnalytics.days7" },
-    { key: "30d", labelKey: "adminAnalytics.days30" },
-    { key: "90d", labelKey: "adminAnalytics.days90" },
+  const items: Array<{ value: AnalyticsPeriod; labelKey: string }> = [
+    { value: "7d", labelKey: "adminAnalytics.days7" },
+    { value: "30d", labelKey: "adminAnalytics.days30" },
+    { value: "90d", labelKey: "adminAnalytics.days90" },
   ];
   return (
-    <div className="inline-flex rounded-md border border-gray-400 bg-white p-0.5">
-      {items.map((it) => (
-        <button
-          key={it.key}
-          onClick={() => onChange(it.key)}
-          className={`px-3 py-1.5 text-sm rounded ${
-            period === it.key
-              ? "bg-blue-600 text-white"
-              : "text-gray-700 hover:bg-gray-50"
-          }`}
-        >
-          {t(it.labelKey)}
-        </button>
-      ))}
-    </div>
+    <AdminTabs
+      value={period}
+      onChange={onChange}
+      tabs={items.map((item) => ({
+        value: item.value,
+        label: t(item.labelKey),
+      }))}
+    />
   );
 }
 
@@ -79,10 +98,28 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
     queryFn: () => adminAnalyticsService.products(),
   });
 
+  const topMerchantIds =
+    platform?.topMerchants.slice(0, 8).map((m) => m.merchantId) ?? [];
+  const { data: merchantNames } = useQuery({
+    queryKey: ["analytics-merchant-names", topMerchantIds.join(",")],
+    queryFn: async () => {
+      const { merchantService } = await import("@/lib/services");
+      const rows = await Promise.all(
+        topMerchantIds.map((id) => merchantService.get(id).catch(() => null)),
+      );
+      return new Map(
+        rows
+          .filter((row): row is NonNullable<typeof row> => row !== null)
+          .map((row) => [row.merchantId, row.name]),
+      );
+    },
+    enabled: topMerchantIds.length > 0,
+  });
+
   if (loadingPlatform || loadingUsers || loadingProducts) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+        <Loader2 className="animate-spin text-purple-300" size={28} />
       </div>
     );
   }
@@ -100,7 +137,7 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
     })) ?? [];
   const topMerchantData =
     platform?.topMerchants.slice(0, 8).map((m) => ({
-      name: m.merchantId,
+      name: merchantNames?.get(m.merchantId) ?? m.merchantId,
       revenue: m.revenue,
     })) ?? [];
   const signupData =
@@ -112,45 +149,41 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.totalGmv")}
           value={formatCurrency(platform?.totalGmv ?? 0, currency, locale)}
           subtitle={t("adminAnalytics.completedOrders", {
             count: platform?.completedOrders ?? 0,
           })}
           icon={DollarSign}
-          color="green"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.totalOrders")}
           value={formatNumber(platform?.totalOrders ?? 0, locale)}
           subtitle={t("adminAnalytics.allStatuses")}
           icon={BarChart3}
-          color="blue"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.users")}
           value={formatNumber(users?.totalUsers ?? 0, locale)}
           subtitle={t("adminAnalytics.newUsers", {
             count: users?.newUsersInRange ?? 0,
           })}
           icon={Users}
-          color="purple"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.publishedProducts")}
           value={formatNumber(products?.totalPublished ?? 0, locale)}
           subtitle={t("adminAnalytics.pendingReview", {
             count: products?.totalPendingReview ?? 0,
           })}
           icon={TrendingUp}
-          color="orange"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
             {t("adminAnalytics.platformRevenue")}
           </h3>
           <TrendLineChart
@@ -161,8 +194,8 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
             yFormatter={(v) => formatCurrency(v, currency, locale)}
           />
         </div>
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
             {t("adminAnalytics.newUsersTitle")}
           </h3>
           <TrendLineChart
@@ -175,12 +208,12 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
-            Top merchant theo doanh thu
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
+            {t("adminAnalytics.topMerchants")}
           </h3>
           {topMerchantData.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               {t("adminAnalytics.noRevenue")}
             </p>
           ) : (
@@ -193,12 +226,12 @@ function SysadminSection({ range }: { range: { from: string; to: string } }) {
             />
           )}
         </div>
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
             {t("adminAnalytics.orderStatusBreakdown")}
           </h3>
           {statusData.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               {t("adminAnalytics.noData")}
             </p>
           ) : (
@@ -239,7 +272,7 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
   if (loadingReturns || loadingPayments || loadingKyc || loadingFb) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-blue-600" size={28} />
+        <Loader2 className="animate-spin text-purple-300" size={28} />
       </div>
     );
   }
@@ -264,16 +297,15 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.returnRequests")}
           value={formatNumber(returns?.totalReturns ?? 0, locale)}
           subtitle={t("adminAnalytics.rate", {
             value: ((returns?.returnRate ?? 0) * 100).toFixed(1),
           })}
           icon={RefreshCw}
-          color="orange"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.totalRefunds")}
           value={formatCurrency(
             payments?.totalRefundAmount ?? 0,
@@ -284,9 +316,8 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             count: payments?.totalRefundCount ?? 0,
           })}
           icon={DollarSign}
-          color="red"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.kycPending")}
           value={formatNumber(
             (kyc?.pending ?? 0) + (kyc?.submitted ?? 0),
@@ -296,26 +327,24 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             hours: (kyc?.avgProcessingHours ?? 0).toFixed(1),
           })}
           icon={ShieldCheck}
-          color="blue"
         />
-        <StatCard
+        <MetricCard
           title={t("adminAnalytics.openFeedback")}
           value={formatNumber(feedbacks?.open ?? 0, locale)}
           subtitle={t("adminAnalytics.avgResolution", {
             hours: (feedbacks?.avgResolutionHours ?? 0).toFixed(1),
           })}
           icon={UserPlus}
-          color="purple"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
             {t("adminAnalytics.returnReasons")}
           </h3>
           {reasonData.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               {t("adminAnalytics.noReturnData")}
             </p>
           ) : (
@@ -328,8 +357,8 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
             />
           )}
         </div>
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <h3 className="font-semibold text-white mb-4">
             {t("adminAnalytics.dailyPayoutVolume")}
           </h3>
           <TrendLineChart
@@ -343,32 +372,32 @@ function CsAdminSection({ range }: { range: { from: string; to: string } }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <p className="text-sm text-gray-600 mb-1">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <p className="text-sm text-slate-400 mb-1">
             {t("adminAnalytics.kycApproved")}
           </p>
-          <p className="text-2xl font-bold text-green-700">
+          <p className="text-2xl font-bold text-emerald-300">
             {kyc?.approved ?? 0}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             {t("adminAnalytics.approvalRate", {
               value: ((kyc?.approvalRate ?? 0) * 100).toFixed(1),
             })}
           </p>
         </div>
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <p className="text-sm text-gray-600 mb-1">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <p className="text-sm text-slate-400 mb-1">
             {t("adminAnalytics.kycRejected")}
           </p>
-          <p className="text-2xl font-bold text-red-700">
+          <p className="text-2xl font-bold text-rose-300">
             {kyc?.rejected ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-md border border-gray-400 p-5">
-          <p className="text-sm text-gray-600 mb-1">
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+          <p className="text-sm text-slate-400 mb-1">
             {t("adminAnalytics.feedbackResolved")}
           </p>
-          <p className="text-2xl font-bold text-blue-700">
+          <p className="text-2xl font-bold text-purple-200">
             {feedbacks?.resolved ?? 0}
           </p>
         </div>
@@ -386,45 +415,40 @@ function AdminAnalyticsInner() {
   const isCsAdmin = hasRole(userRoles, "CS_ADMIN");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t("adminAnalytics.title")}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {range.from} → {range.to}
-            </p>
-          </div>
-          <PeriodTabs period={period} onChange={setPeriod} />
-        </div>
-
-        {isSystemAdmin && (
-          <section className="mb-10">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              {t("adminAnalytics.platformOverview")}
-            </h2>
-            <SysadminSection range={range} />
-          </section>
-        )}
-
-        {(isCsAdmin || isSystemAdmin) && (
-          <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              {t("adminAnalytics.customerService")}
-            </h2>
-            <CsAdminSection range={range} />
-          </section>
-        )}
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={BarChart3}
+        title={t("adminAnalytics.title")}
+        description={`${range.from} → ${range.to}`}
+      />
+      <div className="mb-6">
+        <PeriodTabs period={period} onChange={setPeriod} />
       </div>
+
+      {isSystemAdmin && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-lg font-semibold text-white">
+            {t("adminAnalytics.platformOverview")}
+          </h2>
+          <SysadminSection range={range} />
+        </section>
+      )}
+
+      {(isCsAdmin || isSystemAdmin) && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-white">
+            {t("adminAnalytics.customerService")}
+          </h2>
+          <CsAdminSection range={range} />
+        </section>
+      )}
     </div>
   );
 }
 
 export default function AdminAnalyticsPage() {
   return (
-    <AuthGuard requiredRoles={["SYSTEM_ADMIN", "CS_ADMIN"]}>
+    <AuthGuard requiredRoles={["SYSTEM_ADMIN"]}>
       <AdminAnalyticsInner />
     </AuthGuard>
   );

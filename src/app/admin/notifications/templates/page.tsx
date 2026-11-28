@@ -6,13 +6,23 @@ import {
   Plus,
   Edit2,
   Eye,
-  Search,
   Bell,
   MessageSquare,
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, Input, Badge, Select, Textarea } from "@/shared/ui";
+import { Button, Modal, Input, Select, Textarea } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -152,72 +162,85 @@ function AdminNotificationTemplatesInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("adminTemplates.title")}
-          </h1>
-          <Button onClick={openCreate}>
-            <Plus size={16} className="mr-2" />
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Mail}
+        title={t("adminTemplates.title")}
+        actions={
+          <button
+            type="button"
+            onClick={openCreate}
+            className={adminPrimaryClass}
+          >
+            <Plus size={16} />
             {t("adminTemplates.create")}
-          </Button>
-        </div>
+          </button>
+        }
+      />
 
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t("adminTemplates.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+      <div className="mb-5">
+        <AdminSearch
+          value={search}
+          onChange={setSearch}
+          placeholder={t("adminTemplates.searchPlaceholder")}
+        />
+      </div>
 
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : templates.length > 0 ? (
-          <div className="space-y-4">
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : templates.length > 0 ? (
+        <AdminTable>
+          <thead>
+            <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+              <th className={adminTh}>{t("common.name")}</th>
+              <th className={adminTh}>{t("adminTemplates.content")}</th>
+              <th className={`${adminTh} text-right`}>{t("common.actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
             {templates.map((template) => {
               const ChannelIcon =
                 CHANNELS.find((c) => c.value === template.channel)?.icon ??
                 Mail;
               return (
-                <div
-                  key={template.templateId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <ChannelIcon size={20} className="text-blue-600" />
+                <tr key={template.templateId} className={adminRow}>
+                  <td className={adminTd}>
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-lg bg-purple-500/10 p-2">
+                        <ChannelIcon size={18} className="text-purple-300" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <p className="font-semibold text-white">
                           {template.eventType}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className="bg-gray-100 text-gray-700 text-xs">
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <AdminPill tone="neutral">
                             {template.channel}
-                          </Badge>
-                          <Badge className="bg-blue-100 text-blue-700 text-xs">
+                          </AdminPill>
+                          <AdminPill tone="purple">
                             {template.category}
-                          </Badge>
-                          <Badge className="bg-green-100 text-green-700 text-xs">
+                          </AdminPill>
+                          <AdminPill tone="success">
                             {template.locale}
-                          </Badge>
+                          </AdminPill>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                  </td>
+                  <td className={adminTd}>
+                    {template.subject && (
+                      <p className="text-xs text-slate-400">
+                        {t("adminTemplates.subject")}: {template.subject}
+                      </p>
+                    )}
+                    <p className="mt-1 line-clamp-2 max-w-xl text-sm text-slate-300">
+                      {template.content}
+                    </p>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <div className="flex items-center justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -234,44 +257,28 @@ function AdminNotificationTemplatesInner() {
                         <Edit2 size={14} />
                       </Button>
                     </div>
-                  </div>
-
-                  {template.subject && (
-                    <div className="mb-2">
-                      <p className="text-sm font-medium text-gray-700">
-                        {t("adminTemplates.subject")}:
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {template.subject}
-                      </p>
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">
-                      {t("adminTemplates.content")}:
-                    </p>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {template.content}
-                    </p>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               );
             })}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <Mail className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t("adminTemplates.emptyTitle")}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {t("adminTemplates.emptyDescription")}
-            </p>
-            <Button onClick={openCreate}>{t("adminTemplates.create")}</Button>
-          </div>
-        )}
-      </div>
+          </tbody>
+        </AdminTable>
+      ) : (
+        <AdminEmpty
+          icon={Mail}
+          title={t("adminTemplates.emptyTitle")}
+          description={t("adminTemplates.emptyDescription")}
+          action={
+            <button
+              type="button"
+              onClick={openCreate}
+              className={adminPrimaryClass}
+            >
+              {t("adminTemplates.create")}
+            </button>
+          }
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -342,7 +349,7 @@ function AdminNotificationTemplatesInner() {
             rows={6}
           />
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="bg-purple-500/10 border border-purple-400/30 rounded-lg p-3">
             <p className="text-xs text-blue-900">
               {t("adminTemplates.placeholderHelp", {
                 variables: "{customerName}, {orderId}, {amount}",
@@ -397,14 +404,18 @@ function AdminNotificationTemplatesInner() {
             </div>
             {viewTemplate.subject && (
               <div>
-                <p className="text-sm font-medium text-gray-900">Subject</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {t("adminTemplates.subject")}
+                </p>
                 <p className="text-sm text-gray-600 mt-1">
                   {viewTemplate.subject}
                 </p>
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-gray-900">Content</p>
+              <p className="text-sm font-medium text-gray-900">
+                {t("adminTemplates.content")}
+              </p>
               <div className="mt-1 p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                   {viewTemplate.content}

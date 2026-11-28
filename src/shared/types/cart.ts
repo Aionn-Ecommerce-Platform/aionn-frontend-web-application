@@ -10,6 +10,8 @@ export interface CartItem {
 
   variantAttributes?: Record<string, string>;
   merchantId?: string;
+  /** End of the flash-sale window that produced `price`, when one applied. */
+  flashSaleEndAt?: string | null;
 }
 
 interface ServerCartItem {

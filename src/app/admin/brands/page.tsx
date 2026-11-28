@@ -3,16 +3,19 @@
 import { AppImage } from "@/shared/ui";
 
 import { useState } from "react";
-import { Award, Plus, Edit2, Trash2, Loader2, Search } from "lucide-react";
+import { Award, Plus, Edit2, Trash2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { Button, Modal, Input, ConfirmDialog, Textarea } from "@/shared/ui";
 import {
-  Button,
-  Modal,
-  Input,
-  ConfirmDialog,
-  Badge,
-  Textarea,
-} from "@/shared/ui";
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
@@ -110,171 +113,150 @@ function AdminBrandsInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("adminBrands.title")}
-          </h1>
-          {canManageBrandStructure && (
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Award}
+        title={t("adminBrands.title")}
+        actions={
+          canManageBrandStructure ? (
             <Button onClick={handleCreate}>
               <Plus size={16} className="mr-2" />
               {t("adminBrands.create")}
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
-        <div className="mb-6">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t("adminBrands.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+      <div className="mb-5">
+        <AdminSearch
+          value={search}
+          onChange={setSearch}
+          placeholder={t("adminBrands.searchPlaceholder")}
+        />
+      </div>
 
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : filteredBrands.length > 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    {t("adminBrands.brand")}
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    {t("common.description")}
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    {t("common.status")}
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    {t("common.createdAt")}
-                  </th>
-                  <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredBrands.map((brand) => (
-                  <tr key={brand.brandId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {brand.logoUrl ? (
-                          <AppImage
-                            src={brand.logoUrl}
-                            alt={brand.name}
-                            className="w-10 h-10 rounded object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-blue-50 rounded flex items-center justify-center">
-                            <Award size={20} className="text-blue-600" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {brand.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {brand.brandId.slice(0, 16)}...
-                          </p>
+      {loading ? (
+        <div className="flex justify-center rounded-2xl border border-slate-600/60 bg-white/[0.04] p-12">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : filteredBrands.length > 0 ? (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>{t("adminBrands.brand")}</th>
+                <th className={adminTh}>{t("common.description")}</th>
+                <th className={adminTh}>{t("common.status")}</th>
+                <th className={adminTh}>{t("common.createdAt")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBrands.map((brand) => (
+                <tr key={brand.brandId} className={adminRow}>
+                  <td className={adminTd}>
+                    <div className="flex items-center gap-3">
+                      {brand.logoUrl ? (
+                        <AppImage
+                          src={brand.logoUrl}
+                          alt={brand.name}
+                          className="h-10 w-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded bg-purple-500/10">
+                          <Award size={20} className="text-purple-300" />
                         </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-white">
+                          {brand.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {brand.brandId.slice(0, 16)}...
+                        </p>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {brand.description || "—"}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge
-                        variant={
-                          brand.status === "ACTIVE" ? "success" : "default"
-                        }
+                    </div>
+                  </td>
+                  <td className={adminTd}>
+                    <p className="line-clamp-2 text-sm text-slate-300">
+                      {brand.description || "—"}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill
+                      tone={brand.status === "ACTIVE" ? "success" : "neutral"}
+                    >
+                      {t(`statuses.brand.${brand.status}`)}
+                    </AdminPill>
+                  </td>
+                  <td className={adminTd}>
+                    <p className="text-sm text-slate-300">
+                      {formatDateTime(brand.createdAt, locale)}
+                    </p>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(brand)}
                       >
-                        {brand.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-600">
-                        {formatDateTime(brand.createdAt, locale)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                        <Edit2 size={14} className="text-slate-300" />
+                      </Button>
+                      {canManageBrandStructure && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEdit(brand)}
+                          onClick={() => setDeleteId(brand.brandId)}
                         >
-                          <Edit2 size={14} />
+                          <Trash2 size={14} className="text-rose-300" />
                         </Button>
-                        {canManageBrandStructure && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteId(brand.brandId)}
-                          >
-                            <Trash2 size={14} className="text-red-600" />
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
 
-            {data && totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                <p className="text-sm text-gray-600">
-                  {t("common.pageOf", { page: page + 1, total: totalPages })}
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => page > 0 && setPage(page - 1)}
-                  >
-                    {t("common.previous")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => page < totalPages - 1 && setPage(page + 1)}
-                  >
-                    {t("common.next")}
-                  </Button>
-                </div>
+          {data && totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between rounded-2xl border border-slate-600/60 bg-white/[0.04] px-6 py-4">
+              <p className="text-sm text-slate-400">
+                {t("common.pageOf", { page: page + 1, total: totalPages })}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => page > 0 && setPage(page - 1)}
+                >
+                  {t("common.previous")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => page < totalPages - 1 && setPage(page + 1)}
+                >
+                  {t("common.next")}
+                </Button>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <Award className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t("adminBrands.emptyTitle")}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {t("adminBrands.emptyDescription")}
-            </p>
-            {canManageBrandStructure && (
+            </div>
+          )}
+        </>
+      ) : (
+        <AdminEmpty
+          icon={Award}
+          title={t("adminBrands.emptyTitle")}
+          description={t("adminBrands.emptyDescription")}
+          action={
+            canManageBrandStructure ? (
               <Button onClick={handleCreate}>{t("adminBrands.create")}</Button>
-            )}
-          </div>
-        )}
-      </div>
+            ) : undefined
+          }
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}

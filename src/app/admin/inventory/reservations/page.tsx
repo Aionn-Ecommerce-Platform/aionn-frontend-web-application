@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  CalendarClock,
   Search,
   Loader2,
   AlertTriangle,
@@ -11,29 +12,38 @@ import {
   Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Input, Modal, Textarea } from "@/shared/ui";
+import { Button, Input, Modal, Textarea } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  adminPrimaryClass,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { stockReservationService } from "@/lib/services/inventory.service";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 
-const STATUS_BADGE: Record<string, { labelKey: string; className: string }> = {
+const STATUS_BADGE: Record<
+  string,
+  { labelKey: string; tone: "purple" | "success" | "neutral" | "danger" }
+> = {
   RESERVED: {
     labelKey: "statuses.reservation.RESERVED",
-    className: "bg-blue-100 text-blue-700",
+    tone: "purple",
   },
   COMMITTED: {
     labelKey: "statuses.reservation.COMMITTED",
-    className: "bg-green-100 text-green-700",
+    tone: "success",
   },
   RELEASED: {
     labelKey: "statuses.reservation.RELEASED",
-    className: "bg-gray-100 text-gray-600",
+    tone: "neutral",
   },
   EXPIRED: {
     labelKey: "statuses.reservation.EXPIRED",
-    className: "bg-red-100 text-red-700",
+    tone: "danger",
   },
 };
 
@@ -106,142 +116,138 @@ function AdminReservationsInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {t("adminReservations.title")}
-            </h1>
-            <p className="text-sm text-gray-500">
-              {t("adminReservations.description")}
-            </p>
-          </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus size={14} className="mr-1" />
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={CalendarClock}
+        title={t("adminReservations.title")}
+        description={t("adminReservations.description")}
+        actions={
+          <Button
+            className={adminPrimaryClass}
+            onClick={() => setCreateOpen(true)}
+          >
+            <Plus size={14} />
             {t("adminReservations.create")}
           </Button>
+        }
+      />
+
+      <div className="mb-6 rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+        <label className="mb-2 block text-sm font-medium text-slate-300">
+          {t("adminReservations.idRequired")}
+        </label>
+        <div className="flex items-end gap-3">
+          <input
+            type="text"
+            value={reservationInput}
+            onChange={(e) => setReservationInput(e.target.value)}
+            placeholder="RES_..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLookup();
+            }}
+            className="w-full flex-1 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          />
+          <Button
+            variant="outline"
+            className="border-white/20 text-slate-200 hover:bg-white/10"
+            onClick={handleLookup}
+            disabled={!reservationInput.trim()}
+          >
+            <Search size={14} className="mr-1" />
+            {t("common.lookup")}
+          </Button>
         </div>
-
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-          <div className="flex items-end gap-3">
-            <Input
-              label="Reservation ID"
-              value={reservationInput}
-              onChange={(e) => setReservationInput(e.target.value)}
-              placeholder="RES_..."
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleLookup();
-              }}
-            />
-            <Button onClick={handleLookup} disabled={!reservationInput.trim()}>
-              <Search size={14} className="mr-1" />
-              {t("common.lookup")}
-            </Button>
-          </div>
-        </div>
-
-        {isLoading && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        )}
-
-        {error && lookupId && !isLoading && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3">
-            <AlertTriangle size={18} className="text-red-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-red-800">
-                {t("adminReservations.notFound")}
-              </p>
-              <p className="text-xs text-red-600 mt-1">
-                {getErrorMessage(error)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {reservation && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 font-mono">
-                  {reservation.reservationId}
-                </h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  Order: {reservation.orderId}
-                </p>
-              </div>
-              <Badge
-                className={
-                  STATUS_BADGE[reservation.status]?.className ??
-                  "bg-gray-100 text-gray-700"
-                }
-              >
-                {STATUS_BADGE[reservation.status]
-                  ? t(STATUS_BADGE[reservation.status]!.labelKey)
-                  : reservation.status}
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
-              <div>
-                <p className="text-gray-500">SKU</p>
-                <p className="font-mono font-medium text-gray-900 mt-0.5">
-                  {reservation.skuId}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Warehouse</p>
-                <p className="font-mono font-medium text-gray-900 mt-0.5">
-                  {reservation.warehouseId}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">{t("common.quantity")}</p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {reservation.qty}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">
-                  {t("adminReservations.expiresAt")}
-                </p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {reservation.expiresAt
-                    ? formatDateTime(reservation.expiresAt, locale)
-                    : "—"}
-                </p>
-              </div>
-            </div>
-
-            {reservation.status === "RESERVED" && (
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() =>
-                    commitMutation.mutate(reservation.reservationId)
-                  }
-                  loading={commitMutation.isPending}
-                >
-                  <CheckCircle2 size={14} className="mr-1" />
-                  Commit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReleaseTarget(reservation.reservationId)}
-                >
-                  <XCircle size={14} className="text-red-600 mr-1" />
-                  <span className="text-red-600">Release</span>
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {isLoading && (
+        <div className="flex justify-center rounded-2xl border border-gray-600 bg-white/[0.03] p-12">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      )}
+
+      {error && lookupId && !isLoading && (
+        <AdminEmpty
+          icon={AlertTriangle}
+          title={t("adminReservations.notFound")}
+          description={getErrorMessage(error)}
+        />
+      )}
+
+      {reservation && (
+        <div className="rounded-2xl border border-gray-600 bg-white/[0.04] p-6">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-mono text-lg font-semibold text-white">
+                {reservation.reservationId}
+              </h2>
+              <p className="mt-1 text-xs text-slate-400">
+                {t("orders.orderId")}: {reservation.orderId}
+              </p>
+            </div>
+            <AdminPill
+              tone={STATUS_BADGE[reservation.status]?.tone ?? "neutral"}
+            >
+              {STATUS_BADGE[reservation.status]
+                ? t(STATUS_BADGE[reservation.status]!.labelKey)
+                : reservation.status}
+            </AdminPill>
+          </div>
+
+          <div className="mb-6 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-slate-400">{t("merchant.inventory.colSku")}</p>
+              <p className="mt-0.5 font-mono font-medium text-white">
+                {reservation.skuId}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-400">
+                {t("merchant.inventory.warehouseDropdownLabel")}
+              </p>
+              <p className="mt-0.5 font-mono font-medium text-white">
+                {reservation.warehouseId}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-400">{t("common.quantity")}</p>
+              <p className="mt-0.5 font-medium text-white">{reservation.qty}</p>
+            </div>
+            <div>
+              <p className="text-slate-400">
+                {t("adminReservations.expiresAt")}
+              </p>
+              <p className="mt-0.5 font-medium text-white">
+                {reservation.expiresAt
+                  ? formatDateTime(reservation.expiresAt, locale)
+                  : "—"}
+              </p>
+            </div>
+          </div>
+
+          {reservation.status === "RESERVED" && (
+            <div className="flex flex-wrap gap-2 border-t border-slate-600/60 pt-4">
+              <Button
+                className={adminPrimaryClass}
+                size="sm"
+                onClick={() => commitMutation.mutate(reservation.reservationId)}
+                loading={commitMutation.isPending}
+              >
+                <CheckCircle2 size={14} />
+                {t("statuses.reservation.COMMITTED")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-rose-300 hover:bg-rose-500/10"
+                onClick={() => setReleaseTarget(reservation.reservationId)}
+              >
+                <XCircle size={14} />
+                {t("statuses.reservation.RELEASED")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <Modal
         isOpen={createOpen}
@@ -254,7 +260,7 @@ function AdminReservationsInner() {
             <p>{t("adminReservations.createWarning")}</p>
           </div>
           <Input
-            label="SKU ID *"
+            label={`${t("merchant.inventory.colSku")} *`}
             value={createForm.skuId}
             onChange={(e) =>
               setCreateForm({ ...createForm, skuId: e.target.value })
@@ -262,7 +268,7 @@ function AdminReservationsInner() {
             placeholder="SKU_..."
           />
           <Input
-            label="Warehouse ID *"
+            label={`${t("merchant.inventory.warehouseDropdownLabel")} *`}
             value={createForm.warehouseId}
             onChange={(e) =>
               setCreateForm({ ...createForm, warehouseId: e.target.value })
@@ -270,7 +276,7 @@ function AdminReservationsInner() {
             placeholder="WH_..."
           />
           <Input
-            label="Order ID *"
+            label={`${t("orders.orderId")} *`}
             value={createForm.orderId}
             onChange={(e) =>
               setCreateForm({ ...createForm, orderId: e.target.value })
@@ -308,6 +314,7 @@ function AdminReservationsInner() {
               {t("common.cancel")}
             </Button>
             <Button
+              className={adminPrimaryClass}
               loading={reserveMutation.isPending}
               disabled={
                 !createForm.skuId ||
@@ -328,7 +335,7 @@ function AdminReservationsInner() {
           setReleaseTarget(null);
           setReleaseReason("");
         }}
-        title="Release reservation"
+        title={t("statuses.reservation.RELEASED")}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
@@ -338,7 +345,6 @@ function AdminReservationsInner() {
             label={t("adminReservations.reason")}
             value={releaseReason}
             onChange={(e) => setReleaseReason(e.target.value)}
-            placeholder="Order cancelled, debug, manual override..."
             rows={3}
           />
           <div className="flex justify-end gap-2">
@@ -363,7 +369,7 @@ function AdminReservationsInner() {
                 })
               }
             >
-              Release
+              {t("statuses.reservation.RELEASED")}
             </Button>
           </div>
         </div>

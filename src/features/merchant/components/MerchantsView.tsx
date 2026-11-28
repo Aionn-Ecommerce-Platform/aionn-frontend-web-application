@@ -161,7 +161,7 @@ export default function MerchantsPage() {
 
   return (
     <div className="relative bg-transparent min-h-screen pb-16">
-      <div className="space-y-6">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-8 sm:px-6 lg:px-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
             {t("merchants.title")}

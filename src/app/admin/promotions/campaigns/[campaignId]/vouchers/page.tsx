@@ -6,7 +6,7 @@ import { Gift, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import AuthGuard from "@/components/auth/AuthGuard";
 import VoucherManagement from "@/components/promotion/VoucherManagement";
-import { Button } from "@/shared/ui";
+import { adminPrimaryClass } from "@/features/admin";
 import { campaignService, voucherService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -43,17 +43,17 @@ function GrantVoucherCard({ campaignId }: { campaignId: string }) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
+    <div className="mb-6 overflow-hidden rounded-2xl border border-slate-600/60 bg-white/[0.04]">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer"
+        className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left"
       >
-        <span className="flex items-center gap-2 text-sm font-bold text-gray-900">
-          <Gift size={16} className="text-brand" />
+        <span className="flex items-center gap-2 text-sm font-bold text-white">
+          <Gift size={16} className="text-purple-300" />
           {t("adminCampaignVouchers.grantTitle")}
         </span>
-        <span className="text-xs font-semibold text-brand">
+        <span className="text-xs font-semibold text-purple-300">
           {open
             ? t("adminCampaignVouchers.grantCollapse")
             : t("adminCampaignVouchers.grantExpand")}
@@ -63,10 +63,10 @@ function GrantVoucherCard({ campaignId }: { campaignId: string }) {
       {open && (
         <form
           onSubmit={submit}
-          className="px-5 pb-5 grid md:grid-cols-3 gap-4 border-t border-gray-100 pt-4"
+          className="grid gap-4 border-t border-slate-600/60 px-5 pb-5 pt-4 md:grid-cols-3"
         >
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-xs font-semibold text-slate-300">
               {t("adminCampaignVouchers.grantUser")}
             </label>
             <input
@@ -74,11 +74,11 @@ function GrantVoucherCard({ campaignId }: { campaignId: string }) {
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="USER_..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-gray-500 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-xs font-semibold text-slate-300">
               {t("adminCampaignVouchers.grantCode")}
             </label>
             <input
@@ -86,29 +86,33 @@ function GrantVoucherCard({ campaignId }: { campaignId: string }) {
               value={voucherCode}
               onChange={(e) => setVoucherCode(e.target.value)}
               placeholder="SHOP50K"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-gray-500 bg-white/5 px-3 py-2 text-sm uppercase text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-xs font-semibold text-slate-300">
               {t("adminCampaignVouchers.grantReason")}
             </label>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("adminCampaignVouchers.grantReasonPlaceholder")}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-gray-500 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
-          <div className="md:col-span-3 flex justify-end">
-            <Button type="submit" disabled={grant.isPending}>
+          <div className="flex justify-end md:col-span-3">
+            <button
+              type="submit"
+              disabled={grant.isPending}
+              className={adminPrimaryClass}
+            >
               {grant.isPending ? (
-                <Loader2 size={14} className="mr-2 animate-spin" />
+                <Loader2 size={14} className="animate-spin" />
               ) : (
-                <Gift size={14} className="mr-2" />
+                <Gift size={14} />
               )}
               {t("adminCampaignVouchers.grantSubmit")}
-            </Button>
+            </button>
           </div>
         </form>
       )}

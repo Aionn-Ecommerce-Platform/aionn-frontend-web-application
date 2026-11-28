@@ -1,71 +1,123 @@
 "use client";
 
-import { AppImage } from "@/shared/ui";
-
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Search,
-  Star,
+  AlertCircle,
   EyeOff,
   Eye,
   Loader2,
-  AlertTriangle,
   MessageSquare,
-  Flag,
+  Star,
   Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Input, ConfirmDialog } from "@/shared/ui";
+import { Button, ConfirmDialog, Pagination } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  AdminTabs,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { useTranslation } from "@/hooks";
-import { reviewService } from "@/lib/services";
+import { useDebounce, useTranslation } from "@/hooks";
+import { productService, reviewService } from "@/lib/services";
+import type { ReviewStatus } from "@/lib/services/review.service";
 import { getReviewStatus } from "@/lib/domain/status/review";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
 
+const TONE = {
+  default: "neutral",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+} as const;
+
+type ReviewTab = "ALL" | "REPORTED" | "HIDDEN";
+
+const TABS: Array<{ value: ReviewTab; labelKey: string }> = [
+  { value: "ALL", labelKey: "common.all" },
+  { value: "REPORTED", labelKey: "adminReviews.tabReported" },
+  { value: "HIDDEN", labelKey: "statuses.review.HIDDEN" },
+];
+
+const PAGE_SIZE = 20;
+
+function tabStatus(tab: ReviewTab): ReviewStatus | undefined {
+  return tab === "ALL" ? undefined : tab;
+}
+
 function AdminReviewsInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
-  const [productInput, setProductInput] = useState("");
-  const [productId, setProductId] = useState<string | null>(null);
+  const [tab, setTab] = useState<ReviewTab>("ALL");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [page, setPage] = useState(1);
   const [hideTarget, setHideTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [tab, setTab] = useState<"PRODUCT" | "REPORTED">("PRODUCT");
 
-  const {
-    data: productData,
-    isLoading: productLoading,
-    error: productError,
-  } = useQuery({
-    queryKey: ["admin-product-reviews", productId],
+  const trimmedSearch = debouncedSearch.trim();
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["admin-reviews", { tab, search: trimmedSearch, page }],
     queryFn: () =>
-      productId ? reviewService.getAdminProductReviews(productId, 0, 50) : null,
-    enabled: !!productId,
+      reviewService.adminList({
+        search: trimmedSearch || undefined,
+        status: tabStatus(tab),
+        page: page - 1,
+        size: PAGE_SIZE,
+      }),
     retry: false,
   });
 
-  const {
-    data: reportedData,
-    isLoading: reportedLoading,
-    error: reportedError,
-  } = useQuery({
-    queryKey: ["admin-reported-reviews"],
-    queryFn: () => reviewService.listReported(0, 50),
-    enabled: tab === "REPORTED",
+  const reviews = useMemo(() => data?.content ?? [], [data]);
+  const totalElements = data?.totalElements ?? reviews.length;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+
+  const productCache = useRef(new Map<string, string>());
+  const productIds = useMemo(
+    () => Array.from(new Set(reviews.map((review) => review.productId))),
+    [reviews],
+  );
+  const productIdsKey = productIds.join(",");
+
+  const { data: productNames } = useQuery({
+    queryKey: ["admin-review-product-names", productIdsKey],
+    queryFn: async () => {
+      const entries = await Promise.all(
+        productIds.map(async (productId) => {
+          const cached = productCache.current.get(productId);
+          if (cached) return [productId, cached] as const;
+          try {
+            const product = await productService.get(productId);
+            productCache.current.set(productId, product.name);
+            return [productId, product.name] as const;
+          } catch {
+            return [productId, productId] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries) as Record<string, string>;
+    },
+    enabled: productIds.length > 0,
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
-
-  const data = tab === "REPORTED" ? reportedData : productData;
-  const isLoading = tab === "REPORTED" ? reportedLoading : productLoading;
-  const error = tab === "REPORTED" ? reportedError : productError;
 
   const hideMutation = useMutation({
     mutationFn: (reviewId: string) => reviewService.hide(reviewId),
     onSuccess: () => {
       toast.success(t("adminReviews.hiddenToast"));
       setHideTarget(null);
-      qc.invalidateQueries({ queryKey: ["admin-product-reviews"] });
+      qc.invalidateQueries({ queryKey: ["admin-reviews"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -74,8 +126,7 @@ function AdminReviewsInner() {
     mutationFn: (reviewId: string) => reviewService.unhide(reviewId),
     onSuccess: () => {
       toast.success(t("adminReviews.restoredToast"));
-      qc.invalidateQueries({ queryKey: ["admin-product-reviews"] });
-      qc.invalidateQueries({ queryKey: ["admin-reported-reviews"] });
+      qc.invalidateQueries({ queryKey: ["admin-reviews"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -85,232 +136,215 @@ function AdminReviewsInner() {
     onSuccess: () => {
       toast.success(t("adminReviews.deletedToast"));
       setDeleteTarget(null);
-      qc.invalidateQueries({ queryKey: ["admin-product-reviews"] });
-      qc.invalidateQueries({ queryKey: ["admin-reported-reviews"] });
+      qc.invalidateQueries({ queryKey: ["admin-reviews"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  function handleLookup() {
-    const id = productInput.trim();
-    if (!id) {
-      toast.error(t("adminReviews.productRequired"));
-      return;
-    }
-    setProductId(id);
-  }
-
-  const reviews = data?.content ?? [];
+  const productName = (productId: string) =>
+    productNames?.[productId] ?? productId;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            {t("adminReviews.title")}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {t("adminReviews.description")}
-          </p>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Star}
+        title={t("adminReviews.title")}
+        description={t("adminReviews.description")}
+      />
+
+      <AdminTabs
+        value={tab}
+        onChange={(value) => {
+          setTab(value);
+          setPage(1);
+        }}
+        tabs={TABS.map((tabOption) => ({
+          value: tabOption.value,
+          label: t(tabOption.labelKey),
+        }))}
+      />
+
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          placeholder={t("adminConsole.searchPlaceholder")}
+        />
+        <p className="text-xs text-slate-400 sm:ml-auto">
+          {t("adminReviews.total", { count: totalElements })}
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
         </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant={tab === "PRODUCT" ? "primary" : "outline"}
-            size="sm"
-            onClick={() => setTab("PRODUCT")}
-          >
-            <Search size={14} className="mr-1" />
-            {t("adminReviews.tabByProduct")}
-          </Button>
-          <Button
-            variant={tab === "REPORTED" ? "primary" : "outline"}
-            size="sm"
-            onClick={() => setTab("REPORTED")}
-          >
-            <Flag size={14} className="mr-1" />
-            {t("adminReviews.tabReported")}
-          </Button>
-        </div>
-
-        {tab === "PRODUCT" && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-end gap-3">
-              <Input
-                label="Product ID"
-                value={productInput}
-                onChange={(e) => setProductInput(e.target.value)}
-                placeholder="PR_..."
-                className="flex-1"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleLookup();
-                }}
-              />
-              <Button onClick={handleLookup} disabled={!productInput.trim()}>
-                <Search size={14} className="mr-1" />
-                {t("adminReviews.lookup")}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {isLoading && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        )}
-
-        {error && !isLoading && (tab === "REPORTED" || productId) && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3">
-            <AlertTriangle size={18} className="text-red-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-red-800">
-                {t("adminReviews.loadFailed")}
-              </p>
-              <p className="text-xs text-red-600 mt-1">
-                {getErrorMessage(error)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {!isLoading && !error && (tab === "REPORTED" || productId) && reviews.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <MessageSquare className="mx-auto text-gray-400 mb-4" size={40} />
-            <p className="text-sm text-gray-500">
-              {tab === "REPORTED"
-                ? t("adminReviews.emptyReported")
-                : t("adminReviews.empty", { id: productId ?? "" })}
-            </p>
-          </div>
-        )}
-
-        {reviews.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500">
-              {t("adminReviews.total", {
-                count: data?.totalElements ?? reviews.length,
-              })}
-            </p>
-            {reviews.map((review) => (
-              <div
-                key={review.reviewId}
-                className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
-              >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex items-center gap-3">
+      ) : error ? (
+        <AdminEmpty
+          icon={AlertCircle}
+          title={t("adminReviews.loadFailed")}
+          description={getErrorMessage(error)}
+          action={
+            <Button variant="outline" onClick={() => void refetch()}>
+              {t("common.tryAgain")}
+            </Button>
+          }
+        />
+      ) : reviews.length === 0 ? (
+        <AdminEmpty
+          icon={MessageSquare}
+          title={t("common.noResults")}
+          description={
+            tab === "REPORTED"
+              ? t("adminReviews.emptyReported")
+              : t("adminConsole.totalCount", { count: 0 })
+          }
+        />
+      ) : (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>
+                  {t("merchant.productList.colProduct")}
+                </th>
+                <th className={adminTh}>{t("adminUsers.user")}</th>
+                <th className={adminTh}>{t("reviews.rating")}</th>
+                <th className={adminTh}>{t("reviews.content")}</th>
+                <th className={adminTh}>{t("common.status")}</th>
+                <th className={adminTh}>{t("common.createdAt")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {reviews.map((review) => (
+                <tr key={review.reviewId} className={adminRow}>
+                  <td className={adminTd}>
+                    <p className="max-w-56 truncate font-semibold text-white">
+                      {productName(review.productId)}
+                    </p>
+                    <p className="max-w-56 truncate font-mono text-xs text-slate-500">
+                      {review.productId}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
+                    <p className="max-w-40 truncate text-slate-200">
+                      {review.userDisplayName ??
+                        review.userName ??
+                        review.userId}
+                    </p>
+                    <p className="max-w-40 truncate font-mono text-xs text-slate-500">
+                      {review.userId}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
                     <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
+                      {[1, 2, 3, 4, 5].map((star) => (
                         <Star
-                          key={s}
-                          size={14}
+                          key={star}
+                          size={13}
                           className={
-                            s <= review.rating
+                            star <= review.rating
                               ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-200 fill-gray-200"
+                              : "fill-slate-600 text-slate-600"
                           }
                         />
                       ))}
                     </div>
-                    <Badge
-                      variant={getReviewStatus(review.status).variant}
-                      className="text-xs"
+                  </td>
+                  <td className={adminTd}>
+                    {review.title && (
+                      <p className="mb-0.5 line-clamp-1 text-sm font-semibold text-white">
+                        {review.title}
+                      </p>
+                    )}
+                    <p className="line-clamp-2 max-w-md text-sm text-slate-300">
+                      {review.content}
+                    </p>
+                    {review.reportReason && (
+                      <p className="mt-1 line-clamp-1 text-xs text-rose-300">
+                        {t("adminReviews.reportReason", {
+                          reason: review.reportReason,
+                        })}
+                      </p>
+                    )}
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill
+                      tone={TONE[getReviewStatus(review.status).variant]}
                     >
                       {t(getReviewStatus(review.status).labelKey)}
-                    </Badge>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    {formatDateTime(review.createdAt, locale)}
-                  </span>
-                </div>
+                    </AdminPill>
+                  </td>
+                  <td className={adminTd}>
+                    <span className="whitespace-nowrap text-xs text-slate-400">
+                      {formatDateTime(review.createdAt, locale)}
+                    </span>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {review.status === "VISIBLE" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setHideTarget(review.reviewId)}
+                        >
+                          <EyeOff size={14} className="mr-1 text-red-600" />
+                          <span className="text-red-600">
+                            {t("adminReviews.hide")}
+                          </span>
+                        </Button>
+                      )}
+                      {(review.status === "HIDDEN" ||
+                        review.status === "REPORTED") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          loading={
+                            restoreMutation.isPending &&
+                            restoreMutation.variables === review.reviewId
+                          }
+                          onClick={() =>
+                            restoreMutation.mutate(review.reviewId)
+                          }
+                        >
+                          <Eye size={14} className="mr-1 text-green-600" />
+                          <span className="text-green-600">
+                            {t("adminReviews.restore")}
+                          </span>
+                        </Button>
+                      )}
+                      {review.status !== "DELETED" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteTarget(review.reviewId)}
+                        >
+                          <Trash2 size={14} className="mr-1 text-red-600" />
+                          <span className="text-red-600">
+                            {t("adminReviews.delete")}
+                          </span>
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
 
-                {review.title && (
-                  <p className="text-sm font-semibold text-gray-900 mb-1">
-                    {review.title}
-                  </p>
-                )}
-                {review.content && (
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">
-                    {review.content}
-                  </p>
-                )}
-
-                {review.imageUrls.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mb-3">
-                    {review.imageUrls.map((url, i) => (
-                      <AppImage
-                        key={i}
-                        src={url}
-                        alt={t("adminReviews.imageAlt", { index: i + 1 })}
-                        className="w-20 h-20 object-cover rounded-2xl border border-gray-200/80 shadow-xs"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 font-mono">
-                    {t("adminReviews.authorOrder", {
-                      user: review.userId,
-                      order: review.orderId ?? "—",
-                    })}
-                  </p>
-                  {review.reportReason && (
-                    <p className="text-xs text-red-600">
-                      {t("adminReviews.reportReason", {
-                        reason: review.reportReason,
-                      })}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2">
-                    {review.status === "VISIBLE" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setHideTarget(review.reviewId)}
-                      >
-                        <EyeOff size={14} className="mr-1 text-red-600" />
-                        <span className="text-red-600">
-                          {t("adminReviews.hide")}
-                        </span>
-                      </Button>
-                    )}
-                    {(review.status === "HIDDEN" ||
-                      review.status === "REPORTED") && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={
-                          restoreMutation.isPending &&
-                          restoreMutation.variables === review.reviewId
-                        }
-                        onClick={() => restoreMutation.mutate(review.reviewId)}
-                      >
-                        <Eye size={14} className="mr-1 text-green-600" />
-                        <span className="text-green-600">
-                          {t("adminReviews.restore")}
-                        </span>
-                      </Button>
-                    )}
-                    {review.status !== "DELETED" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteTarget(review.reviewId)}
-                      >
-                        <Trash2 size={14} className="mr-1 text-red-600" />
-                        <span className="text-red-600">
-                          {t("adminReviews.delete")}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
 
       <ConfirmDialog
         isOpen={hideTarget !== null}

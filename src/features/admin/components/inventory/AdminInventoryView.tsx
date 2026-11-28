@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Package } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
+import { AdminHeader, AdminTabs } from "@/features/admin";
 import { useTranslation } from "@/hooks";
+import { LowStockTab, ByWarehouseTab, LookupTab } from "./AdminInventoryTabs";
 
 type Tab = "low-stock" | "by-warehouse" | "lookup";
+
+const TABS: Array<{ value: Tab; labelKey: string }> = [
+  { value: "low-stock", labelKey: "adminInventory.lowStock" },
+  { value: "by-warehouse", labelKey: "adminInventory.byWarehouse" },
+  { value: "lookup", labelKey: "adminInventory.lookupSku" },
+];
 
 function AdminInventoryInner() {
   const { t } = useTranslation();
@@ -13,46 +22,28 @@ function AdminInventoryInner() {
   const [tab, setTab] = useState<Tab>("low-stock");
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {t("adminInventory.title")}
-        </h1>
-        <p className="text-gray-500 mb-6 text-sm">
-          {t("adminInventory.description")}
-        </p>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Package}
+        title={t("adminInventory.title")}
+        description={t("adminInventory.description")}
+      />
 
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
-          <TabButton
-            active={tab === "low-stock"}
-            onClick={() => setTab("low-stock")}
-          >
-            {t("adminInventory.lowStock")}
-          </TabButton>
-          <TabButton
-            active={tab === "by-warehouse"}
-            onClick={() => setTab("by-warehouse")}
-          >
-            {t("adminInventory.byWarehouse")}
-          </TabButton>
-          <TabButton active={tab === "lookup"} onClick={() => setTab("lookup")}>
-            {t("adminInventory.lookupSku")}
-          </TabButton>
-        </div>
+      <AdminTabs
+        tabs={TABS.map((item) => ({
+          value: item.value,
+          label: t(item.labelKey),
+        }))}
+        value={tab}
+        onChange={setTab}
+      />
 
-        {tab === "low-stock" && <LowStockTab qc={qc} />}
-        {tab === "by-warehouse" && <ByWarehouseTab qc={qc} />}
-        {tab === "lookup" && <LookupTab qc={qc} />}
-      </div>
+      {tab === "low-stock" && <LowStockTab qc={qc} />}
+      {tab === "by-warehouse" && <ByWarehouseTab qc={qc} />}
+      {tab === "lookup" && <LookupTab qc={qc} />}
     </div>
   );
 }
-import {
-  TabButton,
-  LowStockTab,
-  ByWarehouseTab,
-  LookupTab,
-} from "./AdminInventoryTabs";
 
 export default function AdminInventoryPage() {
   return (

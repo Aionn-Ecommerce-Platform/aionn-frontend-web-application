@@ -4,7 +4,17 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, Plus, Edit2, Loader2, Power, PowerOff } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, EmptyState, Modal } from "@/shared/ui";
+import { Button, Modal } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminTable,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import {
   notificationProviderService,
@@ -57,116 +67,91 @@ function AdminProvidersInner() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {t("adminProviders.title")}
-            </h1>
-            <p className="text-gray-500 text-sm">
-              {t("adminProviders.description")}
-            </p>
-          </div>
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} className="mr-1.5" />
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Send}
+        title={t("adminProviders.title")}
+        description={t("adminProviders.description")}
+        actions={
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className={adminPrimaryClass}
+          >
+            <Plus size={16} />
             {t("adminProviders.add")}
-          </Button>
-        </div>
+          </button>
+        }
+      />
 
-        {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : providers.length === 0 ? (
-          <EmptyState
-            icon={Send}
-            title={t("adminProviders.emptyTitle")}
-            description={t("adminProviders.emptyDescription")}
-          />
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      Channel / Type
-                    </th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      {t("adminProviders.rateLimit")}
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      {t("common.status")}
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      {t("common.updatedAt")}
-                    </th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      {t("common.actions")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {providers.map((p) => (
-                    <tr
-                      key={p.providerId}
-                      className="border-b border-gray-50 hover:bg-gray-50"
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : providers.length === 0 ? (
+        <AdminEmpty
+          icon={Send}
+          title={t("adminProviders.emptyTitle")}
+          description={t("adminProviders.emptyDescription")}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+              <th className={adminTh}>{t("common.name")}</th>
+              <th className={`${adminTh} text-right`}>
+                {t("adminProviders.rateLimit")}
+              </th>
+              <th className={adminTh}>{t("common.status")}</th>
+              <th className={adminTh}>{t("common.date")}</th>
+              <th className={`${adminTh} text-right`}>{t("common.actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {providers.map((p) => (
+              <tr key={p.providerId} className={adminRow}>
+                <td className={adminTd}>
+                  <p className="font-semibold text-white">{p.channel}</p>
+                  <p className="text-xs text-slate-400">{p.providerType}</p>
+                </td>
+                <td className={`${adminTd} text-right`}>
+                  {p.rateLimitPerMinute}
+                </td>
+                <td className={adminTd}>
+                  <AdminPill tone={p.active ? "success" : "neutral"}>
+                    {p.active ? t("common.active") : t("common.inactive")}
+                  </AdminPill>
+                </td>
+                <td className={`${adminTd} text-xs text-slate-400`}>
+                  {formatDateTime(p.updatedAt, locale)}
+                </td>
+                <td className={`${adminTd} text-right`}>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleActive(p)}
+                      loading={
+                        updateMutation.isPending &&
+                        updateMutation.variables?.providerId === p.providerId
+                      }
                     >
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-gray-900">
-                          {p.channel}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {p.providerType}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-700">
-                        {p.rateLimitPerMinute}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={p.active ? "success" : "default"}>
-                          {p.active ? t("common.active") : t("common.disabled")}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
-                        {formatDateTime(p.updatedAt, locale)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleActive(p)}
-                            loading={
-                              updateMutation.isPending &&
-                              updateMutation.variables?.providerId ===
-                                p.providerId
-                            }
-                          >
-                            {p.active ? (
-                              <PowerOff size={14} />
-                            ) : (
-                              <Power size={14} />
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditing(p)}
-                          >
-                            <Edit2 size={14} />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
+                      {p.active ? <PowerOff size={14} /> : <Power size={14} />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditing(p)}
+                    >
+                      <Edit2 size={14} />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </AdminTable>
+      )}
 
       {creating && (
         <ProviderFormModal
@@ -329,7 +314,7 @@ function ProviderFormModal({
             value={config}
             onChange={(e) => setConfig(e.target.value)}
             rows={6}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:border-brand focus:outline-none"
             placeholder='{"apiKey": "...", "from": "..."}'
           />
         </div>

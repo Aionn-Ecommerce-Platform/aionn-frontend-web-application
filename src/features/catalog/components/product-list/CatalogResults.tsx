@@ -280,12 +280,12 @@ export default function CatalogResults(props: Props) {
               props.onPage(props.page - 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
+            disabled={props.page <= 0}
             aria-label="Previous page"
-            aria-disabled={props.page <= 0 || undefined}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
               props.page <= 0
-                ? "cursor-default"
-                : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+                ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
             }`}
           >
             <ChevronLeft size={16} />
@@ -321,12 +321,12 @@ export default function CatalogResults(props: Props) {
               props.onPage(props.page + 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
+            disabled={props.page + 1 >= props.pages}
             aria-label="Next page"
-            aria-disabled={props.page + 1 >= props.pages || undefined}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 bg-white text-gray-900 transition-colors ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
               props.page + 1 >= props.pages
-                ? "cursor-default"
-                : "cursor-pointer hover:border-gray-950 hover:bg-gray-100"
+                ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
             }`}
           >
             <ChevronRight size={16} />

@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Package, Search } from "lucide-react";
-import { Button, EmptyState } from "@/shared/ui";
+import { Button } from "@/shared/ui";
+import { AdminEmpty } from "@/features/admin";
 import { inventoryService } from "@/lib/services";
 import { isNotImplemented } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
@@ -19,10 +20,10 @@ export function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+      className={`rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
         active
-          ? "text-blue-600 border-blue-600"
-          : "text-gray-500 border-transparent hover:text-gray-700"
+          ? "border-purple-400/50 bg-purple-600 text-white shadow-md shadow-purple-900/40"
+          : "border-gray-500 bg-white/[0.03] text-slate-300 hover:border-white/30 hover:text-white"
       }`}
     >
       {children}
@@ -46,7 +47,7 @@ export function LowStockTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
 
   if (isNotImplemented(error)) {
     return (
-      <EmptyState
+      <AdminEmpty
         icon={AlertTriangle}
         title={t("adminInventory.lowStockUnavailable")}
         description={t("adminInventory.lowStockUnavailableDescription")}
@@ -92,15 +93,15 @@ export function ByWarehouseTab({
 
   return (
     <div>
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex gap-3">
+        <div className="relative max-w-md flex-1">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
             size={18}
           />
           <input
             type="text"
-            placeholder="Warehouse ID (WH_...)"
+            placeholder={t("adminInventory.enterWarehouseId")}
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
             onKeyDown={(e) => {
@@ -109,10 +110,12 @@ export function ByWarehouseTab({
                 setPage(0);
               }
             }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <Button
+          variant="outline"
+          className="border-white/20 text-slate-200 hover:bg-white/10"
           onClick={() => {
             setSubmittedId(warehouseId.trim());
             setPage(0);
@@ -124,7 +127,7 @@ export function ByWarehouseTab({
       </div>
 
       {!submittedId ? (
-        <EmptyState
+        <AdminEmpty
           icon={Package}
           title={t("adminInventory.enterWarehouseId")}
           description={t("adminInventory.warehouseHelp")}
@@ -157,15 +160,15 @@ export function LookupTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
 
   return (
     <div>
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex gap-3">
+        <div className="relative max-w-md flex-1">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
             size={18}
           />
           <input
             type="text"
-            placeholder="SKU ID..."
+            placeholder={t("adminInventory.enterSkuId")}
             value={skuId}
             onChange={(e) => setSkuId(e.target.value)}
             onKeyDown={(e) => {
@@ -173,10 +176,12 @@ export function LookupTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
                 setSubmittedSkuId(skuId.trim());
               }
             }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <Button
+          variant="outline"
+          className="border-white/20 text-slate-200 hover:bg-white/10"
           onClick={() => setSubmittedSkuId(skuId.trim())}
           disabled={!skuId.trim()}
         >
@@ -185,7 +190,7 @@ export function LookupTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
       </div>
 
       {!submittedSkuId ? (
-        <EmptyState
+        <AdminEmpty
           icon={Package}
           title={t("adminInventory.enterSkuId")}
           description={t("adminInventory.skuHelp")}

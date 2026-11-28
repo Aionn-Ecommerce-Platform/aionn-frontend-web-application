@@ -11,7 +11,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, Input, Badge, Switch as Toggle } from "@/shared/ui";
+import { Button, Modal, Input, Switch as Toggle } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  adminPrimaryClass,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useQuery } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
@@ -43,8 +49,10 @@ function CategorySelectorNode({
   return (
     <div>
       <div
-        className={`flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer ${
-          isSelected ? "bg-blue-50 border border-blue-200" : ""
+        className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2 transition-colors hover:bg-white/5 ${
+          isSelected
+            ? "border-purple-400/30 bg-purple-500/10"
+            : "border-transparent"
         } ${level > 0 ? "ml-6" : ""}`}
         onClick={() => onSelect(node.category.categoryId)}
         onKeyDown={(event) => {
@@ -65,16 +73,16 @@ function CategorySelectorNode({
             className="p-1"
           >
             {expanded ? (
-              <ChevronDown size={14} className="text-gray-600" />
+              <ChevronDown size={14} className="text-slate-400" />
             ) : (
-              <ChevronRight size={14} className="text-gray-600" />
+              <ChevronRight size={14} className="text-slate-400" />
             )}
           </button>
         ) : (
           <div className="w-6" />
         )}
         <span
-          className={`text-sm ${isSelected ? "font-medium text-blue-900" : "text-gray-700"}`}
+          className={`text-sm ${isSelected ? "font-medium text-purple-200" : "text-slate-300"}`}
         >
           {node.category.name}
         </span>
@@ -204,13 +212,14 @@ function AdminAttributeTemplatesInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("adminAttributeTemplates.title")}
-          </h1>
-          <Button
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Tags}
+        title={t("adminAttributeTemplates.title")}
+        description={t("adminAttributeTemplates.description")}
+        actions={
+          <button
+            type="button"
             onClick={() => {
               if (!selectedCategory) {
                 toast.error(t("adminAttributeTemplates.categoryRequired"));
@@ -222,120 +231,114 @@ function AdminAttributeTemplatesInner() {
               });
               setCreateModalOpen(true);
             }}
+            className={adminPrimaryClass}
           >
-            <Plus size={16} className="mr-2" />
+            <Plus size={16} />
             {t("adminAttributeTemplates.create")}
-          </Button>
+          </button>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <div className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-4">
+            <h3 className="mb-4 text-sm font-semibold text-white">
+              {t("common.categories")}
+            </h3>
+            {loadingCategories ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin text-purple-300" size={20} />
+              </div>
+            ) : categoryTree ? (
+              <CategorySelector
+                tree={categoryTree}
+                selected={selectedCategory}
+                onSelect={(id) => {
+                  setSelectedCategory(id);
+                  loadTemplate(id);
+                }}
+              />
+            ) : (
+              <p className="text-sm text-slate-400">
+                {t("adminAttributeTemplates.noCategories")}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                {t("common.categories")}
-              </h3>
-              {loadingCategories ? (
-                <div className="py-8 flex justify-center">
-                  <Loader2 className="animate-spin text-blue-600" size={20} />
-                </div>
-              ) : categoryTree ? (
-                <CategorySelector
-                  tree={categoryTree}
-                  selected={selectedCategory}
-                  onSelect={(id) => {
-                    setSelectedCategory(id);
-                    loadTemplate(id);
-                  }}
-                />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  {t("adminAttributeTemplates.noCategories")}
-                </p>
-              )}
+        <div className="lg:col-span-2">
+          {!selectedCategory ? (
+            <AdminEmpty
+              icon={Tags}
+              title={t("adminAttributeTemplates.selectCategory")}
+              description={t("adminAttributeTemplates.selectCategoryHelp")}
+            />
+          ) : loadingTemplate ? (
+            <div className="flex justify-center rounded-2xl border border-slate-600/60 bg-white/[0.04] p-12">
+              <Loader2 className="animate-spin text-purple-300" size={28} />
             </div>
-          </div>
-
-          <div className="lg:col-span-2">
-            {!selectedCategory ? (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-                <Tags className="mx-auto text-gray-400 mb-4" size={48} />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {t("adminAttributeTemplates.selectCategory")}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {t("adminAttributeTemplates.selectCategoryHelp")}
-                </p>
-              </div>
-            ) : loadingTemplate ? (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={28} />
-              </div>
-            ) : template ? (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {t("adminAttributeTemplates.template")}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {template.templateId.slice(0, 24)}...
-                    </p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700">
-                    {t("common.active")}
-                  </Badge>
+          ) : template ? (
+            <div className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-5">
+              <div className="mb-6 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {t("adminAttributeTemplates.template")}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {template.templateId.slice(0, 24)}...
+                  </p>
                 </div>
+                <AdminPill tone="success">{t("common.active")}</AdminPill>
+              </div>
 
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                    <Settings size={16} className="text-blue-600" />
-                    {t("adminAttributeTemplates.attributes")}
-                  </h4>
-                  {Object.entries(template.attributes).map(
-                    ([key, filterable]) => (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <code className="text-sm font-mono text-gray-900 bg-white px-2 py-1 rounded border border-gray-200">
-                            {key}
-                          </code>
-                          {filterable && (
-                            <Badge
-                              variant="success"
-                              className="text-xs flex items-center gap-1"
-                            >
-                              <Filter size={10} />
-                              {t("adminAttributeTemplates.filterable")}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">
-                            {t("adminAttributeTemplates.filterable")}:
-                          </span>
-                          <Toggle
-                            checked={filterable}
-                            onChange={(v) => handleToggleFilterable(key, v)}
-                            disabled={updatingKey === key}
-                          />
-                        </div>
+              <div className="space-y-3">
+                <h4 className="flex items-center gap-2 text-sm font-medium text-slate-200">
+                  <Settings size={16} className="text-purple-300" />
+                  {t("adminAttributeTemplates.attributes")}
+                </h4>
+                {Object.entries(template.attributes).map(
+                  ([key, filterable]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-600/60 bg-white/[0.04] p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <code className="rounded border border-slate-600/60 bg-white/5 px-2 py-1 font-mono text-sm text-purple-200">
+                          {key}
+                        </code>
+                        {filterable && (
+                          <AdminPill
+                            tone="info"
+                            className="flex items-center gap-1"
+                          >
+                            <Filter size={10} />
+                            {t("adminAttributeTemplates.filterable")}
+                          </AdminPill>
+                        )}
                       </div>
-                    ),
-                  )}
-                </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">
+                          {t("adminAttributeTemplates.filterable")}:
+                        </span>
+                        <Toggle
+                          checked={filterable}
+                          onChange={(v) => handleToggleFilterable(key, v)}
+                          disabled={updatingKey === key}
+                        />
+                      </div>
+                    </div>
+                  ),
+                )}
               </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-                <Tags className="mx-auto text-gray-400 mb-4" size={48} />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {t("adminAttributeTemplates.emptyTitle")}
-                </h3>
-                <p className="text-sm text-gray-500 mb-6">
-                  {t("adminAttributeTemplates.emptyDescription")}
-                </p>
-                <Button
+            </div>
+          ) : (
+            <AdminEmpty
+              icon={Tags}
+              title={t("adminAttributeTemplates.emptyTitle")}
+              description={t("adminAttributeTemplates.emptyDescription")}
+              action={
+                <button
+                  type="button"
                   onClick={() => {
                     setFormData({
                       categoryId: selectedCategory,
@@ -343,12 +346,13 @@ function AdminAttributeTemplatesInner() {
                     });
                     setCreateModalOpen(true);
                   }}
+                  className={adminPrimaryClass}
                 >
                   {t("adminAttributeTemplates.create")}
-                </Button>
-              </div>
-            )}
-          </div>
+                </button>
+              }
+            />
+          )}
         </div>
       </div>
 

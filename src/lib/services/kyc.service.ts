@@ -28,9 +28,9 @@ export const kycService = {
 };
 
 export const adminKycService = {
-  listByStatus(status: KycStatus, limit = 50) {
+  listByStatus(status: KycStatus, search?: string, limit = 50) {
     return requestEnvelope<KycProfile[]>("/admin/kyc", {
-      query: { status, limit },
+      query: { status, search, limit },
     }) as Promise<ApiEnvelope<KycProfile[]>>;
   },
   get(kycId: string) {

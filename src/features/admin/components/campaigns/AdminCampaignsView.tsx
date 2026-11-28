@@ -14,14 +14,14 @@ import {
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { Button, Modal, Input, ConfirmDialog, Select } from "@/shared/ui";
 import {
-  Button,
-  Modal,
-  Input,
-  Badge,
-  ConfirmDialog,
-  Select,
-} from "@/shared/ui";
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminTabs,
+  adminPrimaryClass,
+} from "../shared/AdminConsole";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +36,17 @@ import {
   createEmptyCampaignForm,
   type CampaignForm,
 } from "./campaign-config";
+
+const STATUS_TONE: Record<
+  CampaignStatus,
+  "neutral" | "info" | "success" | "danger"
+> = {
+  DRAFT: "neutral",
+  SCHEDULED: "info",
+  RUNNING: "success",
+  ENDED: "neutral",
+  CANCELLED: "danger",
+};
 
 function AdminCampaignsInner() {
   const { t, locale } = useTranslation();
@@ -138,204 +149,208 @@ function AdminCampaignsInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("adminCampaigns.title")}
-          </h1>
-          <Button onClick={handleCreate}>
-            <Plus size={16} className="mr-2" />
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Sparkles}
+        title={t("adminCampaigns.title")}
+        actions={
+          <button
+            type="button"
+            onClick={handleCreate}
+            className={adminPrimaryClass}
+          >
+            <Plus size={16} />
             {t("adminCampaigns.create")}
-          </Button>
+          </button>
+        }
+      />
+
+      <AdminTabs
+        value={filter}
+        onChange={setFilter}
+        tabs={(["RUNNING", "SCHEDULED", "ENDED", "DRAFT"] as const).map(
+          (status) => ({
+            value: status,
+            label: t(STATUS_CONFIG[status].labelKey),
+          }),
+        )}
+      />
+
+      {loading ? (
+        <div className="flex justify-center rounded-2xl border border-gray-600 bg-white/[0.03] p-12">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
         </div>
+      ) : campaigns.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {campaigns.map((campaign) => {
+            const budgetUsed =
+              ((campaign.budget - campaign.budgetRemaining) / campaign.budget) *
+              100;
 
-        <div className="flex items-center gap-2 mb-6">
-          {(["RUNNING", "SCHEDULED", "ENDED", "DRAFT"] as const).map((s) => (
-            <Button
-              key={s}
-              variant={filter === s ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setFilter(s)}
-            >
-              {t(STATUS_CONFIG[s].labelKey)}
-            </Button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : campaigns.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {campaigns.map((campaign) => {
-              const budgetUsed =
-                ((campaign.budget - campaign.budgetRemaining) /
-                  campaign.budget) *
-                100;
-
-              return (
-                <div
-                  key={campaign.campaignId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-50 rounded-lg">
-                        <Sparkles size={20} className="text-purple-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {campaign.name}
-                        </h3>
-                        <p className="text-xs text-gray-500">{campaign.type}</p>
-                      </div>
+            return (
+              <div
+                key={campaign.campaignId}
+                className="rounded-2xl border border-slate-600/60 bg-white/[0.04] p-5 transition-colors hover:border-purple-400/30"
+              >
+                <div className="mb-4 flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-xl bg-purple-400/10 p-2">
+                      <Sparkles size={20} className="text-purple-300" />
                     </div>
-                    <Badge className={STATUS_CONFIG[campaign.status].color}>
-                      {t(STATUS_CONFIG[campaign.status].labelKey)}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <DollarSign size={16} className="text-gray-400" />
-                      <span className="text-gray-600">
-                        {t("adminCampaigns.budget")}:
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {formatCurrency(
-                          campaign.budget,
-                          campaign.currency,
-                          locale,
-                        )}
-                      </span>
-                    </div>
-
                     <div>
-                      <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                        <span>{t("adminCampaigns.used")}</span>
-                        <span>{budgetUsed.toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${Math.min(budgetUsed, 100)}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t("adminCampaigns.remaining")}:{" "}
+                      <h3 className="text-lg font-semibold text-white">
+                        {campaign.name}
+                      </h3>
+                      <p className="text-xs text-slate-400">{campaign.type}</p>
+                    </div>
+                  </div>
+                  <AdminPill tone={STATUS_TONE[campaign.status]}>
+                    {t(STATUS_CONFIG[campaign.status].labelKey)}
+                  </AdminPill>
+                </div>
+
+                <div className="mb-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <DollarSign size={16} className="text-slate-500" />
+                    <span className="text-slate-400">
+                      {t("adminCampaigns.budget")}:
+                    </span>
+                    <span className="font-semibold text-white">
+                      {formatCurrency(
+                        campaign.budget,
+                        campaign.currency,
+                        locale,
+                      )}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
+                      <span>{t("adminCampaigns.used")}</span>
+                      <span>{budgetUsed.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-white/10">
+                      <div
+                        className="h-2 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500"
+                        style={{ width: `${Math.min(budgetUsed, 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {t("adminCampaigns.remaining")}:{" "}
+                      {formatCurrency(
+                        campaign.budgetRemaining,
+                        campaign.currency,
+                        locale,
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Calendar size={16} className="text-slate-500" />
+                    <span>
+                      {formatDate(campaign.startDate, locale)} →{" "}
+                      {formatDate(campaign.endDate, locale)}
+                    </span>
+                  </div>
+
+                  {campaign.minOrderValue && (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Tag size={16} className="text-slate-500" />
+                      <span>
+                        {t("adminCampaigns.minimumOrder")}:{" "}
                         {formatCurrency(
-                          campaign.budgetRemaining,
+                          campaign.minOrderValue,
                           campaign.currency,
                           locale,
                         )}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-gray-400" />
-                      <span>
-                        {formatDate(campaign.startDate, locale)} →{" "}
-                        {formatDate(campaign.endDate, locale)}
                       </span>
                     </div>
+                  )}
+                </div>
 
-                    {campaign.minOrderValue && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Tag size={16} className="text-gray-400" />
-                        <span>
-                          {t("adminCampaigns.minimumOrder")}:{" "}
-                          {formatCurrency(
-                            campaign.minOrderValue,
-                            campaign.currency,
-                            locale,
-                          )}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap items-center gap-2 border-t border-slate-600/60 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-w-[120px] flex-1"
+                    onClick={() =>
+                      (window.location.href = `/admin/promotions/campaigns/${campaign.campaignId}/vouchers`)
+                    }
+                  >
+                    <TrendingUp size={14} className="mr-1" />
+                    {t("adminCampaigns.viewVouchers")}
+                  </Button>
+                  {(campaign.status === "DRAFT" ||
+                    campaign.status === "SCHEDULED") && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() =>
+                        setConfirmAction({
+                          campaignId: campaign.campaignId,
+                          action: "activate",
+                        })
+                      }
+                    >
+                      <Play size={14} className="mr-1" />
+                      {t("adminCampaigns.activate")}
+                    </Button>
+                  )}
+                  {campaign.status === "RUNNING" && (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 min-w-[120px]"
                       onClick={() =>
-                        (window.location.href = `/admin/promotions/campaigns/${campaign.campaignId}/vouchers`)
+                        setConfirmAction({
+                          campaignId: campaign.campaignId,
+                          action: "end",
+                        })
                       }
                     >
-                      <TrendingUp size={14} className="mr-1" />
-                      Xem vouchers
+                      <StopCircle size={14} className="mr-1" />
+                      {t("adminCampaigns.end")}
                     </Button>
-                    {(campaign.status === "DRAFT" ||
-                      campaign.status === "SCHEDULED") && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() =>
-                          setConfirmAction({
-                            campaignId: campaign.campaignId,
-                            action: "activate",
-                          })
-                        }
-                      >
-                        <Play size={14} className="mr-1" />
-                        {t("adminCampaigns.activate")}
-                      </Button>
-                    )}
-                    {campaign.status === "RUNNING" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setConfirmAction({
-                            campaignId: campaign.campaignId,
-                            action: "end",
-                          })
-                        }
-                      >
-                        <StopCircle size={14} className="mr-1" />
-                        {t("adminCampaigns.end")}
-                      </Button>
-                    )}
-                    {(campaign.status === "DRAFT" ||
-                      campaign.status === "SCHEDULED" ||
-                      campaign.status === "RUNNING") && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setConfirmAction({
-                            campaignId: campaign.campaignId,
-                            action: "cancel",
-                          })
-                        }
-                      >
-                        <XCircle size={14} className="text-red-600 mr-1" />
-                        <span className="text-red-600">
-                          {t("common.cancel")}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
+                  )}
+                  {(campaign.status === "DRAFT" ||
+                    campaign.status === "SCHEDULED" ||
+                    campaign.status === "RUNNING") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setConfirmAction({
+                          campaignId: campaign.campaignId,
+                          action: "cancel",
+                        })
+                      }
+                    >
+                      <XCircle size={14} className="mr-1 text-rose-300" />
+                      <span className="text-rose-300">
+                        {t("common.cancel")}
+                      </span>
+                    </Button>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 text-center">
-            <Sparkles className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t("adminCampaigns.emptyTitle")}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {t("adminCampaigns.emptyDescription")}
-            </p>
-            <Button onClick={handleCreate}>{t("adminCampaigns.create")}</Button>
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <AdminEmpty
+          icon={Sparkles}
+          title={t("adminCampaigns.emptyTitle")}
+          description={t("adminCampaigns.emptyDescription")}
+          action={
+            <button
+              type="button"
+              onClick={handleCreate}
+              className={adminPrimaryClass}
+            >
+              {t("adminCampaigns.create")}
+            </button>
+          }
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}

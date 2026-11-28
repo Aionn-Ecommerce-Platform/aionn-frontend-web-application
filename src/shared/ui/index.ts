@@ -11,6 +11,7 @@ export { default as ConfirmDialog } from "./ConfirmDialog";
 export { default as Select } from "./Select";
 export { default as Textarea } from "./Textarea";
 export { PeriodDropdown } from "./PeriodDropdown";
+export { FilterDropdown } from "./FilterDropdown";
 export { default as DefinitionRow } from "./DefinitionRow";
 export { default as Switch } from "./Switch";
 export { default as FormField } from "./FormField";

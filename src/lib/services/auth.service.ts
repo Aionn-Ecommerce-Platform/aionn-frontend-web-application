@@ -3,6 +3,7 @@ import type {
   AuthSession,
   AuthTokens,
   RegistrationSession,
+  SocialLink,
   VerifyOtpResult,
 } from "@/types";
 
@@ -56,6 +57,10 @@ export const authService = {
     }>("/auth/social-links", body, { idempotent: true });
   },
 
+  listSocialLinks() {
+    return api.get<SocialLink[]>("/auth/social-links");
+  },
+
   unlinkSocial(provider: string) {
     return api.delete<void>(`/auth/social-links/${provider}`);
   },
@@ -70,6 +75,7 @@ interface CompleteRegistrationRequest {
   password: string;
   username: string;
   verificationToken: string;
+  acceptedTerms: boolean;
 }
 
 export const registrationService = {

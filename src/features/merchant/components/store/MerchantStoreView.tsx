@@ -368,7 +368,7 @@ export default function MerchantStorePage({
 
   return (
     <div className="bg-transparent min-h-screen">
-      <div>
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 pb-16 sm:px-6 lg:px-8">
         <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
           <Link href="/" className="hover:text-brand">
             {t("common.home")}

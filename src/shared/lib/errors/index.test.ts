@@ -36,6 +36,20 @@ describe("getErrorMessage", () => {
     );
   });
 
+  it("explains how to link Google when the email already has an account", () => {
+    const error = new ApiError(
+      "Sign in to the existing account and link this social provider",
+      {
+        status: 409,
+        errorCode: "IDENTITY_228",
+      },
+    );
+
+    expect(getErrorMessage(error)).toBe(
+      "Email này đã có tài khoản. Hãy đăng nhập bằng mật khẩu, sau đó vào Cài đặt → Liên kết tài khoản để thêm Google.",
+    );
+  });
+
   it("prefers a field error over the envelope message", () => {
     const error = new ApiError("Validation failed", {
       status: 400,

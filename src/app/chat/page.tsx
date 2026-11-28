@@ -34,6 +34,7 @@ import {
   feedbackService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
+import { AIONN_SUPPORT_PEER_ID } from "@/lib/services/chat.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { isVideoUrl, MEDIA_LIMITS } from "@/shared/lib/media";
@@ -169,25 +170,24 @@ export function ChatInner({
           }
         });
       } else if (newMessageAppended) {
-        const lastMsg = sortedMessages[count - 1];
-        const sentByMe = lastMsg?.senderId === userId;
-        const nearBottom =
-          container.scrollHeight -
-            container.scrollTop -
-            container.clientHeight <
-          120;
-        if (sentByMe || nearBottom) {
-          container.scrollTo({
-            top: container.scrollHeight,
-            behavior: "smooth",
-          });
-        }
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: "smooth",
+        });
+        requestAnimationFrame(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+              top: messagesContainerRef.current.scrollHeight,
+              behavior: "smooth",
+            });
+          }
+        });
       }
     }
 
     lastConversationIdRef.current = effectiveSelectedId;
     lastMessageCountRef.current = count;
-  }, [sortedMessages, effectiveSelectedId, userId]);
+  }, [sortedMessages, effectiveSelectedId]);
 
   useEffect(() => {
     if (isInitializing || !isAuthenticated || !effectiveSelectedId) return;
@@ -600,14 +600,22 @@ export function ChatInner({
                     </div>
                   ) : (
                     filtered.map((conv) => {
-                      const other = conv.participants.find(
-                        (p) => p.userId !== userId,
-                      );
+                      const isSupport =
+                        conv.merchantId === AIONN_SUPPORT_PEER_ID;
+                      const isBuyer = conv.buyerId === userId;
+                      const other =
+                        isSupport && !isBuyer
+                          ? conv.participants.find(
+                              (p) => p.userId === conv.buyerId,
+                            )
+                          : conv.participants.find((p) => p.userId !== userId);
                       const name =
-                        other?.displayName?.trim() ||
-                        (other?.role === "MERCHANT"
-                          ? t("chat.merchantFallback")
-                          : t("chat.userFallback"));
+                        isSupport && isBuyer
+                          ? t("chat.supportName")
+                          : other?.displayName?.trim() ||
+                            (other?.role === "MERCHANT"
+                              ? t("chat.merchantFallback")
+                              : t("chat.userFallback"));
                       const isSelected =
                         effectiveSelectedId === conv.conversationId;
                       const senderPrefix =
@@ -717,14 +725,24 @@ export function ChatInner({
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         {(() => {
-                          const other = activeConv.participants.find(
-                            (p) => p.userId !== userId,
-                          );
+                          const isSupport =
+                            activeConv.merchantId === AIONN_SUPPORT_PEER_ID;
+                          const isBuyer = activeConv.buyerId === userId;
+                          const other =
+                            isSupport && !isBuyer
+                              ? activeConv.participants.find(
+                                  (p) => p.userId === activeConv.buyerId,
+                                )
+                              : activeConv.participants.find(
+                                  (p) => p.userId !== userId,
+                                );
                           const name =
-                            other?.displayName?.trim() ||
-                            (other?.role === "MERCHANT"
-                              ? t("chat.merchantFallback")
-                              : t("chat.userFallback"));
+                            isSupport && isBuyer
+                              ? t("chat.supportName")
+                              : other?.displayName?.trim() ||
+                                (other?.role === "MERCHANT"
+                                  ? t("chat.merchantFallback")
+                                  : t("chat.userFallback"));
                           return (
                             <>
                               <Avatar
@@ -822,7 +840,9 @@ export function ChatInner({
                                   : "bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100"
                               }`}
                             >
-                              {activeConv.merchantId && (
+                              {activeConv.merchantId &&
+                                activeConv.merchantId !==
+                                  AIONN_SUPPORT_PEER_ID && (
                                 <Link
                                   href={`/merchants/${activeConv.merchantId}`}
                                   onClick={() => setMoreMenuOpen(false)}
