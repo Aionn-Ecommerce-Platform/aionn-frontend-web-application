@@ -6,7 +6,7 @@ const ACTIVE_RETURN_STATUSES = new Set([
   "ITEM_RECEIVED",
 ]);
 
-export interface OrderCardActions {
+interface OrderCardActions {
   confirmReceived: boolean;
   rate: boolean;
   buyAgain: boolean;

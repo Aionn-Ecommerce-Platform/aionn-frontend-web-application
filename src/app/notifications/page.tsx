@@ -351,7 +351,7 @@ function NotificationsInner() {
                           : "bg-gray-50/80 hover:bg-gray-100/80"
                       }`}
                     >
-                      {/* Unread indicator dot slot with balanced width so content stays aligned */}
+                      {/* Selection checkbox */}
                       <div className="shrink-0 self-center">
                         <input
                           type="checkbox"
@@ -364,17 +364,10 @@ function NotificationsInner() {
                           className="h-4 w-4 rounded border-gray-400 accent-gray-950 cursor-pointer"
                         />
                       </div>
-                      <div className="w-2.5 h-10 flex items-center justify-center shrink-0">
-                        {!read && (
-                          <span className="w-2 h-2 rounded-full bg-brand shadow-xs shrink-0" />
-                        )}
-                      </div>
 
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                          read
-                            ? "bg-gray-100/60 border-gray-400 opacity-60"
-                            : "bg-white border-gray-400 shadow-xs"
+                        className={`flex h-12 w-12 shrink-0 self-center items-center justify-center [&>svg]:h-7 [&>svg]:w-7 ${
+                          read ? "opacity-60" : ""
                         }`}
                       >
                         {categoryIcons[notif.category] ?? (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertCircle,
   Warehouse as WarehouseIcon,
   Plus,
   Loader2,
@@ -10,23 +11,31 @@ import {
   Play,
   ArrowUpDown,
   CheckCircle2,
+  Eye,
+  Info,
   PauseCircle,
   Search,
   ShieldAlert,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, EmptyState } from "@/shared/ui";
+import { Button, Modal, Pagination, Badge } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
-import { warehouseService, merchantService } from "@/lib/services";
+import {
+  warehouseService,
+  merchantService,
+  geographyService,
+} from "@/lib/services";
 import {
   ConsoleFilterDropdown,
   ConsoleEmptyState,
   ConsolePanel,
+  ConsoleStatGrid,
 } from "@/features/merchant";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 import type { Warehouse, WarehouseStatus } from "@/types";
+import { WarehouseLocationPicker } from "./_components/WarehouseLocationPicker";
 
 const WAREHOUSE_STATUS_CLASS: Record<WarehouseStatus, string> = {
   ACTIVE: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
@@ -51,7 +60,7 @@ function warehouseStatusLabelKey(status: WarehouseStatus) {
 }
 
 function MerchantWarehousesInner() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const statusLabels: Record<WarehouseStatus, string> = {
     ACTIVE: t("merchant.warehouses.statusActive"),
@@ -59,60 +68,74 @@ function MerchantWarehousesInner() {
     SUSPENDED: t("merchant.warehouses.statusSuspended"),
   };
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Warehouse | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<WarehouseStatus | "all">(
     "all",
   );
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
   const [adjustingPriority, setAdjustingPriority] = useState<Warehouse | null>(
     null,
   );
 
-  const { data: warehouses, isLoading } = useQuery({
-    queryKey: ["merchant-warehouses"],
-    queryFn: () => warehouseService.listMine(),
+  const {
+    data: warehousePage,
+    isLoading,
+    isError: warehousesError,
+    refetch: refetchWarehouses,
+  } = useQuery({
+    queryKey: ["merchant-warehouses", page, statusFilter, search.trim()],
+    queryFn: () =>
+      warehouseService.listMine({
+        page: page - 1,
+        limit: PAGE_SIZE,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        search: search.trim() || undefined,
+      }),
+  });
+  const warehouses = warehousePage?.content ?? [];
+  const totalPages = Math.max(1, warehousePage?.totalPages ?? 1);
+  const safePage = Math.min(page, totalPages);
+  if (warehousePage && page > safePage) {
+    setPage(safePage);
+  }
+
+  const { data: stats, isError: statsError } = useQuery({
+    queryKey: ["merchant-warehouse-stats"],
+    queryFn: () => warehouseService.stats(),
   });
 
+  const statValue = (value: number | undefined) =>
+    statsError || value == null ? "—" : value;
   const warehouseStats = [
     {
       label: t("merchant.warehouses.stats.total"),
-      value: warehouses?.length ?? 0,
+      value: statValue(stats?.total),
       icon: WarehouseIcon,
       iconClass: "text-purple-300",
     },
     {
       label: t("merchant.warehouses.stats.active"),
-      value:
-        warehouses?.filter((warehouse) => warehouse.status === "ACTIVE")
-          .length ?? 0,
+      value: statValue(stats?.active),
       icon: CheckCircle2,
       iconClass: "text-emerald-300",
     },
     {
       label: t("merchant.warehouses.stats.inactive"),
-      value:
-        warehouses?.filter((warehouse) => warehouse.status === "INACTIVE")
-          .length ?? 0,
+      value: statValue(stats?.inactive),
       icon: PauseCircle,
       iconClass: "text-amber-300",
     },
     {
       label: t("merchant.warehouses.stats.suspended"),
-      value:
-        warehouses?.filter((warehouse) => warehouse.status === "SUSPENDED")
-          .length ?? 0,
+      value: statValue(stats?.suspended),
       icon: ShieldAlert,
       iconClass: "text-rose-300",
     },
   ];
 
-  const searchQuery = search.trim().toLowerCase();
-  const filteredWarehouses = (warehouses ?? []).filter(
-    (warehouse) =>
-      (statusFilter === "all" || warehouse.status === statusFilter) &&
-      (!searchQuery ||
-        warehouse.warehouseId.toLowerCase().includes(searchQuery) ||
-        (warehouse.address ?? "").toLowerCase().includes(searchQuery)),
-  );
+  const hasFilters = Boolean(search.trim() || statusFilter !== "all");
 
   const statusMutation = useMutation({
     mutationFn: ({
@@ -124,6 +147,8 @@ function MerchantWarehousesInner() {
     }) => warehouseService.changeStatus(warehouseId, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["merchant-warehouses"] });
+      qc.invalidateQueries({ queryKey: ["merchant-warehouse-stats"] });
+      setSelected(null);
       toast.success(t("merchant.warehouses.toastStatusUpdated"));
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -131,11 +156,12 @@ function MerchantWarehousesInner() {
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["merchant-warehouses"] });
+    qc.invalidateQueries({ queryKey: ["merchant-warehouse-stats"] });
   }
 
   return (
     <ConsolePanel>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
           <WarehouseIcon size={22} className="text-purple-300" />
           <span className="text-purple-300">
@@ -152,30 +178,18 @@ function MerchantWarehousesInner() {
         </button>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {warehouseStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="flex items-center gap-3 rounded-2xl border border-gray-400 bg-white p-3.5 shadow-xs"
-            >
-              <Icon
-                size={24}
-                strokeWidth={2.2}
-                className={`shrink-0 ${stat.iconClass}`}
-              />
-              <div className="min-w-0">
-                <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-                  {stat.label}
-                </p>
-                <p className="truncate text-xl font-extrabold text-gray-950">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+      <ConsoleStatGrid stats={warehouseStats} />
+
+      <div className="mb-5 rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4">
+        <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+          <Info size={15} className="text-purple-300" />
+          {t("merchant.warehouses.aboutTitle")}
+        </h4>
+        <ul className="space-y-1.5 text-sm text-slate-300">
+          <li>{t("merchant.warehouses.aboutPriority")}</li>
+          <li>{t("merchant.warehouses.aboutInactive")}</li>
+          <li>{t("merchant.warehouses.aboutSuspended")}</li>
+        </ul>
       </div>
 
       <div className="relative z-30 mb-5 flex flex-wrap items-center gap-2">
@@ -186,7 +200,10 @@ function MerchantWarehousesInner() {
           />
           <input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
             placeholder={t("merchant.warehouses.searchPlaceholder")}
             className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 shadow-sm focus:border-purple-400/70 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
           />
@@ -201,23 +218,41 @@ function MerchantWarehousesInner() {
                 ? t("merchant.warehouses.statusAll")
                 : t(warehouseStatusLabelKey(key)),
           }))}
-          onChange={setStatusFilter}
+          onChange={(value) => {
+            setStatusFilter(value);
+            setPage(1);
+          }}
         />
       </div>
 
       {isLoading ? (
-        <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-12 flex justify-center">
-          <Loader2 className="animate-spin text-brand" size={28} />
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-400" size={28} />
         </div>
-      ) : !warehouses || warehouses.length === 0 ? (
-        <EmptyState
+      ) : warehousesError ? (
+        <ConsoleEmptyState
+          icon={AlertCircle}
+          iconClassName="text-rose-300"
+          title={t("common.error")}
+          description={t("common.tryAgain")}
+        >
+          <button
+            type="button"
+            onClick={() => void refetchWarehouses()}
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+          >
+            {t("common.retry")}
+          </button>
+        </ConsoleEmptyState>
+      ) : warehouses.length === 0 && !hasFilters ? (
+        <ConsoleEmptyState
           icon={WarehouseIcon}
           title={t("merchant.warehouses.emptyTitle")}
           description={t("merchant.warehouses.emptyDescription")}
         />
-      ) : filteredWarehouses.length === 0 ? (
+      ) : warehouses.length === 0 ? (
         <ConsoleEmptyState
-          icon={<WarehouseIcon size={30} />}
+          icon={WarehouseIcon}
           title={t("merchant.warehouses.emptyFilteredTitle")}
           description={t("merchant.warehouses.emptyFilteredDescription")}
         >
@@ -226,8 +261,9 @@ function MerchantWarehousesInner() {
             onClick={() => {
               setSearch("");
               setStatusFilter("all");
+              setPage(1);
             }}
-            className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
           >
             {t("merchant.warehouses.clearFilters")}
           </button>
@@ -251,20 +287,17 @@ function MerchantWarehousesInner() {
                     {t("merchant.warehouses.colStatus")}
                   </th>
                   <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    {t("merchant.warehouses.colCreatedAt")}
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {t("merchant.warehouses.colActions")}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredWarehouses.map((wh) => (
+                {warehouses.map((wh) => (
                   <tr
                     key={wh.warehouseId}
                     className="border-b border-slate-600/60 transition-colors last:border-0 hover:bg-white/[0.04]"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-center font-mono text-xs text-slate-200">
+                    <td className="whitespace-nowrap px-4 py-3 text-center font-mono text-[13px] font-semibold text-white">
                       {wh.warehouseId}
                     </td>
                     <td className="max-w-[320px] px-4 py-3 text-center text-sm text-slate-300">
@@ -282,60 +315,16 @@ function MerchantWarehousesInner() {
                         {statusLabels[wh.status]}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-center text-xs text-slate-400">
-                      {formatDateTime(wh.createdAt)}
-                    </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {wh.status === "ACTIVE" ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            loading={
-                              statusMutation.isPending &&
-                              statusMutation.variables?.warehouseId ===
-                                wh.warehouseId
-                            }
-                            onClick={() =>
-                              statusMutation.mutate({
-                                warehouseId: wh.warehouseId,
-                                status: "INACTIVE",
-                              })
-                            }
-                          >
-                            <Pause size={14} className="mr-1" />
-                            {t("merchant.warehouses.pauseBtn")}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            loading={
-                              statusMutation.isPending &&
-                              statusMutation.variables?.warehouseId ===
-                                wh.warehouseId
-                            }
-                            onClick={() =>
-                              statusMutation.mutate({
-                                warehouseId: wh.warehouseId,
-                                status: "ACTIVE",
-                              })
-                            }
-                            disabled={wh.status === "SUSPENDED"}
-                          >
-                            <Play size={14} className="mr-1" />
-                            {t("merchant.warehouses.activateBtn")}
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title={t("merchant.warehouses.priorityTitle")}
-                          aria-label={t("merchant.warehouses.priorityTitle")}
-                          onClick={() => setAdjustingPriority(wh)}
+                      <div className="flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelected(wh)}
+                          aria-label={t("merchant.warehouses.detailTitle")}
+                          className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                         >
-                          <ArrowUpDown size={14} />
-                        </Button>
+                          <Eye size={15} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -346,16 +335,157 @@ function MerchantWarehousesInner() {
         </div>
       )}
 
-      <div className="mt-6 bg-brand/10 border border-brand/30 rounded-md p-4">
-        <h4 className="text-sm font-medium text-brand-strong mb-2">
-          {t("merchant.warehouses.aboutTitle")}
-        </h4>
-        <ul className="text-xs text-brand-strong space-y-1">
-          <li>{t("merchant.warehouses.aboutPriority")}</li>
-          <li>{t("merchant.warehouses.aboutInactive")}</li>
-          <li>{t("merchant.warehouses.aboutSuspended")}</li>
-        </ul>
-      </div>
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+
+      <Modal
+        isOpen={selected !== null}
+        onClose={() => setSelected(null)}
+        title={t("merchant.warehouses.detailTitle")}
+        size="full"
+      >
+        {selected && (
+          <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2 text-sm">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.colWarehouse")}
+                </p>
+                <p className="mt-1 break-all font-mono text-sm font-semibold text-gray-900">
+                  {selected.warehouseId}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.colStatus")}
+                </p>
+                <Badge
+                  variant={
+                    selected.status === "ACTIVE"
+                      ? "success"
+                      : selected.status === "SUSPENDED"
+                        ? "warning"
+                        : "default"
+                  }
+                  className="!mt-1 !rounded-full !px-3 !py-1 !text-xs"
+                >
+                  {statusLabels[selected.status]}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.colAddress")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {selected.address || t("merchant.warehouses.noAddress")}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.colPriority")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {selected.priorityLevel}
+                </p>
+              </div>
+              {(selected.pickupName || selected.pickupPhone) && (
+                <div className="sm:col-span-2">
+                  <p className="text-gray-500">
+                    {t("merchant.warehouses.pickupNameLabel")}
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {selected.pickupName}
+                  </p>
+                  {selected.pickupPhone && (
+                    <p className="text-sm text-gray-500">
+                      {selected.pickupPhone}
+                    </p>
+                  )}
+                </div>
+              )}
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.colCreatedAt")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {formatDateTime(selected.createdAt, locale)}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.warehouses.detailUpdatedAt")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {formatDateTime(selected.updatedAt, locale)}
+                </p>
+              </div>
+            </div>
+
+            {selected.status === "SUSPENDED" && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                {t("merchant.warehouses.aboutSuspended")}
+              </div>
+            )}
+
+            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-300 pt-4">
+              {selected.status !== "SUSPENDED" && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAdjustingPriority(selected)}
+                  >
+                    <ArrowUpDown size={14} className="mr-1.5" />
+                    {t("merchant.warehouses.priorityTitle")}
+                  </Button>
+                  {selected.status === "ACTIVE" ? (
+                    <Button
+                      variant="warning"
+                      loading={
+                        statusMutation.isPending &&
+                        statusMutation.variables?.warehouseId ===
+                          selected.warehouseId
+                      }
+                      onClick={() =>
+                        statusMutation.mutate({
+                          warehouseId: selected.warehouseId,
+                          status: "INACTIVE",
+                        })
+                      }
+                    >
+                      <Pause size={14} className="mr-1.5" />
+                      {t("merchant.warehouses.pauseBtn")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="success"
+                      loading={
+                        statusMutation.isPending &&
+                        statusMutation.variables?.warehouseId ===
+                          selected.warehouseId
+                      }
+                      onClick={() =>
+                        statusMutation.mutate({
+                          warehouseId: selected.warehouseId,
+                          status: "ACTIVE",
+                        })
+                      }
+                    >
+                      <Play size={14} className="mr-1.5" />
+                      {t("merchant.warehouses.activateBtn")}
+                    </Button>
+                  )}
+                </>
+              )}
+              <Button variant="outline" onClick={() => setSelected(null)}>
+                {t("common.close")}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {creating && (
         <CreateModal
@@ -390,18 +520,54 @@ function CreateModal({
 }) {
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+  const [provinceCode, setProvinceCode] = useState("");
+  const [districtCode, setDistrictCode] = useState("");
+  const [wardCode, setWardCode] = useState("");
   const [priority, setPriority] = useState("1");
+
+  const { data: provinces } = useQuery({
+    queryKey: ["geography", "provinces", "VN"],
+    queryFn: () => geographyService.listProvinces("VN"),
+  });
+  const { data: districts } = useQuery({
+    queryKey: ["geography", "districts", provinceCode],
+    queryFn: () => geographyService.listDistricts(provinceCode),
+    enabled: Boolean(provinceCode),
+  });
+  const { data: wards } = useQuery({
+    queryKey: ["geography", "wards", districtCode],
+    queryFn: () => geographyService.listWards(districtCode),
+    enabled: Boolean(districtCode),
+  });
 
   const { data: merchant } = useQuery({
     queryKey: ["merchant", "me"],
     queryFn: () => merchantService.getMine(),
   });
 
+  const provinceName = provinces?.find(
+    (item) => item.code === provinceCode,
+  )?.name;
+  const districtName = districts?.find(
+    (item) => item.code === districtCode,
+  )?.name;
+  const wardName = wards?.find((item) => item.code === wardCode)?.name;
+  const fullAddress = [address.trim(), wardName, districtName, provinceName]
+    .filter(Boolean)
+    .join(", ");
+
   const mutation = useMutation({
     mutationFn: () =>
       warehouseService.create({
         merchantId: merchant!.merchantId,
-        address: address.trim() || undefined,
+        address: fullAddress || undefined,
+        pickupName: pickupName.trim() || undefined,
+        pickupPhone: pickupPhone.trim() || undefined,
+        provinceCode: provinceCode || undefined,
+        districtCode: districtCode || undefined,
+        wardCode: wardCode || undefined,
         priorityLevel: Number(priority) || 1,
       }),
     onSuccess: () => {
@@ -418,6 +584,98 @@ function CreateModal({
       title={t("merchant.warehouses.createTitle")}
     >
       <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.pickupNameLabel")}
+            </label>
+            <input
+              value={pickupName}
+              onChange={(e) => setPickupName(e.target.value)}
+              placeholder={t("merchant.warehouses.pickupNamePlaceholder")}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.pickupPhoneLabel")}
+            </label>
+            <input
+              value={pickupPhone}
+              onChange={(e) => setPickupPhone(e.target.value)}
+              placeholder={t("merchant.warehouses.pickupPhonePlaceholder")}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.provinceLabel")}
+            </label>
+            <select
+              value={provinceCode}
+              onChange={(e) => {
+                setProvinceCode(e.target.value);
+                setDistrictCode("");
+                setWardCode("");
+              }}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {provinces?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.districtLabel")}
+            </label>
+            <select
+              value={districtCode}
+              onChange={(e) => {
+                setDistrictCode(e.target.value);
+                setWardCode("");
+              }}
+              disabled={!provinceCode}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {districts?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t("merchant.warehouses.wardLabel")}
+            </label>
+            <select
+              value={wardCode}
+              onChange={(e) => setWardCode(e.target.value)}
+              disabled={!districtCode}
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-gray-50"
+            >
+              <option value="">
+                {t("merchant.warehouses.geographyPlaceholder")}
+              </option>
+              {wards?.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.warehouses.addressLabel")}
@@ -429,6 +687,12 @@ function CreateModal({
             placeholder={t("merchant.warehouses.addressPlaceholder")}
             className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
+          <div className="mt-3">
+            <WarehouseLocationPicker
+              address={fullAddress || address}
+              onAddressChange={setAddress}
+            />
+          </div>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -492,10 +756,6 @@ function PriorityModal({
       title={t("merchant.warehouses.priorityTitle")}
     >
       <div className="space-y-4">
-        <div className="bg-gray-50 rounded-lg p-3 text-xs">
-          <p className="font-mono">{warehouse.warehouseId}</p>
-          <p className="text-gray-500 mt-1">{warehouse.address || "—"}</p>
-        </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.warehouses.priorityRangeHelp")}

@@ -34,6 +34,12 @@ export interface AuthSession {
   expiresAt: string;
 }
 
+export interface SocialLink {
+  provider: string;
+  providerUserId: string;
+  linkedAt: string;
+}
+
 export type AddressType = "HOME" | "OFFICE";
 
 export interface Address {

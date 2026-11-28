@@ -9,6 +9,7 @@ const allowed = [
   /thành phố|Thành Phố|tỉnh|Tỉnh|Quận|Huyện|Thị Xã|Phường|Xã|Thị Trấn/u,
   /chính hãng/u,
   /79 Đường Láng|Hà Nội|Nguyễn Văn Shipper/u,
+  /xã |phường |thị trấn /u,
 ];
 
 async function walk(directory) {

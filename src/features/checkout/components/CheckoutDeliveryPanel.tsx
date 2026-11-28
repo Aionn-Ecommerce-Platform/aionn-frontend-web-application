@@ -1,17 +1,8 @@
 "use client";
 import Link from "next/link";
-import {
-  AlertCircle,
-  Clock,
-  Loader2,
-  MapPin,
-  PlusCircle,
-  Truck,
-  Zap,
-} from "lucide-react";
-import { Button, Modal } from "@/shared/ui";
+import { Loader2, MapPin, PlusCircle } from "lucide-react";
+import { Badge, Button, Modal } from "@/shared/ui";
 import { getLocalizedAddress } from "@/shared/lib/address-utils";
-import { formatCurrency, formatDate } from "@/shared/lib/utils";
 import type { Address } from "@/types";
 import { AddressOption } from "./CheckoutOptions";
 type T = (key: string, values?: Record<string, string | number>) => string;
@@ -22,22 +13,8 @@ interface Props {
   locale: "vi" | "en";
   modalOpen: boolean;
   selectedId?: string | null;
-  quoteLoading: boolean;
-  deliveryDate: string | null;
-  shippingFee: number;
-  currency?: string;
   onModal: (open: boolean) => void;
   onAddress: (id: string) => void;
-  note: string;
-  onNote: (value: string) => void;
-  shippingOptions: Array<{
-    code: string;
-    label: string;
-    fee: number;
-    estimatedDeliveryAt: string | null;
-  }>;
-  selectedService: string;
-  onSelectService: (code: string) => void;
   t: T;
 }
 export default function CheckoutDeliveryPanel(props: Props) {
@@ -48,27 +25,15 @@ export default function CheckoutDeliveryPanel(props: Props) {
     locale,
     modalOpen: addressModalOpen,
     selectedId: effectiveAddressId,
-    quoteLoading: loadingQuote,
-    deliveryDate: deliveryDateLabel,
-    shippingFee: resolvedShippingFee,
-    currency,
     onModal: setAddressModalOpen,
     onAddress: setSelectedAddressId,
-    note,
-    onNote: setNote,
-    shippingOptions,
-    selectedService,
-    onSelectService,
     t,
   } = props;
   return (
     <>
-      {" "}
       <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
         <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/5 text-brand">
-            <MapPin size={16} />
-          </span>
+          <MapPin size={22} className="shrink-0 text-red-600" />
           {t("checkout.shippingAddress")}
         </h2>
         {loadingAddr ? (
@@ -88,7 +53,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
             </Link>
           </div>
         ) : (
-          <div className="flex items-start justify-between gap-6 border-t border-gray-100 pt-4">
+          <div className="flex items-start justify-between gap-6 border-t border-gray-300 pt-4">
             <div className="min-w-0 space-y-1.5 text-sm leading-6">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-gray-600">
@@ -98,9 +63,7 @@ export default function CheckoutDeliveryPanel(props: Props) {
                   {activeAddress?.contactName}
                 </p>
                 {activeAddress?.isDefault && (
-                  <span className="border border-orange-200 px-1.5 py-0.5 text-xs font-medium text-commerce">
-                    {t("addresses.defaultBadge")}
-                  </span>
+                  <Badge variant="danger">{t("addresses.defaultBadge")}</Badge>
                 )}
               </div>
               <p className="text-gray-600">
@@ -161,120 +124,6 @@ export default function CheckoutDeliveryPanel(props: Props) {
           </Link>
         </div>
       </Modal>
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-sm p-6">
-        <h2 className="flex items-center gap-2.5 text-base font-semibold text-gray-900 mb-4">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/5 text-brand">
-            <Truck size={16} />
-          </span>
-          {t("checkout.shippingMethod")}
-        </h2>
-        {!activeAddress ? (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-            <span>{t("checkout.shippingNeedsAddress")}</span>
-          </div>
-        ) : loadingQuote ? (
-          <div className="py-6 flex justify-center items-center gap-2">
-            <Loader2 className="animate-spin text-brand" size={18} />
-            <span className="text-sm text-gray-500">
-              {t("checkout.calculatingShipping")}
-            </span>
-          </div>
-        ) : shippingOptions.length > 0 ? (
-          <div className="space-y-2">
-            {shippingOptions.map((option) => {
-              const selected = option.code === selectedService;
-              return (
-                <button
-                  key={option.code}
-                  type="button"
-                  onClick={() => onSelectService(option.code)}
-                  className={`w-full rounded-xl border p-4 text-left transition-colors cursor-pointer ${
-                    selected
-                      ? "border-brand bg-gradient-to-r from-brand/5 to-purple-50 ring-1 ring-brand/20"
-                      : "border-gray-400 bg-white hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
-                          selected
-                            ? "bg-white text-brand shadow-sm ring-1 ring-brand/20"
-                            : "bg-gray-50 text-gray-500"
-                        }`}
-                      >
-                        <Zap size={16} />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {option.label}
-                        </p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-600">
-                          <Clock size={11} />
-                          {option.estimatedDeliveryAt
-                            ? formatDate(option.estimatedDeliveryAt, locale)
-                            : t("checkout.noEstimatedDelivery")}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-semibold text-green-600">
-                      {option.fee === 0
-                        ? t("cart.free")
-                        : formatCurrency(option.fee, currency)}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="relative overflow-hidden rounded-xl border border-brand/20 bg-gradient-to-r from-brand/5 to-purple-50 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand shadow-sm ring-1 ring-brand/20">
-                  <Zap size={16} />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {t("checkout.express")}{" "}
-                    <span className="text-gray-400">·</span> GHN
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-600">
-                    <Clock size={11} />
-                    {deliveryDateLabel ?? t("checkout.noEstimatedDelivery")}
-                  </p>
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-green-600">
-                {resolvedShippingFee === 0
-                  ? t("cart.free")
-                  : formatCurrency(resolvedShippingFee, currency)}
-              </span>
-            </div>
-          </div>
-        )}
-        <div className="mt-5 border-t border-gray-100 pt-4">
-          <label
-            htmlFor="checkout-note"
-            className="block text-sm font-semibold text-gray-900 mb-2"
-          >
-            {t("checkout.deliveryNote")}
-          </label>
-          <textarea
-            id="checkout-note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            maxLength={1000}
-            rows={2}
-            placeholder={t("checkout.deliveryNotePlaceholder")}
-            className="w-full rounded-xl border border-gray-400 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            {t("checkout.deliveryNoteHint")}
-          </p>
-        </div>
-      </div>
     </>
   );
 }

@@ -11,14 +11,30 @@ import {
   ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, EmptyState, Modal } from "@/shared/ui";
+import { Button, Modal } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSelect,
+  AdminStats,
+  AdminTable,
+  AdminTabs,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { adminOrderReturnService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import type { OrderReturn, ReturnReasonType, ReturnStatus } from "@/types";
 import { useTranslation } from "@/hooks";
-import { RETURN_REASON_TYPES, returnReasonBadgeClass, returnReasonLabelKey } from "@/lib/domain/return-reasons";
+import {
+  RETURN_REASON_TYPES,
+  returnReasonLabelKey,
+} from "@/lib/domain/return-reasons";
 
 const TABS: Array<{ key: ReturnStatus; labelKey: string }> = [
   { key: "REQUESTED", labelKey: "statuses.return.REQUESTED" },
@@ -45,6 +61,14 @@ const STATUS_CFG: Record<
   CANCELLED: { labelKey: "statuses.return.CANCELLED", variant: "default" },
 };
 
+const TONE = {
+  default: "neutral",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+} as const;
+
 type DialogState =
   | { kind: "idle" }
   | { kind: "approve"; r: OrderReturn }
@@ -55,7 +79,9 @@ function AdminOrderReturnsInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState<ReturnStatus>("REQUESTED");
-  const [reasonFilter, setReasonFilter] = useState<"all" | ReturnReasonType>("all");
+  const [reasonFilter, setReasonFilter] = useState<"all" | ReturnReasonType>(
+    "all",
+  );
   const [dialog, setDialog] = useState<DialogState>({ kind: "idle" });
   const [refundAmount, setRefundAmount] = useState<number | "">("");
   const [currency, setCurrency] = useState("VND");
@@ -68,12 +94,27 @@ function AdminOrderReturnsInner() {
     queryFn: () => adminOrderReturnService.listByStatus(tab, 100),
   });
   const items = (data ?? []).filter(
-    (item) =>
-      reasonFilter === "all" || item.reasonType === reasonFilter,
+    (item) => reasonFilter === "all" || item.reasonType === reasonFilter,
   );
+
+  const { data: returnCounts } = useQuery({
+    queryKey: ["admin-return-counts"],
+    queryFn: async () => {
+      const lists = await Promise.all(
+        TABS.map((entry) =>
+          adminOrderReturnService.listByStatus(entry.key, 100),
+        ),
+      );
+      return TABS.reduce<Record<string, number>>((acc, entry, index) => {
+        acc[entry.key] = lists[index]?.length ?? 0;
+        return acc;
+      }, {});
+    },
+  });
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["admin-returns"] });
+    qc.invalidateQueries({ queryKey: ["admin-return-counts"] });
   }
 
   const approveMu = useMutation({
@@ -173,151 +214,174 @@ function AdminOrderReturnsInner() {
     approveMu.isPending || rejectMu.isPending || receivedMu.isPending;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {t("adminReturns.title")}
-        </h1>
-        <p className="text-gray-500 mb-6 text-sm">
-          {t("adminReturns.description")}
-        </p>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={PackageX}
+        title={t("adminReturns.title")}
+        description={t("adminReturns.description")}
+      />
 
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {TABS.map((tabOption) => (
-            <Button
-              key={tabOption.key}
-              variant={tab === tabOption.key ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setTab(tabOption.key)}
-            >
-              {t(tabOption.labelKey)}
-            </Button>
+      <AdminStats
+        stats={TABS.map((entry) => ({
+          label: t(entry.labelKey),
+          value: returnCounts?.[entry.key] ?? 0,
+          icon:
+            entry.key === "ITEM_RECEIVED"
+              ? PackageCheck
+              : entry.key === "REJECTED"
+                ? XCircle
+                : entry.key === "APPROVED"
+                  ? CheckCircle2
+                  : PackageX,
+          iconClass:
+            entry.key === "ITEM_RECEIVED"
+              ? "text-emerald-300"
+              : entry.key === "REJECTED"
+                ? "text-rose-300"
+                : entry.key === "APPROVED"
+                  ? "text-sky-300"
+                  : "text-amber-300",
+        }))}
+      />
+
+      <div className="flex flex-wrap items-start gap-3">
+        <AdminTabs
+          value={tab}
+          onChange={setTab}
+          tabs={TABS.map((tabOption) => ({
+            value: tabOption.key,
+            label: t(tabOption.labelKey),
+          }))}
+        />
+        <AdminSelect
+          value={reasonFilter}
+          onChange={(value) =>
+            setReasonFilter(value as "all" | ReturnReasonType)
+          }
+          ariaLabel={t("orders.returns.reasonType")}
+          className="sm:ml-auto"
+        >
+          <option value="all">{t("orders.returns.allReasonTypes")}</option>
+          {RETURN_REASON_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {t(returnReasonLabelKey(type))}
+            </option>
           ))}
-          <select
-            value={reasonFilter}
-            onChange={(e) =>
-              setReasonFilter(e.target.value as "all" | ReturnReasonType)
-            }
-            className="ml-auto rounded-lg border border-gray-400 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            aria-label={t("orders.returns.reasonType")}
-          >
-            <option value="all">{t("orders.returns.allReasonTypes")}</option>
-            {RETURN_REASON_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {t(returnReasonLabelKey(type))}
-              </option>
-            ))}
-          </select>
-        </div>
+        </AdminSelect>
+      </div>
 
-        {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={PackageX}
-            title={t("adminReturns.emptyTitle")}
-            description={t("adminReturns.emptyDescription")}
-          />
-        ) : (
-          <div className="space-y-3">
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : items.length === 0 ? (
+        <AdminEmpty
+          icon={PackageX}
+          title={t("adminReturns.emptyTitle")}
+          description={t("adminReturns.emptyDescription")}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+              <th className={adminTh}>{t("common.info")}</th>
+              <th className={adminTh}>{t("common.status")}</th>
+              <th className={`${adminTh} text-right`}>{t("common.actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
             {items.map((r) => {
               const cfg = STATUS_CFG[r.status];
               return (
-                <div
-                  key={r.returnId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
-                >
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-semibold text-gray-900 text-sm">
-                          {r.returnId}
+                <tr key={r.returnId} className={adminRow}>
+                  <td className={adminTd}>
+                    <span className="text-sm font-semibold text-white">
+                      {r.returnId}
+                    </span>
+                    <p className="mb-2 mt-1 text-xs text-slate-400">
+                      Order <span className="font-mono">{r.orderId}</span> ·
+                      Buyer <span className="font-mono">{r.userId}</span> ·
+                      Merchant <span className="font-mono">{r.merchantId}</span>
+                    </p>
+                    <div className="mb-1.5">
+                      <AdminPill tone="info">
+                        {t(returnReasonLabelKey(r.reasonType))}
+                      </AdminPill>
+                    </div>
+                    <p className="text-sm text-slate-300">
+                      {t("adminReturns.reason")}:{" "}
+                      <span className="font-medium text-white">{r.reason}</span>
+                    </p>
+                    {r.refundAmount != null && r.currency && (
+                      <p className="mt-1 text-sm text-slate-300">
+                        {t("adminReturns.refund")}:{" "}
+                        <span className="font-medium text-white">
+                          {formatCurrency(r.refundAmount, r.currency, locale)}
                         </span>
-                        <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Order <span className="font-mono">{r.orderId}</span> ·
-                        Buyer <span className="font-mono">{r.userId}</span> ·
-                        Merchant{" "}
-                        <span className="font-mono">{r.merchantId}</span>
+                        {r.returnWarehouseId && (
+                          <>
+                            {" "}
+                            · Kho:{" "}
+                            <span className="font-mono">
+                              {r.returnWarehouseId}
+                            </span>
+                          </>
+                        )}
                       </p>
-                      <div className="mb-1.5">
-                        <Badge
-                          variant="info"
-                          className={returnReasonBadgeClass(r.reasonType)}
-                        >
-                          {t(returnReasonLabelKey(r.reasonType))}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-700">
-                        {t("adminReturns.reason")}:{" "}
-                        <span className="font-medium">{r.reason}</span>
+                    )}
+                    {r.itemCondition && (
+                      <p className="mt-1 text-sm text-slate-300">
+                        {t("adminReturns.itemCondition")}:{" "}
+                        <span className="font-medium text-white">
+                          {r.itemCondition}
+                        </span>
                       </p>
-                      {r.refundAmount != null && r.currency && (
-                        <p className="text-sm text-gray-700 mt-1">
-                          {t("adminReturns.refund")}:{" "}
-                          <span className="font-medium">
-                            {formatCurrency(r.refundAmount, r.currency, locale)}
-                          </span>
-                          {r.returnWarehouseId && (
-                            <>
-                              {" "}
-                              · Kho:{" "}
-                              <span className="font-mono">
-                                {r.returnWarehouseId}
-                              </span>
-                            </>
-                          )}
-                        </p>
-                      )}
-                      {r.itemCondition && (
-                        <p className="text-sm text-gray-700 mt-1">
-                          {t("adminReturns.itemCondition")}:{" "}
-                          <span className="font-medium">{r.itemCondition}</span>
-                        </p>
-                      )}
-                      {r.rejectionReason && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {t("adminReturns.rejectReason", {
-                            reason: r.rejectionReason,
-                          })}
-                        </p>
-                      )}
-                      {(r.evidenceUrls?.length
-                        ? r.evidenceUrls
-                        : r.evidenceUrl
-                          ? [r.evidenceUrl]
-                          : []
-                      ).map((url, index) => (
-                        <a
-                          key={`${url}-${index}`}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mr-3 mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                        >
-                          <ExternalLink size={12} />{" "}
-                          {t("adminReturns.viewEvidence")}
-                        </a>
-                      ))}
-                      <p className="text-xs text-gray-400 mt-2">
-                        {t("adminReturns.createdAt", {
-                          date: formatDateTime(r.requestedAt, locale),
+                    )}
+                    {r.rejectionReason && (
+                      <p className="mt-1 text-sm text-rose-300">
+                        {t("adminReturns.rejectReason", {
+                          reason: r.rejectionReason,
                         })}
                       </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
+                    )}
+                    {(r.evidenceUrls?.length
+                      ? r.evidenceUrls
+                      : r.evidenceUrl
+                        ? [r.evidenceUrl]
+                        : []
+                    ).map((url, index) => (
+                      <a
+                        key={`${url}-${index}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mr-3 mt-2 inline-flex items-center gap-1 text-xs text-purple-300 hover:underline"
+                      >
+                        <ExternalLink size={12} />{" "}
+                        {t("adminReturns.viewEvidence")}
+                      </a>
+                    ))}
+                    <p className="mt-2 text-xs text-slate-400">
+                      {t("adminReturns.createdAt", {
+                        date: formatDateTime(r.requestedAt, locale),
+                      })}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill tone={TONE[cfg.variant]}>
+                      {t(cfg.labelKey)}
+                    </AdminPill>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {r.status === "REQUESTED" && (
                         <>
                           <Button
                             size="sm"
+                            className={adminPrimaryClass}
                             onClick={() => openDialog({ kind: "approve", r })}
                           >
-                            <CheckCircle2 size={14} className="mr-1" />{" "}
-                            {t("common.approved")}
+                            <CheckCircle2 size={14} /> {t("common.approved")}
                           </Button>
                           <Button
                             size="sm"
@@ -333,9 +397,10 @@ function AdminOrderReturnsInner() {
                         <>
                           <Button
                             size="sm"
+                            className={adminPrimaryClass}
                             onClick={() => openDialog({ kind: "received", r })}
                           >
-                            <PackageCheck size={14} className="mr-1" />{" "}
+                            <PackageCheck size={14} />{" "}
                             {t("adminReturns.confirmReceived")}
                           </Button>
                           <Button
@@ -349,13 +414,13 @@ function AdminOrderReturnsInner() {
                         </>
                       )}
                     </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               );
             })}
-          </div>
-        )}
-      </div>
+          </tbody>
+        </AdminTable>
+      )}
 
       <Modal
         isOpen={dialog.kind !== "idle"}
@@ -378,7 +443,7 @@ function AdminOrderReturnsInner() {
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     {t("adminReturns.refundAmount")}
                   </label>
                   <input
@@ -394,13 +459,13 @@ function AdminOrderReturnsInner() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     {t("adminReturns.currency")}
                   </label>
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm bg-white"
+                    className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm"
                   >
                     <option value="VND">VND</option>
                     <option value="USD">USD</option>
@@ -408,7 +473,7 @@ function AdminOrderReturnsInner() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {t("adminReturns.warehouseOptional")}
                 </label>
                 <input
@@ -423,7 +488,7 @@ function AdminOrderReturnsInner() {
 
           {dialog.kind === "reject" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t("adminReturns.rejectReasonRequired")}
               </label>
               <textarea
@@ -437,7 +502,7 @@ function AdminOrderReturnsInner() {
 
           {dialog.kind === "received" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t("adminReturns.conditionRequiredLabel")}
               </label>
               <textarea
@@ -460,6 +525,9 @@ function AdminOrderReturnsInner() {
             </Button>
             <Button
               variant={dialog.kind === "reject" ? "danger" : "primary"}
+              className={
+                dialog.kind === "reject" ? undefined : adminPrimaryClass
+              }
               onClick={submitDialog}
               loading={isMutating}
             >

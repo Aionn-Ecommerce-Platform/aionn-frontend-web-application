@@ -1,6 +1,6 @@
 import api from "@/shared/api";
 
-export interface PresenceStatus {
+interface PresenceStatus {
   userId: string;
   online: boolean;
   lastSeenAt: string | null;

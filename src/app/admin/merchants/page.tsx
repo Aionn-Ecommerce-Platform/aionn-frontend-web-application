@@ -1,31 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Loader2, Store, Pause, Play, XCircle, Percent } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Eye,
+  Loader2,
+  Pause,
+  Percent,
+  Play,
+  Store,
+  XCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import {
   Button,
-  Badge,
-  EmptyState,
   Modal,
   Input,
+  Pagination,
   DefinitionRow as Row,
 } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminStats,
+  AdminTable,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { merchantService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
 import type { Merchant, MerchantStatus } from "@/types";
-import { useTranslation } from "@/hooks";
+import { useDebounce, useTranslation } from "@/hooks";
 
 const statusConfig: Record<
   MerchantStatus,
-  { labelKey: string; variant: "success" | "warning" | "danger" }
+  { labelKey: string; tone: "success" | "warning" | "danger" }
 > = {
-  ACTIVE: { labelKey: "statuses.merchant.ACTIVE", variant: "success" },
-  SUSPENDED: { labelKey: "statuses.merchant.SUSPENDED", variant: "warning" },
-  CLOSED: { labelKey: "statuses.merchant.CLOSED", variant: "danger" },
+  ACTIVE: { labelKey: "statuses.merchant.ACTIVE", tone: "success" },
+  SUSPENDED: { labelKey: "statuses.merchant.SUSPENDED", tone: "warning" },
+  CLOSED: { labelKey: "statuses.merchant.CLOSED", tone: "danger" },
 };
 
 type ActionType = "suspend" | "activate" | "close";
@@ -33,30 +52,56 @@ type ActionType = "suspend" | "activate" | "close";
 function AdminMerchantsInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
-  const [searchId, setSearchId] = useState("");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [page, setPage] = useState(1);
+  const size = 20;
+
   const [merchant, setMerchant] = useState<Merchant | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [actionType, setActionType] = useState<ActionType | null>(null);
   const [reason, setReason] = useState("");
   const [commissionModal, setCommissionModal] = useState(false);
   const [commissionInput, setCommissionInput] = useState("");
   const [globalInput, setGlobalInput] = useState("");
 
-  const lookupMutation = useMutation({
-    mutationFn: (id: string) => merchantService.get(id.trim()),
-    onSuccess: (data) => setMerchant(data),
-    onError: (err) => {
-      setMerchant(null);
-      toast.error(getErrorMessage(err));
-    },
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["admin-merchant-list", { search: debouncedSearch, page }],
+    queryFn: () =>
+      merchantService.listPaged(page - 1, size, {
+        search: debouncedSearch.trim() || undefined,
+      }),
   });
+
+  const merchants = data?.content ?? [];
+  const totalElements = data?.totalElements ?? merchants.length;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+
+  const { data: allMerchants } = useQuery({
+    queryKey: ["admin-merchant-counts"],
+    queryFn: () => merchantService.listPaged(0, 100),
+  });
+  const countByStatus = (status: MerchantStatus) =>
+    (allMerchants?.content ?? []).filter((item) => item.status === status)
+      .length;
+
+  const openDetail = (target: Merchant) => {
+    setMerchant(target);
+    setDetailOpen(true);
+  };
+
+  const refreshList = () => {
+    qc.invalidateQueries({ queryKey: ["admin-merchant-list"] });
+    void refetch();
+  };
 
   const suspendMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       merchantService.suspend(id, { reason }),
-    onSuccess: (data) => {
-      setMerchant(data);
+    onSuccess: (updated) => {
+      setMerchant(updated);
       toast.success(t("adminMerchants.suspendSuccess"));
-      qc.invalidateQueries({ queryKey: ["admin-merchant"] });
+      refreshList();
       closeAction();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -65,9 +110,10 @@ function AdminMerchantsInner() {
   const activateMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       merchantService.activate(id, { reason }),
-    onSuccess: (data) => {
-      setMerchant(data);
+    onSuccess: (updated) => {
+      setMerchant(updated);
       toast.success(t("adminMerchants.activateSuccess"));
+      refreshList();
       closeAction();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -76,9 +122,10 @@ function AdminMerchantsInner() {
   const closeMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       merchantService.close(id, { reason }),
-    onSuccess: (data) => {
-      setMerchant(data);
+    onSuccess: (updated) => {
+      setMerchant(updated);
       toast.success(t("adminMerchants.closeSuccess"));
+      refreshList();
       closeAction();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -92,11 +139,12 @@ function AdminMerchantsInner() {
   const commissionMutation = useMutation({
     mutationFn: (rate: number) =>
       merchantService.updateCommissionRate(merchant!.merchantId, rate),
-    onSuccess: (data) => {
-      setMerchant(data);
+    onSuccess: (updated) => {
+      setMerchant(updated);
       setCommissionModal(false);
       setCommissionInput("");
       toast.success(t("adminMerchants.commissionSuccess"));
+      refreshList();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -147,112 +195,175 @@ function AdminMerchantsInner() {
     closeMutation.isPending;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {t("adminMerchants.title")}
-        </h1>
-        <p className="text-gray-500 mb-6 text-sm">
-          {t("adminMerchants.description")}
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Store}
+        title={t("adminMerchants.title")}
+        description={t("adminMerchants.description")}
+      />
+
+      <AdminStats
+        stats={[
+          {
+            label: t("adminConsole.stats.total"),
+            value: totalElements,
+            icon: Store,
+          },
+          {
+            label: t("adminConsole.stats.active"),
+            value: countByStatus("ACTIVE"),
+            icon: Play,
+            iconClass: "text-emerald-300",
+          },
+          {
+            label: t("adminConsole.stats.suspended"),
+            value: countByStatus("SUSPENDED"),
+            icon: Pause,
+            iconClass: "text-amber-300",
+          },
+        ]}
+      />
+
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          placeholder={t("adminMerchants.searchPlaceholder")}
+        />
+        <p className="text-xs text-slate-400 sm:ml-auto">
+          {t("adminConsole.totalCount", { count: totalElements })}
         </p>
+      </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
-          <label
-            htmlFor="merchant-id"
-            className="block text-sm font-medium text-gray-700 mb-2"
+      <div className="mb-5 rounded-2xl border border-gray-600 bg-white/[0.04] p-5">
+        <div className="mb-2 flex items-center gap-2">
+          <Percent size={16} className="text-purple-300" />
+          <h2 className="text-sm font-semibold text-white">
+            {t("adminMerchants.globalCommissionTitle")}
+          </h2>
+        </div>
+        <p className="mb-3 text-xs text-slate-400">
+          {t("adminMerchants.globalCommissionDescription")}
+        </p>
+        <div className="flex items-end gap-3">
+          <div className="w-44">
+            <Input
+              label={t("adminMerchants.commissionRateLabel")}
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              value={globalInput}
+              onChange={(e) => setGlobalInput(e.target.value)}
+              placeholder="5.00"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={submitGlobalCommission}
+            disabled={!globalInput.trim() || globalCommissionMutation.isPending}
+            className={adminPrimaryClass}
           >
-            Merchant ID
-          </label>
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                id="merchant-id"
-                type="text"
-                placeholder="MER_..."
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchId.trim()) {
-                    lookupMutation.mutate(searchId);
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <Button
-              onClick={() => lookupMutation.mutate(searchId)}
-              loading={lookupMutation.isPending}
-              disabled={!searchId.trim()}
-            >
-              {t("common.lookup")}
-            </Button>
-          </div>
+            {globalCommissionMutation.isPending && (
+              <Loader2 size={16} className="animate-spin" />
+            )}
+            {t("common.save")}
+          </button>
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Percent size={16} className="text-blue-600" />
-            <h2 className="text-sm font-semibold text-gray-900">
-              {t("adminMerchants.globalCommissionTitle")}
-            </h2>
-          </div>
-          <p className="text-xs text-gray-500 mb-3">
-            {t("adminMerchants.globalCommissionDescription")}
-          </p>
-          <div className="flex gap-3 items-end">
-            <div className="w-40">
-              <Input
-                label={t("adminMerchants.commissionRateLabel")}
-                type="number"
-                min={0}
-                max={100}
-                step="0.01"
-                value={globalInput}
-                onChange={(e) => setGlobalInput(e.target.value)}
-                placeholder="5.00"
-              />
-            </div>
-            <Button
-              onClick={submitGlobalCommission}
-              loading={globalCommissionMutation.isPending}
-              disabled={!globalInput.trim()}
-            >
-              {t("common.save")}
-            </Button>
-          </div>
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
         </div>
+      ) : merchants.length === 0 ? (
+        <AdminEmpty
+          icon={Store}
+          title={t("adminMerchants.emptyTitle")}
+          description={t("adminMerchants.emptyDescription")}
+        />
+      ) : (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>{t("adminMerchants.title")}</th>
+                <th className={adminTh}>{t("common.status")}</th>
+                <th className={adminTh}>
+                  {t("adminMerchants.commissionRateLabel")}
+                </th>
+                <th className={adminTh}>{t("common.createdAt")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {merchants.map((item) => (
+                <tr key={item.merchantId} className={adminRow}>
+                  <td className={adminTd}>
+                    <p className="font-semibold text-white">{item.name}</p>
+                    <p className="text-xs text-slate-400">
+                      {item.provinceName ?? item.merchantId}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill tone={statusConfig[item.status].tone}>
+                      {t(statusConfig[item.status].labelKey)}
+                    </AdminPill>
+                  </td>
+                  <td className={adminTd}>
+                    {item.commissionRate != null
+                      ? `${(item.commissionRate * 100).toFixed(2)}%`
+                      : "—"}
+                  </td>
+                  <td className={`${adminTd} whitespace-nowrap`}>
+                    {formatDateTime(item.createdAt, locale)}
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <button
+                      type="button"
+                      onClick={() => openDetail(item)}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-purple-200 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <Eye size={14} />
+                      {t("common.view")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
 
-        {lookupMutation.isPending ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : !merchant ? (
-          <EmptyState
-            icon={Store}
-            title={t("adminMerchants.emptyTitle")}
-            description={t("adminMerchants.emptyDescription")}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
           />
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {merchant.name}
-                </h2>
-                <p className="text-xs text-gray-500 mt-1 font-mono">
-                  {merchant.merchantId}
-                </p>
-              </div>
-              <Badge variant={statusConfig[merchant.status].variant}>
+        </>
+      )}
+
+      <Modal
+        isOpen={detailOpen && merchant !== null}
+        onClose={() => setDetailOpen(false)}
+        title={merchant?.name}
+        size="lg"
+      >
+        {merchant && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-mono text-xs text-slate-400">
+                {merchant.merchantId}
+              </p>
+              <AdminPill tone={statusConfig[merchant.status].tone}>
                 {t(statusConfig[merchant.status].labelKey)}
-              </Badge>
+              </AdminPill>
             </div>
 
-            <dl className="divide-y divide-gray-50">
+            <dl className="divide-y divide-white/5">
               <Row label="Owner ID" value={merchant.ownerId} mono />
               <Row
                 label={t("common.description")}
@@ -266,7 +377,7 @@ function AdminMerchantsInner() {
                       href={merchant.logoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-xs"
+                      className="text-xs text-purple-300 hover:underline"
                     >
                       {merchant.logoUrl}
                     </a>
@@ -293,7 +404,7 @@ function AdminMerchantsInner() {
               />
             </dl>
 
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 border-t border-slate-600/60 pt-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -334,7 +445,7 @@ function AdminMerchantsInner() {
                   variant="outline"
                   size="sm"
                   onClick={() => setActionType("close")}
-                  className="text-red-600 hover:bg-red-50 border-red-200"
+                  className="border-rose-400/40 text-rose-300 hover:bg-rose-500/10"
                 >
                   <XCircle size={14} className="mr-1.5" />
                   {t("adminMerchants.close")}
@@ -343,90 +454,90 @@ function AdminMerchantsInner() {
             </div>
           </div>
         )}
+      </Modal>
 
-        <Modal
-          isOpen={actionType !== null}
-          onClose={closeAction}
-          title={
-            actionType === "suspend"
-              ? t("adminMerchants.suspendTitle")
-              : actionType === "activate"
-                ? t("adminMerchants.activateTitle")
-                : t("adminMerchants.closeTitle")
-          }
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              {actionType === "close"
-                ? t("adminMerchants.closeWarning")
-                : t("adminMerchants.auditHelp")}
-            </p>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={t("adminMerchants.reasonPlaceholder")}
-              rows={4}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            />
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={closeAction}
-                disabled={isPending}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                onClick={submitAction}
-                loading={isPending}
-                className={
-                  actionType === "close" ? "bg-red-600 hover:bg-red-700" : ""
-                }
-              >
-                {t("common.confirm")}
-              </Button>
-            </div>
+      <Modal
+        isOpen={actionType !== null}
+        onClose={closeAction}
+        title={
+          actionType === "suspend"
+            ? t("adminMerchants.suspendTitle")
+            : actionType === "activate"
+              ? t("adminMerchants.activateTitle")
+              : t("adminMerchants.closeTitle")
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            {actionType === "close"
+              ? t("adminMerchants.closeWarning")
+              : t("adminMerchants.auditHelp")}
+          </p>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t("adminMerchants.reasonPlaceholder")}
+            rows={4}
+            className="w-full rounded-lg border border-gray-500 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={closeAction}
+              disabled={isPending}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={submitAction}
+              loading={isPending}
+              className={
+                actionType === "close" ? "bg-rose-600 hover:bg-rose-500" : ""
+              }
+            >
+              {t("common.confirm")}
+            </Button>
           </div>
-        </Modal>
+        </div>
+      </Modal>
 
-        <Modal
-          isOpen={commissionModal}
-          onClose={() => setCommissionModal(false)}
-          title={t("adminMerchants.commissionTitle")}
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              {t("adminMerchants.commissionDescription")}
-            </p>
-            <Input
-              label={t("adminMerchants.commissionRateLabel")}
-              type="number"
-              min={0}
-              max={100}
-              step="0.01"
-              value={commissionInput}
-              onChange={(e) => setCommissionInput(e.target.value)}
-              placeholder="5.00"
-            />
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCommissionModal(false)}
-                disabled={commissionMutation.isPending}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                onClick={submitCommission}
-                loading={commissionMutation.isPending}
-                disabled={!commissionInput.trim()}
-              >
-                {t("common.save")}
-              </Button>
-            </div>
+      <Modal
+        isOpen={commissionModal}
+        onClose={() => setCommissionModal(false)}
+        title={t("adminMerchants.commissionTitle")}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            {t("adminMerchants.commissionDescription")}
+          </p>
+          <Input
+            label={t("adminMerchants.commissionRateLabel")}
+            type="number"
+            min={0}
+            max={100}
+            step="0.01"
+            value={commissionInput}
+            onChange={(e) => setCommissionInput(e.target.value)}
+            placeholder="5.00"
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCommissionModal(false)}
+              disabled={commissionMutation.isPending}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={submitCommission}
+              loading={commissionMutation.isPending}
+              disabled={!commissionInput.trim()}
+            >
+              {t("common.save")}
+            </Button>
           </div>
-        </Modal>
-      </div>
+        </div>
+      </Modal>
     </div>
   );
 }

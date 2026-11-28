@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, Package } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, ArrowLeft, Loader2, Package } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { qk } from "@/lib/query-keys";
 import { merchantAnalyticsService } from "@/lib/services";
@@ -26,7 +27,18 @@ function LowStockInner() {
 
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="w-full">
+        <Link
+          href="/merchant/inventory"
+          className="group mb-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-gray-950"
+        >
+          <ArrowLeft
+            size={16}
+            className="text-gray-500 transition-transform group-hover:-translate-x-0.5 group-hover:text-gray-950"
+          />
+          {t("merchant.lowStock.backToInventory")}
+        </Link>
+
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 bg-orange-50 text-orange-600 rounded-md">
             <AlertTriangle size={22} />

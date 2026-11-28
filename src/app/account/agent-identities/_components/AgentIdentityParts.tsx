@@ -5,13 +5,14 @@ import {
   Loader2,
   Copy,
   Pause,
+  Pencil,
   Trash2,
-  ScrollText,
   CheckCircle2,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Modal } from "@/shared/ui";
+import { Button, Modal } from "@/shared/ui";
 import {
   agentIdentityService,
   type AgentIdentityResponse,
@@ -21,11 +22,20 @@ import { formatDateTime } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 const statusConfig: Record<
   AgentIdentityResponse["status"],
-  { labelKey: string; variant: "success" | "warning" | "danger" }
+  { labelKey: string; badgeClass: string }
 > = {
-  ACTIVE: { labelKey: "statuses.agent.ACTIVE", variant: "success" },
-  SUSPENDED: { labelKey: "statuses.agent.SUSPENDED", variant: "warning" },
-  REVOKED: { labelKey: "statuses.agent.REVOKED", variant: "danger" },
+  ACTIVE: {
+    labelKey: "statuses.agent.ACTIVE",
+    badgeClass: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  },
+  SUSPENDED: {
+    labelKey: "statuses.agent.SUSPENDED",
+    badgeClass: "border-amber-300 bg-amber-50 text-amber-700",
+  },
+  REVOKED: {
+    labelKey: "statuses.agent.REVOKED",
+    badgeClass: "border-rose-300 bg-rose-50 text-rose-700",
+  },
 };
 
 const COMMON_PERMISSIONS = [
@@ -37,19 +47,23 @@ const COMMON_PERMISSIONS = [
   "READ_PAYMENTS",
 ];
 
+const AGENT_AUDIT_LABELS: Record<string, string> = {
+  AGENT_SUSPENDED: "agentIdentities.auditEvents.suspended",
+};
+
 export function AgentRow({
   agent,
   onEditPermissions,
   onSuspend,
   onRevoke,
-  onAudit,
+  onDetail,
   suspendPending,
 }: {
   agent: AgentIdentityResponse;
   onEditPermissions: () => void;
   onSuspend: () => void;
   onRevoke: () => void;
-  onAudit: () => void;
+  onDetail: () => void;
   suspendPending: boolean;
 }) {
   const { t, locale } = useTranslation();
@@ -57,83 +71,207 @@ export function AgentRow({
   const isLive = agent.status === "ACTIVE";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 transition-all hover:shadow-md">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
-            <h3 className="text-base font-bold text-gray-950 truncate">
-              {agent.name}
-            </h3>
-            <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>
-          </div>
-          <p className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded-md inline-block">
-            {agent.agentId}
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            {t("agentIdentities.createdAt", {
-              date: formatDateTime(agent.createdAt, locale),
+    <tr className="border-b border-gray-200 transition-colors last:border-0 hover:bg-gray-50/70">
+      <td className="px-5 py-4 text-center">
+        <p className="text-sm font-bold text-gray-950">{agent.name}</p>
+      </td>
+      <td className="whitespace-nowrap px-5 py-4 text-center">
+        <span
+          className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${cfg.badgeClass}`}
+        >
+          {t(cfg.labelKey)}
+        </span>
+      </td>
+      <td className="whitespace-nowrap px-5 py-4 text-center">
+        <p className="text-sm text-gray-600">
+          {formatDateTime(agent.createdAt, locale)}
+        </p>
+        {agent.suspendedAt && (
+          <p className="mt-0.5 text-xs text-gray-400">
+            {t("agentIdentities.suspendedAt", {
+              date: formatDateTime(agent.suspendedAt, locale),
             })}
-            {agent.suspendedAt &&
-              ` · ${t("agentIdentities.suspendedAt", { date: formatDateTime(agent.suspendedAt, locale) })}`}
           </p>
-          {agent.permissions.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3.5">
+        )}
+      </td>
+      <td className="whitespace-nowrap px-5 py-4">
+        <div className="flex items-center justify-center gap-1">
+          <button
+            type="button"
+            onClick={onDetail}
+            title={t("agentIdentities.viewDetail")}
+            aria-label={t("agentIdentities.viewDetail")}
+            className="rounded-lg p-2 text-sky-600 transition-colors cursor-pointer hover:text-sky-700"
+          >
+            <Eye size={16} />
+          </button>
+          {isLive && (
+            <>
+              <button
+                type="button"
+                onClick={onEditPermissions}
+                title={t("agentIdentities.editPermissions")}
+                aria-label={t("agentIdentities.editPermissions")}
+                className="rounded-lg p-2 text-brand transition-colors cursor-pointer hover:text-brand-strong"
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={onSuspend}
+                disabled={suspendPending}
+                title={t("agentIdentities.suspend")}
+                aria-label={t("agentIdentities.suspend")}
+                className="rounded-lg p-2 text-amber-600 transition-colors cursor-pointer hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {suspendPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Pause size={16} />
+                )}
+              </button>
+            </>
+          )}
+          {agent.status !== "REVOKED" && (
+            <button
+              type="button"
+              onClick={onRevoke}
+              title={t("agentIdentities.revoke")}
+              aria-label={t("agentIdentities.revoke")}
+              className="rounded-lg p-2 text-red-600 transition-colors cursor-pointer hover:text-red-700"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+export function AgentDetailModal({
+  agent,
+  onClose,
+}: {
+  agent: AgentIdentityResponse;
+  onClose: () => void;
+}) {
+  const { t, locale } = useTranslation();
+  const cfg = statusConfig[agent.status];
+  const { data: auditLogs, isLoading: auditLoading } = useQuery({
+    queryKey: ["agent-audit", agent.agentId],
+    queryFn: () => agentIdentityService.auditLogs(agent.agentId),
+  });
+  const logs = auditLogs ?? [];
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("agentIdentities.detailTitle", { name: agent.name })}
+      size="md"
+    >
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${cfg.badgeClass}`}
+          >
+            {t(cfg.labelKey)}
+          </span>
+          <span className="rounded-md bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-500">
+            {agent.agentId}
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium text-gray-500">
+              {t("agentIdentities.tableCreated")}
+            </p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {formatDateTime(agent.createdAt, locale)}
+            </p>
+          </div>
+          {agent.suspendedAt && (
+            <div>
+              <p className="text-xs font-medium text-gray-500">
+                {t("agentIdentities.suspend")}
+              </p>
+              <p className="mt-1 text-sm font-medium text-gray-900">
+                {formatDateTime(agent.suspendedAt, locale)}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="text-xs font-medium text-gray-500">
+            {t("agentIdentities.tablePermissions")}
+          </p>
+          {agent.permissions.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {agent.permissions.map((p) => (
                 <span
                   key={p}
-                  className="text-2xs px-2.5 py-1 rounded-lg bg-brand/10 text-brand font-medium font-mono border border-brand/20"
+                  className="rounded-md border border-gray-300 bg-gray-50 px-2 py-0.5 font-mono text-[11px] font-medium text-gray-700"
                 >
                   {p}
                 </span>
               ))}
             </div>
+          ) : (
+            <p className="mt-1 text-sm text-gray-400">
+              {t("agentIdentities.noPermissions")}
+            </p>
           )}
         </div>
-        <div className="flex flex-row sm:flex-col gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAudit}
-            className="rounded-xl border-gray-400"
-          >
-            <ScrollText size={14} className="mr-1" />
-            Audit
+
+        <div>
+          <p className="text-xs font-medium text-gray-500">
+            {t("agentIdentities.audit")}
+          </p>
+          {auditLoading ? (
+            <div className="flex justify-center py-3">
+              <Loader2 size={18} className="animate-spin text-brand" />
+            </div>
+          ) : logs.length === 0 ? (
+            <p className="mt-1 text-sm text-gray-400">
+              {t("agentIdentities.noActivity")}
+            </p>
+          ) : (
+            <div className="mt-2 max-h-56 space-y-2 overflow-y-auto">
+              {logs.map((log) => {
+                const labelKey = AGENT_AUDIT_LABELS[log.action];
+                return (
+                  <div
+                    key={log.logId}
+                    className="rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-gray-900">
+                        {labelKey ? t(labelKey) : log.action}
+                      </span>
+                      <span className="shrink-0 text-gray-400">
+                        {formatDateTime(log.timestamp, locale)}
+                      </span>
+                    </div>
+                    {!labelKey && log.details && (
+                      <p className="mt-1 text-gray-500">{log.details}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            {t("common.close")}
           </Button>
-          {isLive && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onEditPermissions}
-                className="rounded-xl border-gray-400 hover:border-brand hover:text-brand"
-              >
-                {t("agentIdentities.editPermissions")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSuspend}
-                loading={suspendPending}
-              >
-                <Pause size={14} className="mr-1" />
-                {t("agentIdentities.suspend")}
-              </Button>
-            </>
-          )}
-          {agent.status !== "REVOKED" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRevoke}
-              className="text-red-600 border-red-200 hover:bg-red-50"
-            >
-              <Trash2 size={14} className="mr-1" />
-              {t("agentIdentities.revoke")}
-            </Button>
-          )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -381,60 +519,6 @@ export function PermissionsModal({
           </Button>
         </div>
       </div>
-    </Modal>
-  );
-}
-
-export function AuditModal({
-  agent,
-  onClose,
-}: {
-  agent: AgentIdentityResponse;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  const { data, isLoading } = useQuery({
-    queryKey: ["agent-audit", agent.agentId],
-    queryFn: () => agentIdentityService.auditLogs(agent.agentId),
-  });
-
-  const logs = data ?? [];
-
-  return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title={`Audit log — ${agent.name}`}
-      size="md"
-    >
-      {isLoading ? (
-        <div className="py-12 flex justify-center">
-          <Loader2 className="animate-spin text-brand" size={24} />
-        </div>
-      ) : logs.length === 0 ? (
-        <p className="text-sm text-gray-500 py-8 text-center">
-          {t("agentIdentities.noActivity")}
-        </p>
-      ) : (
-        <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-          {logs.map((log) => (
-            <div
-              key={log.logId}
-              className="bg-gray-50 rounded-lg px-3 py-2 text-xs"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-mono font-medium text-gray-900">
-                  {log.action}
-                </span>
-                <span className="text-gray-400">
-                  {formatDateTime(log.timestamp)}
-                </span>
-              </div>
-              {log.details && <p className="text-gray-600">{log.details}</p>}
-            </div>
-          ))}
-        </div>
-      )}
     </Modal>
   );
 }

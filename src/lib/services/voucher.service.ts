@@ -1,7 +1,7 @@
 import api from "@/shared/api";
 import type { UserVoucher } from "@/types";
 
-export interface VoucherSummary {
+interface VoucherSummary {
   all: number;
   platform: number;
   shop: number;

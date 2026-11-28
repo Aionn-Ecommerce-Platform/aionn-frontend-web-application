@@ -176,9 +176,76 @@ export function MfaModal(props: MfaModalProps) {
   );
 }
 
+interface DisableMfaModalProps {
+  open: boolean;
+  password: string;
+  code: string;
+  loading: boolean;
+  onClose: () => void;
+  onPassword: (value: string) => void;
+  onCode: (value: string) => void;
+  onConfirm: () => void;
+}
+
+export function DisableMfaModal(props: DisableMfaModalProps) {
+  const { t } = useTranslation();
+  return (
+    <Modal
+      isOpen={props.open}
+      onClose={props.onClose}
+      title={t("security.disableMfaTitle")}
+      size="md"
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600">
+          {t("security.disableMfaPrompt")}
+        </p>
+        <Input
+          type="password"
+          label={t("security.password")}
+          value={props.password}
+          onChange={(event) => props.onPassword(event.target.value)}
+          autoComplete="current-password"
+        />
+        <Input
+          label={t("security.verificationCode")}
+          value={props.code}
+          onChange={(event) =>
+            props.onCode(event.target.value.replace(/\D/g, ""))
+          }
+          maxLength={8}
+          className="text-center tracking-[0.3em] font-mono text-lg"
+          placeholder="000000"
+          autoComplete="one-time-code"
+        />
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={props.onClose}
+            disabled={props.loading}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={props.onConfirm}
+            loading={props.loading}
+            disabled={!props.password.trim() || !props.code.trim()}
+          >
+            {t("security.disableMfa")}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 interface DeleteAccountModalProps {
   open: boolean;
   loading: boolean;
+  mfaEnabled?: boolean;
   onClose: () => void;
   onConfirm: (payload: { password: string; mfaCode?: string }) => void;
 }
@@ -188,11 +255,13 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [mfaError, setMfaError] = useState("");
 
   const handleClose = () => {
     setPassword("");
     setMfaCode("");
     setPasswordError("");
+    setMfaError("");
     props.onClose();
   };
 
@@ -202,9 +271,14 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
       return;
     }
     setPasswordError("");
+    if (props.mfaEnabled && mfaCode.trim().length !== 6) {
+      setMfaError(t("security.mfaCodeRequired"));
+      return;
+    }
+    setMfaError("");
     props.onConfirm({
       password: password.trim(),
-      mfaCode: mfaCode.trim() ? mfaCode.trim() : undefined,
+      mfaCode: props.mfaEnabled ? mfaCode.trim() : undefined,
     });
   };
 
@@ -244,21 +318,27 @@ export function DeleteAccountModal(props: DeleteAccountModalProps) {
           />
         </div>
 
-        <div>
-          <Input
-            type="text"
-            label={t("security.mfaCodeOptionalLabel")}
-            placeholder="000000"
-            value={mfaCode}
-            onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
-            maxLength={6}
-            className="tracking-[0.25em] font-mono text-center"
-            autoComplete="off"
-          />
-          <p className="text-[11px] text-gray-500 mt-1">
-            {t("security.mfaCodeHint")}
-          </p>
-        </div>
+        {props.mfaEnabled && (
+          <div>
+            <Input
+              type="text"
+              label={t("security.mfaCodeLabel")}
+              placeholder="000000"
+              value={mfaCode}
+              onChange={(e) => {
+                setMfaCode(e.target.value.replace(/\D/g, ""));
+                if (mfaError) setMfaError("");
+              }}
+              maxLength={6}
+              className="tracking-[0.25em] font-mono text-center"
+              autoComplete="one-time-code"
+              error={mfaError}
+            />
+            <p className="text-[11px] text-gray-500 mt-1">
+              {t("security.mfaCodeHint")}
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button

@@ -35,6 +35,14 @@ export default function LoginForm({
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (!needsMfa) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("mfaCode")?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [needsMfa]);
+
+  useEffect(() => {
     if (!googleBtnRef.current || !googleReady) return;
     mountGoogleButton(
       googleBtnRef.current,
@@ -96,10 +104,16 @@ export default function LoginForm({
       };
       if (
         e?.errorCode === "AUTH_MFA_REQUIRED" ||
-        e?.errorCode === "MFA_REQUIRED"
+        e?.errorCode === "MFA_REQUIRED" ||
+        e?.errorCode === "IDENTITY_211"
       ) {
         setNeedsMfa(true);
         toast(t("auth.mfaRequiredToast"), { icon: "🔒" });
+      } else if (
+        needsMfa &&
+        (e?.errorCode === "IDENTITY_101" || e?.errorCode === "OTP_INVALID")
+      ) {
+        setFieldErrors({ mfaCode: getErrorMessage(err) });
       } else {
         if (e?.fieldErrors) setFieldErrors(e.fieldErrors);
         toast.error(getErrorMessage(err, t("auth.loginErrorToast")));
@@ -111,10 +125,6 @@ export default function LoginForm({
 
   return (
     <>
-      <div className="mb-6">
-        <p className="text-sm text-gray-500">{t("auth.loginSubtitle")}</p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="identity"
@@ -163,6 +173,7 @@ export default function LoginForm({
             value={mfaCode}
             onChange={(e) => setMfaCode(e.target.value.replace(/\s/g, ""))}
             className="text-center tracking-[0.3em] font-mono"
+            error={fieldErrors.mfaCode}
             required
           />
         )}

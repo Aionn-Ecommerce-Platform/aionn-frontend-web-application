@@ -1,165 +1,235 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Truck, Search, Plus, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertCircle,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Truck,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, EmptyState, Modal, DefinitionRow as Row } from "@/shared/ui";
+import { Button, Modal, Pagination } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
+import { shippingService } from "@/lib/services";
 import {
   shippingRateService,
   type ShippingRate,
 } from "@/lib/services/shipping.service";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime, formatNumber } from "@/shared/lib/utils";
-import { useTranslation } from "@/hooks";
+import { useDebounce, useTranslation } from "@/hooks";
+
+const PAGE_SIZE = 20;
+
+function formatFee(value: number | null, locale: string) {
+  return value == null ? "—" : formatNumber(value, locale);
+}
 
 function AdminShippingRatesInner() {
   const { t, locale } = useTranslation();
-  const [rateId, setRateId] = useState("");
-  const [rate, setRate] = useState<ShippingRate | null>(null);
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [page, setPage] = useState(1);
+  const [lookupId, setLookupId] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<ShippingRate | null>(null);
 
-  const lookupMutation = useMutation({
-    mutationFn: (id: string) => shippingRateService.get(id.trim()),
-    onSuccess: (data) => setRate(data),
-    onError: (err) => {
-      setRate(null);
-      toast.error(getErrorMessage(err));
-    },
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["admin-shipping-rates", { zone: debouncedSearch.trim(), page }],
+    queryFn: () =>
+      shippingService.listRates({
+        page: page - 1,
+        size: PAGE_SIZE,
+        zoneCode: debouncedSearch.trim() || undefined,
+      }),
   });
 
+  const rates = useMemo(() => data?.content ?? [], [data]);
+  const totalElements = data?.totalElements ?? rates.length;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+
+  const lookupMutation = useMutation({
+    mutationFn: (id: string) => shippingRateService.get(id.trim()),
+    onSuccess: (rate) => {
+      setEditing(rate);
+      setLookupId("");
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const refreshList = () =>
+    qc.invalidateQueries({ queryKey: ["admin-shipping-rates"] });
+
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {t("adminShippingRates.title")}
-            </h1>
-            <p className="text-gray-500 text-sm">
-              {t("adminShippingRates.description")}
-            </p>
-          </div>
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} className="mr-1.5" />
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={Truck}
+        title={t("adminShippingRates.title")}
+        description={t("adminShippingRates.description")}
+        actions={
+          <Button
+            className={adminPrimaryClass}
+            onClick={() => setCreating(true)}
+          >
+            <Plus size={16} />
             {t("adminShippingRates.add")}
           </Button>
-        </div>
+        }
+      />
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t("adminShippingRates.lookupLabel")}
-          </label>
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Rate ID..."
-                value={rateId}
-                onChange={(e) => setRateId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && rateId.trim()) {
-                    lookupMutation.mutate(rateId);
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <Button
-              onClick={() => lookupMutation.mutate(rateId)}
-              loading={lookupMutation.isPending}
-              disabled={!rateId.trim()}
-            >
-              {t("adminShippingRates.lookup")}
-            </Button>
-          </div>
-        </div>
-
-        {lookupMutation.isPending ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : !rate ? (
-          <EmptyState
-            icon={Truck}
-            title={t("adminShippingRates.emptyTitle")}
-            description={t("adminShippingRates.emptyDescription")}
-          />
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100">
-              <p className="text-xs text-gray-500 font-mono mb-1">
-                {rate.rateId}
-              </p>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t("adminShippingRates.zone", { code: rate.zoneCode })}
-              </h2>
-            </div>
-            <dl className="divide-y divide-gray-50">
-              <Row
-                label={t("adminShippingRates.baseFee")}
-                value={`${formatNumber(rate.baseFee, locale)} ${rate.currency}`}
-              />
-              <Row
-                label={t("adminShippingRates.condition")}
-                value={rate.condition ?? "—"}
-              />
-              <Row
-                label={t("adminShippingRates.weightLadder")}
-                value={t("adminShippingRates.weightLadderValue", {
-                  base: rate.baseWeightGram,
-                  step: rate.stepWeightGram,
-                  fee: formatNumber(rate.stepFee, locale),
-                })}
-              />
-              <Row
-                label={t("adminShippingRates.maxFee")}
-                value={rate.maxFee == null ? "—" : formatNumber(rate.maxFee, locale)}
-              />
-              <Row
-                label={t("adminShippingRates.freeShippingThreshold")}
-                value={
-                  rate.freeShippingThreshold == null
-                    ? "—"
-                    : formatNumber(rate.freeShippingThreshold, locale)
+      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          placeholder={t("adminShippingRates.searchPlaceholder")}
+          ariaLabel={t("adminShippingRates.zoneCode")}
+        />
+        <div className="flex w-full gap-2 sm:max-w-md">
+          <div className="relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+              size={16}
+            />
+            <input
+              type="text"
+              value={lookupId}
+              aria-label={t("adminShippingRates.lookupLabel")}
+              onChange={(event) => setLookupId(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && lookupId.trim()) {
+                  lookupMutation.mutate(lookupId);
                 }
-              />
-              <Row
-                label={t("adminShippingRates.createdAt")}
-                value={formatDateTime(rate.createdAt, locale)}
-              />
-              <Row
-                label={t("adminShippingRates.updatedAt")}
-                value={formatDateTime(rate.updatedAt, locale)}
-              />
-            </dl>
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditing(rate)}
-              >
-                {t("adminShippingRates.edit")}
-              </Button>
-            </div>
+              }}
+              placeholder={t("adminShippingRates.lookupLabel")}
+              className="w-full rounded-xl border border-gray-500 bg-white/5 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
           </div>
-        )}
+          <Button
+            variant="outline"
+            className="border-white/20 text-slate-200 hover:bg-white/10"
+            onClick={() => lookupMutation.mutate(lookupId)}
+            loading={lookupMutation.isPending}
+            disabled={!lookupId.trim()}
+          >
+            {t("adminShippingRates.lookup")}
+          </Button>
+        </div>
+        <p className="text-xs text-slate-400 lg:ml-auto">
+          {t("adminConsole.totalCount", { count: totalElements })}
+        </p>
       </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : isError ? (
+        <AdminEmpty
+          icon={AlertCircle}
+          title={t("common.error")}
+          description={getErrorMessage(error)}
+          action={
+            <Button variant="outline" onClick={() => void refetch()}>
+              {t("common.tryAgain")}
+            </Button>
+          }
+        />
+      ) : rates.length === 0 ? (
+        <AdminEmpty
+          icon={Truck}
+          title={t("common.noResults")}
+          description={t("adminConsole.totalCount", { count: 0 })}
+        />
+      ) : (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>{t("adminShippingRates.zoneCode")}</th>
+                <th className={adminTh}>{t("adminShippingRates.condition")}</th>
+                <th className={adminTh}>{t("adminShippingRates.baseFee")}</th>
+                <th className={adminTh}>{t("adminShippingRates.currency")}</th>
+                <th className={adminTh}>{t("adminShippingRates.maxFee")}</th>
+                <th className={adminTh}>{t("adminShippingRates.updatedAt")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rates.map((rate) => (
+                <tr key={rate.rateId} className={adminRow}>
+                  <td className={adminTd}>
+                    <p className="font-mono font-semibold text-white">
+                      {rate.zoneCode}
+                    </p>
+                    <p className="font-mono text-[11px] text-slate-500">
+                      {rate.rateId}
+                    </p>
+                  </td>
+                  <td className={adminTd}>
+                    <span className="line-clamp-2 text-xs text-slate-300">
+                      {rate.condition ?? "—"}
+                    </span>
+                  </td>
+                  <td className={adminTd}>
+                    {formatNumber(rate.baseFee, locale)}
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill tone="purple">{rate.currency}</AdminPill>
+                  </td>
+                  <td className={adminTd}>{formatFee(rate.maxFee, locale)}</td>
+                  <td className={`${adminTd} whitespace-nowrap text-xs`}>
+                    {formatDateTime(rate.updatedAt, locale)}
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(rate)}
+                      aria-label={t("adminShippingRates.edit")}
+                      className="cursor-pointer rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
 
       {creating && (
         <RateFormModal
           mode="create"
           onClose={() => setCreating(false)}
-          onSuccess={(saved) => {
-            setRate(saved);
-            setRateId(saved.rateId);
+          onSuccess={() => {
             setCreating(false);
+            void refreshList();
           }}
         />
       )}
@@ -169,9 +239,9 @@ function AdminShippingRatesInner() {
           mode="edit"
           rate={editing}
           onClose={() => setEditing(null)}
-          onSuccess={(saved) => {
-            setRate(saved);
+          onSuccess={() => {
             setEditing(null);
+            void refreshList();
           }}
         />
       )}
@@ -205,9 +275,6 @@ function RateFormModal({
   const [maxFee, setMaxFee] = useState(
     rate?.maxFee == null ? "" : String(rate.maxFee),
   );
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState(
-    rate?.freeShippingThreshold == null ? "" : String(rate.freeShippingThreshold),
-  );
   const [expressExtraFee, setExpressExtraFee] = useState(
     String(rate?.expressExtraFee ?? 0),
   );
@@ -220,8 +287,6 @@ function RateFormModal({
     stepWeightGram: Number(stepWeightGram) || undefined,
     stepFee: Number(stepFee) || 0,
     maxFee: maxFee.trim() === "" ? null : Number(maxFee),
-    freeShippingThreshold:
-      freeShippingThreshold.trim() === "" ? null : Number(freeShippingThreshold),
     expressExtraFee: Number(expressExtraFee) || 0,
     expressEtaDays:
       expressEtaDays.trim() === "" ? null : Number(expressEtaDays),
@@ -290,7 +355,6 @@ function RateFormModal({
           </label>
           <input
             type="text"
-            placeholder="VN_HN, VN_HCM, INTL_AS..."
             value={zoneCode}
             onChange={(e) => setZoneCode(e.target.value)}
             disabled={mode === "edit"}
@@ -375,19 +439,6 @@ function RateFormModal({
             />
           </div>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            {t("adminShippingRates.freeShippingThreshold")}
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={freeShippingThreshold}
-            onChange={(e) => setFreeShippingThreshold(e.target.value)}
-            placeholder={t("adminShippingRates.noFreeship")}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-          />
-        </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -431,7 +482,11 @@ function RateFormModal({
           <Button variant="outline" onClick={onClose} disabled={isPending}>
             {t("adminShippingRates.cancel")}
           </Button>
-          <Button onClick={submit} loading={isPending}>
+          <Button
+            className={adminPrimaryClass}
+            onClick={submit}
+            loading={isPending}
+          >
             {t(
               mode === "create"
                 ? "adminShippingRates.create"

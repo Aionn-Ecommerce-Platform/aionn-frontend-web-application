@@ -84,13 +84,13 @@ function MerchantProductEditForm({ product }: { product: Product }) {
   const [removingVariant, setRemovingVariant] = useState<string | null>(null);
   const [addingVariant, setAddingVariant] = useState(false);
   const [statusBusy, setStatusBusy] = useState<
-    "deactivate" | "restore" | "submit" | "withdraw" | null
+    "deactivate" | "restore" | "submit" | "withdraw" | "delete" | null
   >(null);
   const [cloning, setCloning] = useState(false);
   const [cloneConfirmOpen, setCloneConfirmOpen] = useState(false);
   const [productIdCopied, setProductIdCopied] = useState(false);
   const [confirmAction, setConfirmAction] = useState<
-    "save" | "deactivate" | "close" | "submit" | "withdraw" | null
+    "save" | "deactivate" | "delete" | "close" | "submit" | "withdraw" | null
   >(null);
   const [deactivateReason, setDeactivateReason] = useState("");
 
@@ -287,6 +287,31 @@ function MerchantProductEditForm({ product }: { product: Product }) {
     setStatusBusy("restore");
     try {
       const updated = await productService.restore(productId);
+      applyOptimistic(updated);
+      toast.success(t("merchant.productEdit.restored"));
+    } catch (err) {
+      toast.error(getErrorMessage(err, t("merchant.productEdit.actionFailed")));
+    } finally {
+      setStatusBusy(null);
+    }
+  }
+
+  async function handleDelete() {
+    setStatusBusy("delete");
+    try {
+      await productService.deleteProduct(productId);
+      toast.success(t("merchant.productEdit.deleted"));
+      router.push("/merchant/products");
+    } catch (err) {
+      toast.error(getErrorMessage(err, t("merchant.productEdit.actionFailed")));
+      setStatusBusy(null);
+    }
+  }
+
+  async function handleUndelete() {
+    setStatusBusy("restore");
+    try {
+      const updated = await productService.undeleteProduct(productId);
       applyOptimistic(updated);
       toast.success(t("merchant.productEdit.restored"));
     } catch (err) {
@@ -507,6 +532,27 @@ function MerchantProductEditForm({ product }: { product: Product }) {
                 {t("merchant.productEdit.restore")}
               </Button>
             )}
+            {product.status === "DELETED" && (
+              <Button
+                variant="success"
+                size="lg"
+                onClick={handleUndelete}
+                loading={statusBusy === "restore"}
+              >
+                {t("merchant.productEdit.restoreDeleted")}
+              </Button>
+            )}
+            {product.status !== "DELETED" &&
+              product.status !== "TAKEN_DOWN" && (
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={() => setConfirmAction("delete")}
+                  loading={statusBusy === "delete"}
+                >
+                  {t("merchant.productEdit.deleteProduct")}
+                </Button>
+              )}
             <Button variant="outline" size="lg" onClick={requestClose}>
               {t("merchant.productEdit.close")}
             </Button>
@@ -625,6 +671,31 @@ function MerchantProductEditForm({ product }: { product: Product }) {
           variant="warning"
         >
           {t("merchant.productEdit.withdrawReview")}
+        </ConfirmActions>
+      </Modal>
+
+      <Modal
+        isOpen={confirmAction === "delete"}
+        onClose={() => setConfirmAction(null)}
+        title={t("merchant.productEdit.deleteConfirmTitle")}
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          {t("merchant.productEdit.deleteConfirmMessage")}
+        </p>
+        <p className="mt-2 text-xs text-gray-500">
+          {t("merchant.productEdit.deleteConfirmHint")}
+        </p>
+        <ConfirmActions
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={() => {
+            setConfirmAction(null);
+            void handleDelete();
+          }}
+          loading={statusBusy === "delete"}
+          variant="danger"
+        >
+          {t("merchant.productEdit.deleteConfirmAction")}
         </ConfirmActions>
       </Modal>
 

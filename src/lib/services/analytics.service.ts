@@ -3,6 +3,7 @@ import type {
   FeedbackAnalytics,
   KycAnalytics,
   LowStockAlert,
+  MerchantAnalytics,
   MerchantVoucherAnalytics,
   PaymentAnalytics,
   ProductAnalytics,
@@ -19,6 +20,11 @@ export const adminAnalyticsService = {
   },
   users(params: DateRangeParams = {}) {
     return api.get<UserAnalytics>("/admin/users/analytics", { query: params });
+  },
+  merchants(params: DateRangeParams = {}) {
+    return api.get<MerchantAnalytics>("/catalog/merchants/admin/analytics", {
+      query: params,
+    });
   },
   kyc(params: DateRangeParams = {}) {
     return api.get<KycAnalytics>("/admin/kyc/analytics", { query: params });

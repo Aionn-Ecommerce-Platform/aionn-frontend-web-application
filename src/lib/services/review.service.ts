@@ -136,6 +136,24 @@ export const reviewService = {
     return api.post<Review>(`/catalog/reviews/${reviewId}/report`, data);
   },
 
+  adminList(params: {
+    search?: string;
+    status?: ReviewStatus;
+    rating?: number;
+    page: number;
+    size: number;
+  }) {
+    return api.page<Review>("/catalog/admin/reviews", {
+      query: {
+        search: params.search,
+        status: params.status,
+        rating: params.rating,
+        page: params.page,
+        size: params.size,
+      },
+    });
+  },
+
   listReported(page = 0, size = 20) {
     return api.page<Review>("/catalog/admin/reviews/reported", {
       query: { page, size },
@@ -150,9 +168,19 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/hide`);
   },
 
-  listForMerchant(params: { page: number; size: number; replied?: boolean }) {
+  listForMerchant(params: {
+    page: number;
+    size: number;
+    replied?: boolean;
+    search?: string;
+  }) {
     return api.page<Review>("/catalog/merchant/reviews", {
-      query: { page: params.page, size: params.size, replied: params.replied },
+      query: {
+        page: params.page,
+        size: params.size,
+        replied: params.replied,
+        search: params.search,
+      },
     });
   },
 
@@ -160,4 +188,3 @@ export const reviewService = {
     return api.post<Review>(`/catalog/admin/reviews/${reviewId}/restore`);
   },
 };
-

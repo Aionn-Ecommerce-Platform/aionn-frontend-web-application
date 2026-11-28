@@ -31,6 +31,7 @@ import {
   Clock3,
   Sparkles,
   Loader2,
+  Tag,
 } from "lucide-react";
 import { Button, Avatar } from "@/shared/ui";
 import { useAuthStore, useCartStore } from "@/stores";
@@ -42,11 +43,12 @@ import {
   searchHistoryService,
   productService,
   recommendationService,
+  brandService,
 } from "@/lib/services";
 import { qk } from "@/lib/query-keys";
 import { formatDateTime } from "@/shared/lib/utils";
 import { logger } from "@/shared/lib/logger";
-import type { Product, RecommendationItem } from "@/types";
+import type { Brand, Merchant, Product, RecommendationItem } from "@/types";
 import {
   GUEST_RECENT_SEARCHES_KEY,
   mergeRecentSearches,
@@ -63,8 +65,12 @@ interface SearchDropdownProps {
   readonly recentSearches: readonly string[];
   readonly trendingRecommendations: readonly RecommendationItem[];
   readonly liveSuggestions: readonly Product[];
+  readonly brandSuggestions: readonly Brand[];
+  readonly merchantSuggestions: readonly Merchant[];
   readonly isSuggestionsLoading: boolean;
   readonly onSelectKeyword: (keyword: string) => void;
+  readonly onSelectBrand: (brand: Brand) => void;
+  readonly onSelectMerchant: (merchant: Merchant) => void;
   readonly t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -74,8 +80,12 @@ function SearchDropdown({
   recentSearches,
   trendingRecommendations,
   liveSuggestions,
+  brandSuggestions,
+  merchantSuggestions,
   isSuggestionsLoading,
   onSelectKeyword,
+  onSelectBrand,
+  onSelectMerchant,
   t,
 }: Readonly<SearchDropdownProps>) {
   if (!searchOpen) return null;
@@ -166,11 +176,52 @@ function SearchDropdown({
         </div>
       )}
 
-      {!isSuggestionsLoading && liveSuggestions.length === 0 && (
-        <div className="px-4 py-5 text-center text-xs text-gray-500">
-          {t("common.noSuggestions")}
+      {!isSuggestionsLoading && brandSuggestions.length > 0 && (
+        <div className="border-t border-gray-100 py-1">
+          <p className="px-4 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            {t("common.matchingBrands")}
+          </p>
+          {brandSuggestions.map((brand) => (
+            <button
+              key={brand.brandId}
+              type="button"
+              onClick={() => onSelectBrand(brand)}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+            >
+              <Tag size={14} className="text-gray-400 shrink-0" />
+              <span className="truncate">{brand.name}</span>
+            </button>
+          ))}
         </div>
       )}
+
+      {!isSuggestionsLoading && merchantSuggestions.length > 0 && (
+        <div className="border-t border-gray-100 py-1">
+          <p className="px-4 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            {t("common.matchingShops")}
+          </p>
+          {merchantSuggestions.map((merchant) => (
+            <button
+              key={merchant.merchantId}
+              type="button"
+              onClick={() => onSelectMerchant(merchant)}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+            >
+              <Store size={14} className="text-gray-400 shrink-0" />
+              <span className="truncate">{merchant.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!isSuggestionsLoading &&
+        liveSuggestions.length === 0 &&
+        brandSuggestions.length === 0 &&
+        merchantSuggestions.length === 0 && (
+          <div className="px-4 py-5 text-center text-xs text-gray-500">
+            {t("common.noSuggestions")}
+          </div>
+        )}
 
       <button
         type="button"
@@ -221,6 +272,25 @@ export default function Header() {
       staleTime: 30 * 1000,
     });
   const liveSuggestions = liveSuggestionsResult?.page.content ?? [];
+
+  const { data: brandCatalogue = [] } = useQuery({
+    queryKey: ["search-brand-catalogue"],
+    queryFn: async () => (await brandService.list(0, 100)).content,
+    enabled: searchOpen,
+    staleTime: 5 * 60 * 1000,
+  });
+  const searchLower = debouncedSearchQuery.toLowerCase();
+  const brandSuggestions = brandCatalogue
+    .filter((brand) => brand.name.toLowerCase().includes(searchLower))
+    .slice(0, 3);
+  const { data: merchantSuggestionPage } = useQuery({
+    queryKey: ["search-merchant-suggestions", debouncedSearchQuery],
+    queryFn: () =>
+      merchantService.listPaged(0, 3, { search: debouncedSearchQuery }),
+    enabled: searchOpen && debouncedSearchQuery.length > 0,
+    staleTime: 30 * 1000,
+  });
+  const merchantSuggestions = merchantSuggestionPage?.content ?? [];
 
   const isSuggestionsLoading =
     (searchOpen &&
@@ -365,6 +435,18 @@ export default function Header() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     runSearch(searchQuery);
+  }
+
+  function openBrand(brand: Brand) {
+    setSearchOpen(false);
+    setSearchQuery(brand.name);
+    router.push(`/products?brandIds=${encodeURIComponent(brand.brandId)}`);
+  }
+
+  function openMerchant(merchant: Merchant) {
+    setSearchOpen(false);
+    setSearchQuery(merchant.name);
+    router.push(`/merchants/${merchant.merchantId}`);
   }
 
   return (
@@ -598,8 +680,12 @@ export default function Header() {
               recentSearches={recentSearches}
               trendingRecommendations={trendingRecommendations}
               liveSuggestions={liveSuggestions}
+              brandSuggestions={brandSuggestions}
+              merchantSuggestions={merchantSuggestions}
               isSuggestionsLoading={isSuggestionsLoading}
               onSelectKeyword={runSearch}
+              onSelectBrand={openBrand}
+              onSelectMerchant={openMerchant}
               t={t}
             />
           </div>

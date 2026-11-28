@@ -1,214 +1,344 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Warehouse as WarehouseIcon,
-  Loader2,
-  Search,
+  AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  ChevronRight,
+  Loader2,
   PauseCircle,
+  Warehouse as WarehouseIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Modal, Input, Textarea } from "@/shared/ui";
+import { Button, Modal, Pagination, Textarea } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminTable,
+  AdminTabs,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { warehouseService } from "@/lib/services/warehouse.service";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
-import type { Warehouse } from "@/types";
-import { useTranslation } from "@/hooks";
+import { useDebounce, useTranslation } from "@/hooks";
+import type { Warehouse, WarehouseStatus } from "@/types";
 
-const STATUS_BADGE: Record<string, { labelKey: string; className: string }> = {
-  ACTIVE: {
-    labelKey: "statuses.warehouse.ACTIVE",
-    className: "bg-green-100 text-green-700",
-  },
-  SUSPENDED: {
-    labelKey: "statuses.warehouse.SUSPENDED",
-    className: "bg-red-100 text-red-700",
-  },
-  CLOSED: {
-    labelKey: "statuses.warehouse.CLOSED",
-    className: "bg-gray-100 text-gray-700",
-  },
+type StatusTab = "ALL" | WarehouseStatus;
+
+const PAGE_SIZE = 20;
+
+const STATUS_TABS: Array<{ value: StatusTab; labelKey: string }> = [
+  { value: "ALL", labelKey: "common.all" },
+  { value: "ACTIVE", labelKey: "merchant.warehouses.statusActive" },
+  { value: "SUSPENDED", labelKey: "merchant.warehouses.statusSuspended" },
+  { value: "INACTIVE", labelKey: "merchant.warehouses.statusInactive" },
+];
+
+const STATUS_LABEL_KEY: Record<string, string> = {
+  ACTIVE: "merchant.warehouses.statusActive",
+  SUSPENDED: "merchant.warehouses.statusSuspended",
+  INACTIVE: "merchant.warehouses.statusInactive",
+};
+
+const STATUS_TONE: Record<string, "success" | "danger" | "neutral"> = {
+  ACTIVE: "success",
+  SUSPENDED: "danger",
+  INACTIVE: "neutral",
 };
 
 function AdminWarehousesInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
-  const [warehouseId, setWarehouseId] = useState("");
-  const [lookupId, setLookupId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [statusFilter, setStatusFilter] = useState<StatusTab>("ALL");
+  const [page, setPage] = useState(1);
+  const [detail, setDetail] = useState<Warehouse | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<Warehouse | null>(null);
   const [reason, setReason] = useState("");
 
-  const {
-    data: warehouse,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["admin-warehouse", lookupId],
-    queryFn: () => (lookupId ? warehouseService.get(lookupId) : null),
-    enabled: !!lookupId,
-    retry: false,
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: [
+      "admin-warehouses",
+      {
+        status: statusFilter,
+        search: debouncedSearch.trim(),
+        page,
+      },
+    ],
+    queryFn: () =>
+      warehouseService.adminList({
+        search: debouncedSearch.trim() || undefined,
+        status: statusFilter === "ALL" ? undefined : statusFilter,
+        page: page - 1,
+        size: PAGE_SIZE,
+      }),
   });
+
+  const warehouses = useMemo(() => data?.content ?? [], [data]);
+  const totalElements = data?.totalElements ?? warehouses.length;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+
+  const refreshList = () =>
+    qc.invalidateQueries({ queryKey: ["admin-warehouses"] });
+
+  const applyUpdated = (updated: Warehouse) => {
+    setDetail((current) =>
+      current && current.warehouseId === updated.warehouseId
+        ? updated
+        : current,
+    );
+  };
 
   const suspendMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       warehouseService.suspend(id, { reason }),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       toast.success(t("adminWarehouses.suspendSuccess"));
+      applyUpdated(updated);
       setSuspendTarget(null);
       setReason("");
-      qc.invalidateQueries({ queryKey: ["admin-warehouse"] });
+      void refreshList();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const liftMutation = useMutation({
     mutationFn: (id: string) => warehouseService.liftSuspension(id),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       toast.success(t("adminWarehouses.resumeSuccess"));
-      qc.invalidateQueries({ queryKey: ["admin-warehouse"] });
+      applyUpdated(updated);
+      void refreshList();
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  function handleLookup() {
-    const id = warehouseId.trim();
-    if (!id) {
-      toast.error(t("adminWarehouses.idRequired"));
-      return;
-    }
-    setLookupId(id);
-  }
-
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            {t("adminWarehouses.title")}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {t("adminWarehouses.description")}
-          </p>
-        </div>
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={WarehouseIcon}
+        title={t("adminWarehouses.title")}
+        description={t("adminWarehouses.description")}
+      />
 
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-          <div className="flex items-end gap-3">
-            <Input
-              label="Warehouse ID"
-              value={warehouseId}
-              onChange={(e) => setWarehouseId(e.target.value)}
-              placeholder="WH_..."
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleLookup();
-              }}
-            />
-            <Button onClick={handleLookup} disabled={!warehouseId.trim()}>
-              <Search size={14} className="mr-1" />
-              {t("common.lookup")}
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          placeholder={t("adminWarehouses.searchPlaceholder")}
+        />
+        <p className="text-xs text-slate-400 sm:ml-auto">
+          {t("adminConsole.totalCount", { count: totalElements })}
+        </p>
+      </div>
+
+      <AdminTabs
+        tabs={STATUS_TABS.map((tab) => ({
+          value: tab.value,
+          label: t(tab.labelKey),
+        }))}
+        value={statusFilter}
+        onChange={(value) => {
+          setStatusFilter(value);
+          setPage(1);
+        }}
+      />
+
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
+        </div>
+      ) : isError ? (
+        <AdminEmpty
+          icon={AlertCircle}
+          title={t("common.error")}
+          description={getErrorMessage(error)}
+          action={
+            <Button variant="outline" onClick={() => void refetch()}>
+              {t("common.tryAgain")}
             </Button>
-          </div>
-        </div>
+          }
+        />
+      ) : warehouses.length === 0 ? (
+        <AdminEmpty
+          icon={WarehouseIcon}
+          title={t("common.noResults")}
+          description={t("adminConsole.totalCount", { count: 0 })}
+        />
+      ) : (
+        <>
+          <AdminTable>
+            <thead>
+              <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                <th className={adminTh}>
+                  {t("adminWarehouses.warehouseColumn")}
+                </th>
+                <th className={adminTh}>{t("adminCod.merchant")}</th>
+                <th className={adminTh}>{t("common.address")}</th>
+                <th className={adminTh}>{t("common.status")}</th>
+                <th className={`${adminTh} text-right`}>
+                  {t("common.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {warehouses.map((warehouse) => (
+                <tr key={warehouse.warehouseId} className={adminRow}>
+                  <td className={adminTd}>
+                    <p className="font-semibold text-white">
+                      {warehouse.pickupName ?? warehouse.warehouseId}
+                    </p>
+                    <p className="font-mono text-[11px] text-slate-500">
+                      {warehouse.warehouseId}
+                    </p>
+                  </td>
+                  <td className={`${adminTd} font-mono text-xs`}>
+                    {warehouse.merchantId}
+                  </td>
+                  <td className={adminTd}>
+                    <span className="line-clamp-2 text-xs text-slate-300">
+                      {warehouse.address ?? t("adminWarehouses.notUpdated")}
+                    </span>
+                  </td>
+                  <td className={adminTd}>
+                    <AdminPill
+                      tone={STATUS_TONE[warehouse.status] ?? "neutral"}
+                    >
+                      {t(
+                        STATUS_LABEL_KEY[warehouse.status] ?? warehouse.status,
+                      )}
+                    </AdminPill>
+                  </td>
+                  <td className={`${adminTd} text-right`}>
+                    <button
+                      type="button"
+                      onClick={() => setDetail(warehouse)}
+                      aria-label={t("common.view")}
+                      className="cursor-pointer rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTable>
 
-        {isLoading && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-12 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        )}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
 
-        {error && lookupId && !isLoading && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3">
-            <AlertTriangle size={18} className="text-red-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-red-800">
-                {t("adminWarehouses.notFound")}
-              </p>
-              <p className="text-xs text-red-600 mt-1">
-                {getErrorMessage(error)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {warehouse && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <WarehouseIcon size={22} className="text-blue-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {warehouse.warehouseId}
-                  </h2>
-                  <p className="text-xs text-gray-500 font-mono">
-                    Merchant: {warehouse.merchantId}
-                  </p>
-                </div>
-              </div>
-              <Badge
-                className={
-                  STATUS_BADGE[warehouse.status]?.className ??
-                  "bg-gray-100 text-gray-700"
-                }
-              >
-                {STATUS_BADGE[warehouse.status]
-                  ? t(STATUS_BADGE[warehouse.status]!.labelKey)
-                  : warehouse.status}
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
-              <div>
-                <p className="text-gray-500">{t("common.address")}</p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {warehouse.address ?? t("adminWarehouses.notUpdated")}
+      <Modal
+        isOpen={detail !== null}
+        onClose={() => setDetail(null)}
+        title={t("adminWarehouses.title")}
+        size="lg"
+      >
+        {detail && (
+          <div className="space-y-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="truncate text-lg font-semibold text-gray-900">
+                  {detail.pickupName ?? detail.warehouseId}
+                </h2>
+                <p className="font-mono text-xs text-gray-500">
+                  {detail.warehouseId}
                 </p>
               </div>
+              <AdminPill tone={STATUS_TONE[detail.status] ?? "neutral"}>
+                {t(STATUS_LABEL_KEY[detail.status] ?? detail.status)}
+              </AdminPill>
+            </div>
+
+            <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
               <div>
-                <p className="text-gray-500">{t("adminWarehouses.priority")}</p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {warehouse.priorityLevel}
-                </p>
+                <dt className="text-gray-500">{t("adminCod.merchant")}</dt>
+                <dd className="mt-0.5 font-mono font-medium text-gray-900">
+                  {detail.merchantId}
+                </dd>
               </div>
               <div>
-                <p className="text-gray-500">{t("common.createdAt")}</p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {warehouse.createdAt
-                    ? formatDateTime(warehouse.createdAt, locale)
+                <dt className="text-gray-500">
+                  {t("adminWarehouses.priority")}
+                </dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.priorityLevel}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-gray-500">{t("common.address")}</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.address ?? t("adminWarehouses.notUpdated")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">{t("common.name")}</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.pickupName ?? t("adminWarehouses.notUpdated")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">{t("common.phone")}</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.pickupPhone ?? t("adminWarehouses.notUpdated")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">{t("common.createdAt")}</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.createdAt
+                    ? formatDateTime(detail.createdAt, locale)
                     : "—"}
-                </p>
+                </dd>
               </div>
               <div>
-                <p className="text-gray-500">{t("common.updatedAt")}</p>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {warehouse.updatedAt
-                    ? formatDateTime(warehouse.updatedAt, locale)
+                <dt className="text-gray-500">{t("common.updatedAt")}</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {detail.updatedAt
+                    ? formatDateTime(detail.updatedAt, locale)
                     : "—"}
-                </p>
+                </dd>
               </div>
-            </div>
+            </dl>
 
-            <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-              {warehouse.status === "SUSPENDED" ? (
+            <div className="flex flex-wrap gap-2 border-t border-gray-300 pt-4">
+              {detail.status === "SUSPENDED" ? (
                 <Button
-                  variant="primary"
+                  className={adminPrimaryClass}
                   size="sm"
-                  onClick={() => liftMutation.mutate(warehouse.warehouseId)}
-                  loading={liftMutation.isPending}
+                  onClick={() => liftMutation.mutate(detail.warehouseId)}
+                  loading={
+                    liftMutation.isPending &&
+                    liftMutation.variables === detail.warehouseId
+                  }
                 >
-                  <CheckCircle2 size={14} className="mr-1" />
+                  <CheckCircle2 size={14} />
                   {t("adminWarehouses.resume")}
                 </Button>
-              ) : warehouse.status === "ACTIVE" ? (
+              ) : detail.status === "ACTIVE" ? (
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => setSuspendTarget(warehouse)}
+                  onClick={() => {
+                    setSuspendTarget(detail);
+                    setReason("");
+                  }}
                 >
                   <PauseCircle size={14} className="mr-1" />
                   {t("adminWarehouses.suspend")}
@@ -221,7 +351,7 @@ function AdminWarehousesInner() {
             </div>
           </div>
         )}
-      </div>
+      </Modal>
 
       <Modal
         isOpen={suspendTarget !== null}
@@ -235,11 +365,13 @@ function AdminWarehousesInner() {
           {suspendTarget && (
             <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1">
               <p>
-                <span className="text-gray-500">Kho:</span>{" "}
+                <span className="text-gray-500">
+                  {t("merchant.inventory.warehouseDropdownLabel")}:
+                </span>{" "}
                 <span className="font-mono">{suspendTarget.warehouseId}</span>
               </p>
               <p>
-                <span className="text-gray-500">Merchant:</span>{" "}
+                <span className="text-gray-500">{t("adminCod.merchant")}:</span>{" "}
                 <span className="font-mono">{suspendTarget.merchantId}</span>
               </p>
             </div>

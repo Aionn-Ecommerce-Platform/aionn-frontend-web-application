@@ -47,7 +47,6 @@ export {
 } from "./chat.service";
 
 export { notificationService } from "./notification.service";
-export { webPushService } from "./push.service";
 
 export { voucherService } from "./voucher.service";
 export { campaignService, shopVoucherService } from "./campaign.service";

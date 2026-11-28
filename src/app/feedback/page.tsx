@@ -99,7 +99,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="bg-gray-50/60 min-h-screen py-8 lg:py-14">
+    <div className="min-h-screen py-8 lg:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Title */}
         <div className="mb-8 lg:mb-12 max-w-3xl">
@@ -107,17 +107,16 @@ export default function FeedbackPage() {
             {t("feedback.title")}
           </h1>
           {t("feedback.subtitle") && (
-            <p className="mt-2 text-base text-gray-600 leading-relaxed">
+            <p className="mt-2 text-base text-gray-600 leading-relaxed lg:hidden">
               {t("feedback.subtitle")}
             </p>
           )}
         </div>
 
-        {/* 2-Column Split: Borderless seamless canvas */}
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-          {/* Left Column: Form */}
-          <div className="lg:col-span-6">
-            <div className="bg-white rounded-2xl border border-gray-400 p-6 sm:p-8 shadow-xs">
+        {/* One card: form on the left, illustration on the right */}
+        <div className="overflow-hidden rounded-2xl border border-gray-400 bg-white shadow-xs">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="p-6 sm:p-8">
             {submitted ? (
               <div className="py-12 px-6 rounded-xl bg-gray-50/70 border border-gray-400 text-center space-y-4">
                 <div className="w-16 h-16 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mx-auto shadow-xs">
@@ -289,42 +288,43 @@ export default function FeedbackPage() {
                 )}
 
                 {/* Submit Button */}
-                <Button
-                  type="submit"
-                  loading={submit.isPending}
-                  className="w-full sm:w-auto px-10 bg-brand hover:bg-brand-strong text-white font-bold py-3 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border-none mt-2 text-base cursor-pointer"
-                >
-                  <Send size={17} className="mr-2" />
-                  {t("feedback.submit")}
-                </Button>
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    type="submit"
+                    loading={submit.isPending}
+                    className="w-full sm:w-auto px-10 bg-brand hover:bg-brand-strong text-white font-bold py-3 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border-none text-base cursor-pointer"
+                  >
+                    <Send size={17} className="mr-2" />
+                    {t("feedback.submit")}
+                  </Button>
+                </div>
               </form>
             )}
             </div>
-          </div>
 
-          {/* Right Column: Customer Service Illustration & Info */}
-          <div className="lg:col-span-6">
-            <div className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-2xl border border-gray-400 p-6 sm:p-8 shadow-xs flex flex-col items-center text-center lg:sticky lg:top-24">
-            <div className="relative w-full max-w-[440px] aspect-square mb-6 flex items-center justify-center">
-              <div className="absolute inset-2 bg-purple-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
-              <Image
-                src="/images/customer_service.png"
-                alt="Aionn Customer Service"
-                width={500}
-                height={500}
-                priority
-                className="relative z-10 w-full h-full object-contain drop-shadow-sm select-none pointer-events-none"
-              />
-            </div>
-
-            <div className="space-y-3 max-w-md">
-              <h3 className="text-xl font-bold text-gray-950">
-                {t("feedback.title")}
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {t("feedback.subtitle")}
-              </p>
-            </div>
+            {/* Illustration panel inside the same card */}
+            <div className="relative hidden overflow-hidden border-l border-gray-100 bg-gradient-to-br from-brand/10 via-white to-purple-50 lg:flex lg:flex-col lg:items-center lg:justify-center">
+              <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-brand/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-12 -right-8 h-44 w-44 rounded-full bg-fuchsia-200/30 blur-3xl" />
+              <div className="relative h-[280px] w-full max-w-[300px]">
+                <Image
+                  src="/images/customer_service.png"
+                  alt="Aionn Customer Service"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 300px, 80vw"
+                  className="object-contain drop-shadow-sm select-none pointer-events-none"
+                />
+              </div>
+              <div className="relative z-10 px-6 pb-8 text-center">
+                <h3 className="text-xl font-bold text-gray-950">
+                  {t("feedback.title")}
+                </h3>
+                <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-brand/70" />
+                <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-gray-600">
+                  {t("feedback.subtitle")}
+                </p>
+              </div>
             </div>
           </div>
         </div>

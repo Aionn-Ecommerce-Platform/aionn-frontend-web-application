@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import StateView from "@/shared/ui/StateView";
 
 export function ConsolePanel({ children }: { children: ReactNode }) {
   return (
@@ -27,20 +29,23 @@ export function ConsoleEmptyState({
   title,
   description,
   children,
+  iconClassName,
 }: {
-  icon: ReactNode;
+  icon: LucideIcon;
   title: string;
   description: string;
   children?: ReactNode;
+  iconClassName?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
-        {icon}
-      </div>
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-slate-400">{description}</p>
-      {children}
-    </div>
+    <StateView
+      tone="dark"
+      icon={icon}
+      title={title}
+      description={description}
+      action={children}
+      iconClassName={iconClassName}
+      className="rounded-2xl border border-gray-600 bg-white/[0.03]"
+    />
   );
 }

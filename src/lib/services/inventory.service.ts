@@ -1,9 +1,11 @@
 import api from "@/shared/api";
 import type {
   InventoryItem,
+  InventoryStats,
   PageResult,
   Reservation,
   StockTransfer,
+  StockTransferStatus,
 } from "@/types";
 
 export const inventoryService = {
@@ -24,10 +26,31 @@ export const inventoryService = {
     });
   },
 
-  listByWarehouse(warehouseId: string, page = 0, size = 50) {
+  listByWarehouse(
+    warehouseId: string,
+    params: {
+      page?: number;
+      size?: number;
+      search?: string;
+      stockStatus?: "low" | "locked";
+    } = {},
+  ) {
     return api.page<InventoryItem>(
       `/inventory/items/by-warehouse/${warehouseId}`,
-      { query: { page, size } },
+      {
+        query: {
+          page: params.page ?? 0,
+          size: params.size ?? 50,
+          search: params.search,
+          stockStatus: params.stockStatus,
+        },
+      },
+    );
+  },
+
+  statsByWarehouse(warehouseId: string) {
+    return api.get<InventoryStats>(
+      `/inventory/items/by-warehouse/${warehouseId}/stats`,
     );
   },
 
@@ -125,6 +148,22 @@ export const stockTransferService = {
 
   get(transferId: string) {
     return api.get<StockTransfer>(`/inventory/transfers/${transferId}`);
+  },
+
+  list(
+    params: {
+      page?: number;
+      size?: number;
+      status?: StockTransferStatus;
+    } = {},
+  ) {
+    return api.page<StockTransfer>("/inventory/transfers", {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        status: params.status,
+      },
+    });
   },
 };
 

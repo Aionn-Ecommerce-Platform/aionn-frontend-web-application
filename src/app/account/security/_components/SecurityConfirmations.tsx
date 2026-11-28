@@ -10,6 +10,7 @@ interface Props {
   deleteOpen: boolean;
   cancelDeleteOpen: boolean;
   loading: boolean;
+  mfaEnabled: boolean;
   closeRevoke: () => void;
   confirmRevoke: () => void;
   closeRevokeAll: () => void;
@@ -45,6 +46,7 @@ export function SecurityConfirmations(props: Props) {
       <DeleteAccountModal
         open={props.deleteOpen}
         loading={props.loading}
+        mfaEnabled={props.mfaEnabled}
         onClose={props.closeDelete}
         onConfirm={props.confirmDelete}
       />

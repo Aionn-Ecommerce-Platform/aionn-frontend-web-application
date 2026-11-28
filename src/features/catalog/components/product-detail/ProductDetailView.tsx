@@ -34,8 +34,8 @@ import ProductDetailExtras from "./ProductDetailExtras";
 import {
   formatVariantKey,
   formatVariantValue,
-  getProductImages,
-} from "./product-detail-utils";
+} from "@/shared/lib/product-utils";
+import { getProductImages } from "./product-detail-utils";
 
 export default function ProductDetailPage({
   params,
@@ -378,19 +378,29 @@ export default function ProductDetailPage({
     product.flashSale?.currency ??
     product.variants[0]?.currency ??
     "VND";
-  const variantDisplayPrices = product.variants
+  // Keep the discounted and original prices on the same variant set so that
+  // whenever the displayed price is a range, the strike-through price is a
+  // range too. Under a flash sale the original price is the regular variant
+  // price; otherwise it is the variant's own original price.
+  const variantPriceEntries = product.variants
     .map((variant) => {
       const saleOffer = product.flashSale?.skuOffers.find(
         (offer) => offer.skuId === variant.skuId,
       );
-      return saleOffer?.salePrice ?? variant.price;
+      const display = saleOffer?.salePrice ?? variant.price;
+      const original = saleOffer
+        ? variant.price
+        : variant.originalPrice != null && variant.originalPrice > variant.price
+          ? variant.originalPrice
+          : variant.price;
+      return { display, original };
     })
-    .filter((price) => price > 0);
-  const minDisplayPrice = variantDisplayPrices.length
-    ? Math.min(...variantDisplayPrices)
+    .filter((entry) => entry.display > 0);
+  const minDisplayPrice = variantPriceEntries.length
+    ? Math.min(...variantPriceEntries.map((entry) => entry.display))
     : displayPrice;
-  const maxDisplayPrice = variantDisplayPrices.length
-    ? Math.max(...variantDisplayPrices)
+  const maxDisplayPrice = variantPriceEntries.length
+    ? Math.max(...variantPriceEntries.map((entry) => entry.display))
     : displayPrice;
   const priceRangeLabel =
     minDisplayPrice !== maxDisplayPrice
@@ -400,30 +410,30 @@ export default function ProductDetailPage({
     ? formatCurrency(displayPrice, displayCurrency)
     : priceRangeLabel;
 
-  const variantOriginals = product.variants
-    .map((variant) => variant.originalPrice)
-    .filter((v): v is number => v != null && v > 0);
-  const minOriginal = variantOriginals.length
-    ? Math.min(...variantOriginals)
+  const discountedEntries = variantPriceEntries.filter(
+    (entry) => entry.original > entry.display,
+  );
+  const minOriginal = discountedEntries.length
+    ? Math.min(...variantPriceEntries.map((entry) => entry.original))
     : undefined;
-  const maxOriginal = variantOriginals.length
-    ? Math.max(...variantOriginals)
+  const maxOriginal = discountedEntries.length
+    ? Math.max(...variantPriceEntries.map((entry) => entry.original))
     : undefined;
   const strikeRangeLabel =
-    !currentVariant &&
-    minOriginal != null &&
-    maxOriginal != null &&
-    minOriginal > minDisplayPrice
+    !currentVariant && minOriginal != null && maxOriginal != null
       ? minOriginal !== maxOriginal
         ? `${formatCurrency(minOriginal, displayCurrency)} - ${formatCurrency(maxOriginal, displayCurrency)}`
         : formatCurrency(minOriginal, displayCurrency)
       : null;
   const rangeDiscountPercent =
-    !currentVariant &&
-    minOriginal != null &&
-    minOriginal > minDisplayPrice &&
-    minDisplayPrice > 0
-      ? Math.round((1 - minDisplayPrice / minOriginal) * 100)
+    !currentVariant && discountedEntries.length
+      ? Math.max(
+          ...discountedEntries.map((entry) =>
+            entry.original > 0
+              ? Math.round((1 - entry.display / entry.original) * 100)
+              : 0,
+          ),
+        )
       : 0;
   const discountPercent = currentVariant
     ? variantDiscountPercent
@@ -498,7 +508,7 @@ export default function ProductDetailPage({
     }
     const added = await handleAddToCart();
     if (added) {
-      router.push("/cart");
+      router.push(`/cart?select=${encodeURIComponent(currentVariant.skuId)}`);
     }
   };
 

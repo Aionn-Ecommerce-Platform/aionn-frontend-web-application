@@ -42,7 +42,11 @@ import {
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
 import { formatVariantLabel } from "@/shared/lib/product-utils";
-import { resolveProvinceName } from "@/shared/lib/address-utils";
+import {
+  addressContainsProvince,
+  getLocalizedAddress,
+  resolveProvinceName,
+} from "@/shared/lib/address-utils";
 import { productPath } from "@/shared/lib/product-url";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
@@ -252,13 +256,17 @@ function OrderDetailInner({ id }: { id: string }) {
 
     let addressLine = order?.recipientAddressLine?.trim() || null;
 
-    if (addressLine) {
+    if (locale === "en" && orderAddress) {
+      // The stored snapshot is always Vietnamese. Render the address book
+      // entry in English so the detail page matches the rest of the UI.
+      addressLine = getLocalizedAddress(orderAddress, locale);
+    } else if (addressLine) {
       const prov = resolveProvinceName(
         order?.recipientProvinceCode,
         provinces,
         locale,
       );
-      if (prov && !addressLine.toLowerCase().includes(prov.toLowerCase())) {
+      if (prov && !addressContainsProvince(addressLine, prov)) {
         addressLine = `${addressLine}, ${prov}`;
       }
     } else if (orderAddress) {
@@ -792,7 +800,7 @@ function OrderDetailInner({ id }: { id: string }) {
             {canReturn && (
               <Button
                 variant="outline"
-                className="flex-1 rounded-xl border-gray-900 font-bold"
+                className="flex-1 rounded-xl border-gray-900 bg-white text-gray-900 font-bold hover:bg-gray-100"
                 size="sm"
                 onClick={() => router.push(`/orders/${order.orderId}/return`)}
               >

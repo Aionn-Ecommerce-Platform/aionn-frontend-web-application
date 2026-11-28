@@ -12,7 +12,21 @@ import {
   Star,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, EmptyState, Modal } from "@/shared/ui";
+import { Button, Modal, Pagination } from "@/shared/ui";
+import {
+  AdminEmpty,
+  AdminHeader,
+  AdminPill,
+  AdminSearch,
+  AdminSelect,
+  AdminStats,
+  AdminTable,
+  AdminTabs,
+  adminPrimaryClass,
+  adminRow,
+  adminTd,
+  adminTh,
+} from "@/features/admin";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { adminFeedbackService } from "@/lib/services";
 import type {
@@ -21,7 +35,7 @@ import type {
 } from "@/lib/services/feedback.service";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { formatDateTime } from "@/shared/lib/utils";
-import { useTranslation } from "@/hooks";
+import { useDebounce, useTranslation } from "@/hooks";
 
 const TABS: Array<{ key: "" | FeedbackStatus; labelKey: string }> = [
   { key: "", labelKey: "common.all" },
@@ -44,6 +58,14 @@ const STATUS_CFG: Record<
   CLOSED: { labelKey: "statuses.feedback.CLOSED", variant: "default" },
 };
 
+const TONE = {
+  default: "neutral",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+} as const;
+
 const NEXT_STATUS_OPTIONS: FeedbackStatus[] = [
   "OPEN",
   "IN_REVIEW",
@@ -55,6 +77,8 @@ function AdminFeedbacksInner() {
   const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"" | FeedbackStatus>("OPEN");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(0);
   const size = 20;
 
@@ -62,11 +86,14 @@ function AdminFeedbacksInner() {
   const [reply, setReply] = useState("");
   const [newStatus, setNewStatus] = useState<FeedbackStatus | "">("");
 
+  const searchTerm = debouncedSearch.trim() || undefined;
+
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-feedbacks", tab, page],
+    queryKey: ["admin-feedbacks", tab, searchTerm, page],
     queryFn: () =>
       adminFeedbackService.list({
         status: (tab || undefined) as FeedbackStatus | undefined,
+        search: searchTerm,
         page,
         size,
       }),
@@ -74,8 +101,28 @@ function AdminFeedbacksInner() {
   const items = data?.content ?? [];
   const totalPages = Math.max(1, data?.totalPages ?? 1);
 
+  const { data: feedbackCounts } = useQuery({
+    queryKey: ["admin-feedback-counts"],
+    queryFn: async () => {
+      const lists = await Promise.all(
+        TABS.map((entry) =>
+          adminFeedbackService.list({
+            status: (entry.key || undefined) as FeedbackStatus | undefined,
+            page: 0,
+            size: 1,
+          }),
+        ),
+      );
+      return TABS.reduce<Record<string, number>>((acc, entry, index) => {
+        acc[entry.key || "ALL"] = lists[index]?.totalElements ?? 0;
+        return acc;
+      }, {});
+    },
+  });
+
   function refresh() {
     qc.invalidateQueries({ queryKey: ["admin-feedbacks"] });
+    qc.invalidateQueries({ queryKey: ["admin-feedback-counts"] });
   }
 
   const replyMu = useMutation({
@@ -128,173 +175,206 @@ function AdminFeedbacksInner() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {t("adminFeedbacks.title")}
-        </h1>
-        <p className="text-gray-500 mb-6 text-sm">
-          {t("adminFeedbacks.description")}
+    <div className="min-h-screen">
+      <AdminHeader
+        icon={MessageSquare}
+        title={t("adminFeedbacks.title")}
+        description={t("adminFeedbacks.description")}
+      />
+
+      <AdminStats
+        columns="lg:grid-cols-5"
+        stats={TABS.map((entry) => ({
+          label: t(entry.labelKey),
+          value: feedbackCounts?.[entry.key || "ALL"] ?? 0,
+          icon: MessageSquare,
+          iconClass:
+            entry.key === "OPEN"
+              ? "text-amber-300"
+              : entry.key === "IN_REVIEW"
+                ? "text-sky-300"
+                : entry.key === "RESOLVED"
+                  ? "text-emerald-300"
+                  : entry.key === "CLOSED"
+                    ? "text-slate-400"
+                    : "text-purple-300",
+        }))}
+      />
+
+      <AdminTabs
+        value={tab}
+        onChange={(value) => {
+          setTab(value);
+          setPage(0);
+        }}
+        tabs={TABS.map((tabOption) => ({
+          value: tabOption.key,
+          label: t(tabOption.labelKey),
+        }))}
+      />
+
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearch
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(0);
+          }}
+          placeholder={t("adminConsole.searchPlaceholder")}
+        />
+        <p className="text-xs text-slate-400 sm:ml-auto">
+          {t("adminConsole.totalCount", { count: data?.totalElements ?? 0 })}
         </p>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {TABS.map((tabOption) => (
-            <Button
-              key={tabOption.key || "all"}
-              variant={tab === tabOption.key ? "primary" : "outline"}
-              size="sm"
-              onClick={() => {
-                setTab(tabOption.key);
-                setPage(0);
-              }}
-            >
-              {t(tabOption.labelKey)}
-            </Button>
-          ))}
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-300" size={28} />
         </div>
-
-        {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="animate-spin text-blue-600" size={28} />
-          </div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={MessageSquare}
-            title={t("adminFeedbacks.emptyTitle")}
-            description={t("adminFeedbacks.emptyDescription")}
-          />
-        ) : (
-          <div className="space-y-3">
+      ) : items.length === 0 ? (
+        <AdminEmpty
+          icon={MessageSquare}
+          title={t("adminFeedbacks.emptyTitle")}
+          description={t("adminFeedbacks.emptyDescription")}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+              <th className={adminTh}>{t("common.status")}</th>
+              <th className={adminTh}>{t("common.details")}</th>
+              <th className={`${adminTh} text-right`}>{t("common.actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
             {items.map((fb) => {
               const cfg = STATUS_CFG[fb.status];
               return (
-                <div
-                  key={fb.feedbackId}
-                  className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5"
-                >
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <Badge variant={cfg.variant}>{t(cfg.labelKey)}</Badge>
-                        <Badge variant="default">{fb.category}</Badge>
-                        {fb.rating != null && (
-                          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                            <Star size={12} fill="currentColor" /> {fb.rating}/5
-                          </span>
-                        )}
-                        <span className="text-xs text-gray-400">
-                          {formatDateTime(fb.createdAt, locale)}
+                <tr key={fb.feedbackId} className={adminRow}>
+                  <td className={adminTd}>
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <AdminPill tone={TONE[cfg.variant]}>
+                        {t(cfg.labelKey)}
+                      </AdminPill>
+                      <AdminPill tone="neutral">{fb.category}</AdminPill>
+                      {fb.rating != null && (
+                        <span className="inline-flex items-center gap-1 text-xs text-amber-300">
+                          <Star size={12} fill="currentColor" /> {fb.rating}/5
                         </span>
-                      </div>
-                      {fb.subject && (
-                        <p className="font-semibold text-gray-900 mb-1">
-                          {fb.subject}
-                        </p>
                       )}
-                      <p className="text-sm text-gray-700 whitespace-pre-line">
-                        {fb.content}
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {formatDateTime(fb.createdAt, locale)}
+                    </span>
+                  </td>
+                  <td className={adminTd}>
+                    {fb.subject && (
+                      <p className="mb-1 font-semibold text-white">
+                        {fb.subject}
                       </p>
+                    )}
+                    <p className="whitespace-pre-line text-sm text-slate-300">
+                      {fb.content}
+                    </p>
 
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-3">
-                        {fb.userId && (
-                          <span className="inline-flex items-center gap-1">
-                            <User size={12} /> {fb.userId}
-                          </span>
-                        )}
-                        {fb.contactEmail && (
-                          <span className="inline-flex items-center gap-1">
-                            <Mail size={12} /> {fb.contactEmail}
-                          </span>
-                        )}
-                        {fb.contactPhone && (
-                          <span className="inline-flex items-center gap-1">
-                            <Phone size={12} /> {fb.contactPhone}
-                          </span>
-                        )}
-                      </div>
-
-                      {fb.adminReply && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                          <p className="text-xs text-blue-700 font-medium mb-1">
-                            {t("adminFeedbacks.adminReply")}
-                            {fb.handledBy && (
-                              <span className="text-blue-500 font-normal">
-                                {" · "}
-                                {fb.handledBy}
-                                {fb.handledAt &&
-                                  ` · ${formatDateTime(fb.handledAt, locale)}`}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-sm text-blue-900 whitespace-pre-line">
-                            {fb.adminReply}
-                          </p>
-                        </div>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                      {fb.userId && (
+                        <span className="inline-flex items-center gap-1">
+                          <User size={12} /> {fb.userId}
+                        </span>
+                      )}
+                      {fb.contactEmail && (
+                        <span className="inline-flex items-center gap-1">
+                          <Mail size={12} /> {fb.contactEmail}
+                        </span>
+                      )}
+                      {fb.contactPhone && (
+                        <span className="inline-flex items-center gap-1">
+                          <Phone size={12} /> {fb.contactPhone}
+                        </span>
                       )}
                     </div>
 
+                    {fb.adminReply && (
+                      <div className="mt-3 rounded-lg border border-purple-400/25 bg-purple-500/10 p-3">
+                        <p className="mb-1 text-xs font-medium text-purple-200">
+                          {t("adminFeedbacks.adminReply")}
+                          {fb.handledBy && (
+                            <span className="font-normal text-purple-300">
+                              {" · "}
+                              {fb.handledBy}
+                              {fb.handledAt &&
+                                ` · ${formatDateTime(fb.handledAt, locale)}`}
+                            </span>
+                          )}
+                        </p>
+                        <p className="whitespace-pre-line text-sm text-slate-200">
+                          {fb.adminReply}
+                        </p>
+                      </div>
+                    )}
+                  </td>
+                  <td className={`${adminTd} text-right`}>
                     <div className="flex flex-col items-end gap-2">
-                      <Button size="sm" onClick={() => openReply(fb)}>
-                        <Send size={14} className="mr-1" />
+                      <Button
+                        size="sm"
+                        className={adminPrimaryClass}
+                        onClick={() => openReply(fb)}
+                      >
+                        <Send size={14} />
                         {fb.adminReply
                           ? t("adminFeedbacks.editReply")
                           : t("adminFeedbacks.reply")}
                       </Button>
-                      <select
-                        value={fb.status}
-                        onChange={(e) =>
-                          statusMu.mutate({
-                            feedbackId: fb.feedbackId,
-                            status: e.target.value as FeedbackStatus,
-                          })
+                      <div
+                        className={
+                          statusMu.isPending
+                            ? "pointer-events-none opacity-60"
+                            : undefined
                         }
-                        disabled={statusMu.isPending}
-                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
                       >
-                        {NEXT_STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>
-                            {t(STATUS_CFG[s].labelKey)}
-                          </option>
-                        ))}
-                      </select>
+                        <AdminSelect
+                          value={fb.status}
+                          onChange={(value) =>
+                            statusMu.mutate({
+                              feedbackId: fb.feedbackId,
+                              status: value as FeedbackStatus,
+                            })
+                          }
+                          className="py-1.5 text-xs"
+                        >
+                          {NEXT_STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                              {t(STATUS_CFG[s].labelKey)}
+                            </option>
+                          ))}
+                        </AdminSelect>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               );
             })}
-          </div>
-        )}
+          </tbody>
+        </AdminTable>
+      )}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6">
-            <p className="text-xs text-gray-500">
-              {t("adminFeedbacks.pagination", {
-                count: data?.totalElements ?? 0,
-                page: page + 1,
-                total: totalPages,
-              })}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
-              >
-                {t("common.previous")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  page + 1 < totalPages && setPage((p) => p + 1)
-                }
-              >
-                {t("common.next")}
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      {totalPages > 1 && (
+        <>
+          <p className="mt-4 text-xs text-slate-400">
+            {t("adminFeedbacks.pagination", {
+              count: data?.totalElements ?? 0,
+              page: page + 1,
+              total: totalPages,
+            })}
+          </p>
+          <Pagination
+            currentPage={page + 1}
+            totalPages={totalPages}
+            onPageChange={(nextPage) => setPage(nextPage - 1)}
+          />
+        </>
+      )}
 
       <Modal
         isOpen={active !== null}
@@ -304,30 +384,30 @@ function AdminFeedbacksInner() {
       >
         {active && (
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded-lg text-sm">
-              <p className="text-gray-500 text-xs mb-1">
+            <div className="rounded-lg bg-gray-50 p-3 text-sm">
+              <p className="mb-1 text-xs text-gray-500">
                 {active.subject || active.category}
               </p>
-              <p className="text-gray-700 line-clamp-3 whitespace-pre-line">
+              <p className="line-clamp-3 whitespace-pre-line text-gray-700">
                 {active.content}
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t("adminFeedbacks.replyContent")}
               </label>
               <textarea
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 rows={5}
-                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                 placeholder={t("adminFeedbacks.replyPlaceholder")}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t("adminFeedbacks.statusAfterReply")}
               </label>
               <select
@@ -335,7 +415,7 @@ function AdminFeedbacksInner() {
                 onChange={(e) =>
                   setNewStatus(e.target.value as FeedbackStatus | "")
                 }
-                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-400 px-3 py-2 text-sm focus:border-brand focus:outline-none"
               >
                 <option value="">
                   {t("adminFeedbacks.defaultTransition")}
@@ -356,7 +436,11 @@ function AdminFeedbacksInner() {
               >
                 {t("common.cancel")}
               </Button>
-              <Button onClick={submitReply} loading={replyMu.isPending}>
+              <Button
+                className={adminPrimaryClass}
+                onClick={submitReply}
+                loading={replyMu.isPending}
+              >
                 {t("adminFeedbacks.sendReply")}
               </Button>
             </div>

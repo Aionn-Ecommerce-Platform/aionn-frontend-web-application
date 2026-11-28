@@ -43,10 +43,10 @@ export const flashSaleService = {
       `/promotions/flash-sales/registrations/${registrationId}`,
     );
   },
-  listMine(status?: FlashSaleRegistrationStatus, limit = 100) {
+  listMine(status?: FlashSaleRegistrationStatus, limit = 100, search?: string) {
     return api.get<FlashSaleRegistration[]>(
       "/promotions/flash-sales/registrations/mine",
-      { query: { status, limit } },
+      { query: { status, limit, search } },
     );
   },
 
@@ -61,10 +61,14 @@ export const flashSaleService = {
       { reason },
     );
   },
-  listByStatus(status: FlashSaleRegistrationStatus, limit = 100) {
+  listByStatus(
+    status: FlashSaleRegistrationStatus,
+    limit = 100,
+    search?: string,
+  ) {
     return api.get<FlashSaleRegistration[]>(
       "/promotions/flash-sales/registrations",
-      { query: { status, limit } },
+      { query: { status, limit, search } },
     );
   },
   get(registrationId: string) {

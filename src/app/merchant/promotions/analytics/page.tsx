@@ -5,6 +5,7 @@ import { Loader2, Percent, Ticket, TrendingDown } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { StatCard } from "@/shared/ui";
 import { SimpleBarChart } from "@/components/charts";
+import { ConsolePanel } from "@/features/merchant";
 import { useTranslation } from "@/hooks";
 import { qk } from "@/lib/query-keys";
 import { merchantAnalyticsService } from "@/lib/services";
@@ -19,9 +20,11 @@ function VoucherAnalyticsInner() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-brand" size={28} />
-      </div>
+      <ConsolePanel>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-purple-400" size={28} />
+        </div>
+      </ConsolePanel>
     );
   }
 
@@ -32,9 +35,10 @@ function VoucherAnalyticsInner() {
     })) ?? [];
 
   return (
-    <div>
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+    <ConsolePanel>
+      <div className="console-dark">
+        <h1 className="mb-6 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-purple-300">
+          <Ticket size={22} className="text-purple-300" />
           {t("merchant.promotionAnalytics.title")}
         </h1>
 
@@ -87,7 +91,7 @@ function VoucherAnalyticsInner() {
           )}
         </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }
 

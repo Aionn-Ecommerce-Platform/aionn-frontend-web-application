@@ -110,6 +110,22 @@ export const productService = {
       query: { skuIds: skuIds.join(",") },
     });
   },
+  async resolveBySkuIdsWithActiveFlashSale(skuIds: string[]) {
+    if (skuIds.length === 0) return [];
+    const [products, campaigns] = await Promise.all([
+      this.resolveBySkuIds(skuIds),
+      promotionService.getActiveFlashSales(100).catch(() => []),
+    ]);
+    const saleItems = campaigns.flatMap((campaign) =>
+      campaign.items.map((item) => ({ campaign, item })),
+    );
+    return products.map((product) => {
+      const matches = saleItems.filter(
+        ({ item }) => item.productId === product.productId,
+      );
+      return matches.length > 0 ? attachFlashSale(product, matches) : product;
+    });
+  },
   searchSuggestions(keyword: string, limit = 5) {
     return api.get<ProductSearchResult>("/catalog/products/search/catalog", {
       anonymous: true,
@@ -391,9 +407,19 @@ export const productService = {
   },
 
   /** Backend exposes only PENDING_REVIEW products on this endpoint. */
-  listPendingReviews(params: { page?: number; size?: number } = {}) {
+  listPendingReviews(
+    params: {
+      page?: number;
+      size?: number;
+      search?: string;
+    } = {},
+  ) {
     return api.page<Product>("/catalog/products/admin/reviews", {
-      query: { page: params.page ?? 0, size: params.size ?? 20 },
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        search: params.search,
+      },
     });
   },
   /**
@@ -524,6 +550,12 @@ export const productService = {
   },
   restore(productId: string) {
     return api.post<Product>(`/catalog/products/${productId}/restore`);
+  },
+  deleteProduct(productId: string) {
+    return api.post<Product>(`/catalog/products/${productId}/delete`);
+  },
+  undeleteProduct(productId: string) {
+    return api.post<Product>(`/catalog/products/${productId}/undelete`);
   },
   publish(productId: string) {
     return api.post<Product>(`/catalog/products/${productId}/publish`);

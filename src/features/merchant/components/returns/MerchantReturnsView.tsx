@@ -29,6 +29,7 @@ import {
   ReceiveModal,
   RejectModal,
   ReturnDetailModal,
+  ReturnPickupModal,
   ReturnRow,
 } from "./ReturnParts";
 
@@ -60,6 +61,7 @@ function MerchantReturnsInner() {
   const [approving, setApproving] = useState<OrderReturn | null>(null);
   const [rejecting, setRejecting] = useState<OrderReturn | null>(null);
   const [receiving, setReceiving] = useState<OrderReturn | null>(null);
+  const [pickupFor, setPickupFor] = useState<OrderReturn | null>(null);
   const [detailItem, setDetailItem] = useState<OrderReturn | null>(null);
   const PAGE_SIZE = 10;
   const filterKey = [search, tab, reasonFilter].join("|");
@@ -157,22 +159,20 @@ function MerchantReturnsInner() {
   let content: ReactNode;
   if (isError) {
     content = (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-600 bg-white/[0.03] px-6 py-16 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-300">
-          <AlertCircle size={32} />
-        </div>
-        <h3 className="text-lg font-semibold text-white">
-          {t("common.error")}
-        </h3>
-        <p className="mt-1 text-sm text-slate-400">{t("common.tryAgain")}</p>
+      <ConsoleEmptyState
+        icon={AlertCircle}
+        iconClassName="text-rose-300"
+        title={t("common.error")}
+        description={t("common.tryAgain")}
+      >
         <button
           type="button"
           onClick={() => refetch()}
-          className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+          className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
         >
           {t("common.retry")}
         </button>
-      </div>
+      </ConsoleEmptyState>
     );
   } else if (isLoading) {
     content = (
@@ -183,7 +183,7 @@ function MerchantReturnsInner() {
   } else if (returns.length === 0) {
     content = (
       <ConsoleEmptyState
-        icon={<PackageX size={34} />}
+        icon={PackageX}
         title={t(
           hasFilters
             ? "merchant.returns.emptyFilteredTitle"
@@ -206,7 +206,7 @@ function MerchantReturnsInner() {
               setReasonFilter("all");
               resetPage();
             }}
-            className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
           >
             {t("merchant.returns.clearFilters")}
           </button>
@@ -222,9 +222,6 @@ function MerchantReturnsInner() {
               <tr className="border-b border-slate-600/60 bg-white/[0.03]">
                 <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   {t("merchant.returns.colReturn")}
-                </th>
-                <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {t("merchant.returns.colRequestedAt")}
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   {t("merchant.returns.colReason")}
@@ -248,6 +245,7 @@ function MerchantReturnsInner() {
                   onApprove={() => setApproving(item)}
                   onReject={() => setRejecting(item)}
                   onReceive={() => setReceiving(item)}
+                  onPickup={() => setPickupFor(item)}
                   onDetail={() => setDetailItem(item)}
                 />
               ))}
@@ -282,9 +280,6 @@ function MerchantReturnsInner() {
                 {t("merchant.returns.title")}
               </span>
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
-              {t("merchant.returns.subtitle")}
-            </p>
           </div>
         </div>
 
@@ -378,6 +373,13 @@ function MerchantReturnsInner() {
             refresh();
             setReceiving(null);
           }}
+        />
+      )}
+      {pickupFor && (
+        <ReturnPickupModal
+          rtn={pickupFor}
+          onClose={() => setPickupFor(null)}
+          onSuccess={refresh}
         />
       )}
       {detailItem && (

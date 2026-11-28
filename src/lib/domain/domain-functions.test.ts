@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateCheckoutPricing,
+  calculateCheckoutTotal,
+  calculateShopVoucherDiscount,
   getVerifiedPaymentMethods,
   resolvePaymentOption,
   selectCheckoutItems,
@@ -43,6 +45,8 @@ describe("checkout domain", () => {
       subtotal: 200,
       meetsMinimum: true,
       discount: 200,
+      goodsDiscount: 200,
+      shippingDiscount: 0,
       merchandiseTotal: 0,
     });
     expect(
@@ -55,6 +59,50 @@ describe("checkout domain", () => {
       discount: 0,
       merchandiseTotal: 200,
     });
+  });
+
+  it("subtracts a free-shipping voucher from the payable total", () => {
+    const items = [cartItem("a", 300_000, 1), cartItem("b", 610_000, 1)];
+    const platform = {
+      minOrderValue: 699_000,
+      voucherDiscountAmount: 25_000,
+    } as UserVoucher;
+    const shippingVoucher = {
+      voucherType: "FREE_SHIPPING",
+      minOrderValue: 0,
+      voucherDiscountAmount: 30_000,
+    } as UserVoucher;
+    const pricing = calculateCheckoutPricing(
+      items,
+      { platform, shipping: shippingVoucher },
+      30_000,
+    );
+    expect(pricing.shippingDiscount).toBe(30_000);
+    expect(
+      calculateCheckoutTotal({
+        subtotal: pricing.subtotal,
+        platformDiscount: 25_000,
+        shopDiscount: 0,
+        shipping: 30_000,
+        shippingDiscount: pricing.shippingDiscount,
+      }),
+    ).toBe(885_000);
+  });
+
+  it("caps a shop voucher at that shop's goods total and honours its minimum", () => {
+    const voucher = {
+      minOrderValue: 100,
+      voucherDiscountAmount: 30,
+    } as UserVoucher;
+    expect(calculateShopVoucherDiscount(voucher, 200)).toBe(30);
+    expect(calculateShopVoucherDiscount(voucher, 60)).toBe(0);
+    expect(
+      calculateShopVoucherDiscount(
+        { ...voucher, voucherDiscountAmount: 500 } as UserVoucher,
+        120,
+      ),
+    ).toBe(120);
+    expect(calculateShopVoucherDiscount(null, 200)).toBe(0);
   });
 
   it("uses only verified cards and resolves payment preference safely", () => {

@@ -1,5 +1,10 @@
-import api from "@/shared/api";
-import type { ChatConversation, ChatMessage, ChatMessageType } from "@/types";
+import api, { requestEnvelope } from "@/shared/api";
+import type {
+  ApiEnvelope,
+  ChatConversation,
+  ChatMessage,
+  ChatMessageType,
+} from "@/types";
 
 interface StartConversationInput {
   merchantId: string;
@@ -7,6 +12,14 @@ interface StartConversationInput {
   buyerAvatarUrl?: string;
   merchantDisplayName?: string;
   merchantAvatarUrl?: string;
+}
+
+/** Reserved peer id used by the Aionn customer-support conversation. */
+export const AIONN_SUPPORT_PEER_ID = "AIONN_SUPPORT";
+
+interface StartSupportConversationInput {
+  buyerDisplayName?: string;
+  buyerAvatarUrl?: string;
 }
 
 interface SendMessageInput {
@@ -20,17 +33,34 @@ export const conversationService = {
     return api.post<ChatConversation>("/chat/conversations", body);
   },
 
-  listMine(params: { includeArchived?: boolean; limit?: number } = {}) {
+  startSupport(body: StartSupportConversationInput = {}) {
+    return api.post<ChatConversation>("/chat/conversations/support", body);
+  },
+
+  listMine(
+    params: { includeArchived?: boolean; limit?: number; search?: string } = {},
+  ) {
     return api.get<ChatConversation[]>("/chat/conversations", {
       query: {
         includeArchived: params.includeArchived ?? false,
         limit: params.limit ?? 50,
+        search: params.search,
       },
     });
   },
 
   unreadCounts() {
     return api.get<Record<string, number>>("/chat/conversations/unread-counts");
+  },
+
+  adminList(params: { search?: string; page?: number; size?: number } = {}) {
+    return requestEnvelope<ChatConversation[]>("/chat/conversations/admin", {
+      query: {
+        search: params.search?.trim() || undefined,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      },
+    }) as Promise<ApiEnvelope<ChatConversation[]>>;
   },
 
   get(conversationId: string) {

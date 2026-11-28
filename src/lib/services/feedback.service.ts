@@ -44,10 +44,16 @@ export const feedbackService = {
 };
 
 export const adminFeedbackService = {
-  list(params: { status?: FeedbackStatus; page?: number; size?: number }) {
+  list(params: {
+    status?: FeedbackStatus;
+    search?: string;
+    page?: number;
+    size?: number;
+  }) {
     return api.page<FeedbackResponse>("/admin/feedbacks", {
       query: {
         status: params.status,
+        search: params.search,
         page: params.page ?? 0,
         size: params.size ?? 20,
       },

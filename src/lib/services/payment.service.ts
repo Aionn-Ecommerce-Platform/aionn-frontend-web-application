@@ -64,6 +64,9 @@ export const paymentPreferenceService = {
 
 interface InitiatePaymentInput {
   orderId: string;
+  /** Present when one payment covers a multi-merchant checkout group. */
+  orderIds?: string[];
+  groupId?: string;
   paymentMethodId?: string | null;
   amount: number;
   currency: string;

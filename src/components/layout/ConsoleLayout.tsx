@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertCircle,
+  BarChart3,
   Bell,
-  Bot,
   Boxes,
+  Coins,
   CreditCard,
   Folder,
-  HelpCircle,
   Home,
   Image,
   ListChecks,
@@ -31,10 +32,11 @@ import {
   Warehouse,
 } from "lucide-react";
 import { Avatar } from "@/shared/ui";
+import StateView from "@/shared/ui/StateView";
 import PageLoading from "@/shared/ui/PageLoading";
 import { cn } from "@/shared/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
-import { merchantService } from "@/lib/services";
+import { merchantService, conversationService } from "@/lib/services";
 import { useTranslation } from "@/hooks";
 
 const EMPTY_ROLES: string[] = [];
@@ -46,6 +48,7 @@ interface ConsoleMenuItem {
   href: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   exact?: boolean;
+  aliases?: string[];
   roles?: string[];
 }
 
@@ -81,7 +84,6 @@ const merchantItems: ConsoleMenuItem[] = [
     labelKey: "console.merchant.inventory",
     href: "/merchant/inventory",
     icon: Boxes,
-    exact: true,
   },
   {
     labelKey: "console.merchant.payouts",
@@ -92,11 +94,7 @@ const merchantItems: ConsoleMenuItem[] = [
     labelKey: "console.merchant.reviews",
     href: "/merchant/reviews",
     icon: MessageSquare,
-  },
-  {
-    labelKey: "console.merchant.questions",
-    href: "/merchant/questions",
-    icon: HelpCircle,
+    aliases: ["/merchant/questions"],
   },
   {
     labelKey: "console.merchant.vouchers",
@@ -107,11 +105,6 @@ const merchantItems: ConsoleMenuItem[] = [
     labelKey: "console.merchant.flashSale",
     href: "/merchant/promotions/flash-sales",
     icon: Sparkles,
-  },
-  {
-    labelKey: "console.merchant.autoReply",
-    href: "/merchant/chat/auto-reply",
-    icon: Bot,
   },
   {
     labelKey: "console.merchant.chat",
@@ -133,17 +126,38 @@ const adminItems: ConsoleMenuItem[] = [
     icon: Home,
     exact: true,
   },
+  {
+    labelKey: "console.admin.analytics",
+    href: "/admin/analytics",
+    icon: BarChart3,
+    roles: ["SYSTEM_ADMIN"],
+  },
   { labelKey: "console.admin.users", href: "/admin/users", icon: Users },
   { labelKey: "console.admin.kyc", href: "/admin/kyc", icon: ShieldCheck },
+  {
+    labelKey: "console.admin.orders",
+    href: "/admin/orders",
+    icon: ShoppingBag,
+  },
+  {
+    labelKey: "console.admin.returns",
+    href: "/admin/orders/returns",
+    icon: PackageX,
+  },
   {
     labelKey: "console.admin.feedbacks",
     href: "/admin/feedbacks",
     icon: MessageSquare,
   },
   {
-    labelKey: "console.admin.returns",
-    href: "/admin/orders/returns",
-    icon: PackageX,
+    labelKey: "console.admin.reviews",
+    href: "/admin/reviews",
+    icon: MessageCircle,
+  },
+  {
+    labelKey: "console.admin.chat",
+    href: "/admin/chat",
+    icon: MessageCircle,
   },
   {
     labelKey: "console.admin.productReview",
@@ -179,6 +193,17 @@ const adminItems: ConsoleMenuItem[] = [
     icon: Boxes,
   },
   {
+    labelKey: "console.admin.reservations",
+    href: "/admin/inventory/reservations",
+    icon: PackageSearch,
+    roles: ["SYSTEM_ADMIN"],
+  },
+  {
+    labelKey: "console.admin.warehouses",
+    href: "/admin/warehouses",
+    icon: Warehouse,
+  },
+  {
     labelKey: "console.admin.payments",
     href: "/admin/payments",
     icon: CreditCard,
@@ -187,6 +212,12 @@ const adminItems: ConsoleMenuItem[] = [
     labelKey: "console.admin.payouts",
     href: "/admin/payouts",
     icon: Wallet,
+    roles: ["SYSTEM_ADMIN"],
+  },
+  {
+    labelKey: "console.admin.codReconciliation",
+    href: "/admin/cod-reconciliation",
+    icon: Coins,
     roles: ["SYSTEM_ADMIN"],
   },
   {
@@ -224,6 +255,12 @@ const adminItems: ConsoleMenuItem[] = [
     icon: Settings,
     roles: ["SYSTEM_ADMIN"],
   },
+  {
+    labelKey: "console.admin.notificationDispatch",
+    href: "/admin/notifications/dispatch",
+    icon: Bell,
+    roles: ["SYSTEM_ADMIN"],
+  },
 ];
 
 export default function ConsoleLayout({
@@ -239,13 +276,32 @@ export default function ConsoleLayout({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { t } = useTranslation();
 
+  const { data: unreadCounts } = useQuery({
+    queryKey: ["chat", "unread-counts"],
+    queryFn: () => conversationService.unreadCounts(),
+    enabled: isAuthenticated,
+    refetchInterval: 10000,
+  });
+  const unreadChatTotal = Object.values(unreadCounts ?? {}).reduce(
+    (sum, count) => sum + (count ?? 0),
+    0,
+  );
+
   const isMerchantConsole =
     kind === "merchant" && !pathname.startsWith("/merchant/register");
-  const isLegacyMerchantPage =
-    isMerchantConsole &&
-    !["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
+  const isConsoleBoardPage =
+    ["/merchant/dashboard", "/merchant/products", "/merchant/orders"].some(
       (base) => pathname === base || pathname.startsWith(`${base}/`),
-    );
+    ) ||
+    pathname === "/merchant/warehouses" ||
+    pathname.startsWith("/merchant/inventory") ||
+    pathname === "/merchant/payouts" ||
+    pathname === "/merchant/reviews" ||
+    pathname === "/merchant/questions" ||
+    pathname === "/merchant/chat" ||
+    pathname.startsWith("/merchant/promotions/") ||
+    pathname.startsWith("/merchant/settings");
+  const isLegacyMerchantPage = isMerchantConsole && !isConsoleBoardPage;
   const {
     data: merchantContext,
     isError: merchantContextFailed,
@@ -278,6 +334,31 @@ export default function ConsoleLayout({
   const displayName =
     user?.displayName || user?.username || t("common.account");
 
+  const consoleMain =
+    isMerchantConsole && isAuthenticated && merchantContextFailed ? (
+      <StateView
+        tone="dark"
+        icon={AlertCircle}
+        iconClassName="text-rose-300"
+        title={t("common.error")}
+        description={t("common.tryAgain")}
+        className="min-h-[40vh] rounded-2xl border border-rose-400/20 bg-rose-500/10"
+        action={
+          <button
+            type="button"
+            onClick={() => void retryMerchantContext()}
+            className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+          >
+            {t("common.retry")}
+          </button>
+        }
+      />
+    ) : awaitingMerchantContext ? (
+      <PageLoading />
+    ) : (
+      children
+    );
+
   return (
     <div className="console-page member-page min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -307,9 +388,16 @@ export default function ConsoleLayout({
                 {items.map((item) => {
                   const ItemIcon = item.icon;
                   const isActive = item.exact
-                    ? pathname === item.href
+                    ? pathname === item.href ||
+                      (item.aliases?.includes(pathname) ?? false)
                     : pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`);
+                      pathname.startsWith(`${item.href}/`) ||
+                      (item.aliases?.some(
+                        (alias) =>
+                          pathname === alias ||
+                          pathname.startsWith(`${alias}/`),
+                      ) ??
+                        false);
                   return (
                     <Link
                       key={item.href}
@@ -331,6 +419,11 @@ export default function ConsoleLayout({
                         )}
                       />
                       <span className="truncate">{t(item.labelKey)}</span>
+                      {item.href.endsWith("/chat") && unreadChatTotal > 0 && (
+                        <span className="ml-auto rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                          {unreadChatTotal}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -340,29 +433,27 @@ export default function ConsoleLayout({
           <section
             className={cn(
               "console-content flex-1 min-w-0",
-              (isLegacyMerchantPage || kind === "admin") && "console-dark",
+              kind === "admin" && "console-dark",
             )}
           >
-            {isMerchantConsole && isAuthenticated && merchantContextFailed ? (
-              <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-6 py-12 text-center">
-                <p className="text-base font-semibold text-rose-300">
-                  {t("common.error")}
-                </p>
-                <p className="mt-1 text-sm text-slate-400">
-                  {t("common.tryAgain")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void retryMerchantContext()}
-                  className="mt-5 rounded-xl border border-gray-500 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
-                >
-                  {t("common.retry")}
-                </button>
+            {isLegacyMerchantPage ? (
+              <div className="console-dark console-legacy-board relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6">
+                <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+                  <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+                  <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
+                  <div
+                    className="absolute inset-0 opacity-[0.06]"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                      backgroundSize: "36px 36px",
+                    }}
+                  />
+                </div>
+                <div className="relative">{consoleMain}</div>
               </div>
-            ) : awaitingMerchantContext ? (
-              <PageLoading />
             ) : (
-              children
+              consoleMain
             )}
           </section>
         </div>

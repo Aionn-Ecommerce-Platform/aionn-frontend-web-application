@@ -152,16 +152,16 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
       </div>
 
       {filteredReviews.length > 0 && (
-        <div className="flex items-center justify-center gap-1.5 pt-6">
+        <div className="flex items-center justify-center gap-2 pt-6">
           <button
             type="button"
             onClick={() => page > 0 && setPage((p) => Math.max(0, p - 1))}
+            disabled={page <= 0}
             aria-label={t("common.previous")}
-            aria-disabled={page <= 0 || undefined}
-            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
               page <= 0
-                ? "cursor-default"
-                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+                ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
             }`}
           >
             <ChevronLeft size={16} />
@@ -171,10 +171,11 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               key={i}
               type="button"
               onClick={() => setPage(i)}
-              className={`min-w-8.5 h-8.5 px-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+              aria-current={page === i ? "page" : undefined}
+              className={`h-9 min-w-9 rounded-full border px-2 text-xs font-bold transition-all cursor-pointer ${
                 page === i
-                  ? "bg-gray-950 text-white shadow-xs font-semibold border border-gray-950"
-                  : "border border-gray-400 text-gray-700 hover:bg-gray-50 hover:border-gray-950"
+                  ? "bg-gray-950 text-white shadow-xs border-gray-950"
+                  : "border-gray-400 bg-white text-gray-800 hover:border-gray-950 hover:bg-gray-100"
               }`}
             >
               {i + 1}
@@ -186,12 +187,12 @@ export function ReviewList({ productId, headerSlot }: ReviewListProps) {
               page < Math.max(1, totalPages) - 1 &&
               setPage((p) => Math.min(Math.max(1, totalPages) - 1, p + 1))
             }
+            disabled={page >= Math.max(1, totalPages) - 1}
             aria-label={t("common.next")}
-            aria-disabled={page >= Math.max(1, totalPages) - 1 || undefined}
-            className={`flex h-8.5 items-center gap-1 rounded-xl border border-gray-400 px-2.5 text-sm font-medium text-gray-700 transition-colors ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
               page >= Math.max(1, totalPages) - 1
-                ? "cursor-default"
-                : "cursor-pointer hover:border-gray-950 hover:bg-gray-50"
+                ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                : "border-gray-400 bg-white text-gray-900 cursor-pointer hover:border-gray-950 hover:bg-gray-100"
             }`}
           >
             <ChevronRight size={16} />

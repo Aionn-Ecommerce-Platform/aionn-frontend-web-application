@@ -2,15 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Shield,
-  FileText,
-  Mail,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Download,
-} from "lucide-react";
+import { Shield, Check, XCircle, Loader2, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button, Badge, Switch as Toggle } from "@/shared/ui";
 import { qk } from "@/lib/query-keys";
@@ -18,7 +10,6 @@ import { consentService, userService } from "@/lib/services";
 import type { ConsentResponse } from "@/lib/services/consent.service";
 import { ApiError } from "@/shared/api";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { formatDateTime } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
 
 const EXPORT_TIMEOUT_MS = 30_000;
@@ -49,7 +40,7 @@ async function fetchExportWhenReady(requestId: string) {
 }
 
 export default function PrivacySettings() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading: loading } = useQuery({
     queryKey: qk.consents,
@@ -109,187 +100,107 @@ export default function PrivacySettings() {
     }
   }
 
+  const consentBadge = (agreed: boolean) =>
+    agreed ? (
+      <Badge variant="success" className="shrink-0 gap-1">
+        <Check size={12} />
+        {t("privacy.agreed")}
+      </Badge>
+    ) : (
+      <Badge className="shrink-0 gap-1">
+        <XCircle size={12} />
+        {t("privacy.notAgreed")}
+      </Badge>
+    );
+
+  const header = (
+    <h3 className="flex items-center gap-2.5 font-bold text-gray-950 text-base mb-5 border-b border-gray-100 pb-3.5">
+      <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+        <Shield size={16} />
+      </div>
+      {t("privacy.title")}
+    </h3>
+  );
+
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-16 flex justify-center">
-        <Loader2 className="animate-spin text-brand" size={32} />
+      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
+        {header}
+        <div className="py-12 flex justify-center">
+          <Loader2 className="animate-spin text-brand" size={32} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <FileText size={20} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-bold text-gray-950">
-                {t("privacy.termsTitle")}
-              </h3>
-              {termsConsent?.agreed ? (
-                <Badge className="bg-emerald-100 text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 size={12} />
-                  {t("privacy.agreed")}
-                </Badge>
-              ) : (
-                <Badge className="bg-gray-100 text-gray-700 flex items-center gap-1">
-                  <XCircle size={12} />
-                  {t("privacy.notAgreed")}
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-gray-500 mb-3">
+    <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
+      {header}
+      <div className="divide-y divide-gray-100">
+        <div className="py-3.5 first:pt-0 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">
+              {t("privacy.termsTitle")}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
               {t("privacy.termsDescription")}
             </p>
-            {termsConsent && (
-              <div className="text-xs text-gray-400 space-y-1">
-                {termsConsent.version && (
-                  <p>
-                    {t("privacy.version", { version: termsConsent.version })}
-                  </p>
-                )}
-                {termsConsent.agreedAt && (
-                  <p>
-                    {t("privacy.agreedAt", {
-                      date: formatDateTime(termsConsent.agreedAt, locale),
-                    })}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
+          {consentBadge(Boolean(termsConsent?.agreed))}
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <Shield size={20} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-bold text-gray-950">
-                {t("privacy.policyTitle")}
-              </h3>
-              {privacyConsent?.agreed ? (
-                <Badge className="bg-emerald-100 text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 size={12} />
-                  {t("privacy.agreed")}
-                </Badge>
-              ) : (
-                <Badge className="bg-gray-100 text-gray-700 flex items-center gap-1">
-                  <XCircle size={12} />
-                  {t("privacy.notAgreed")}
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-gray-500 mb-3">
+        <div className="py-3.5 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">
+              {t("privacy.policyTitle")}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
               {t("privacy.policyDescription")}
             </p>
-            {privacyConsent && (
-              <div className="text-xs text-gray-400 space-y-1">
-                {privacyConsent.version && (
-                  <p>
-                    {t("privacy.version", { version: privacyConsent.version })}
-                  </p>
-                )}
-                {privacyConsent.agreedAt && (
-                  <p>
-                    {t("privacy.agreedAt", {
-                      date: formatDateTime(privacyConsent.agreedAt, locale),
-                    })}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
+          {consentBadge(Boolean(privacyConsent?.agreed))}
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <Mail size={20} />
+        <div className="py-3.5 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">
+              {t("privacy.marketingTitle")}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {t("privacy.marketingDescription")}
+            </p>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-base font-bold text-gray-950">
-                  {t("privacy.marketingTitle")}
-                </h3>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {t("privacy.marketingDescription")}
-                </p>
-              </div>
-              <Toggle
-                checked={marketingConsent?.agreed ?? false}
-                onChange={handleToggleMarketing}
-                disabled={updating}
-              />
-            </div>
-            {marketingConsent?.agreedAt && (
-              <div className="text-xs text-gray-400 mt-3">
-                <p>
-                  {t("privacy.updatedAt", {
-                    date: formatDateTime(marketingConsent.agreedAt, locale),
-                  })}
-                </p>
-              </div>
-            )}
-          </div>
+          <Toggle
+            checked={marketingConsent?.agreed ?? false}
+            onChange={handleToggleMarketing}
+            disabled={updating}
+          />
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-gray-400 shadow-xs p-6 sm:p-7">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <Download size={20} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-gray-950">
+        <div className="py-3.5 last:pb-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">
               {t("privacy.exportTitle")}
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
               {t("privacy.exportDescription")}
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 rounded-xl border-gray-400 hover:border-brand hover:text-brand"
-              onClick={handleDownloadData}
-              disabled={exporting}
-            >
-              {exporting ? (
-                <Loader2 size={14} className="mr-2 animate-spin" />
-              ) : (
-                <Download size={14} className="mr-2" />
-              )}
-              {t("privacy.exportButton")}
-            </Button>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 self-start rounded-xl border-gray-400 hover:border-brand hover:text-brand sm:self-auto"
+            onClick={handleDownloadData}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 size={14} className="mr-2 animate-spin" />
+            ) : (
+              <Download size={14} className="mr-2" />
+            )}
+            {t("privacy.exportButton")}
+          </Button>
         </div>
-      </div>
-
-      <div className="bg-brand/5 border border-brand/20 rounded-2xl p-6 sm:p-7">
-        <h3 className="text-base font-bold text-gray-950 mb-2">
-          {t("privacy.rightsTitle")}
-        </h3>
-        <ul className="text-sm text-gray-700 space-y-1.5 leading-relaxed">
-          <li>• {t("privacy.rightAccess")}</li>
-          <li>• {t("privacy.rightMarketing")}</li>
-          <li>• {t("privacy.rightCompliance")}</li>
-        </ul>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-4 rounded-xl border-gray-400 hover:border-brand hover:text-brand"
-          onClick={() => window.open("/privacy-policy", "_blank")}
-        >
-          {t("privacy.viewPolicy")}
-        </Button>
       </div>
     </div>
   );

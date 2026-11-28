@@ -1,46 +1,36 @@
 "use client";
-import { useTranslation } from "@/hooks";
-import type { InventoryItem } from "@/types";
+import type { ReactNode } from "react";
+
+type ActionTone = "emerald" | "sky" | "amber" | "purple" | "rose";
+
+const TONE_CLASS: Record<ActionTone, string> = {
+  emerald: "text-emerald-300 hover:text-emerald-200",
+  sky: "text-sky-300 hover:text-sky-200",
+  amber: "text-amber-300 hover:text-amber-200",
+  purple: "text-purple-300 hover:text-purple-200",
+  rose: "text-rose-300 hover:text-rose-200",
+};
+
 export function ActionBtn({
   children,
   title,
+  tone = "purple",
   onClick,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   title: string;
+  tone?: ActionTone;
   onClick: () => void;
 }) {
   return (
     <button
+      type="button"
       title={title}
+      aria-label={title}
       onClick={onClick}
-      className="p-1.5 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+      className={`rounded-lg p-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 hover:bg-transparent ${TONE_CLASS[tone]}`}
     >
       {children}
     </button>
-  );
-}
-
-export function ItemHeader({ item }: { item: InventoryItem }) {
-  const { t } = useTranslation();
-  return (
-    <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1">
-      <p>
-        <span className="text-gray-500">
-          {t("merchant.inventory.itemHeaderSku")}
-        </span>{" "}
-        <span className="font-mono">{item.skuId}</span>
-      </p>
-      <p>
-        <span className="text-gray-500">
-          {t("merchant.inventory.itemHeaderPhysical")}
-        </span>{" "}
-        {item.physicalQty} ·{" "}
-        <span className="text-gray-500">
-          {t("merchant.inventory.itemHeaderAvailable")}
-        </span>{" "}
-        {item.availableQty}
-      </p>
-    </div>
   );
 }

@@ -22,6 +22,8 @@ export interface ShipmentAddress {
 export interface Shipment {
   shipmentId: string;
   orderId: string;
+  type?: "OUTBOUND" | "RETURN";
+  returnId?: string | null;
   trackingCode: string | null;
   carrierOrderId: string | null;
   labelUrl: string | null;

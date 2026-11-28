@@ -27,6 +27,10 @@ const PRODUCT_STATUS: Record<ProductStatus, ProductStatusConfig> = {
     labelKey: "merchant.productStatus.REJECTED",
     variant: "danger",
   },
+  DELETED: {
+    labelKey: "merchant.productStatus.DELETED",
+    variant: "default",
+  },
 };
 
 export function getProductStatus(status: ProductStatus) {

@@ -27,6 +27,9 @@ export const securityService = {
   setupMfa(password: string) {
     return api.post<MfaSetup>("/security/mfa/setup", { password });
   },
+  mfaState() {
+    return api.get<MfaState>("/security/mfa");
+  },
   enableMfa(password: string, mfaCode: string) {
     return api.post<MfaState>("/security/mfa/enable", { password, mfaCode });
   },

@@ -16,7 +16,10 @@ if (typeof window !== "undefined") {
 
 interface CartState {
   items: CartItem[];
-  voucherCode: string | null;
+  platformVoucherCode: string | null;
+  shopVoucherCode: string | null;
+  shopVoucherCodes: Record<string, string>;
+  shippingVoucherCode: string | null;
   hydratedFromServer: boolean;
   hydrationAttempts: number;
   syncing: boolean;
@@ -25,10 +28,32 @@ interface CartState {
   addItem: (item: CartItem) => Promise<void>;
   removeItem: (skuId: string) => Promise<void>;
   updateQuantity: (skuId: string, qty: number) => Promise<void>;
-  applyVoucher: (code: string) => Promise<void>;
-  removeVoucher: () => Promise<void>;
+  setVoucher: (slot: VoucherSlot, code: string) => void;
+  setShopVoucher: (merchantId: string, code: string) => void;
+  clearShopVoucher: (merchantId: string) => void;
+  clearVoucher: (slot: VoucherSlot) => void;
   clearCart: () => Promise<void>;
   hydrateFromServer: () => Promise<void>;
+}
+
+type VoucherSlot = "platform" | "shop" | "shipping";
+
+function pruneShopVoucherCodes(
+  codes: Record<string, string>,
+  items: CartItem[],
+) {
+  const merchantIds = new Set(
+    items
+      .map((item) => item.merchantId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const next: Record<string, string> = {};
+  for (const [merchantId, code] of Object.entries(codes)) {
+    if (merchantIds.has(merchantId)) {
+      next[merchantId] = code;
+    }
+  }
+  return next;
 }
 
 function formatVariantAttributes(
@@ -90,10 +115,19 @@ function mergeServerCart(
 
     const variantAttributes =
       cached?.variantAttributes ?? variant?.attributeValues;
+    const flashSaleEndsAt = product?.flashSale?.endAt;
+    const flashSaleActive = Boolean(
+      flashSaleOffer &&
+        flashSaleEndsAt &&
+        new Date(flashSaleEndsAt).getTime() > Date.now(),
+    );
     const effectivePrice =
-      flashSaleOffer?.salePrice ?? variant?.price ?? cached?.price ?? 0;
+      (flashSaleActive ? flashSaleOffer?.salePrice : undefined) ??
+      variant?.price ??
+      cached?.price ??
+      0;
     const effectiveCurrency =
-      flashSaleOffer?.currency ??
+      (flashSaleActive ? flashSaleOffer?.currency : undefined) ??
       variant?.currency ??
       cached?.currency ??
       "VND";
@@ -111,6 +145,7 @@ function mergeServerCart(
       currency: effectiveCurrency,
       variantAttributes: formatVariantAttributes(product, variantAttributes),
       merchantId: product?.merchantId ?? cached?.merchantId,
+      flashSaleEndAt: flashSaleActive ? flashSaleEndsAt : null,
     };
   });
 }
@@ -123,7 +158,8 @@ async function hydrateCartItems(
   if (skuIds.length === 0) return [];
 
   try {
-    const products = await productService.resolveBySkuIds(skuIds);
+    const products =
+      await productService.resolveBySkuIdsWithActiveFlashSale(skuIds);
     const productsBySku = new Map<string, Product>();
     for (const product of products) {
       for (const variant of product.variants) {
@@ -138,7 +174,10 @@ async function hydrateCartItems(
 
 export const useCartStore = create<CartState>()((set, get) => ({
   items: [],
-  voucherCode: null,
+  platformVoucherCode: null,
+  shopVoucherCode: null,
+  shopVoucherCodes: {},
+  shippingVoucherCode: null,
   hydratedFromServer: false,
   hydrationAttempts: 0,
   syncing: false,
@@ -186,10 +225,15 @@ export const useCartStore = create<CartState>()((set, get) => ({
 
     try {
       const server = await cartService.removeItem(skuId);
-      set({
-        items: await hydrateCartItems(get().items, server),
+      const nextItems = await hydrateCartItems(get().items, server);
+      set((state) => ({
+        items: nextItems,
         hydratedFromServer: true,
-      });
+        shopVoucherCodes: pruneShopVoucherCodes(
+          state.shopVoucherCodes,
+          nextItems,
+        ),
+      }));
     } catch (err) {
       set({ items: previous });
       toast.error(getErrorMessage(err));
@@ -208,10 +252,15 @@ export const useCartStore = create<CartState>()((set, get) => ({
 
     try {
       const server = await cartService.updateItem(skuId, safeQty);
-      set({
-        items: await hydrateCartItems(next, server),
+      const nextItems = await hydrateCartItems(next, server);
+      set((state) => ({
+        items: nextItems,
         hydratedFromServer: true,
-      });
+        shopVoucherCodes: pruneShopVoucherCodes(
+          state.shopVoucherCodes,
+          nextItems,
+        ),
+      }));
     } catch (err) {
       set({ items: previous });
       toast.error(getErrorMessage(err));
@@ -219,35 +268,50 @@ export const useCartStore = create<CartState>()((set, get) => ({
     }
   },
 
-  applyVoucher: async (code) => {
-    const previous = get().voucherCode;
-    set({ voucherCode: code });
-    try {
-      const server = await cartService.applyVoucher(code);
-      const confirmed = server?.voucherCode?.trim();
-      set({ voucherCode: confirmed || code });
-    } catch (err) {
-      set({ voucherCode: previous });
-      toast.error(getErrorMessage(err, t("cart.applyVoucherError")));
-      throw err;
-    }
+  setVoucher: (slot, code) => {
+    const value = code.trim() || null;
+    if (slot === "platform") set({ platformVoucherCode: value });
+    else if (slot === "shop") set({ shopVoucherCode: value });
+    else set({ shippingVoucherCode: value });
   },
 
-  removeVoucher: async () => {
-    const previous = get().voucherCode;
-    set({ voucherCode: null });
-    try {
-      await cartService.removeVoucher();
-    } catch (err) {
-      set({ voucherCode: previous });
-      toast.error(getErrorMessage(err));
-      throw err;
-    }
+  setShopVoucher: (merchantId, code) => {
+    set((state) => ({
+      shopVoucherCodes: {
+        ...state.shopVoucherCodes,
+        [merchantId]: code.trim(),
+      },
+    }));
+  },
+
+  clearShopVoucher: (merchantId) => {
+    set((state) => {
+      const next = { ...state.shopVoucherCodes };
+      delete next[merchantId];
+      return { shopVoucherCodes: next };
+    });
+  },
+
+  clearVoucher: (slot) => {
+    if (slot === "platform") set({ platformVoucherCode: null });
+    else if (slot === "shop") set({ shopVoucherCode: null });
+    else set({ shippingVoucherCode: null });
   },
 
   clearCart: async () => {
-    const previous = { items: get().items, voucherCode: get().voucherCode };
-    set({ items: [], voucherCode: null });
+    const previous = {
+      items: get().items,
+      platformVoucherCode: get().platformVoucherCode,
+      shopVoucherCode: get().shopVoucherCode,
+      shippingVoucherCode: get().shippingVoucherCode,
+    };
+    set({
+      items: [],
+      platformVoucherCode: null,
+      shopVoucherCode: null,
+      shopVoucherCodes: {},
+      shippingVoucherCode: null,
+    });
     try {
       await cartService.clear();
     } catch (err) {
@@ -264,12 +328,16 @@ export const useCartStore = create<CartState>()((set, get) => ({
     }));
     try {
       const server = await cartService.getMyCart();
-      set({
-        items: await hydrateCartItems(get().items, server),
-        voucherCode: server.voucherCode,
+      const nextItems = await hydrateCartItems(get().items, server);
+      set((state) => ({
+        items: nextItems,
         hydratedFromServer: true,
         hydrationAttempts: 0,
-      });
+        shopVoucherCodes: pruneShopVoucherCodes(
+          state.shopVoucherCodes,
+          nextItems,
+        ),
+      }));
     } catch {
     } finally {
       set({ syncing: false });

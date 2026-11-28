@@ -7,6 +7,55 @@ export interface SessionGroup {
   containsCurrent: boolean;
 }
 
+interface SessionDevice {
+  browser: string | null;
+  os: string | null;
+}
+
+/**
+ * Turns a raw user agent into something a non-technical shopper can read.
+ * Unknown pieces are returned as null so the caller can fall back to a
+ * localized label instead of dumping the raw string into the UI.
+ */
+export function parseSessionUserAgent(
+  userAgent: string | null | undefined,
+): SessionDevice {
+  if (!userAgent) return { browser: null, os: null };
+  const ua = userAgent;
+
+  const browser = /opencode/i.test(ua)
+    ? "OpenCode CLI"
+    : /curl/i.test(ua)
+      ? "curl"
+      : /PowerShell/i.test(ua) || /WindowsPowerShell/i.test(ua)
+        ? "PowerShell"
+        : /Edg\//i.test(ua)
+          ? "Edge"
+          : /OPR\//i.test(ua)
+            ? "Opera"
+            : /Chrome\//i.test(ua) || /Chromium\//i.test(ua)
+              ? "Chrome"
+              : /Firefox\//i.test(ua)
+                ? "Firefox"
+                : /Safari\//i.test(ua)
+                  ? "Safari"
+                  : null;
+
+  const os = /Windows NT/i.test(ua)
+    ? "Windows"
+    : /Android/i.test(ua)
+      ? "Android"
+      : /iPhone|iPad|iPod/i.test(ua)
+        ? "iOS"
+        : /Mac OS X/i.test(ua)
+          ? "macOS"
+          : /Linux/i.test(ua)
+            ? "Linux"
+            : null;
+
+  return { browser, os };
+}
+
 export function groupSessions(
   list: AuthSession[],
   currentId?: string | null,
@@ -28,8 +77,18 @@ export function groupSessions(
     containsCurrent: sessions.some(
       (session) => session.sessionId === currentId,
     ),
-  })).sort(
-    (left, right) =>
-      Number(right.containsCurrent) - Number(left.containsCurrent),
-  );
+  })).sort((left, right) => {
+    // Keep the current device pinned first, then show the most recently
+    // active devices so the collapsed list really is "latest 3".
+    if (left.containsCurrent !== right.containsCurrent) {
+      return left.containsCurrent ? -1 : 1;
+    }
+    const leftTs = new Date(
+      left.latest.lastActiveAt ?? left.latest.createdAt,
+    ).getTime();
+    const rightTs = new Date(
+      right.latest.lastActiveAt ?? right.latest.createdAt,
+    ).getTime();
+    return rightTs - leftTs;
+  });
 }

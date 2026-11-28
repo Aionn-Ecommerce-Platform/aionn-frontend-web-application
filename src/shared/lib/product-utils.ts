@@ -1,5 +1,36 @@
 import type { Product } from "@/types";
 import { getProductCoverImage } from "@/shared/lib/media";
+import { translate } from "@/i18n/translate";
+import type { Locale } from "@/stores/locale.store";
+
+export function formatVariantKey(key: string, locale: Locale): string {
+  const normalized = key.trim().toLowerCase();
+  const labels: Record<string, string> = {
+    color: "productDetail.attributeColor",
+    size: "productDetail.attributeSize",
+    type: "productDetail.attributeType",
+    storage: "productDetail.attributeStorage",
+    ram: "productDetail.attributeRam",
+    cpu: "productDetail.attributeCpu",
+    screen: "productDetail.attributeScreen",
+    material: "productDetail.attributeMaterial",
+    volume: "productDetail.attributeVolume",
+    pack: "productDetail.attributePack",
+  };
+
+  const label = labels[normalized];
+  if (label) return translate(locale, label);
+
+  return key
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function formatVariantValue(value: string): string {
+  return String(value).trim();
+}
 
 export function getProductCardSummary(product: Product) {
   const lowestVariant = product.variants?.reduce<

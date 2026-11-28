@@ -4,41 +4,50 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Wallet,
-  CreditCard,
   Loader2,
   Plus,
-  ExternalLink,
   AlertCircle,
   CheckCircle2,
   Clock,
+  Eye,
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Modal, Input, Badge } from "@/shared/ui";
+import { Badge, Button, Input, Modal, Pagination } from "@/shared/ui";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useTranslation } from "@/hooks";
 import {
   merchantPayoutService,
-  stripeConnectService,
   type MerchantPayout,
   type PayoutStatus,
 } from "@/lib/services/payout.service";
-import { merchantService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { getPayoutStatus } from "@/lib/domain/status/payout";
 import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
+import {
+  ConsoleEmptyState,
+  ConsolePanel,
+  ConsoleStatGrid,
+} from "@/features/merchant";
 
-const PAYOUT_STATUS_ICON: Record<PayoutStatus, typeof Clock> = {
-  PENDING: Clock,
-  PROCESSING: Loader2,
-  COMPLETED: CheckCircle2,
-  FAILED: XCircle,
+const PAYOUT_PAGE_SIZE = 10;
+
+const PAYOUT_BADGE_CLASS: Record<PayoutStatus, string> = {
+  PENDING: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  PROCESSING: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  COMPLETED: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+  FAILED: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+  CANCELLED: "border-slate-500/40 bg-white/5 text-slate-300",
 };
 
 function MerchantPayoutsInner() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const qc = useQueryClient();
   const [requestOpen, setRequestOpen] = useState(false);
+  const [detailPayout, setDetailPayout] = useState<MerchantPayout | null>(null);
+  const [cancellingPayout, setCancellingPayout] =
+    useState<MerchantPayout | null>(null);
+  const [page, setPage] = useState(1);
   const [form, setForm] = useState({
     amount: "",
     bankName: "",
@@ -55,11 +64,6 @@ function MerchantPayoutsInner() {
   const { data: payouts, isLoading: loadingPayouts } = useQuery({
     queryKey: ["merchant-payouts"],
     queryFn: () => merchantPayoutService.listMine(50),
-  });
-
-  const { data: merchant } = useQuery({
-    queryKey: ["merchant", "me"],
-    queryFn: () => merchantService.getMine(),
   });
 
   const requestMutation = useMutation({
@@ -81,16 +85,20 @@ function MerchantPayoutsInner() {
         bankAccountName: "",
         note: "",
       });
+      setPage(1);
       qc.invalidateQueries({ queryKey: ["merchant-balance"] });
       qc.invalidateQueries({ queryKey: ["merchant-payouts"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const stripeOnboardMutation = useMutation({
-    mutationFn: () => stripeConnectService.getOnboardingLink(),
-    onSuccess: (res) => {
-      window.location.href = res.url;
+  const cancelMutation = useMutation({
+    mutationFn: (payoutId: string) => merchantPayoutService.cancel(payoutId),
+    onSuccess: () => {
+      toast.success(t("merchant.payouts.toastCancelled"));
+      setCancellingPayout(null);
+      qc.invalidateQueries({ queryKey: ["merchant-balance"] });
+      qc.invalidateQueries({ queryKey: ["merchant-payouts"] });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -105,133 +113,169 @@ function MerchantPayoutsInner() {
     form.bankAccountNo.trim() &&
     form.bankAccountName.trim();
 
-  const merchantWithStripe = merchant as typeof merchant & {
-    stripeAccountId?: string | null;
-    stripeChargesEnabled?: boolean;
-    stripePayoutsEnabled?: boolean;
-  };
+  const currency = balance?.currency ?? "VND";
+  const payoutStats = [
+    {
+      label: t("merchant.payouts.pendingLabel"),
+      value: loadingBalance ? "…" : formatCurrency(pending, currency),
+      icon: Clock,
+      iconClass: "text-amber-300",
+    },
+    {
+      label: t("merchant.payouts.availableLabel"),
+      value: loadingBalance ? "…" : formatCurrency(available, currency),
+      icon: CheckCircle2,
+      iconClass: "text-emerald-300",
+    },
+  ];
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil((payouts?.length ?? 0) / PAYOUT_PAGE_SIZE),
+  );
+  const safePage = Math.min(page, totalPages);
+  if (payouts && page > safePage) {
+    setPage(safePage);
+  }
+  const visiblePayouts = (payouts ?? []).slice(
+    (safePage - 1) * PAYOUT_PAGE_SIZE,
+    safePage * PAYOUT_PAGE_SIZE,
+  );
 
   return (
-    <div>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Wallet size={22} className="text-brand" />
-            {t("merchant.payouts.title")}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {t("merchant.payouts.description")}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <Clock size={14} />
-              {t("merchant.payouts.pendingLabel")}
-            </div>
-            {loadingBalance ? (
-              <Loader2 className="animate-spin text-gray-400" size={20} />
-            ) : (
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(pending, balance?.currency ?? "VND")}
-              </p>
-            )}
-            <p className="text-xs text-gray-400 mt-1">
-              {t("merchant.payouts.pendingHint")}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-            <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
-              <CheckCircle2 size={14} />
-              {t("merchant.payouts.availableLabel")}
-            </div>
-            {loadingBalance ? (
-              <Loader2 className="animate-spin text-gray-400" size={20} />
-            ) : (
-              <p className="text-2xl font-bold text-green-700">
-                {formatCurrency(available, balance?.currency ?? "VND")}
-              </p>
-            )}
-            <p className="text-xs text-green-700/70 mt-1">
-              {t("merchant.payouts.availableHint")}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">
-                {t("merchant.payouts.stripeTitle")}
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {t("merchant.payouts.stripeDesc")}
-              </p>
-            </div>
-            {merchantWithStripe?.stripeAccountId ? (
-              merchantWithStripe.stripeChargesEnabled &&
-              merchantWithStripe.stripePayoutsEnabled ? (
-                <Badge variant="success">
-                  {t("merchant.payouts.stripeActive")}
-                </Badge>
-              ) : (
-                <Badge variant="warning">
-                  {t("merchant.payouts.stripeIncomplete")}
-                </Badge>
-              )
-            ) : (
-              <Badge variant="default">
-                {t("merchant.payouts.stripeUnlinked")}
-              </Badge>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => stripeOnboardMutation.mutate()}
-            loading={stripeOnboardMutation.isPending}
-          >
-            <ExternalLink size={14} className="mr-1" />
-            {merchantWithStripe?.stripeAccountId
-              ? t("merchant.payouts.openStripeDashboard")
-              : t("merchant.payouts.linkStripe")}
-          </Button>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-              <CreditCard size={16} className="text-brand" />
-              {t("merchant.payouts.historyTitle")}
-            </h2>
-            <Button
-              size="sm"
-              onClick={() => setRequestOpen(true)}
-              disabled={available <= 0}
-            >
-              <Plus size={14} className="mr-1" />
-              {t("merchant.payouts.requestButton")}
-            </Button>
-          </div>
-
-          {loadingPayouts ? (
-            <div className="py-12 flex justify-center">
-              <Loader2 className="animate-spin text-brand" size={24} />
-            </div>
-          ) : !payouts || payouts.length === 0 ? (
-            <div className="py-12 text-center text-sm text-gray-400">
-              {t("merchant.payouts.emptyHistory")}
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {payouts.map((p) => (
-                <PayoutRow key={p.payoutId} payout={p} />
-              ))}
-            </div>
-          )}
-        </div>
+    <ConsolePanel>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+          <Wallet size={22} className="text-purple-300" />
+          <span className="text-purple-300">{t("merchant.payouts.title")}</span>
+        </h1>
+        <button
+          type="button"
+          onClick={() => setRequestOpen(true)}
+          disabled={available <= 0}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-900/40 transition-all hover:from-purple-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus size={16} />
+          {t("merchant.payouts.requestButton")}
+        </button>
       </div>
+
+      <ConsoleStatGrid stats={payoutStats} columnsClassName="lg:grid-cols-2" />
+
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-slate-300">
+          {t("merchant.payouts.historyTitle")}
+        </p>
+      </div>
+
+      {loadingPayouts ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-purple-400" size={28} />
+        </div>
+      ) : visiblePayouts.length === 0 ? (
+        <ConsoleEmptyState
+          icon={Wallet}
+          title={t("merchant.payouts.emptyHistory")}
+          description={t("merchant.payouts.emptyHistoryDescription")}
+        />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-gray-600 bg-white/[0.04]">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-600/60 bg-white/[0.03]">
+                  {[
+                    "merchant.payouts.colPayout",
+                    "merchant.payouts.colBank",
+                    "merchant.payouts.colAmount",
+                    "merchant.payouts.colStatus",
+                    "merchant.payouts.colRequestedAt",
+                    "merchant.payouts.colActions",
+                  ].map((key) => (
+                    <th
+                      key={key}
+                      className="whitespace-nowrap px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+                    >
+                      {t(key)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {visiblePayouts.map((payout) => {
+                  const config = getPayoutStatus(payout.status);
+                  return (
+                    <tr
+                      key={payout.payoutId}
+                      className="border-b border-slate-600/60 transition-colors last:border-0 hover:bg-white/[0.04]"
+                    >
+                      <td className="whitespace-nowrap px-4 py-3 text-center">
+                        <p className="font-mono text-[13px] font-semibold text-white">
+                          {payout.payoutId}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <p className="text-sm font-semibold text-slate-100">
+                          {payout.bankName ?? "—"}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {payout.bankAccountNo
+                            ? `****${payout.bankAccountNo.slice(-4)}`
+                            : "—"}
+                        </p>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-center">
+                        <p className="text-sm font-bold text-white">
+                          {formatCurrency(payout.amount, payout.currency)}
+                        </p>
+                        {payout.failureReason && (
+                          <p className="text-xs text-rose-300">
+                            {payout.failureReason}
+                          </p>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-center">
+                        <span
+                          className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${PAYOUT_BADGE_CLASS[payout.status]}`}
+                        >
+                          {t(config.labelKey)}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-center text-xs text-slate-300">
+                        <p>{formatDateTime(payout.requestedAt, locale)}</p>
+                        {payout.completedAt && (
+                          <p className="text-slate-500">
+                            {formatDateTime(payout.completedAt, locale)}
+                          </p>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <div className="flex items-center justify-center">
+                          <button
+                            type="button"
+                            title={t("merchant.payouts.viewDetail")}
+                            aria-label={t("merchant.payouts.viewDetail")}
+                            onClick={() => setDetailPayout(payout)}
+                            className="rounded-lg p-1.5 text-sky-300 transition-colors hover:text-sky-200"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       <Modal
         isOpen={requestOpen}
@@ -240,8 +284,8 @@ function MerchantPayoutsInner() {
         size="md"
       >
         <div className="space-y-4">
-          <div className="bg-brand/10 border border-brand/30 rounded-lg p-3 flex items-start gap-2">
-            <AlertCircle size={14} className="text-brand mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 rounded-lg border border-brand/30 bg-brand/10 p-3">
+            <AlertCircle size={14} className="mt-0.5 shrink-0 text-brand" />
             <p className="text-xs text-brand-strong">
               {t("merchant.payouts.availableNote", {
                 amount: formatCurrency(available, "VND"),
@@ -299,47 +343,206 @@ function MerchantPayoutsInner() {
           </div>
         </div>
       </Modal>
-    </div>
-  );
-}
 
-function PayoutRow({ payout }: { payout: MerchantPayout }) {
-  const { t } = useTranslation();
-  const config = getPayoutStatus(payout.status);
-  const Icon = PAYOUT_STATUS_ICON[payout.status];
-  return (
-    <div className="px-6 py-4 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 shrink-0">
-          <Icon
-            size={18}
-            className={payout.status === "PROCESSING" ? "animate-spin" : ""}
-          />
-        </div>
-        <div className="min-w-0">
-          <p className="font-mono text-xs text-gray-500 truncate">
-            {payout.payoutId}
+      <Modal
+        isOpen={cancellingPayout !== null}
+        onClose={() => setCancellingPayout(null)}
+        title={t("merchant.payouts.cancelModalTitle")}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            {t("merchant.payouts.cancelModalConfirm")}
           </p>
-          <p className="text-sm text-gray-700 mt-0.5">
-            {payout.bankName} · ****{payout.bankAccountNo?.slice(-4) ?? "—"}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {formatDateTime(payout.requestedAt, "vi-VN")}
-          </p>
-          {payout.failureReason && (
-            <p className="text-xs text-red-600 mt-0.5">
-              {payout.failureReason}
-            </p>
+          {cancellingPayout && (
+            <div className="space-y-1 rounded-lg bg-gray-50 p-3 text-xs">
+              <p>
+                <span className="text-gray-500">
+                  {t("merchant.payouts.colPayout")}:
+                </span>{" "}
+                <span className="font-mono">{cancellingPayout.payoutId}</span>
+              </p>
+              <p>
+                <span className="text-gray-500">
+                  {t("merchant.payouts.detailAmount")}:
+                </span>{" "}
+                <span className="font-semibold">
+                  {formatCurrency(
+                    cancellingPayout.amount,
+                    cancellingPayout.currency,
+                    locale,
+                  )}
+                </span>
+              </p>
+            </div>
           )}
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCancellingPayout(null)}
+              disabled={cancelMutation.isPending}
+            >
+              {t("merchant.payouts.cancelModalBack")}
+            </Button>
+            <Button
+              onClick={() =>
+                cancellingPayout &&
+                cancelMutation.mutate(cancellingPayout.payoutId)
+              }
+              loading={cancelMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {t("merchant.payouts.cancelModalConfirmButton")}
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <span className="font-bold text-gray-900">
-          {formatCurrency(payout.amount, payout.currency)}
-        </span>
-        <Badge variant={config.variant}>{t(config.labelKey)}</Badge>
-      </div>
-    </div>
+      </Modal>
+
+      <Modal
+        isOpen={detailPayout !== null}
+        onClose={() => setDetailPayout(null)}
+        title={t("merchant.payouts.detailTitle")}
+        size="full"
+      >
+        {detailPayout && (
+          <div className="max-h-[80vh] space-y-6 overflow-y-auto pr-2 text-sm">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.colPayout")}
+                </p>
+                <p className="mt-1 break-all font-mono text-sm font-semibold text-gray-900">
+                  {detailPayout.payoutId}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.detailRequestedAt")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {formatDateTime(detailPayout.requestedAt, locale)}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.detailBank")}
+                </p>
+                <p className="mt-1 font-semibold text-gray-900">
+                  {detailPayout.bankName ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.detailAccountNo")}
+                </p>
+                <p className="mt-1 font-mono text-sm text-gray-900">
+                  {detailPayout.bankAccountNo ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.detailStatus")}
+                </p>
+                <Badge
+                  variant={getPayoutStatus(detailPayout.status).variant}
+                  className="!mt-1 !rounded-full !px-3 !py-1 !text-xs"
+                >
+                  {t(getPayoutStatus(detailPayout.status).labelKey)}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-gray-500">
+                  {t("merchant.payouts.detailAccountName")}
+                </p>
+                <p className="mt-1 font-medium text-gray-900">
+                  {detailPayout.bankAccountName ?? "—"}
+                </p>
+              </div>
+              {detailPayout.externalRef && (
+                <div>
+                  <p className="text-gray-500">
+                    {t("merchant.payouts.detailExternalRef")}
+                  </p>
+                  <p className="mt-1 break-all font-mono text-sm text-gray-900">
+                    {detailPayout.externalRef}
+                  </p>
+                </div>
+              )}
+              {detailPayout.completedAt && (
+                <div>
+                  <p className="text-gray-500">
+                    {t("merchant.payouts.detailCompletedAt")}
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {formatDateTime(detailPayout.completedAt, locale)}
+                  </p>
+                </div>
+              )}
+              {detailPayout.failedAt && (
+                <div>
+                  <p className="text-gray-500">
+                    {t("merchant.payouts.detailFailedAt")}
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {formatDateTime(detailPayout.failedAt, locale)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {detailPayout.note && (
+              <div>
+                <p className="mb-1 text-sm text-gray-500">
+                  {t("merchant.payouts.detailNote")}
+                </p>
+                <p className="whitespace-pre-wrap text-sm text-gray-700">
+                  {detailPayout.note}
+                </p>
+              </div>
+            )}
+
+            {detailPayout.failureReason && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+                <span className="font-semibold">
+                  {t("merchant.payouts.detailFailureReason")}:
+                </span>{" "}
+                {detailPayout.failureReason}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between border-t border-gray-300 pt-4">
+              <span className="text-base font-bold text-gray-900">
+                {t("merchant.payouts.detailAmount")}
+              </span>
+              <span className="text-base font-bold text-brand">
+                {formatCurrency(
+                  detailPayout.amount,
+                  detailPayout.currency,
+                  locale,
+                )}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-300 pt-4">
+              {detailPayout.status === "PENDING" && (
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setCancellingPayout(detailPayout);
+                    setDetailPayout(null);
+                  }}
+                >
+                  <XCircle size={14} className="mr-1.5" />
+                  {t("merchant.payouts.cancelRequest")}
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setDetailPayout(null)}>
+                {t("merchant.payouts.close")}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </ConsolePanel>
   );
 }
 

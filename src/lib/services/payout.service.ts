@@ -8,7 +8,12 @@ interface MerchantBalance {
   updatedAt: string;
 }
 
-export type PayoutStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type PayoutStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED";
 
 export interface MerchantPayout {
   payoutId: string;
@@ -50,6 +55,11 @@ export const merchantPayoutService = {
   request(body: RequestPayoutInput) {
     return api.post<MerchantPayout>("/payments/merchant/payouts", body);
   },
+  cancel(payoutId: string) {
+    return api.post<MerchantPayout>(
+      `/payments/merchant/payouts/${payoutId}/cancel`,
+    );
+  },
 };
 
 export const adminPayoutService = {
@@ -67,6 +77,49 @@ export const adminPayoutService = {
     return api.post<MerchantPayout>(`/admin/payouts/${payoutId}/fail`, {
       reason,
     });
+  },
+};
+
+export type CodReconciliationStatus = "PENDING" | "REMITTED" | "MISMATCH";
+
+export interface CodReconciliation {
+  codId: string;
+  orderId: string;
+  shipmentId: string | null;
+  merchantId: string;
+  trackingCode: string | null;
+  expectedAmount: number;
+  collectedAmount: number | null;
+  carrierFee: number | null;
+  netAmount: number | null;
+  currency: string;
+  status: CodReconciliationStatus;
+  remittanceRef: string | null;
+  note: string | null;
+  remittedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const adminCodReconciliationService = {
+  list(status?: CodReconciliationStatus) {
+    return api.get<CodReconciliation[]>("/payments/admin/cod-reconciliations", {
+      query: { status },
+    });
+  },
+  reconcile(
+    codId: string,
+    body: {
+      collectedAmount: number;
+      carrierFee?: number;
+      remittanceRef?: string;
+      note?: string;
+    },
+  ) {
+    return api.post<CodReconciliation>(
+      `/payments/admin/cod-reconciliations/${codId}/reconcile`,
+      body,
+    );
   },
 };
 

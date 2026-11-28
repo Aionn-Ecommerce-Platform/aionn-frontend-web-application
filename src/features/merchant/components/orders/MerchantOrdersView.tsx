@@ -25,7 +25,7 @@ import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
 import { ConsoleEmptyState } from "../shared/ConsoleShell";
 import { qk } from "@/lib/query-keys";
 import { getOrderStatus } from "@/lib/domain/status/order";
-import { formatCurrency } from "@/shared/lib/utils";
+import { formatCurrency, formatDateTime } from "@/shared/lib/utils";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { Order } from "@/types";
@@ -343,21 +343,22 @@ function MerchantOrdersInner() {
           </div>
         ) : ordersError ? (
           <ConsoleEmptyState
-            icon={<AlertCircle size={34} />}
+            icon={AlertCircle}
+            iconClassName="text-rose-300"
             title={t("common.error")}
             description={t("common.tryAgain")}
           >
             <button
               type="button"
               onClick={() => void refetchOrders()}
-              className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+              className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
             >
               {t("common.retry")}
             </button>
           </ConsoleEmptyState>
         ) : orders.length === 0 ? (
           <ConsoleEmptyState
-            icon={<Package size={34} />}
+            icon={Package}
             title={t(
               hasFilters
                 ? "merchant.orders.emptyFilteredTitle"
@@ -373,7 +374,7 @@ function MerchantOrdersInner() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-6 rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
+                className="rounded-xl border border-gray-500 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10"
               >
                 {t("merchant.orders.clearFilters")}
               </button>
@@ -415,12 +416,10 @@ function MerchantOrdersInner() {
                         >
                           <td className="whitespace-nowrap px-6 py-4 text-center">
                             <p className="font-mono text-[13px] font-semibold text-white">
-                              #{order.orderId}
+                              {order.orderId}
                             </p>
                             <p className="text-xs text-slate-400">
-                              {new Date(order.createdAt).toLocaleDateString(
-                                "vi-VN",
-                              )}
+                              {formatDateTime(order.createdAt, locale)}
                             </p>
                           </td>
                           <td className="max-w-[220px] px-6 py-4 text-center">

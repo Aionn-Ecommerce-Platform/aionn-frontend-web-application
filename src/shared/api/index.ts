@@ -82,10 +82,6 @@ export function setActiveMerchantId(merchantId: string | null) {
   activeMerchantId = merchantId;
 }
 
-export function getActiveMerchantId(): string | null {
-  return activeMerchantId;
-}
-
 let refreshPromise: Promise<AuthTokens | null> | null = null;
 let onUnauthorized: (() => void) | null = null;
 

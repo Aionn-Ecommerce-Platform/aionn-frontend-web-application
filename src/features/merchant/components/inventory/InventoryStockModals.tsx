@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Button, Modal } from "@/shared/ui";
-import { inventoryService } from "@/lib/services";
+import { Button, Modal, Select } from "@/shared/ui";
+import { inventoryService, productService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import type { InventoryItem } from "@/types";
-import { ItemHeader } from "./InventoryControls";
 export function InitModal({
   warehouseId,
   onClose,
@@ -18,8 +17,31 @@ export function InitModal({
   onSuccess: () => void;
 }) {
   const { t } = useTranslation();
+  const [productId, setProductId] = useState("");
   const [skuId, setSkuId] = useState("");
   const [initialQty, setInitialQty] = useState("");
+
+  const { data: products, isLoading: loadingProducts } = useQuery({
+    queryKey: ["merchant-products-for-inventory"],
+    queryFn: () => productService.listAllMine(),
+  });
+
+  const availableProducts = (products ?? []).filter(
+    (product) => product.variants.length > 0,
+  );
+  const selectedProduct = products?.find(
+    (product) => product.productId === productId,
+  );
+  const variantOptions =
+    selectedProduct?.variants.map((variant) => {
+      const attributes = Object.entries(variant.attributeValues)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(" · ");
+      return {
+        value: variant.skuId,
+        label: attributes || variant.skuId,
+      };
+    }) ?? [];
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -42,18 +64,43 @@ export function InitModal({
       title={t("merchant.inventory.initModalTitle")}
     >
       <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            {t("merchant.inventory.skuIdLabel")}
-          </label>
-          <input
-            type="text"
+        <Select
+          label={t("merchant.inventory.productLabel")}
+          value={productId}
+          onChange={(value) => {
+            setProductId(value);
+            setSkuId("");
+          }}
+          options={availableProducts.map((product) => ({
+            value: product.productId,
+            label: product.name,
+          }))}
+          placeholder={
+            loadingProducts
+              ? t("common.loading")
+              : t("merchant.inventory.selectProductPlaceholder")
+          }
+          disabled={loadingProducts}
+        />
+        {selectedProduct && selectedProduct.variants.length === 0 && (
+          <p className="text-xs text-amber-600">
+            {t("merchant.inventory.noVariants")}
+          </p>
+        )}
+        {selectedProduct && selectedProduct.variants.length > 0 && (
+          <Select
+            label={t("merchant.inventory.variantLabel")}
             value={skuId}
-            onChange={(e) => setSkuId(e.target.value)}
-            placeholder="SKU_..."
-            className="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm font-mono focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            onChange={setSkuId}
+            options={variantOptions}
+            placeholder={t("merchant.inventory.selectVariantPlaceholder")}
           />
-        </div>
+        )}
+        {skuId && (
+          <p className="rounded-lg bg-gray-50 px-3 py-2 font-mono text-xs text-gray-500">
+            SKU: {skuId}
+          </p>
+        )}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.inventory.initialQtyLabel")}
@@ -117,7 +164,6 @@ export function SafetyStockModal({
       title={t("merchant.inventory.safetyModalTitle")}
     >
       <div className="space-y-4">
-        <ItemHeader item={item} />
         <p className="text-xs text-gray-500">
           {t("merchant.inventory.safetyHelp")}
         </p>
@@ -186,7 +232,6 @@ export function BatchModal({
       title={t("merchant.inventory.batchModalTitle")}
     >
       <div className="space-y-4">
-        <ItemHeader item={item} />
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             {t("merchant.inventory.batchNoLabel")}

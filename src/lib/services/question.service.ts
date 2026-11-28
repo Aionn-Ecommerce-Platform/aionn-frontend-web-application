@@ -41,13 +41,19 @@ export const questionService = {
   },
 
   listForMerchant(
-    params: { answered?: boolean; page?: number; size?: number } = {},
+    params: {
+      answered?: boolean;
+      page?: number;
+      size?: number;
+      search?: string;
+    } = {},
   ) {
     return api.page<ProductQuestion>("/catalog/merchant/questions", {
       query: {
         answered: params.answered,
         page: params.page ?? 0,
         size: params.size ?? 20,
+        search: params.search,
       },
     });
   },

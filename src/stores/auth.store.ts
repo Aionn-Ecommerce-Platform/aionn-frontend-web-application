@@ -87,7 +87,9 @@ export const useAuthStore = create<AuthState>()(
           const { useCartStore } = await import("@/stores/cart.store");
           useCartStore.setState({
             items: [],
-            voucherCode: null,
+            platformVoucherCode: null,
+            shopVoucherCode: null,
+            shippingVoucherCode: null,
             hydratedFromServer: false,
             hydrationAttempts: 0,
           });

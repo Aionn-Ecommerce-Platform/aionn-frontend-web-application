@@ -2,8 +2,30 @@ import api from "@/shared/api";
 import type { Warehouse, WarehouseStatus } from "@/types";
 
 export const warehouseService = {
-  listMine() {
-    return api.get<Warehouse[]>("/inventory/warehouses");
+  listMine(
+    params: {
+      page?: number;
+      limit?: number;
+      status?: WarehouseStatus;
+      search?: string;
+    } = {},
+  ) {
+    return api.page<Warehouse>("/inventory/warehouses", {
+      query: {
+        page: params.page ?? 0,
+        limit: params.limit ?? 10,
+        status: params.status,
+        search: params.search,
+      },
+    });
+  },
+  stats() {
+    return api.get<{
+      total: number;
+      active: number;
+      inactive: number;
+      suspended: number;
+    }>("/inventory/warehouses/stats");
   },
   get(warehouseId: string) {
     return api.get<Warehouse>(`/inventory/warehouses/${warehouseId}`, {
@@ -14,6 +36,11 @@ export const warehouseService = {
     address?: string;
     merchantId: string;
     priorityLevel: number;
+    pickupName?: string;
+    pickupPhone?: string;
+    provinceCode?: string;
+    districtCode?: string;
+    wardCode?: string;
   }) {
     return api.post<Warehouse>("/inventory/warehouses", body);
   },
@@ -37,5 +64,23 @@ export const warehouseService = {
     return api.post<Warehouse>(
       `/inventory/warehouses/${warehouseId}/lift-suspension`,
     );
+  },
+  /** Admin console: paged warehouses across all merchants. */
+  adminList(
+    params: {
+      search?: string;
+      status?: WarehouseStatus;
+      page?: number;
+      size?: number;
+    } = {},
+  ) {
+    return api.page<Warehouse>("/inventory/warehouses/admin", {
+      query: {
+        search: params.search?.trim() || undefined,
+        status: params.status,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      },
+    });
   },
 };

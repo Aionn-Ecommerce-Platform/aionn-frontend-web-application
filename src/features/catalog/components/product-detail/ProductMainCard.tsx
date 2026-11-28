@@ -25,7 +25,7 @@ import { formatCurrency } from "@/shared/lib/utils";
 import { getProductStatus } from "@/lib/domain/status/product";
 import type { Address, Product, ProductVariant } from "@/types";
 import type { Locale } from "@/stores/locale.store";
-import { formatVariantKey, formatVariantValue } from "./product-detail-utils";
+import { formatVariantKey, formatVariantValue } from "@/shared/lib/product-utils";
 
 type T = (key: string, values?: Record<string, string | number>) => string;
 interface Props {
@@ -151,15 +151,18 @@ export default function ProductMainCard(props: Props) {
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
   const statusConfig = getProductStatus(product.status);
 
-  let flashSaleStrike: string | null = strikeLabel ?? null;
-  let regularStrike: string | null = null;
-  if (strikePrice && strikePrice > displayPrice) {
-    const formatted = formatCurrency(strikePrice, displayCurrency, locale);
-    flashSaleStrike = formatted;
-    regularStrike = formatted;
-  } else if (discountPercent > 0) {
-    regularStrike = strikeLabel ?? null;
-  }
+  // While no variant is selected the card shows price ranges, so the
+  // strike-through price must stay a range as well. Only fall back to the
+  // single resolved price once the shopper has picked a variant.
+  const singleStrike =
+    strikePrice && strikePrice > displayPrice
+      ? formatCurrency(strikePrice, displayCurrency, locale)
+      : null;
+  const strikeText = currentVariant
+    ? (singleStrike ?? strikeLabel ?? null)
+    : (strikeLabel ?? singleStrike);
+  const flashSaleStrike: string | null = strikeText;
+  const regularStrike: string | null = strikeText;
 
   useEffect(() => {
     const container = thumbnailContainerRef.current;

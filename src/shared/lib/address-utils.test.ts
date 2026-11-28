@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  addressContainsProvince,
   resolveProvinceName,
   cleanProvinceName,
   getLocalizedAddress,
@@ -40,6 +41,23 @@ describe("address-utils", () => {
     it("returns null for unknown province code", () => {
       expect(resolveProvinceName("UNKNOWN_CODE", [], "vi")).toBeNull();
     });
+
+    it("ignores raw transliterated name_en and derives a proper name", () => {
+      const seeded: GeographyItem[] = [
+        {
+          code: "01",
+          name: "Thành phố Hà Nội",
+          nameEn: "thanh pho ha noi",
+        },
+        {
+          code: "02",
+          name: "Tỉnh Hà Giang",
+          nameEn: "tinh ha giang",
+        },
+      ];
+      expect(resolveProvinceName("01", seeded, "en")).toBe("Hanoi");
+      expect(resolveProvinceName("02", seeded, "en")).toBe("Ha Giang Province");
+    });
   });
 
   describe("cleanProvinceName", () => {
@@ -74,6 +92,26 @@ describe("address-utils", () => {
       expect(getLocalizedAddress(addr, "en")).toBe(
         "123 Le Loi, Ben Nghe Ward, 1 District, Ho Chi Minh City"
       );
+    });
+
+    it("formats a Hanoi address without a duplicated city", () => {
+      const addr = {
+        detailAddress: "12 Hàng Bông",
+        wardName: "Phường Hàng Bông",
+        districtName: "Quận Hoàn Kiếm",
+        provinceName: "Thành phố Hà Nội",
+      };
+      expect(getLocalizedAddress(addr, "en")).toBe(
+        "12 Hang Bong, Hang Bong Ward, Hoan Kiem District, Hanoi"
+      );
+    });
+
+    it("does not duplicate the city when it is already in the address line", () => {
+      const line =
+        "12 Hàng Bông, Phường Hàng Bông, Quận Hoàn Kiếm, Thành phố Hà Nội";
+      expect(addressContainsProvince(line, "Hanoi")).toBe(true);
+      expect(addressContainsProvince(line, "thanh pho ha noi")).toBe(true);
+      expect(addressContainsProvince(line, "Ha Giang Province")).toBe(false);
     });
   });
 });
