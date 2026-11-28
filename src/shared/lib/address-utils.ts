@@ -90,7 +90,7 @@ export function cleanProvinceName(name: string): string {
   return toTitleCase(cleaned.trim());
 }
 
-export function englishProvinceName(name: string): string {
+function englishProvinceName(name: string): string {
   if (!name) return "";
   const base = cleanProvinceName(name);
   if (!base) return "";

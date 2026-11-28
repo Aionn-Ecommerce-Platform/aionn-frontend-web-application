@@ -1,12 +1,11 @@
-"use client";
-import Link from "next/link";
-import { ArrowRight, Ticket } from "lucide-react";
+﻿"use client";
+
+import { Ticket } from "lucide-react";
 import { Button } from "@/shared/ui";
-import ProductCard from "@/components/product/ProductCard";
-import { getProductCardSummary } from "@/shared/lib/product-utils";
+
 import { formatCurrency } from "@/shared/lib/utils";
 import { calculateCheckoutTotal } from "@/lib/domain/checkout";
-import type { Address, Product, RecommendationItem } from "@/types";
+import type { Address } from "@/types";
 type T = (key: string, values?: Record<string, string | number>) => string;
 
 interface SummaryProps {
@@ -112,71 +111,5 @@ export function CheckoutSummary(props: SummaryProps) {
         {props.t("checkout.placeOrder")}
       </Button>
     </div>
-  );
-}
-
-export function CheckoutRecommendations({
-  products,
-  t,
-}: {
-  products?: Array<RecommendationItem | Product>;
-  t: T;
-}) {
-  if (!products?.length) return null;
-  return (
-    <section className="mt-12">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-gray-950">
-          {t("cart.recommendations")}
-        </h2>
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-strong"
-        >
-          {t("common.seeAll")}
-          <ArrowRight size={16} />
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-4">
-        {products.slice(0, 10).map((product) => {
-          const isRec = "priceFrom" in product;
-          const price = isRec
-            ? product.priceFrom
-            : getProductCardSummary(product).price;
-          const originalPrice = isRec
-            ? undefined
-            : getProductCardSummary(product).originalPrice;
-          const image = isRec
-            ? product.imageUrl || "/images/logo.png"
-            : getProductCardSummary(product).image;
-          const reason = isRec ? product.reason : undefined;
-          const rating = product.rating ?? undefined;
-          const reviewCount = product.reviewCount ?? undefined;
-          const sold = product.soldCount ?? undefined;
-          const flashSale = isRec ? undefined : product.flashSale;
-          const provinceName = product.provinceName ?? undefined;
-          const currency = isRec ? product.currency : undefined;
-
-          return (
-            <ProductCard
-              key={product.productId}
-              id={product.productId}
-              name={product.name}
-              price={price}
-              originalPrice={originalPrice}
-              image={image}
-              rating={rating}
-              reviewCount={reviewCount}
-              sold={sold}
-              flashSale={flashSale}
-              provinceName={provinceName}
-              provinceCode={product.provinceCode}
-              recommendationReason={reason}
-              currency={currency}
-            />
-          );
-        })}
-      </div>
-    </section>
   );
 }

@@ -7,7 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export interface LegalSection {
+interface LegalSection {
   title: string;
   body: string;
 }

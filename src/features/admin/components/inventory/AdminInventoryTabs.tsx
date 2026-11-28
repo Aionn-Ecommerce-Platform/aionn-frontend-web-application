@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Package, Search } from "lucide-react";
@@ -8,28 +8,6 @@ import { inventoryService } from "@/lib/services";
 import { isNotImplemented } from "@/shared/lib/errors";
 import { useTranslation } from "@/hooks";
 import { InventoryTable } from "./InventoryTable";
-export function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
-        active
-          ? "border-purple-400/50 bg-purple-600 text-white shadow-md shadow-purple-900/40"
-          : "border-gray-500 bg-white/[0.03] text-slate-300 hover:border-white/30 hover:text-white"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function LowStockTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
   const { t } = useTranslation();

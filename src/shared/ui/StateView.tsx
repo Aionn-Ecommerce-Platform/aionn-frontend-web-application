@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-export type StateViewTone = "light" | "dark";
+type StateViewTone = "light" | "dark";
 
 interface StateViewProps {
   icon: LucideIcon;

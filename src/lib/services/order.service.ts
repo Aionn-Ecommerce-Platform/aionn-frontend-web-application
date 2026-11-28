@@ -11,7 +11,7 @@ import type {
   TopProduct,
 } from "@/types";
 
-export interface PlaceOrderInput {
+interface PlaceOrderInput {
   addressId: string;
   paymentMethodId: string;
   currency: string;
@@ -29,7 +29,7 @@ export interface PlaceOrderInput {
   shippingServicesByMerchant?: Record<string, string>;
 }
 
-export interface PlaceOrderGroupResult {
+interface PlaceOrderGroupResult {
   groupId: string;
   orders: Order[];
 }

@@ -56,7 +56,7 @@ export function findAddress(
   return addresses?.find((address) => address.addressId === addressId) ?? null;
 }
 
-export interface CheckoutVoucherSelection {
+interface CheckoutVoucherSelection {
   platform?: UserVoucher | null;
   shop?: UserVoucher | null;
   shipping?: UserVoucher | null;

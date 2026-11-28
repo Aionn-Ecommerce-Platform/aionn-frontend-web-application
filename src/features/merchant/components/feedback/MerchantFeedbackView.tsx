@@ -34,7 +34,7 @@ import { ConsoleFilterDropdown } from "../shared/ConsoleFilterDropdown";
 import { ConsoleStatGrid } from "../shared/ConsoleStatGrid";
 import { ConsoleEmptyState, ConsolePanel } from "../shared/ConsoleShell";
 
-export type MerchantFeedbackTab = "reviews" | "questions";
+type MerchantFeedbackTab = "reviews" | "questions";
 
 const REVIEW_PAGE_SIZE = 30;
 const QUESTION_PAGE_SIZE = 30;

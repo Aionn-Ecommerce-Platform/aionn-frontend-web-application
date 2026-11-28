@@ -91,7 +91,7 @@ function pickupBadgeClass(status: string) {
   return "border-sky-400/30 bg-sky-400/10 text-sky-300";
 }
 
-export function ReturnPickupPanel({
+function ReturnPickupPanel({
   rtn,
   onChanged,
 }: {

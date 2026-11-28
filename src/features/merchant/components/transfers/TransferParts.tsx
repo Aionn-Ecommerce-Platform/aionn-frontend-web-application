@@ -1,112 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { Button, Badge, Modal, DefinitionRow as Row } from "@/shared/ui";
+import { Button, Modal } from "@/shared/ui";
 import { stockTransferService } from "@/lib/services";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { formatDateTime } from "@/shared/lib/utils";
 import { useTranslation } from "@/hooks";
-import type { StockTransfer, StockTransferStatus } from "@/types";
-const STATUS_VARIANTS: Record<
-  StockTransferStatus,
-  "default" | "info" | "success" | "danger"
-> = {
-  INITIATED: "info",
-  IN_TRANSIT: "info",
-  COMPLETED: "success",
-  CANCELLED: "danger",
-};
-export function TransferCard({
-  transfer,
-  onComplete,
-  onCancel,
-}: {
-  transfer: StockTransfer;
-  onComplete: () => void;
-  onCancel: () => void;
-}) {
-  const { t } = useTranslation();
-  const statusLabels: Record<StockTransferStatus, string> = {
-    INITIATED: t("merchant.transfers.statusInitiated"),
-    IN_TRANSIT: t("merchant.transfers.statusInTransit"),
-    COMPLETED: t("merchant.transfers.statusCompleted"),
-    CANCELLED: t("merchant.transfers.statusCancelled"),
-  };
-  const variant = STATUS_VARIANTS[transfer.status];
-  const isOpen =
-    transfer.status === "INITIATED" || transfer.status === "IN_TRANSIT";
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-400 shadow-xs overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs text-gray-500 font-mono mb-1">
-            {transfer.transferId}
-          </p>
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t("merchant.transfers.transferQuantity", { qty: transfer.qty })}
-          </h2>
-        </div>
-        <Badge variant={variant}>{statusLabels[transfer.status]}</Badge>
-      </div>
-
-      <dl className="divide-y divide-gray-50">
-        <Row
-          label={t("merchant.transfers.rowSku")}
-          value={transfer.skuId}
-          mono
-        />
-        <Row
-          label={t("merchant.transfers.rowFromWarehouse")}
-          value={transfer.fromWarehouseId}
-          mono
-        />
-        <Row
-          label={t("merchant.transfers.rowToWarehouse")}
-          value={transfer.toWarehouseId}
-          mono
-        />
-        <Row
-          label={t("merchant.transfers.rowInitiatedAt")}
-          value={formatDateTime(transfer.initiatedAt)}
-        />
-        {transfer.completedAt && (
-          <Row
-            label={t("merchant.transfers.rowCompletedAt")}
-            value={formatDateTime(transfer.completedAt)}
-          />
-        )}
-        {transfer.cancelledAt && (
-          <Row
-            label={t("merchant.transfers.rowCancelledAt")}
-            value={formatDateTime(transfer.cancelledAt)}
-          />
-        )}
-      </dl>
-
-      {isOpen && (
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-            className="text-red-600 border-red-200 hover:bg-red-50"
-          >
-            <XCircle size={14} className="mr-1.5" />
-            {t("merchant.transfers.cancelTransferBtn")}
-          </Button>
-          <Button size="sm" onClick={onComplete}>
-            <CheckCircle2 size={14} className="mr-1.5" />
-            {t("merchant.transfers.completeBtn")}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
+import type { StockTransfer } from "@/types";
 export function CreateTransferModal({
   warehouses,
   onClose,

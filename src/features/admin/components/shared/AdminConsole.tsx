@@ -1,43 +1,11 @@
 "use client";
 
-import { useEffect, type ComponentType, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { type ComponentType, type ReactNode } from "react";
+
 import type { LucideIcon } from "lucide-react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import StateView from "@/shared/ui/StateView";
 import { cn } from "@/shared/lib/utils";
-
-/** Dark board used by every admin console page. */
-export function AdminPanel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative rounded-2xl bg-console-panel p-4 text-white shadow-2xl shadow-purple-950/30 sm:p-6",
-        className,
-      )}
-    >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-        <div className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
-        <div className="absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
-            backgroundSize: "36px 36px",
-          }}
-        />
-      </div>
-      <div className="relative">{children}</div>
-    </div>
-  );
-}
 
 export function AdminHeader({
   icon: Icon,
@@ -71,7 +39,7 @@ export function AdminHeader({
   );
 }
 
-export type AdminTone =
+type AdminTone =
   | "success"
   | "warning"
   | "danger"
@@ -272,78 +240,6 @@ export const adminRow =
 
 export const adminPrimaryClass =
   "inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-900/40 transition-all hover:from-purple-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-60";
-
-export function AdminDetailModal({
-  open,
-  onClose,
-  title,
-  children,
-  footer,
-  size = "lg",
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  children: ReactNode;
-  footer?: ReactNode;
-  size?: "md" | "lg" | "xl";
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open || typeof document === "undefined") return null;
-
-  const sizes = {
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
-  };
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close"
-        tabIndex={-1}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div
-        className={cn(
-          "relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-gray-600 bg-console-panel text-white shadow-2xl shadow-purple-950/40",
-          sizes[size],
-        )}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-600/60 px-6 py-4">
-          <h2 className="truncate text-lg font-bold text-white">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="cursor-pointer rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
-        {footer && (
-          <div className="shrink-0 border-t border-slate-600/60 px-6 py-4">
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>,
-    document.body,
-  );
-}
 
 export function AdminTabs<T extends string>({
   tabs,

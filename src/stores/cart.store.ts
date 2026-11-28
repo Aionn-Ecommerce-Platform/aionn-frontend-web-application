@@ -36,7 +36,7 @@ interface CartState {
   hydrateFromServer: () => Promise<void>;
 }
 
-export type VoucherSlot = "platform" | "shop" | "shipping";
+type VoucherSlot = "platform" | "shop" | "shipping";
 
 function pruneShopVoucherCodes(
   codes: Record<string, string>,
