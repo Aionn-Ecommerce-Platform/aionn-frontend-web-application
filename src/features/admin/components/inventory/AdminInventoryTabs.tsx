@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Package, Search } from "lucide-react";

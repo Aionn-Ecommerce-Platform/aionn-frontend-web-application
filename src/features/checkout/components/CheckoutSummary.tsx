@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Ticket } from "lucide-react";
 import { Button } from "@/shared/ui";
